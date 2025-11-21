@@ -1,0 +1,73 @@
+PRD – Product Requirements Document: CRM Mastodonte
+1. Visão Geral do Produto
+O CRM Mastodonte é uma plataforma web de gestão de relacionamento focada em Wealth Management. O sistema centraliza o cadastro de clientes, o histórico de reuniões e a gestão de tarefas operacionais em um fluxo unificado. Seu objetivo é substituir ferramentas genéricas (como o Notion) por uma estrutura relacional robusta, garantindo que toda interação e pendência esteja vinculada ao cliente correto, servindo como a "Fonte da Verdade" para Consultores e Assistentes.
+
+2. Problema / Oportunidade
+Problema: A gestão atual no Notion, embora flexível, carece de estrutura rígida. Informações críticas ficam descentralizadas, o histórico do cliente se perde em meio a notas soltas e a gestão de tarefas não possui vínculo automático com o contexto do cliente, gerando risco operacional e esquecimentos.
+Oportunidade: Criar um ambiente onde a informação flui logicamente: Cliente > Reunião > Tarefa. Isso aumenta a produtividade da equipe, garante a memória corporativa e profissionaliza o atendimento.
+
+3. Público-Alvo
+Persona 1: O Consultor (Advisor)
+Focado em relacionamento e estratégia. Precisa acessar rapidamente o histórico do cliente antes de uma chamada e registrar o que foi decidido.
+Persona 2: O Assistente Operacional
+Focado em execução. Precisa de uma lista clara de tarefas (Kanban), priorizadas e com todas as informações necessárias para executar (sem precisar perguntar novamente ao consultor).
+4. Objetivos do Produto
+Objetivo 1 (Negócio): Centralizar 100% da base de clientes ativos e suas respectivas pendências em um único banco de dados seguro.
+Objetivo 2 (Usuário): Reduzir o tempo de busca por informações de clientes e eliminar a perda de tarefas ("sombra") que ocorrem fora do sistema oficial.
+5. Escopo Funcional
+5.1 Funcionalidades Principais
+Gestão de Base de Clientes: Cadastro completo (CRUD) com dados pessoais, financeiros e links externos.
+Perfil 360º do Cliente: Visualização única que mostra dados do cliente + lista de reuniões passadas + lista de tarefas pendentes.
+Log de Reuniões: Formulário para registro de atas, obrigatoriamente vinculado a um cliente.
+Kanban de Tarefas: Quadro visual (To Do, In Progress, Done) com cartões contendo: Título, Prioridade, Responsável, Data e Cliente Vinculado.
+5.2 Funcionalidades Secundárias
+Filtros Avançados: Filtrar Kanban por "Responsável" e "Prioridade" (ex: ver apenas tarefas "Urgentes" do "Rafael").
+Editor de Texto Rico: Permitir formatação básica (negrito, listas) no resumo das reuniões.
+Tags/Etiquetas: Sistema de etiquetas coloridas para status de clientes e tipos de reunião (como visto nos prints).
+5.3 Fora de Escopo (Neste MVP)
+Integração via API com bancos/corretoras.
+Portal de acesso para o cliente final.
+App nativo mobile (uso será via navegador responsivo).
+Automação de e-mails.
+6. Requisitos Detalhados
+6.1 Requisitos Funcionais
+RF01 – Autenticação: O sistema deve permitir login via e-mail e senha para usuários autorizados.
+RF02 – Cadastro de Cliente: O sistema deve permitir criar, editar e arquivar clientes. Campos obrigatórios: Nome, Status.
+RF03 – Vínculo de Entidades: Ao criar uma Tarefa ou Reunião, o sistema deve exigir a seleção de um Cliente existente.
+RF04 – Movimentação Kanban: O usuário deve poder arrastar tarefas entre as colunas (To Do > In Progress > Done) ou alterar o status via dropdown.
+RF05 – Atribuição de Tarefas: Deve ser possível atribuir uma tarefa a um usuário específico (ex: Consultor atribui ao Assistente).
+RF06 – Histórico Cronológico: No perfil do cliente, as reuniões devem aparecer ordenadas da mais recente para a mais antiga.
+6.2 Requisitos Não Funcionais
+RNF01 – Performance: O carregamento do quadro Kanban e do perfil do cliente deve ocorrer em menos de 2 segundos.
+RNF02 – Segurança: O banco de dados deve ser isolado e as senhas criptografadas.
+RNF03 – Usabilidade: A interface deve ser limpa (modo escuro preferencial, conforme prints) e responsiva para visualização em tablets.
+7. Fluxo do Usuário / Jornada
+Início: O Consultor faz login e vê o Dashboard/Kanban geral.
+Busca: Ele pesquisa pelo cliente "Alessandro Mazer".
+Contexto: O sistema exibe o perfil do Alessandro. O Consultor lê o resumo da última reunião para se preparar.
+Registro: Após a nova reunião, o Consultor clica em "Nova Reunião", digita a ata e salva.
+Ação: Na mesma tela, ele clica em "Nova Tarefa", cria "Realocar 50 mil", define como "Urgente" e atribui ao Assistente.
+Execução: O Assistente recebe a tarefa no seu Kanban, move para "In Progress", executa e finaliza movendo para "Done".
+8. Critérios de Sucesso / Métricas
+KPI 1: 100% dos clientes ativos migrados do Notion para o CRM na primeira semana.
+KPI 2: Zero tarefas criadas sem vínculo com um cliente (integridade dos dados).
+Meta Esperada: Adoção total da equipe operacional em até 15 dias após o Go-live.
+9. Plano de Implementação (por etapas)
+Etapa 1 – Planejamento
+Ações: Definição da modelagem do Banco de Dados (Tabelas: Users, Clients, Meetings, Tasks). Escolha da Stack Tecnológica (ex: Bubble, FlutterFlow ou React/Node).
+Entrega: Diagrama de Entidade-Relacionamento (DER) e Wireframes de baixa fidelidade.
+Etapa 2 – Desenvolvimento do MVP
+Ações: Configuração do ambiente. Desenvolvimento do CRUD de Clientes. Desenvolvimento da tela de Perfil do Cliente (agregadora). Implementação do Kanban lógico.
+Entrega: MVP funcional em ambiente de homologação (Staging).
+Etapa 3 – Testes e Iterações
+Ações: Migração de uma amostra de 10 clientes reais do Notion para o CRM. Teste de fluxo: Consultor cria reunião e tarefa -> Assistente conclui. Ajuste de bugs visuais e de permissão.
+Entrega: Versão estável pronta para produção.
+Etapa 4 – Lançamento
+Ações: Importação da base completa de dados. Treinamento de 1 hora com a equipe (demonstração). Virada de chave (bloqueio de edição no Notion).
+Entrega: Sistema em Produção (Go-live).
+Etapa 5 – Evolução Pós-Lançamento
+Ações: Coleta de feedback após 30 dias. Priorização de novas features (ex: Dashboards de performance da equipe).
+Entrega: Roadmap da versão 2.0.
+11. Anexos
+Referência Visual: Prints do Notion fornecidos (Task Board, Controle de Base, Reuniões, Perfil do Cliente).
+Dicionário de Dados: Lista de campos obrigatórios para cada cliente (CPF, E-mail, Telefone, Link da Pasta).
