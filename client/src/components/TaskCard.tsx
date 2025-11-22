@@ -348,16 +348,27 @@ export function TaskCard({
                 {isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "text-xs cursor-pointer hover:bg-muted/50",
-                          priority ? priorityColors[priority] : "border-dashed"
-                        )}
-                        data-testid={`badge-priority-${id}`}
+                      <div
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          // Clear any pending timeout when clicking popover trigger
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
                       >
-                        {priority || "Adicionar Prioridade"}
-                      </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-xs cursor-pointer hover:bg-muted/50",
+                            priority ? priorityColors[priority] : "border-dashed"
+                          )}
+                          data-testid={`badge-priority-${id}`}
+                        >
+                          {priority || "Adicionar Prioridade"}
+                        </Badge>
+                      </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-1 p-1">
@@ -412,16 +423,27 @@ export function TaskCard({
                 {isEditing ? (
                   <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "text-xs cursor-pointer hover:bg-muted/50",
-                          statusColors[status]
-                        )}
-                        data-testid={`badge-status-${id}`}
+                      <div
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          // Clear any pending timeout when clicking popover trigger
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
                       >
-                        {status}
-                      </Badge>
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-xs cursor-pointer hover:bg-muted/50",
+                            statusColors[status]
+                          )}
+                          data-testid={`badge-status-${id}`}
+                        >
+                          {status}
+                        </Badge>
+                      </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-1 p-1">
@@ -544,6 +566,14 @@ export function TaskCard({
                       <div
                         className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
                         data-testid={`button-date-${id}`}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          // Clear any pending timeout when clicking popover trigger
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
                       >
                         <CalendarIcon className="w-3 h-3" />
                         <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
