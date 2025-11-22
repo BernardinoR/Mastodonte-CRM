@@ -8,15 +8,18 @@ import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
+type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 
 interface Task {
   id: string;
   title: string;
-  clientName: string;
-  priority: "Urgente" | "Normal";
+  clientName?: string;
+  priority?: TaskPriority;
   status: TaskStatus;
   assignee: string;
   dueDate: Date;
+  description?: string;
+  notes?: string[];
 }
 
 export default function Dashboard() {
@@ -39,7 +42,7 @@ export default function Dashboard() {
       id: "2",
       title: "Atualizar plano financeiro da Fernanda",
       clientName: "Fernanda Carolina De Faria",
-      priority: "Normal" as const,
+      priority: "Importante" as const,
       status: "To Do" as const,
       assignee: "Rafael Bernardino Silveira",
       dueDate: new Date('2025-11-15'),
@@ -47,8 +50,6 @@ export default function Dashboard() {
     {
       id: "3",
       title: "Aguardar retorno sobre apresentação do Ariel",
-      clientName: "Gustavo Samconi Soares",
-      priority: "Normal" as const,
       status: "To Do" as const,
       assignee: "Rafael Bernardino Silveira",
       dueDate: new Date('2025-11-16'),
@@ -57,7 +58,7 @@ export default function Dashboard() {
       id: "4",
       title: "Receber documentação da Viva",
       clientName: "Israel Schuster Da Fonseca",
-      priority: "Normal" as const,
+      priority: "Baixa" as const,
       status: "To Do" as const,
       assignee: "Rafael Bernardino Silveira",
       dueDate: new Date('2025-11-20'),
@@ -111,7 +112,7 @@ export default function Dashboard() {
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          task.clientName.toLowerCase().includes(searchQuery.toLowerCase());
+                          (task.clientName && task.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
     const matchesAssignee = assigneeFilter === "all" || task.assignee.includes(assigneeFilter);
     const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
     return matchesSearch && matchesAssignee && matchesPriority;
@@ -146,6 +147,20 @@ export default function Dashboard() {
     );
   };
 
+  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === taskId
+          ? { ...task, ...updates }
+          : task
+      )
+    );
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -177,7 +192,8 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
-                onClick={() => console.log('Task clicked:', task.id)}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
               />
             ))}
           </KanbanColumn>
@@ -192,7 +208,8 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
-                onClick={() => console.log('Task clicked:', task.id)}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
               />
             ))}
           </KanbanColumn>
@@ -207,7 +224,8 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
-                onClick={() => console.log('Task clicked:', task.id)}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
               />
             ))}
           </KanbanColumn>

@@ -1,21 +1,54 @@
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar, Pencil, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+
+type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
+type TaskStatus = "To Do" | "In Progress" | "Done";
 
 interface TaskCardProps {
   id: string;
   title: string;
-  clientName: string;
-  priority: "Urgente" | "Normal";
-  status: "To Do" | "In Progress" | "Done";
-  assignee?: string;
-  dueDate?: Date;
-  onClick?: () => void;
+  clientName?: string;
+  priority?: TaskPriority;
+  status: TaskStatus;
+  assignee: string;
+  dueDate: Date;
+  description?: string;
+  notes?: string[];
+  onUpdate: (id: string, updates: Partial<TaskCardProps>) => void;
+  onDelete: (id: string) => void;
 }
 
 export function TaskCard({
@@ -26,10 +59,29 @@ export function TaskCard({
   status,
   assignee,
   dueDate,
-  onClick,
+  description,
+  notes,
+  onUpdate,
+  onDelete,
 }: TaskCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [editedTask, setEditedTask] = useState({
+    title,
+    clientName: clientName || "",
+    priority: priority || "",
+    status,
+    assignee,
+    dueDate: format(dueDate, "yyyy-MM-dd"),
+    description: description || "",
+  });
+  const [newNote, setNewNote] = useState("");
+  const cardRef = useRef<HTMLDivElement>(null);
+
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
+    disabled: isEditing,
   });
 
   const style = {
@@ -37,9 +89,11 @@ export function TaskCard({
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const priorityColors = {
+  const priorityColors: Record<string, string> = {
     Urgente: "bg-destructive/10 text-destructive border-destructive/20",
+    Importante: "bg-orange-500/10 text-orange-400 border-orange-500/20",
     Normal: "bg-muted text-muted-foreground border-muted-foreground/20",
+    Baixa: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   };
 
   const statusColors = {
@@ -48,31 +102,192 @@ export function TaskCard({
     Done: "bg-green-500/10 text-green-400 border-green-500/20",
   };
 
+  const handleSave = () => {
+    onUpdate(id, {
+      title: editedTask.title,
+      clientName: editedTask.clientName || undefined,
+      priority: (editedTask.priority as TaskPriority) || undefined,
+      status: editedTask.status,
+      assignee: editedTask.assignee,
+      dueDate: new Date(editedTask.dueDate),
+      description: editedTask.description,
+    });
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isEditing && cardRef.current && !cardRef.current.contains(event.target as Node)) {
+        handleSave();
+      }
+    };
+
+    if (isEditing) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isEditing, editedTask.title, editedTask.clientName, editedTask.priority, editedTask.status, editedTask.assignee, editedTask.dueDate]);
+
+  const handleDelete = () => {
+    onDelete(id);
+    setShowDeleteConfirm(false);
+  };
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      const updatedNotes = [...(notes || []), `${new Date().toLocaleString('pt-BR')}: ${newNote}`];
+      onUpdate(id, { notes: updatedNotes });
+      setNewNote("");
+    }
+  };
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!isEditing && !(e.target as HTMLElement).closest('button')) {
+      setShowDetails(true);
+    }
+  };
+
+  const handleEditClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setShowDeleteConfirm(true);
+  };
+
   return (
-    <Card 
-      ref={setNodeRef}
-      style={style}
-      className="hover-elevate active-elevate-2 cursor-grab active:cursor-grabbing" 
-      data-testid={`card-task-${id}`}
-      {...listeners}
-      {...attributes}
-    >
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          <div>
-            <h3 className="font-medium text-base mb-2" data-testid={`text-tasktitle-${id}`}>{title}</h3>
+    <>
+      {isEditing ? (
+        <Card 
+          ref={cardRef}
+          className="border-primary"
+          data-testid={`card-task-${id}`}
+        >
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <Input
+                  value={editedTask.title}
+                  onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
+                  placeholder="Título da tarefa"
+                  className="font-medium"
+                  data-testid={`input-title-${id}`}
+                />
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={handleDeleteClick}
+                  data-testid={`button-delete-${id}`}
+                >
+                  <Trash2 className="w-4 h-4 text-destructive" />
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Input
+                  type="date"
+                  value={editedTask.dueDate}
+                  onChange={(e) => setEditedTask({ ...editedTask, dueDate: e.target.value })}
+                  data-testid={`input-date-${id}`}
+                />
+
+                <Select
+                  value={editedTask.clientName || "_none"}
+                  onValueChange={(value) => setEditedTask({ ...editedTask, clientName: value === "_none" ? "" : value })}
+                >
+                  <SelectTrigger data-testid={`select-client-${id}`}>
+                    <SelectValue placeholder="Selecionar cliente (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Nenhum</SelectItem>
+                    <SelectItem value="Ademar João Gréguer">Ademar João Gréguer</SelectItem>
+                    <SelectItem value="Fernanda Carolina De Faria">Fernanda Carolina De Faria</SelectItem>
+                    <SelectItem value="Gustavo Samconi Soares">Gustavo Samconi Soares</SelectItem>
+                    <SelectItem value="Israel Schuster Da Fonseca">Israel Schuster Da Fonseca</SelectItem>
+                    <SelectItem value="Marcia Mozzato Ciampi De Andrade">Marcia Mozzato Ciampi De Andrade</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={editedTask.priority || "_none"}
+                  onValueChange={(value) => setEditedTask({ ...editedTask, priority: value === "_none" ? "" : value })}
+                >
+                  <SelectTrigger data-testid={`select-priority-${id}`}>
+                    <SelectValue placeholder="Prioridade (opcional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">Nenhuma</SelectItem>
+                    <SelectItem value="Urgente">Urgente</SelectItem>
+                    <SelectItem value="Importante">Importante</SelectItem>
+                    <SelectItem value="Normal">Normal</SelectItem>
+                    <SelectItem value="Baixa">Baixa</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={editedTask.status}
+                  onValueChange={(value) => setEditedTask({ ...editedTask, status: value as TaskStatus })}
+                >
+                  <SelectTrigger data-testid={`select-status-${id}`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="To Do">To Do</SelectItem>
+                    <SelectItem value="In Progress">In Progress</SelectItem>
+                    <SelectItem value="Done">Done</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Input
+                  value={editedTask.assignee}
+                  onChange={(e) => setEditedTask({ ...editedTask, assignee: e.target.value })}
+                  placeholder="Responsável"
+                  data-testid={`input-assignee-${id}`}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        <Card 
+          ref={setNodeRef}
+          style={style}
+          className="hover-elevate active-elevate-2 cursor-pointer" 
+          data-testid={`card-task-${id}`}
+          onClick={handleCardClick}
+          {...(!isEditing ? listeners : {})}
+          {...(!isEditing ? attributes : {})}
+        >
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="font-medium text-base" data-testid={`text-tasktitle-${id}`}>{title}</h3>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 shrink-0"
+                onClick={handleEditClick}
+                data-testid={`button-edit-${id}`}
+              >
+                <Pencil className="w-3 h-3" />
+              </Button>
+            </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
-                {priority}
-              </Badge>
+              {priority && (
+                <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
+                  {priority}
+                </Badge>
+              )}
               <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
                 {status}
               </Badge>
-              <span className="text-xs text-muted-foreground">{clientName}</span>
+              {clientName && (
+                <span className="text-xs text-muted-foreground">{clientName}</span>
+              )}
             </div>
-          </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-            {assignee && (
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
               <div className="flex items-center gap-1.5">
                 <Avatar className="w-5 h-5">
                   <AvatarFallback className="text-[10px]">
@@ -81,16 +296,82 @@ export function TaskCard({
                 </Avatar>
                 <span>{assignee}</span>
               </div>
-            )}
-            {dueDate && (
               <div className="flex items-center gap-1">
                 <Calendar className="w-3 h-3" />
                 <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
               </div>
-            )}
+            </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+        </Card>
+      )}
+
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-2xl" data-testid={`dialog-details-${id}`}>
+          <DialogHeader>
+            <DialogTitle>{title}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Descrição</label>
+              <Textarea
+                value={editedTask.description}
+                onChange={(e) => {
+                  setEditedTask({ ...editedTask, description: e.target.value });
+                  onUpdate(id, { description: e.target.value });
+                }}
+                placeholder="Adicione detalhes sobre esta tarefa..."
+                className="min-h-[100px]"
+                data-testid={`textarea-description-${id}`}
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium mb-2 block">Histórico / Notas</label>
+              <div className="space-y-2 mb-3">
+                {notes && notes.length > 0 ? (
+                  notes.map((note, index) => (
+                    <div key={index} className="p-2 bg-muted rounded-md text-sm" data-testid={`note-${id}-${index}`}>
+                      {note}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nenhuma nota ainda.</p>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <Input
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Adicionar nota..."
+                  onKeyPress={(e) => e.key === 'Enter' && handleAddNote()}
+                  data-testid={`input-newnote-${id}`}
+                />
+                <Button onClick={handleAddNote} data-testid={`button-addnote-${id}`}>
+                  Adicionar
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. A tarefa "{title}" será permanentemente excluída.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid={`button-canceldelete-${id}`}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} data-testid={`button-confirmdelete-${id}`}>
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
