@@ -1,14 +1,20 @@
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useDroppable } from "@dnd-kit/core";
 
 interface KanbanColumnProps {
+  id: string;
   title: string;
   count: number;
   children: React.ReactNode;
   color?: string;
 }
 
-export function KanbanColumn({ title, count, children, color = "text-foreground" }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, count, children, color = "text-foreground" }: KanbanColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: id,
+  });
+
   return (
     <div className="flex-1 min-w-[320px]">
       <div className="flex items-center justify-between mb-4 px-2">
@@ -19,7 +25,12 @@ export function KanbanColumn({ title, count, children, color = "text-foreground"
           {count}
         </Badge>
       </div>
-      <div className="space-y-3">
+      <div 
+        ref={setNodeRef}
+        className={`space-y-3 min-h-[400px] p-2 rounded-lg transition-colors ${
+          isOver ? 'bg-accent/20 border-2 border-dashed border-accent' : ''
+        }`}
+      >
         {children}
       </div>
     </div>

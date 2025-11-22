@@ -4,6 +4,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, User } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
 interface TaskCardProps {
   id: string;
@@ -26,6 +28,15 @@ export function TaskCard({
   dueDate,
   onClick,
 }: TaskCardProps) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: id,
+  });
+
+  const style = {
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const priorityColors = {
     Urgente: "bg-destructive/10 text-destructive border-destructive/20",
     Normal: "bg-muted text-muted-foreground border-muted-foreground/20",
@@ -39,9 +50,12 @@ export function TaskCard({
 
   return (
     <Card 
-      className="hover-elevate active-elevate-2 cursor-pointer" 
-      onClick={onClick}
+      ref={setNodeRef}
+      style={style}
+      className="hover-elevate active-elevate-2 cursor-grab active:cursor-grabbing" 
       data-testid={`card-task-${id}`}
+      {...listeners}
+      {...attributes}
     >
       <CardContent className="p-4">
         <div className="space-y-3">
