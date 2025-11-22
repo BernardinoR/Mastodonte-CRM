@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Pencil, Trash2, User, FileText, Flag } from "lucide-react";
+import { Calendar as CalendarIcon, Pencil, Trash2, Check } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDraggable } from "@dnd-kit/core";
@@ -33,6 +33,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
+
+// Global flag to prevent card clicks immediately after exiting edit mode
+let globalJustClosedEdit = false;
 
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 type TaskStatus = "To Do" | "In Progress" | "Done";
@@ -64,6 +74,7 @@ export function TaskCard({
   onUpdate,
   onDelete,
 }: TaskCardProps) {
+  const [isEditing, setIsEditing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editedTask, setEditedTask] = useState({
@@ -76,6 +87,15 @@ export function TaskCard({
     description: description || "",
   });
   const [newNote, setNewNote] = useState("");
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+  const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
+  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
+  
+  const cardRef = useRef<HTMLDivElement>(null);
+  const titleRef = useRef<HTMLDivElement>(null);
+  const assigneeRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setEditedTask({
@@ -91,6 +111,7 @@ export function TaskCard({
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
+    disabled: isEditing,
   });
 
   const style = {
@@ -105,92 +126,365 @@ export function TaskCard({
     Baixa: "bg-blue-500/10 text-blue-400 border-blue-500/20",
   };
 
-  const statusColors = {
+  const statusColors: Record<string, string> = {
     "To Do": "bg-blue-500/10 text-blue-400 border-blue-500/20",
     "In Progress": "bg-primary/10 text-primary border-primary/20",
     Done: "bg-green-500/10 text-green-400 border-green-500/20",
   };
 
-  const handleUpdate = (field: string, value: any) => {
-    const updates: any = {};
-    
-    if (field === "dueDate") {
-      updates.dueDate = new Date(value);
-    } else if (field === "priority") {
-      updates.priority = value === "_none" ? undefined : (value as TaskPriority);
-    } else if (field === "clientName") {
-      updates.clientName = value === "_none" ? undefined : value;
-    } else {
-      updates[field] = value;
+  const handleSave = () => {
+    setIsEditing(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      
+      // Ignore clicks on Radix portals (Select, Dialog, etc)
+      const isPortal = target.closest('[role="dialog"]') || 
+                      target.closest('[data-radix-portal]') ||
+                      target.closest('[role="listbox"]') ||
+                      target.closest('[role="menu"]') ||
+                      target.closest('[data-radix-popper-content-wrapper]');
+      
+      if (isEditing && cardRef.current && !cardRef.current.contains(target) && !isPortal) {
+        // Set flag FIRST to prevent any card clicks in the same event cycle
+        globalJustClosedEdit = true;
+        setTimeout(() => {
+          globalJustClosedEdit = false;
+        }, 300);
+        
+        // Stop propagation to prevent click from reaching other elements
+        event.preventDefault();
+        event.stopPropagation();
+        event.stopImmediatePropagation();
+        
+        handleSave();
+      }
+    };
+
+    if (isEditing) {
+      document.addEventListener("mousedown", handleClickOutside, true);
+      document.addEventListener("click", handleClickOutside, true);
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside, true);
+        document.removeEventListener("click", handleClickOutside, true);
+      };
     }
+  }, [isEditing]);
+
+  const handleUpdate = (field: string, value: any) => {
+    const updated = { ...editedTask, [field]: value };
+    setEditedTask(updated);
     
-    onUpdate(id, updates);
-    setEditedTask({ ...editedTask, [field]: value === "_none" ? "" : value });
+    // Auto-save immediately on field change
+    onUpdate(id, {
+      title: updated.title,
+      clientName: updated.clientName || undefined,
+      priority: (updated.priority as TaskPriority) || undefined,
+      status: updated.status as TaskStatus,
+      assignee: updated.assignee,
+      dueDate: new Date(updated.dueDate),
+    });
   };
 
   const handleDelete = () => {
     onDelete(id);
     setShowDeleteConfirm(false);
-    setShowDetails(false);
   };
 
   const handleAddNote = () => {
     if (newNote.trim()) {
-      const updatedNotes = [...(notes || []), `${new Date().toLocaleString('pt-BR')}: ${newNote}`];
-      onUpdate(id, { notes: updatedNotes });
+      onUpdate(id, {
+        notes: [...(notes || []), newNote],
+      });
       setNewNote("");
     }
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!(e.target as HTMLElement).closest('button')) {
+    if (!isEditing && !(e.target as HTMLElement).closest('button') && !globalJustClosedEdit) {
       setShowDetails(true);
     }
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowDetails(true);
+    setIsEditing(true);
+  };
+
+  const handleTitleEdit = (e: React.FocusEvent<HTMLDivElement>) => {
+    const newTitle = e.currentTarget.textContent || "";
+    if (newTitle.trim() && newTitle !== editedTask.title) {
+      handleUpdate("title", newTitle.trim());
+    } else if (!newTitle.trim()) {
+      // Restore original title if empty
+      e.currentTarget.textContent = editedTask.title;
+    }
+  };
+
+  const handleAssigneeEdit = (e: React.FocusEvent<HTMLDivElement>) => {
+    const newAssignee = e.currentTarget.textContent || "";
+    if (newAssignee.trim() && newAssignee !== editedTask.assignee) {
+      handleUpdate("assignee", newAssignee.trim());
+    } else if (!newAssignee.trim()) {
+      // Restore original assignee if empty
+      e.currentTarget.textContent = editedTask.assignee;
+    }
+  };
+
+  const handleDateChange = (date: Date | undefined) => {
+    if (date) {
+      handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
+      setDatePopoverOpen(false);
+    }
+  };
+
+  const handlePriorityChange = (value: string) => {
+    handleUpdate("priority", value === "_none" ? "" : value);
+    setPriorityPopoverOpen(false);
+  };
+
+  const handleStatusChange = (value: string) => {
+    handleUpdate("status", value);
+    setStatusPopoverOpen(false);
+  };
+
+  const handleClientChange = (value: string) => {
+    handleUpdate("clientName", value === "_none" ? "" : value);
+    setClientPopoverOpen(false);
   };
 
   return (
     <>
-      <Card 
-        ref={setNodeRef}
-        style={style}
-        className="hover-elevate active-elevate-2 cursor-pointer" 
-        data-testid={`card-task-${id}`}
+      <Card
+        ref={cardRef}
+        className={cn(
+          "cursor-pointer transition-all hover-elevate active-elevate-2",
+          isEditing && "ring-2 ring-primary shadow-lg"
+        )}
         onClick={handleCardClick}
-        {...listeners}
-        {...attributes}
+        data-testid={`card-task-${id}`}
+        setNodeRef={setNodeRef}
+        style={style}
+        {...(!isEditing ? { ...attributes, ...listeners } : {})}
       >
         <CardContent className="p-4">
           <div className="space-y-3">
             <div className="flex items-start justify-between gap-2">
-              <h3 className="font-medium text-base" data-testid={`text-tasktitle-${id}`}>{title}</h3>
-              <Button
-                size="icon"
-                variant="ghost"
-                className="h-6 w-6 shrink-0"
-                onClick={handleEditClick}
-                data-testid={`button-edit-${id}`}
+              <div
+                ref={titleRef}
+                contentEditable={isEditing}
+                suppressContentEditableWarning
+                onBlur={handleTitleEdit}
+                onClick={(e) => isEditing && e.stopPropagation()}
+                className={cn(
+                  "font-medium text-base flex-1",
+                  isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                )}
+                data-testid={`text-tasktitle-${id}`}
               >
-                <Pencil className="w-3 h-3" />
-              </Button>
+                {title}
+              </div>
+              <div className="flex items-center gap-1">
+                {isEditing && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                    data-testid={`button-delete-${id}`}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </Button>
+                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 shrink-0"
+                  onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
+                  data-testid={`button-edit-${id}`}
+                >
+                  {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
+                </Button>
+              </div>
             </div>
+            
             <div className="flex items-center gap-2 flex-wrap">
-              {priority && (
+              {/* Priority Badge */}
+              {isEditing ? (
+                <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs cursor-pointer hover:bg-muted/50",
+                        priority ? priorityColors[priority] : "border-dashed"
+                      )}
+                      onClick={(e) => { e.stopPropagation(); setPriorityPopoverOpen(true); }}
+                      data-testid={`badge-priority-${id}`}
+                    >
+                      {priority || "Adicionar Prioridade"}
+                    </Badge>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-0">
+                    <div className="space-y-1 p-1">
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handlePriorityChange("_none")}
+                      >
+                        Nenhuma
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handlePriorityChange("Urgente")}
+                      >
+                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+                          Urgente
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handlePriorityChange("Importante")}
+                      >
+                        <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-xs">
+                          Importante
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handlePriorityChange("Normal")}
+                      >
+                        <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-xs">
+                          Normal
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handlePriorityChange("Baixa")}
+                      >
+                        <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                          Baixa
+                        </Badge>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : priority ? (
                 <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
                   {priority}
                 </Badge>
+              ) : null}
+              
+              {/* Status Badge */}
+              {isEditing ? (
+                <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Badge 
+                      variant="outline" 
+                      className={cn(
+                        "text-xs cursor-pointer hover:bg-muted/50",
+                        statusColors[status]
+                      )}
+                      onClick={(e) => { e.stopPropagation(); setStatusPopoverOpen(true); }}
+                      data-testid={`badge-status-${id}`}
+                    >
+                      {status}
+                    </Badge>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-0">
+                    <div className="space-y-1 p-1">
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("To Do")}
+                      >
+                        <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                          To Do
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("In Progress")}
+                      >
+                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                          In Progress
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("Done")}
+                      >
+                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                          Done
+                        </Badge>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
+                  {status}
+                </Badge>
               )}
-              <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
-                {status}
-              </Badge>
-              {clientName && (
+              
+              {/* Client Name */}
+              {isEditing ? (
+                <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <span 
+                      className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
+                      onClick={(e) => { e.stopPropagation(); setClientPopoverOpen(true); }}
+                      data-testid={`text-client-${id}`}
+                    >
+                      {clientName || "Adicionar cliente"}
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0">
+                    <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("_none")}
+                      >
+                        Nenhum
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("Ademar João Gréguer")}
+                      >
+                        Ademar João Gréguer
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("Fernanda Carolina De Faria")}
+                      >
+                        Fernanda Carolina De Faria
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("Gustavo Samconi Soares")}
+                      >
+                        Gustavo Samconi Soares
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
+                      >
+                        Israel Schuster Da Fonseca
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                        onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
+                      >
+                        Marcia Mozzato Ciampi De Andrade
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : clientName ? (
                 <span className="text-xs text-muted-foreground">{clientName}</span>
-              )}
+              ) : null}
             </div>
+            
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
               <div className="flex items-center gap-1.5">
                 <Avatar className="w-5 h-5">
@@ -198,12 +492,50 @@ export function TaskCard({
                     {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <span>{assignee}</span>
+                <div
+                  ref={assigneeRef}
+                  contentEditable={isEditing}
+                  suppressContentEditableWarning
+                  onBlur={handleAssigneeEdit}
+                  onClick={(e) => isEditing && e.stopPropagation()}
+                  className={cn(
+                    isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                  )}
+                  data-testid={`text-assignee-${id}`}
+                >
+                  {assignee}
+                </div>
               </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-              </div>
+              
+              {/* Date Picker */}
+              {isEditing ? (
+                <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <div
+                      className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
+                      onClick={(e) => { e.stopPropagation(); setDatePopoverOpen(true); }}
+                      data-testid={`button-date-${id}`}
+                    >
+                      <CalendarIcon className="w-3 h-3" />
+                      <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="end">
+                    <Calendar
+                      mode="single"
+                      selected={new Date(editedTask.dueDate)}
+                      onSelect={handleDateChange}
+                      locale={ptBR}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <div className="flex items-center gap-1">
+                  <CalendarIcon className="w-3 h-3" />
+                  <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                </div>
+              )}
             </div>
           </div>
         </CardContent>
@@ -212,191 +544,61 @@ export function TaskCard({
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
           <DialogHeader className="space-y-0 pb-4">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <DialogTitle className="sr-only">{title}</DialogTitle>
-                <Input
-                  value={editedTask.title}
-                  onChange={(e) => handleUpdate("title", e.target.value)}
-                  className="text-2xl font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                  placeholder="Título da tarefa"
-                  data-testid={`input-modal-title-${id}`}
-                />
-              </div>
-              <Button
-                size="icon"
-                variant="ghost"
-                onClick={() => setShowDeleteConfirm(true)}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                data-testid={`button-modal-delete-${id}`}
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            </div>
+            <DialogTitle>{title}</DialogTitle>
+            <Button
+              size="icon"
+              variant="ghost"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="absolute right-4 top-4 text-destructive hover:text-destructive hover:bg-destructive/10"
+              data-testid={`button-modal-delete-${id}`}
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
           </DialogHeader>
 
           <div className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                  Data de Vencimento
-                </label>
-                <Input
-                  type="date"
-                  value={editedTask.dueDate}
-                  onChange={(e) => handleUpdate("dueDate", e.target.value)}
-                  className="hover-elevate"
-                  data-testid={`input-modal-date-${id}`}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  Cliente
-                </label>
-                <Select
-                  value={editedTask.clientName || "_none"}
-                  onValueChange={(value) => handleUpdate("clientName", value)}
-                >
-                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-client-${id}`}>
-                    <SelectValue placeholder="Selecionar cliente (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">Nenhum</SelectItem>
-                    <SelectItem value="Ademar João Gréguer">Ademar João Gréguer</SelectItem>
-                    <SelectItem value="Fernanda Carolina De Faria">Fernanda Carolina De Faria</SelectItem>
-                    <SelectItem value="Gustavo Samconi Soares">Gustavo Samconi Soares</SelectItem>
-                    <SelectItem value="Israel Schuster Da Fonseca">Israel Schuster Da Fonseca</SelectItem>
-                    <SelectItem value="Marcia Mozzato Ciampi De Andrade">Marcia Mozzato Ciampi De Andrade</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <Flag className="w-4 h-4 text-muted-foreground" />
-                  Prioridade
-                </label>
-                <Select
-                  value={editedTask.priority || "_none"}
-                  onValueChange={(value) => handleUpdate("priority", value)}
-                >
-                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-priority-${id}`}>
-                    <SelectValue placeholder="Prioridade (opcional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">Nenhuma</SelectItem>
-                    <SelectItem value="Urgente">
-                      <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
-                        Urgente
-                      </Badge>
-                    </SelectItem>
-                    <SelectItem value="Importante">
-                      <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20">
-                        Importante
-                      </Badge>
-                    </SelectItem>
-                    <SelectItem value="Normal">
-                      <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20">
-                        Normal
-                      </Badge>
-                    </SelectItem>
-                    <SelectItem value="Baixa">
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
-                        Baixa
-                      </Badge>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-muted-foreground" />
-                  Status
-                </label>
-                <Select
-                  value={editedTask.status}
-                  onValueChange={(value) => handleUpdate("status", value)}
-                >
-                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-status-${id}`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="To Do">
-                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
-                        To Do
-                      </Badge>
-                    </SelectItem>
-                    <SelectItem value="In Progress">
-                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
-                        In Progress
-                      </Badge>
-                    </SelectItem>
-                    <SelectItem value="Done">
-                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
-                        Done
-                      </Badge>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-sm font-medium flex items-center gap-2">
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  Responsável
-                </label>
-                <Input
-                  value={editedTask.assignee}
-                  onChange={(e) => handleUpdate("assignee", e.target.value)}
-                  placeholder="Nome do responsável"
-                  className="hover-elevate"
-                  data-testid={`input-modal-assignee-${id}`}
-                />
-              </div>
-            </div>
-
             <div className="border-t pt-6">
               <label className="text-sm font-medium mb-3 block">Descrição</label>
               <Textarea
                 value={editedTask.description}
-                onChange={(e) => handleUpdate("description", e.target.value)}
+                onChange={(e) => {
+                  setEditedTask({ ...editedTask, description: e.target.value });
+                  onUpdate(id, { description: e.target.value });
+                }}
                 placeholder="Adicione detalhes sobre esta tarefa..."
-                className="min-h-[120px] hover-elevate resize-none"
-                data-testid={`textarea-modal-description-${id}`}
+                className="min-h-[100px] hover-elevate"
+                data-testid={`textarea-description-${id}`}
               />
             </div>
 
             <div className="border-t pt-6">
-              <label className="text-sm font-medium mb-3 block">Histórico / Notas</label>
-              <div className="space-y-2 mb-4">
-                {notes && notes.length > 0 ? (
-                  notes.map((note, index) => (
-                    <div 
-                      key={index} 
-                      className="p-3 bg-muted/50 rounded-md text-sm border border-border/50" 
-                      data-testid={`note-${id}-${index}`}
-                    >
+              <h3 className="text-sm font-medium mb-3">Histórico / Notas</h3>
+              {notes && notes.length > 0 ? (
+                <div className="space-y-2 mb-4">
+                  {notes.map((note, index) => (
+                    <div key={index} className="p-3 bg-muted rounded-lg text-sm">
                       {note}
                     </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-muted-foreground italic">Nenhuma nota ainda.</p>
-                )}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground mb-4">Nenhuma nota ainda.</p>
+              )}
               <div className="flex gap-2">
                 <Input
                   value={newNote}
                   onChange={(e) => setNewNote(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault();
+                      handleAddNote();
+                    }
+                  }}
                   placeholder="Adicionar nota..."
-                  onKeyPress={(e) => e.key === 'Enter' && handleAddNote()}
-                  className="hover-elevate"
-                  data-testid={`input-modal-newnote-${id}`}
+                  className="flex-1"
+                  data-testid={`input-note-${id}`}
                 />
-                <Button onClick={handleAddNote} data-testid={`button-modal-addnote-${id}`}>
+                <Button onClick={handleAddNote} data-testid={`button-addnote-${id}`}>
                   Adicionar
                 </Button>
               </div>
@@ -408,14 +610,18 @@ export function TaskCard({
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Excluir tarefa?</AlertDialogTitle>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. A tarefa "{title}" será permanentemente excluída.
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente esta tarefa.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel data-testid={`button-canceldelete-${id}`}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} data-testid={`button-confirmdelete-${id}`}>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete} 
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              data-testid={`button-confirmdelete-${id}`}
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
