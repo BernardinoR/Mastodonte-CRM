@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar, Pencil, Trash2, X } from "lucide-react";
+import { Calendar, Pencil, Trash2, User, FileText, Flag } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useDraggable } from "@dnd-kit/core";
@@ -33,9 +33,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-// Global flag to prevent card clicks immediately after exiting edit mode
-let globalJustClosedEdit = false;
 
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 type TaskStatus = "To Do" | "In Progress" | "Done";
@@ -67,7 +64,6 @@ export function TaskCard({
   onUpdate,
   onDelete,
 }: TaskCardProps) {
-  const [isEditing, setIsEditing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [editedTask, setEditedTask] = useState({
@@ -80,7 +76,6 @@ export function TaskCard({
     description: description || "",
   });
   const [newNote, setNewNote] = useState("");
-  const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setEditedTask({
@@ -96,7 +91,6 @@ export function TaskCard({
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
-    disabled: isEditing,
   });
 
   const style = {
@@ -117,67 +111,21 @@ export function TaskCard({
     Done: "bg-green-500/10 text-green-400 border-green-500/20",
   };
 
-  const handleSave = () => {
-    onUpdate(id, {
-      title: editedTask.title,
-      clientName: editedTask.clientName || undefined,
-      priority: (editedTask.priority as TaskPriority) || undefined,
-      status: editedTask.status,
-      assignee: editedTask.assignee,
-      dueDate: new Date(editedTask.dueDate),
-    });
-    setIsEditing(false);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      
-      // Ignore clicks on Radix portals (Select, Dialog, etc)
-      const isPortal = target.closest('[role="dialog"]') || 
-                      target.closest('[data-radix-portal]') ||
-                      target.closest('[role="listbox"]') ||
-                      target.closest('[role="menu"]');
-      
-      if (isEditing && cardRef.current && !cardRef.current.contains(target) && !isPortal) {
-        // Set flag FIRST to prevent any card clicks in the same event cycle
-        globalJustClosedEdit = true;
-        setTimeout(() => {
-          globalJustClosedEdit = false;
-        }, 300);
-        
-        // Stop propagation to prevent click from reaching other elements
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        
-        handleSave();
-      }
-    };
-
-    if (isEditing) {
-      document.addEventListener("mousedown", handleClickOutside, true);
-      document.addEventListener("click", handleClickOutside, true);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside, true);
-        document.removeEventListener("click", handleClickOutside, true);
-      };
-    }
-  }, [isEditing]);
-
   const handleUpdate = (field: string, value: any) => {
-    const updated = { ...editedTask, [field]: value };
-    setEditedTask(updated);
+    const updates: any = {};
     
-    // Auto-save immediately on field change
-    onUpdate(id, {
-      title: updated.title,
-      clientName: updated.clientName || undefined,
-      priority: (updated.priority as TaskPriority) || undefined,
-      status: updated.status,
-      assignee: updated.assignee,
-      dueDate: new Date(updated.dueDate),
-    });
+    if (field === "dueDate") {
+      updates.dueDate = new Date(value);
+    } else if (field === "priority") {
+      updates.priority = value === "_none" ? undefined : (value as TaskPriority);
+    } else if (field === "clientName") {
+      updates.clientName = value === "_none" ? undefined : value;
+    } else {
+      updates[field] = value;
+    }
+    
+    onUpdate(id, updates);
+    setEditedTask({ ...editedTask, [field]: value === "_none" ? "" : value });
   };
 
   const handleDelete = () => {
@@ -195,101 +143,124 @@ export function TaskCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!isEditing && !(e.target as HTMLElement).closest('button') && !globalJustClosedEdit) {
+    if (!(e.target as HTMLElement).closest('button')) {
       setShowDetails(true);
     }
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsEditing(true);
-  };
-
-  const handleDeleteClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setShowDeleteConfirm(true);
+    setShowDetails(true);
   };
 
   return (
     <>
       <Card 
-        ref={isEditing ? cardRef : setNodeRef}
-        style={isEditing ? undefined : style}
-        className={isEditing ? "border-primary shadow-lg" : "hover-elevate active-elevate-2 cursor-pointer"}
+        ref={setNodeRef}
+        style={style}
+        className="hover-elevate active-elevate-2 cursor-pointer" 
         data-testid={`card-task-${id}`}
-        onClick={isEditing ? undefined : handleCardClick}
-        {...(isEditing ? {} : listeners)}
-        {...(isEditing ? {} : attributes)}
+        onClick={handleCardClick}
+        {...listeners}
+        {...attributes}
       >
         <CardContent className="p-4">
           <div className="space-y-3">
-            {/* Header with title and edit button */}
             <div className="flex items-start justify-between gap-2">
-              {isEditing ? (
+              <h3 className="font-medium text-base" data-testid={`text-tasktitle-${id}`}>{title}</h3>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 shrink-0"
+                onClick={handleEditClick}
+                data-testid={`button-edit-${id}`}
+              >
+                <Pencil className="w-3 h-3" />
+              </Button>
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              {priority && (
+                <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
+                  {priority}
+                </Badge>
+              )}
+              <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
+                {status}
+              </Badge>
+              {clientName && (
+                <span className="text-xs text-muted-foreground">{clientName}</span>
+              )}
+            </div>
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+              <div className="flex items-center gap-1.5">
+                <Avatar className="w-5 h-5">
+                  <AvatarFallback className="text-[10px]">
+                    {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span>{assignee}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={showDetails} onOpenChange={setShowDetails}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
+          <DialogHeader className="space-y-0 pb-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <DialogTitle className="sr-only">{title}</DialogTitle>
                 <Input
                   value={editedTask.title}
                   onChange={(e) => handleUpdate("title", e.target.value)}
+                  className="text-2xl font-semibold border-0 px-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                   placeholder="Título da tarefa"
-                  className="font-medium"
-                  autoFocus
-                  data-testid={`input-title-${id}`}
+                  data-testid={`input-modal-title-${id}`}
                 />
-              ) : (
-                <h3 className="font-medium text-base" data-testid={`text-tasktitle-${id}`}>
-                  {title}
-                </h3>
-              )}
-              <div className="flex items-center gap-1 shrink-0">
-                {isEditing ? (
-                  <>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={handleDeleteClick}
-                      data-testid={`button-delete-${id}`}
-                    >
-                      <Trash2 className="w-3 h-3 text-destructive" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-6 w-6"
-                      onClick={handleSave}
-                      data-testid={`button-save-${id}`}
-                    >
-                      <X className="w-3 h-3" />
-                    </Button>
-                  </>
-                ) : (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6"
-                    onClick={handleEditClick}
-                    data-testid={`button-edit-${id}`}
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </Button>
-                )}
               </div>
+              <Button
+                size="icon"
+                variant="ghost"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                data-testid={`button-modal-delete-${id}`}
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
             </div>
+          </DialogHeader>
 
-            {/* Date, Client, Priority, Status */}
-            {isEditing ? (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  Data de Vencimento
+                </label>
                 <Input
                   type="date"
                   value={editedTask.dueDate}
                   onChange={(e) => handleUpdate("dueDate", e.target.value)}
-                  data-testid={`input-date-${id}`}
+                  className="hover-elevate"
+                  data-testid={`input-modal-date-${id}`}
                 />
+              </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  Cliente
+                </label>
                 <Select
                   value={editedTask.clientName || "_none"}
-                  onValueChange={(value) => handleUpdate("clientName", value === "_none" ? "" : value)}
+                  onValueChange={(value) => handleUpdate("clientName", value)}
                 >
-                  <SelectTrigger data-testid={`select-client-${id}`}>
+                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-client-${id}`}>
                     <SelectValue placeholder="Selecionar cliente (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
@@ -301,110 +272,119 @@ export function TaskCard({
                     <SelectItem value="Marcia Mozzato Ciampi De Andrade">Marcia Mozzato Ciampi De Andrade</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <Flag className="w-4 h-4 text-muted-foreground" />
+                  Prioridade
+                </label>
                 <Select
                   value={editedTask.priority || "_none"}
-                  onValueChange={(value) => handleUpdate("priority", value === "_none" ? "" : value)}
+                  onValueChange={(value) => handleUpdate("priority", value)}
                 >
-                  <SelectTrigger data-testid={`select-priority-${id}`}>
+                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-priority-${id}`}>
                     <SelectValue placeholder="Prioridade (opcional)" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="_none">Nenhuma</SelectItem>
-                    <SelectItem value="Urgente">Urgente</SelectItem>
-                    <SelectItem value="Importante">Importante</SelectItem>
-                    <SelectItem value="Normal">Normal</SelectItem>
-                    <SelectItem value="Baixa">Baixa</SelectItem>
+                    <SelectItem value="Urgente">
+                      <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20">
+                        Urgente
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Importante">
+                      <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20">
+                        Importante
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Normal">
+                      <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20">
+                        Normal
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Baixa">
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                        Baixa
+                      </Badge>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                  Status
+                </label>
                 <Select
                   value={editedTask.status}
-                  onValueChange={(value) => handleUpdate("status", value as TaskStatus)}
+                  onValueChange={(value) => handleUpdate("status", value)}
                 >
-                  <SelectTrigger data-testid={`select-status-${id}`}>
+                  <SelectTrigger className="hover-elevate" data-testid={`select-modal-status-${id}`}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="To Do">To Do</SelectItem>
-                    <SelectItem value="In Progress">In Progress</SelectItem>
-                    <SelectItem value="Done">Done</SelectItem>
+                    <SelectItem value="To Do">
+                      <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">
+                        To Do
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="In Progress">
+                      <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20">
+                        In Progress
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Done">
+                      <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20">
+                        Done
+                      </Badge>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
 
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-sm font-medium flex items-center gap-2">
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  Responsável
+                </label>
                 <Input
                   value={editedTask.assignee}
                   onChange={(e) => handleUpdate("assignee", e.target.value)}
-                  placeholder="Responsável"
-                  data-testid={`input-assignee-${id}`}
+                  placeholder="Nome do responsável"
+                  className="hover-elevate"
+                  data-testid={`input-modal-assignee-${id}`}
                 />
               </div>
-            ) : (
-              <>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {priority && (
-                    <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
-                      {priority}
-                    </Badge>
-                  )}
-                  <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
-                    {status}
-                  </Badge>
-                  {clientName && (
-                    <span className="text-xs text-muted-foreground">{clientName}</span>
-                  )}
-                </div>
-                <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-                  <div className="flex items-center gap-1.5">
-                    <Avatar className="w-5 h-5">
-                      <AvatarFallback className="text-[10px]">
-                        {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{assignee}</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
 
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-2xl" data-testid={`dialog-details-${id}`}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium mb-2 block">Descrição</label>
+            <div className="border-t pt-6">
+              <label className="text-sm font-medium mb-3 block">Descrição</label>
               <Textarea
                 value={editedTask.description}
-                onChange={(e) => {
-                  handleUpdate("description", e.target.value);
-                  onUpdate(id, { description: e.target.value });
-                }}
+                onChange={(e) => handleUpdate("description", e.target.value)}
                 placeholder="Adicione detalhes sobre esta tarefa..."
-                className="min-h-[100px]"
-                data-testid={`textarea-description-${id}`}
+                className="min-h-[120px] hover-elevate resize-none"
+                data-testid={`textarea-modal-description-${id}`}
               />
             </div>
 
-            <div>
-              <label className="text-sm font-medium mb-2 block">Histórico / Notas</label>
-              <div className="space-y-2 mb-3">
+            <div className="border-t pt-6">
+              <label className="text-sm font-medium mb-3 block">Histórico / Notas</label>
+              <div className="space-y-2 mb-4">
                 {notes && notes.length > 0 ? (
                   notes.map((note, index) => (
-                    <div key={index} className="p-2 bg-muted rounded-md text-sm" data-testid={`note-${id}-${index}`}>
+                    <div 
+                      key={index} 
+                      className="p-3 bg-muted/50 rounded-md text-sm border border-border/50" 
+                      data-testid={`note-${id}-${index}`}
+                    >
                       {note}
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground">Nenhuma nota ainda.</p>
+                  <p className="text-sm text-muted-foreground italic">Nenhuma nota ainda.</p>
                 )}
               </div>
               <div className="flex gap-2">
@@ -413,9 +393,10 @@ export function TaskCard({
                   onChange={(e) => setNewNote(e.target.value)}
                   placeholder="Adicionar nota..."
                   onKeyPress={(e) => e.key === 'Enter' && handleAddNote()}
-                  data-testid={`input-newnote-${id}`}
+                  className="hover-elevate"
+                  data-testid={`input-modal-newnote-${id}`}
                 />
-                <Button onClick={handleAddNote} data-testid={`button-addnote-${id}`}>
+                <Button onClick={handleAddNote} data-testid={`button-modal-addnote-${id}`}>
                   Adicionar
                 </Button>
               </div>
