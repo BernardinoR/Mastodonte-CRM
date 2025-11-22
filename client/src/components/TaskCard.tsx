@@ -203,7 +203,15 @@ export function TaskCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!isEditing && !(e.target as HTMLElement).closest('button') && !globalJustClosedEdit) {
+    // Prevent opening details when clicking on interactive elements
+    const target = e.target as HTMLElement;
+    const isInteractiveElement = 
+      target.closest('button') ||
+      target.closest('[contenteditable]') ||
+      target.closest('[role="combobox"]') ||
+      target.closest('[data-radix-collection-item]');
+    
+    if (!isEditing && !isInteractiveElement && !globalJustClosedEdit) {
       setShowDetails(true);
     }
   };
@@ -314,14 +322,13 @@ export function TaskCard({
               {/* Priority Badge */}
               {isEditing ? (
                 <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                     <Badge 
                       variant="outline" 
                       className={cn(
                         "text-xs cursor-pointer hover:bg-muted/50",
                         priority ? priorityColors[priority] : "border-dashed"
                       )}
-                      onClick={(e) => { e.stopPropagation(); setPriorityPopoverOpen(true); }}
                       data-testid={`badge-priority-${id}`}
                     >
                       {priority || "Adicionar Prioridade"}
@@ -379,14 +386,13 @@ export function TaskCard({
               {/* Status Badge */}
               {isEditing ? (
                 <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                     <Badge 
                       variant="outline" 
                       className={cn(
                         "text-xs cursor-pointer hover:bg-muted/50",
                         statusColors[status]
                       )}
-                      onClick={(e) => { e.stopPropagation(); setStatusPopoverOpen(true); }}
                       data-testid={`badge-status-${id}`}
                     >
                       {status}
@@ -430,10 +436,9 @@ export function TaskCard({
               {/* Client Name */}
               {isEditing ? (
                 <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                     <span 
                       className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
-                      onClick={(e) => { e.stopPropagation(); setClientPopoverOpen(true); }}
                       data-testid={`text-client-${id}`}
                     >
                       {clientName || "Adicionar cliente"}
@@ -510,10 +515,9 @@ export function TaskCard({
               {/* Date Picker */}
               {isEditing ? (
                 <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-                  <PopoverTrigger asChild>
+                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                     <div
                       className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                      onClick={(e) => { e.stopPropagation(); setDatePopoverOpen(true); }}
                       data-testid={`button-date-${id}`}
                     >
                       <CalendarIcon className="w-3 h-3" />
