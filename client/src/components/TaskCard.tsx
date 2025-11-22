@@ -90,6 +90,7 @@ export function TaskCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const assigneeRef = useRef<HTMLDivElement>(null);
+  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     setEditedTask({
@@ -105,7 +106,7 @@ export function TaskCard({
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
-    disabled: isEditing,
+    disabled: isEditing || activePopover !== null,
   });
 
   const style = {
@@ -199,6 +200,17 @@ export function TaskCard({
   };
 
   const handleCardClick = (e: React.MouseEvent) => {
+    // Clear any existing timeout first
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    
+    // Don't open modal if in edit mode
+    if (isEditing) {
+      return;
+    }
+    
     // Prevent opening details when clicking on interactive elements
     const target = e.target as HTMLElement;
     const isInteractiveElement = 
@@ -207,13 +219,27 @@ export function TaskCard({
       target.closest('[role="combobox"]') ||
       target.closest('[data-radix-collection-item]');
     
-    if (!isEditing && !isInteractiveElement && !globalJustClosedEdit) {
-      setShowDetails(true);
+    if (!isInteractiveElement && !globalJustClosedEdit) {
+      // Set a timeout to open details modal only if not followed by a double click or edit mode
+      clickTimeoutRef.current = setTimeout(() => {
+        // Double check we're still not in edit mode when timeout fires
+        if (!isEditing) {
+          setShowDetails(true);
+        }
+        clickTimeoutRef.current = null;
+      }, 250);
     }
   };
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    // Clear the single click timeout to prevent modal from opening
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+    
     setIsEditing(true);
   };
 
@@ -273,6 +299,7 @@ export function TaskCard({
             isEditing && "ring-2 ring-primary shadow-lg"
           )}
           onClick={handleCardClick}
+          onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
           <CardContent className="p-4">
