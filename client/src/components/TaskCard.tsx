@@ -1,22 +1,8 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar as CalendarIcon, Pencil, Trash2, Check } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { useDraggable } from "@dnd-kit/core";
-import { CSS } from "@dnd-kit/utilities";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -38,14 +24,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Calendar as CalendarIcon,
+  Pencil,
+  Trash2,
+  Check,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { useDraggable } from "@dnd-kit/core";
+import { CSS } from "@dnd-kit/utilities";
 
-// Global flag to prevent card clicks immediately after exiting edit mode
-let globalJustClosedEdit = false;
-
-type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 type TaskStatus = "To Do" | "In Progress" | "Done";
+type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 
 interface TaskCardProps {
   id: string;
@@ -57,9 +52,12 @@ interface TaskCardProps {
   dueDate: Date;
   description?: string;
   notes?: string[];
-  onUpdate: (id: string, updates: Partial<TaskCardProps>) => void;
-  onDelete: (id: string) => void;
+  onUpdate: (taskId: string, updates: any) => void;
+  onDelete: (taskId: string) => void;
 }
+
+// Global flag to prevent click events after closing edit mode
+let globalJustClosedEdit = false;
 
 export function TaskCard({
   id,
@@ -265,285 +263,288 @@ export function TaskCard({
 
   return (
     <>
-      <Card
-        ref={cardRef}
-        className={cn(
-          "cursor-pointer transition-all hover-elevate active-elevate-2",
-          isEditing && "ring-2 ring-primary shadow-lg"
-        )}
-        onClick={handleCardClick}
-        data-testid={`card-task-${id}`}
-        setNodeRef={setNodeRef}
+      <div
+        ref={setNodeRef}
         style={style}
         {...(!isEditing ? { ...attributes, ...listeners } : {})}
       >
-        <CardContent className="p-4">
-          <div className="space-y-3">
-            <div className="flex items-start justify-between gap-2">
-              <div
-                ref={titleRef}
-                contentEditable={isEditing}
-                suppressContentEditableWarning
-                onBlur={handleTitleEdit}
-                onClick={(e) => isEditing && e.stopPropagation()}
-                className={cn(
-                  "font-medium text-base flex-1",
-                  isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
-                )}
-                data-testid={`text-tasktitle-${id}`}
-              >
-                {title}
-              </div>
-              <div className="flex items-center gap-1">
-                {isEditing && (
+        <Card
+          ref={cardRef}
+          className={cn(
+            "cursor-pointer transition-all hover-elevate active-elevate-2",
+            isEditing && "ring-2 ring-primary shadow-lg"
+          )}
+          onClick={handleCardClick}
+          data-testid={`card-task-${id}`}
+        >
+          <CardContent className="p-4">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div
+                  ref={titleRef}
+                  contentEditable={isEditing}
+                  suppressContentEditableWarning
+                  onBlur={handleTitleEdit}
+                  onClick={(e) => isEditing && e.stopPropagation()}
+                  className={cn(
+                    "font-medium text-base flex-1",
+                    isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                  )}
+                  data-testid={`text-tasktitle-${id}`}
+                >
+                  {title}
+                </div>
+                <div className="flex items-center gap-1">
+                  {isEditing && (
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                      data-testid={`button-delete-${id}`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </Button>
+                  )}
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                    data-testid={`button-delete-${id}`}
+                    className="h-6 w-6 shrink-0"
+                    onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
+                    data-testid={`button-edit-${id}`}
                   >
-                    <Trash2 className="w-3 h-3" />
+                    {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
                   </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Priority Badge */}
+                {isEditing ? (
+                  <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
+                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs cursor-pointer hover:bg-muted/50",
+                          priority ? priorityColors[priority] : "border-dashed"
+                        )}
+                        data-testid={`badge-priority-${id}`}
+                      >
+                        {priority || "Adicionar Prioridade"}
+                      </Badge>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-0">
+                      <div className="space-y-1 p-1">
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handlePriorityChange("_none")}
+                        >
+                          Nenhuma
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Urgente")}
+                        >
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+                            Urgente
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Importante")}
+                        >
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-xs">
+                            Importante
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Normal")}
+                        >
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-xs">
+                            Normal
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Baixa")}
+                        >
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                            Baixa
+                          </Badge>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : priority ? (
+                  <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
+                    {priority}
+                  </Badge>
+                ) : null}
+                
+                {/* Status Badge */}
+                {isEditing ? (
+                  <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-xs cursor-pointer hover:bg-muted/50",
+                          statusColors[status]
+                        )}
+                        data-testid={`badge-status-${id}`}
+                      >
+                        {status}
+                      </Badge>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-0">
+                      <div className="space-y-1 p-1">
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("To Do")}
+                        >
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                            To Do
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("In Progress")}
+                        >
+                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                            In Progress
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("Done")}
+                        >
+                          <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                            Done
+                          </Badge>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
+                    {status}
+                  </Badge>
                 )}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 shrink-0"
-                  onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
-                  data-testid={`button-edit-${id}`}
-                >
-                  {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
-                </Button>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Priority Badge */}
-              {isEditing ? (
-                <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
-                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                    <Badge 
-                      variant="outline" 
-                      className={cn(
-                        "text-xs cursor-pointer hover:bg-muted/50",
-                        priority ? priorityColors[priority] : "border-dashed"
-                      )}
-                      data-testid={`badge-priority-${id}`}
-                    >
-                      {priority || "Adicionar Prioridade"}
-                    </Badge>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-0">
-                    <div className="space-y-1 p-1">
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handlePriorityChange("_none")}
+                
+                {/* Client Name */}
+                {isEditing ? (
+                  <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <span 
+                        className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
+                        data-testid={`text-client-${id}`}
                       >
-                        Nenhuma
+                        {clientName || "Adicionar cliente"}
+                      </span>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0">
+                      <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("_none")}
+                        >
+                          Nenhum
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("Ademar João Gréguer")}
+                        >
+                          Ademar João Gréguer
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("Fernanda Carolina De Faria")}
+                        >
+                          Fernanda Carolina De Faria
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("Gustavo Samconi Soares")}
+                        >
+                          Gustavo Samconi Soares
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
+                        >
+                          Israel Schuster Da Fonseca
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
+                        >
+                          Marcia Mozzato Ciampi De Andrade
+                        </div>
                       </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handlePriorityChange("Urgente")}
-                      >
-                        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
-                          Urgente
-                        </Badge>
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handlePriorityChange("Importante")}
-                      >
-                        <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-xs">
-                          Importante
-                        </Badge>
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handlePriorityChange("Normal")}
-                      >
-                        <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-xs">
-                          Normal
-                        </Badge>
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handlePriorityChange("Baixa")}
-                      >
-                        <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
-                          Baixa
-                        </Badge>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              ) : priority ? (
-                <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
-                  {priority}
-                </Badge>
-              ) : null}
-              
-              {/* Status Badge */}
-              {isEditing ? (
-                <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                    <Badge 
-                      variant="outline" 
-                      className={cn(
-                        "text-xs cursor-pointer hover:bg-muted/50",
-                        statusColors[status]
-                      )}
-                      data-testid={`badge-status-${id}`}
-                    >
-                      {status}
-                    </Badge>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-0">
-                    <div className="space-y-1 p-1">
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("To Do")}
-                      >
-                        <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
-                          To Do
-                        </Badge>
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("In Progress")}
-                      >
-                        <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                          In Progress
-                        </Badge>
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("Done")}
-                      >
-                        <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
-                          Done
-                        </Badge>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              ) : (
-                <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
-                  {status}
-                </Badge>
-              )}
-              
-              {/* Client Name */}
-              {isEditing ? (
-                <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
-                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                    <span 
-                      className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
-                      data-testid={`text-client-${id}`}
-                    >
-                      {clientName || "Adicionar cliente"}
-                    </span>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-0">
-                    <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("_none")}
-                      >
-                        Nenhum
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("Ademar João Gréguer")}
-                      >
-                        Ademar João Gréguer
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("Fernanda Carolina De Faria")}
-                      >
-                        Fernanda Carolina De Faria
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("Gustavo Samconi Soares")}
-                      >
-                        Gustavo Samconi Soares
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
-                      >
-                        Israel Schuster Da Fonseca
-                      </div>
-                      <div
-                        className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                        onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
-                      >
-                        Marcia Mozzato Ciampi De Andrade
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              ) : clientName ? (
-                <span className="text-xs text-muted-foreground">{clientName}</span>
-              ) : null}
-            </div>
-            
-            <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-              <div className="flex items-center gap-1.5">
-                <Avatar className="w-5 h-5">
-                  <AvatarFallback className="text-[10px]">
-                    {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div
-                  ref={assigneeRef}
-                  contentEditable={isEditing}
-                  suppressContentEditableWarning
-                  onBlur={handleAssigneeEdit}
-                  onClick={(e) => isEditing && e.stopPropagation()}
-                  className={cn(
-                    isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
-                  )}
-                  data-testid={`text-assignee-${id}`}
-                >
-                  {assignee}
-                </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : clientName ? (
+                  <span className="text-xs text-muted-foreground">{clientName}</span>
+                ) : null}
               </div>
               
-              {/* Date Picker */}
-              {isEditing ? (
-                <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-                  <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                    <div
-                      className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                      data-testid={`button-date-${id}`}
-                    >
-                      <CalendarIcon className="w-3 h-3" />
-                      <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="end">
-                    <Calendar
-                      mode="single"
-                      selected={new Date(editedTask.dueDate)}
-                      onSelect={handleDateChange}
-                      locale={ptBR}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              ) : (
-                <div className="flex items-center gap-1">
-                  <CalendarIcon className="w-3 h-3" />
-                  <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+                <div className="flex items-center gap-1.5">
+                  <Avatar className="w-5 h-5">
+                    <AvatarFallback className="text-[10px]">
+                      {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div
+                    ref={assigneeRef}
+                    contentEditable={isEditing}
+                    suppressContentEditableWarning
+                    onBlur={handleAssigneeEdit}
+                    onClick={(e) => isEditing && e.stopPropagation()}
+                    className={cn(
+                      isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                    )}
+                    data-testid={`text-assignee-${id}`}
+                  >
+                    {assignee}
+                  </div>
                 </div>
-              )}
+                
+                {/* Date Picker */}
+                {isEditing ? (
+                  <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                      <div
+                        className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
+                        data-testid={`button-date-${id}`}
+                      >
+                        <CalendarIcon className="w-3 h-3" />
+                        <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="end">
+                      <Calendar
+                        mode="single"
+                        selected={new Date(editedTask.dueDate)}
+                        onSelect={handleDateChange}
+                        locale={ptBR}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <div className="flex items-center gap-1">
+                    <CalendarIcon className="w-3 h-3" />
+                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
 
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
