@@ -334,7 +334,7 @@ export function TaskCard({
                         {priority || "Adicionar Prioridade"}
                       </Badge>
                     </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0">
+                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-1 p-1">
                         <div
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
@@ -398,7 +398,7 @@ export function TaskCard({
                         {status}
                       </Badge>
                     </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0">
+                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-1 p-1">
                         <div
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
@@ -444,7 +444,7 @@ export function TaskCard({
                         {clientName || "Adicionar cliente"}
                       </span>
                     </PopoverTrigger>
-                    <PopoverContent className="w-64 p-0">
+                    <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
                         <div
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
@@ -524,7 +524,7 @@ export function TaskCard({
                         <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
                       </div>
                     </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="end">
+                    <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <Calendar
                         mode="single"
                         selected={new Date(editedTask.dueDate)}
