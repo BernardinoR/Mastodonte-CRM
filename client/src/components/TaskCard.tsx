@@ -85,11 +85,7 @@ export function TaskCard({
     description: description || "",
   });
   const [newNote, setNewNote] = useState("");
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
-  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
-  const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
-  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
+  const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | null>(null);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
@@ -131,6 +127,8 @@ export function TaskCard({
   };
 
   const handleSave = () => {
+    // Close all popovers when exiting edit mode
+    setActivePopover(null);
     setIsEditing(false);
   };
 
@@ -242,23 +240,23 @@ export function TaskCard({
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
       handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
-      setDatePopoverOpen(false);
+      setActivePopover(null);
     }
   };
 
   const handlePriorityChange = (value: string) => {
     handleUpdate("priority", value === "_none" ? "" : value);
-    setPriorityPopoverOpen(false);
+    setActivePopover(null);
   };
 
   const handleStatusChange = (value: string) => {
     handleUpdate("status", value);
-    setStatusPopoverOpen(false);
+    setActivePopover(null);
   };
 
   const handleClientChange = (value: string) => {
     handleUpdate("clientName", value === "_none" ? "" : value);
-    setClientPopoverOpen(false);
+    setActivePopover(null);
   };
 
   return (
@@ -321,8 +319,8 @@ export function TaskCard({
               <div className="flex items-center gap-2 flex-wrap">
                 {/* Priority Badge */}
                 {isEditing ? (
-                  <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
-                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <Badge 
                         variant="outline" 
                         className={cn(
@@ -385,8 +383,8 @@ export function TaskCard({
                 
                 {/* Status Badge */}
                 {isEditing ? (
-                  <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <Badge 
                         variant="outline" 
                         className={cn(
@@ -435,8 +433,8 @@ export function TaskCard({
                 
                 {/* Client Name */}
                 {isEditing ? (
-                  <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
-                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <span 
                         className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
                         data-testid={`text-client-${id}`}
@@ -514,8 +512,8 @@ export function TaskCard({
                 
                 {/* Date Picker */}
                 {isEditing ? (
-                  <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-                    <PopoverTrigger asChild onClick={(e: React.MouseEvent) => e.stopPropagation()}>
+                  <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <div
                         className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
                         data-testid={`button-date-${id}`}
