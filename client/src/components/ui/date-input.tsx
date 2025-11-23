@@ -3,6 +3,7 @@ import { format, parse, isValid, setYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { parseLocalDate } from "@/lib/date-utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -32,7 +33,8 @@ export function DateInput({
 
   // Initialize input value from prop
   React.useEffect(() => {
-    const dateValue = typeof value === "string" ? new Date(value) : value;
+    const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
+    
     if (dateValue && isValid(dateValue)) {
       setInputValue(format(dateValue, "dd/MM/yyyy", { locale: ptBR }));
     }
@@ -153,9 +155,12 @@ export function DateInput({
 
   const handleCalendarSelect = (date: Date | undefined) => {
     if (date) {
-      setInputValue(format(date, "dd/MM/yyyy", { locale: ptBR }));
+      // Ensure we're working with a clean local date
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const formatted = format(localDate, "dd/MM/yyyy", { locale: ptBR });
+      setInputValue(formatted);
       setIsInvalid(false);
-      onChange(date);
+      onChange(localDate);
       setOpen(false);
     }
   };
@@ -174,7 +179,11 @@ export function DateInput({
     }
   };
 
-  const currentDate = typeof value === "string" ? new Date(value) : value;
+  // Parse current date value correctly to avoid timezone issues
+  const currentDate = React.useMemo(() => {
+    const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
+    return dateValue && isValid(dateValue) ? dateValue : undefined;
+  }, [value]);
 
   return (
     <div className={cn("relative flex items-center w-full gap-1", className)}>
@@ -200,7 +209,7 @@ export function DateInput({
             </Button>
           </PopoverTrigger>
         </div>
-        <PopoverContent className="w-auto p-0" align="start">
+        <PopoverContent className="w-auto p-0 date-input-calendar-popover" align="start">
           <div className="space-y-2 p-3 border-b">
             <Input
               ref={inputRef}
@@ -225,7 +234,7 @@ export function DateInput({
           </div>
           <Calendar
             mode="single"
-            selected={currentDate && isValid(currentDate) ? currentDate : undefined}
+            selected={currentDate}
             onSelect={handleCalendarSelect}
             locale={ptBR}
             initialFocus

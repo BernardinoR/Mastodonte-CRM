@@ -36,6 +36,7 @@ import {
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -137,14 +138,49 @@ export function TaskCard({
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
       
-      // Ignore clicks on Radix portals (Select, Dialog, etc)
-      const isPortal = target.closest('[role="dialog"]') || 
-                      target.closest('[data-radix-portal]') ||
-                      target.closest('[role="listbox"]') ||
-                      target.closest('[role="menu"]') ||
-                      target.closest('[data-radix-popper-content-wrapper]');
+      console.log("======= handleClickOutside =======");
+      console.log("Target:", target.tagName, target.className);
+      console.log("Target role:", target.getAttribute('role'));
+      console.log("Target text:", target.textContent?.slice(0, 20));
+      
+      // Check if click is inside any Radix portal using composedPath
+      const path = event.composedPath();
+      console.log("Event path length:", path.length);
+      
+      // Log first 10 elements in path
+      path.slice(0, 10).forEach((el, idx) => {
+        if (el instanceof HTMLElement) {
+          console.log(`Path[${idx}]:`, el.tagName, el.className.slice(0, 50), 
+            "data-radix-portal:", el.hasAttribute('data-radix-portal'),
+            "data-popover-portal:", el.hasAttribute('data-popover-portal'),
+            "role:", el.getAttribute('role'));
+        }
+      });
+      
+      const isPortal = path.some((element) => {
+        if (element instanceof HTMLElement) {
+          const hasPortal = (
+            element.hasAttribute('data-radix-portal') ||
+            element.hasAttribute('data-popover-portal') ||
+            element.getAttribute('role') === 'dialog' ||
+            element.getAttribute('role') === 'listbox' ||
+            element.getAttribute('role') === 'menu' ||
+            element.classList.contains('date-input-calendar-popover')
+          );
+          if (hasPortal) {
+            console.log("PORTAL DETECTED on element:", element.tagName, element.className);
+          }
+          return hasPortal;
+        }
+        return false;
+      });
+      
+      console.log("isPortal:", isPortal);
+      console.log("isEditing:", isEditing);
+      console.log("contains:", cardRef.current?.contains(target));
       
       if (isEditing && cardRef.current && !cardRef.current.contains(target) && !isPortal) {
+        console.log("*** BLOCKING CLICK - Calling preventDefault ***");
         // Set flag FIRST to prevent any card clicks in the same event cycle
         globalJustClosedEdit = true;
         setTimeout(() => {
@@ -157,7 +193,10 @@ export function TaskCard({
         event.stopImmediatePropagation();
         
         handleSave();
+      } else {
+        console.log("*** ALLOWING CLICK ***");
       }
+      console.log("==================================");
     };
 
     if (isEditing) {
@@ -181,7 +220,7 @@ export function TaskCard({
       priority: (updated.priority as TaskPriority) || undefined,
       status: updated.status as TaskStatus,
       assignee: updated.assignee,
-      dueDate: new Date(updated.dueDate),
+      dueDate: parseLocalDate(updated.dueDate),
     });
   };
 
