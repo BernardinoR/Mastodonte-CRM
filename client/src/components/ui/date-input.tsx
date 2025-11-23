@@ -41,7 +41,10 @@ export function DateInput({
   // Parse date from input string with flexible formats
   const parseDate = (input: string): Date | null => {
     // Remove any non-numeric characters except separators
-    const cleaned = input.replace(/[^\d\/\-\.]/g, "");
+    let cleaned = input.replace(/[^\d\/\-\.]/g, "");
+    
+    // Remove trailing separators (important for partial dates like "15/12/")
+    cleaned = cleaned.replace(/[\/\-\.]+$/, "");
     
     // Try different date formats
     const formats = [
@@ -88,24 +91,48 @@ export function DateInput({
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;
-    setInputValue(newValue);
+    let newValue = e.target.value;
+    const prevLength = inputValue.length;
     
-    // Auto-format with slashes as user types
-    if (newValue.length === 2 || newValue.length === 5) {
-      const lastChar = newValue[newValue.length - 1];
-      if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
-        setInputValue(newValue + "/");
+    // Detect which separator is being used
+    const hasDot = newValue.includes(".");
+    const hasDash = newValue.includes("-");
+    const hasSlash = newValue.includes("/");
+    
+    // Only auto-format with slashes if:
+    // 1. User is adding characters (not deleting)
+    // 2. No other separator is being used (dots or dashes)
+    // 3. We're at the right position for a separator
+    if (newValue.length > prevLength && !hasDot && !hasDash) {
+      // Check if we should add a slash after day (position 2)
+      if (newValue.length === 2 && !hasSlash) {
+        const lastChar = newValue[newValue.length - 1];
+        if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
+          newValue = newValue + "/";
+        }
+      }
+      // Check if we should add a slash after month (position 5)
+      else if (newValue.length === 5 && newValue.split("/").length === 2) {
+        const lastChar = newValue[newValue.length - 1];
+        if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
+          newValue = newValue + "/";
+        }
       }
     }
+    
+    setInputValue(newValue);
     
     // Try to parse the date
     const parsed = parseDate(newValue);
     if (parsed) {
       setIsInvalid(false);
-      onChange(parsed);
-    } else if (newValue.length >= 6) {
-      // Only show invalid after user has typed enough
+      // Don't call onChange on every keystroke, only on blur or valid complete dates
+      const cleanedLength = newValue.replace(/[^\d]/g, "").length;
+      if (cleanedLength >= 8) { // At least DDMMYYYY digits
+        onChange(parsed);
+      }
+    } else if (newValue.replace(/[^\d]/g, "").length >= 6) {
+      // Only show invalid after user has typed enough digits
       setIsInvalid(true);
     } else {
       setIsInvalid(false);
@@ -151,6 +178,7 @@ export function DateInput({
         <div className="relative flex w-full">
           <Input
             ref={inputRef}
+            id={dataTestId}
             value={inputValue}
             onChange={handleInputChange}
             onBlur={handleInputBlur}
@@ -188,7 +216,7 @@ export function DateInput({
         </PopoverContent>
       </Popover>
       {isInvalid && (
-        <span className="absolute -bottom-5 left-0 text-xs text-destructive">
+        <span className="absolute -bottom-5 left-0 text-xs text-destructive" data-testid={`${dataTestId}-error`}>
           Data inválida
         </span>
       )}
