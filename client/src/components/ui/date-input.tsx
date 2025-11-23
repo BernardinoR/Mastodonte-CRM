@@ -1,5 +1,5 @@
 import * as React from "react";
-import { format, parse, isValid, setYear, setMonth, setDate } from "date-fns";
+import { format, parse, isValid, setYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -163,9 +163,13 @@ export function DateInput({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       handleInputBlur();
+      setOpen(false);
+    }
+    if (e.key === "Escape") {
+      setOpen(false);
     }
     // Prevent opening popover when typing
-    if (e.key !== "Tab" && e.key !== "Escape") {
+    if (e.key !== "Tab") {
       e.stopPropagation();
     }
   };
@@ -173,39 +177,52 @@ export function DateInput({
   const currentDate = typeof value === "string" ? new Date(value) : value;
 
   return (
-    <div className={cn("relative flex w-full", className)}>
+    <div className={cn("relative flex items-center w-full gap-1", className)}>
       <Popover open={open} onOpenChange={setOpen}>
-        <div className="relative flex w-full">
-          <Input
-            ref={inputRef}
-            id={dataTestId}
-            value={inputValue}
-            onChange={handleInputChange}
-            onBlur={handleInputBlur}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            className={cn(
-              "pr-10",
-              isInvalid && "border-destructive focus-visible:ring-destructive"
-            )}
+        <div className="flex items-center gap-1 w-full">
+          <span 
+            onClick={() => setOpen(true)}
+            className="text-xs cursor-pointer hover:bg-muted/50 rounded px-2 py-1 flex-1"
             data-testid={dataTestId}
-            onClick={(e) => e.stopPropagation()}
-          />
+          >
+            {inputValue}
+          </span>
           <PopoverTrigger asChild>
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-0 h-9 w-9 rounded-l-none hover:bg-transparent"
+              className="h-6 w-6 shrink-0"
               disabled={disabled}
               data-testid={dataTestId ? `${dataTestId}-calendar` : undefined}
             >
-              <CalendarIcon className="h-4 w-4" />
+              <CalendarIcon className="h-3 w-3" />
             </Button>
           </PopoverTrigger>
         </div>
         <PopoverContent className="w-auto p-0" align="start">
+          <div className="space-y-2 p-3 border-b">
+            <Input
+              ref={inputRef}
+              id={dataTestId}
+              value={inputValue}
+              onChange={handleInputChange}
+              onBlur={handleInputBlur}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              disabled={disabled}
+              className={cn(
+                "text-sm",
+                isInvalid && "border-destructive focus-visible:ring-destructive"
+              )}
+              onClick={(e) => e.stopPropagation()}
+            />
+            {isInvalid && (
+              <span className="text-xs text-destructive block">
+                Data inválida
+              </span>
+            )}
+          </div>
           <Calendar
             mode="single"
             selected={currentDate && isValid(currentDate) ? currentDate : undefined}
@@ -215,11 +232,6 @@ export function DateInput({
           />
         </PopoverContent>
       </Popover>
-      {isInvalid && (
-        <span className="absolute -bottom-5 left-0 text-xs text-destructive" data-testid={`${dataTestId}-error`}>
-          Data inválida
-        </span>
-      )}
     </div>
   );
 }
