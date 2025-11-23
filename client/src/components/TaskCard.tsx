@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
+import { DateInput } from "@/components/ui/date-input";
 import {
   Dialog,
   DialogContent,
@@ -266,7 +266,6 @@ export function TaskCard({
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
       handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
-      setActivePopover(null);
     }
   };
 
@@ -561,34 +560,14 @@ export function TaskCard({
                 
                 {/* Date Picker */}
                 {isEditing ? (
-                  <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div
-                        className="flex items-center gap-1 cursor-pointer hover:bg-muted/50 rounded px-1"
-                        data-testid={`button-date-${id}`}
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          // Clear any pending timeout when clicking popover trigger
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                      >
-                        <CalendarIcon className="w-3 h-3" />
-                        <span>{format(new Date(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}</span>
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <Calendar
-                        mode="single"
-                        selected={new Date(editedTask.dueDate)}
-                        onSelect={handleDateChange}
-                        locale={ptBR}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
+                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                    <DateInput
+                      value={editedTask.dueDate}
+                      onChange={handleDateChange}
+                      className="max-w-[120px]"
+                      dataTestId={`input-date-${id}`}
+                    />
+                  </div>
                 ) : (
                   <div className="flex items-center gap-1">
                     <CalendarIcon className="w-3 h-3" />
