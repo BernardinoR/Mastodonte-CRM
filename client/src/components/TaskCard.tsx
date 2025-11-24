@@ -365,7 +365,7 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardHeader>
+          <CardHeader className="border-b">
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -374,7 +374,7 @@ export function TaskCard({
                 onBlur={handleTitleEdit}
                 onClick={(e) => isEditing && e.stopPropagation()}
                 className={cn(
-                  "font-bold text-sm md:text-base lg:text-lg leading-tight flex-1",
+                  "font-bold text-sm leading-tight flex-1",
                   isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
                 )}
                 data-testid={`text-tasktitle-${id}`}
