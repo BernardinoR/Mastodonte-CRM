@@ -326,10 +326,10 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardContent className="p-6">
-            <div className="flex flex-col gap-4">
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-3">
               {/* Linha 1: Título + Ações (lápis com hover) + Divisória */}
-              <div className="pb-4 border-b border-border">
+              <div className="pb-3 border-b border-border/80">
                 <div className="flex items-start justify-between gap-2">
                   <div
                     ref={titleRef}
@@ -338,7 +338,7 @@ export function TaskCard({
                     onBlur={handleTitleEdit}
                     onClick={(e) => isEditing && e.stopPropagation()}
                     className={cn(
-                      "font-semibold text-lg flex-1",
+                      "font-semibold text-base leading-tight flex-1",
                       isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
                     )}
                     data-testid={`text-tasktitle-${id}`}
@@ -374,10 +374,10 @@ export function TaskCard({
               </div>
               
               {/* Linha 2: Data */}
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 {isEditing ? (
                   <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <CalendarIcon className="w-4 h-4" />
+                    <CalendarIcon className="w-3.5 h-3.5" />
                     <DateInput
                       value={editedTask.dueDate}
                       onChange={handleDateChange}
@@ -387,14 +387,14 @@ export function TaskCard({
                   </div>
                 ) : (
                   <>
-                    <CalendarIcon className="w-4 h-4" />
+                    <CalendarIcon className="w-3.5 h-3.5" />
                     <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
                   </>
                 )}
               </div>
               
               {/* Linha 3: Prioridade - Status */}
-              <div className="flex items-center gap-2 flex-wrap text-xs">
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
                 {/* Priority Badge */}
                 {isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
@@ -411,7 +411,7 @@ export function TaskCard({
                         <Badge 
                           variant="outline" 
                           className={cn(
-                            "text-xs cursor-pointer hover:bg-muted/50",
+                            "text-[11px] px-2 py-0.5 cursor-pointer hover:bg-muted/50",
                             priority ? priorityColors[priority] : "border-dashed"
                           )}
                           data-testid={`badge-priority-${id}`}
@@ -432,7 +432,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Urgente")}
                         >
-                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs">
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[11px] px-2 py-0.5">
                             Urgente
                           </Badge>
                         </div>
@@ -440,7 +440,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Importante")}
                         >
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-xs">
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-[11px] px-2 py-0.5">
                             Importante
                           </Badge>
                         </div>
@@ -448,7 +448,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Normal")}
                         >
-                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-xs">
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-[11px] px-2 py-0.5">
                             Normal
                           </Badge>
                         </div>
@@ -456,7 +456,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Baixa")}
                         >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[11px] px-2 py-0.5">
                             Baixa
                           </Badge>
                         </div>
@@ -464,7 +464,7 @@ export function TaskCard({
                     </PopoverContent>
                   </Popover>
                 ) : priority ? (
-                  <Badge variant="outline" className={`text-xs ${priorityColors[priority]}`}>
+                  <Badge variant="outline" className={`text-[11px] px-2 py-0.5 ${priorityColors[priority]}`}>
                     {priority}
                   </Badge>
                 ) : null}
@@ -485,7 +485,7 @@ export function TaskCard({
                         <Badge 
                           variant="outline" 
                           className={cn(
-                            "text-xs cursor-pointer hover:bg-muted/50",
+                            "text-[11px] px-2 py-0.5 cursor-pointer hover:bg-muted/50",
                             statusColors[status]
                           )}
                           data-testid={`badge-status-${id}`}
@@ -500,7 +500,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("To Do")}
                         >
-                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-xs">
+                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-[11px] px-2 py-0.5">
                             To Do
                           </Badge>
                         </div>
@@ -508,7 +508,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("In Progress")}
                         >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs">
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[11px] px-2 py-0.5">
                             In Progress
                           </Badge>
                         </div>
@@ -516,7 +516,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("Done")}
                         >
-                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">
+                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-[11px] px-2 py-0.5">
                             Done
                           </Badge>
                         </div>
@@ -524,7 +524,7 @@ export function TaskCard({
                     </PopoverContent>
                   </Popover>
                 ) : (
-                  <Badge variant="outline" className={`text-xs ${statusColors[status]}`}>
+                  <Badge variant="outline" className={`text-[11px] px-2 py-0.5 ${statusColors[status]}`}>
                     {status}
                   </Badge>
                 )}
@@ -532,7 +532,7 @@ export function TaskCard({
               
               {/* Linha 4: Cliente */}
               {(clientName || isEditing) && (
-                <div className="text-sm text-muted-foreground">
+                <div className="text-sm text-muted-foreground mt-1">
                   {isEditing ? (
                     <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
@@ -591,8 +591,8 @@ export function TaskCard({
               )}
               
               {/* Linha 5: Responsáveis */}
-              <div className="space-y-2">
-                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+              <div className="space-y-1.5">
+                <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.08em]">
                   Responsáveis
                 </div>
                 {isEditing ? (
@@ -623,11 +623,11 @@ export function TaskCard({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     {MOCK_RESPONSIBLES.map((responsible) => (
-                      <div key={responsible.id} className="flex items-center gap-2">
-                        <Avatar className="w-8 h-8">
-                          <AvatarFallback className={cn("text-xs text-white", responsible.avatarColor)}>
+                      <div key={responsible.id} className="flex items-center gap-1.5">
+                        <Avatar className="w-6 h-6">
+                          <AvatarFallback className={cn("text-[10px] text-white", responsible.avatarColor)}>
                             {responsible.initials}
                           </AvatarFallback>
                         </Avatar>
