@@ -184,7 +184,7 @@ export default function Dashboard() {
         <div className="flex gap-6 overflow-x-auto pb-4">
           <KanbanColumn 
             id="To Do"
-            title="A Fazer" 
+            title="To Do" 
             count={todoTasks.length} 
             color="text-blue-400"
           >
@@ -200,7 +200,7 @@ export default function Dashboard() {
 
           <KanbanColumn 
             id="In Progress"
-            title="Em Progresso" 
+            title="In Progress" 
             count={inProgressTasks.length} 
             color="text-primary"
             borderColor="border-blue-700"
@@ -217,7 +217,7 @@ export default function Dashboard() {
 
           <KanbanColumn 
             id="Done"
-            title="Concluído" 
+            title="Done" 
             count={doneTasks.length} 
             color="text-green-400"
             borderColor="border-green-700"
