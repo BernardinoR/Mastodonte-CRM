@@ -234,6 +234,7 @@ export function DateInput({
             mode="single"
             selected={currentDate}
             onSelect={handleCalendarSelect}
+            defaultMonth={currentDate || new Date()}
             locale={ptBR}
             initialFocus
             className="rounded-b-lg"
