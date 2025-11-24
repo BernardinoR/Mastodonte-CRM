@@ -394,7 +394,7 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardHeader>
+          <CardHeader className="p-4">
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -436,10 +436,10 @@ export function TaskCard({
                 </Button>
               </div>
             </div>
-            <Separator className="mt-6" />
+            <Separator className="mt-3" />
           </CardHeader>
 
-          <CardContent className="pt-0 space-y-6">
+          <CardContent className="p-4 pt-0 space-y-2">
               
               {/* Linha 2: Data */}
               <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-semibold text-foreground">
@@ -463,7 +463,7 @@ export function TaskCard({
               
               {/* Linha 3: Cliente */}
               {(clientName || isEditing) && (
-                <div className="text-xs md:text-sm text-foreground mt-1">
+                <div className="text-xs md:text-sm text-foreground">
                   {isEditing ? (
                     <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
@@ -661,22 +661,22 @@ export function TaskCard({
               </div>
               
               {/* Responsáveis */}
-              <div className="space-y-3">
+              <div className="space-y-1.5">
                 <div className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Responsáveis
                 </div>
                 
                 {/* Lista de responsáveis */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {editedTask.assignees.map((assignee, index) => (
                     <div key={index} className="flex items-center gap-2 group/assignee">
-                      <Avatar className="w-7 h-7 shrink-0">
-                        <AvatarFallback className={cn("text-xs font-normal text-white", getAvatarColor(index))}>
+                      <Avatar className="w-6 h-6 shrink-0">
+                        <AvatarFallback className={cn("text-[10px] font-normal text-white", getAvatarColor(index))}>
                           {getInitials(assignee)}
                         </AvatarFallback>
                       </Avatar>
                       <span 
-                        className="text-[11px] md:text-xs font-normal flex-1" 
+                        className="text-[10px] md:text-[11px] font-normal flex-1" 
                         data-testid={index === 0 ? `text-assignee-${id}` : undefined}
                       >
                         {assignee}
