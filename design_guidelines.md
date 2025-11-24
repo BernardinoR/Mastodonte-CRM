@@ -46,12 +46,48 @@
 - **Column Structure**:
   - Header: Uppercase label + count badge
   - Cards container: space-y-3, min-h-screen for drop zones
-- **Task Cards** (rounded-lg p-4):
-  - Title: font-medium text-base
-  - Client badge: inline-flex items-center gap-2 text-xs
-  - Priority indicator: Leading accent bar (w-1 h-full absolute left-0)
-  - Metadata row: flex justify-between text-xs (assignee avatar + due date)
-  - Tags: flex flex-wrap gap-2 mt-3
+
+### Task Cards (Notion-style)
+**Layout Structure** (rounded-lg p-6 with gap-4 vertical spacing):
+
+1. **Title Row** (with mini divider):
+   - Title: text-lg font-semibold
+   - Edit pencil: opacity-0 on hover (h-6 w-6)
+   - Border bottom: border-b border-border (subtle divider)
+
+2. **Date Row**:
+   - Calendar icon + formatted date
+   - Typography: text-sm text-muted-foreground
+
+3. **Badges Row** (horizontal flex gap-2):
+   - Priority badge: Alta (vermelho), Média (amarelo), Baixa (verde)
+   - Status badge: Pendente (cinza), Em Progresso (azul), Concluída (verde)
+
+4. **Client Row**:
+   - Client name: text-sm text-muted-foreground
+
+5. **Responsáveis Section**:
+   - Label: "RESPONSÁVEIS" (text-xs font-semibold uppercase text-muted-foreground)
+   - List: Vertical stack (gap-2)
+   - Each item: Avatar (32px, tons de cinza) + Name (text-sm)
+   - View mode: Shows 3 mock team members
+   - Edit mode: Single select dropdown
+
+**Color System**:
+- **Priority Badges** (unchanged):
+  - Alta: `bg-red-500/10 text-red-500 border border-red-500/20`
+  - Média: `bg-yellow-500/10 text-yellow-500 border border-yellow-500/20`
+  - Baixa: `bg-green-500/10 text-green-500 border border-green-500/20`
+
+- **Status Badges** (updated):
+  - Pendente: `bg-gray-500/10 text-gray-500 border border-gray-500/20`
+  - Em Progresso: `bg-blue-500/10 text-blue-500 border border-blue-500/20`
+  - Concluída: `bg-green-500/10 text-green-500 border border-green-500/20`
+
+- **Avatar Colors** (grayscale palette):
+  - Avatar 1: `bg-slate-600` (dark gray)
+  - Avatar 2: `bg-slate-500` (medium gray)
+  - Avatar 3: `bg-slate-400` (light gray)
 
 ### Client Profile (360° View)
 - **Split Layout**:

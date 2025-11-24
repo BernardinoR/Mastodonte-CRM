@@ -46,7 +46,7 @@ import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { MOCK_USERS, getUserByName } from "@/lib/mock-users";
+import { MOCK_USERS, MOCK_RESPONSIBLES, getUserByName } from "@/lib/mock-users";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -131,9 +131,9 @@ export function TaskCard({
   };
 
   const statusColors: Record<string, string> = {
-    "To Do": "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    "In Progress": "bg-primary/10 text-primary border-primary/20",
-    Done: "bg-green-500/10 text-green-400 border-green-500/20",
+    "To Do": "bg-gray-500/10 text-gray-500 border-gray-500/20",
+    "In Progress": "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    Done: "bg-green-500/10 text-green-500 border-green-500/20",
   };
 
   const handleSave = () => {
@@ -326,48 +326,50 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardContent className="p-5">
-            <div className="flex flex-col gap-3">
-              {/* Linha 1: Título + Ações (lápis com hover) */}
-              <div className="flex items-start justify-between gap-2">
-                <div
-                  ref={titleRef}
-                  contentEditable={isEditing}
-                  suppressContentEditableWarning
-                  onBlur={handleTitleEdit}
-                  onClick={(e) => isEditing && e.stopPropagation()}
-                  className={cn(
-                    "font-semibold text-base flex-1",
-                    isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
-                  )}
-                  data-testid={`text-tasktitle-${id}`}
-                >
-                  {title}
-                </div>
-                <div className="flex gap-1">
-                  {isEditing && (
+          <CardContent className="p-6">
+            <div className="flex flex-col gap-4">
+              {/* Linha 1: Título + Ações (lápis com hover) + Divisória */}
+              <div className="pb-4 border-b border-border">
+                <div className="flex items-start justify-between gap-2">
+                  <div
+                    ref={titleRef}
+                    contentEditable={isEditing}
+                    suppressContentEditableWarning
+                    onBlur={handleTitleEdit}
+                    onClick={(e) => isEditing && e.stopPropagation()}
+                    className={cn(
+                      "font-semibold text-lg flex-1",
+                      isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                    )}
+                    data-testid={`text-tasktitle-${id}`}
+                  >
+                    {title}
+                  </div>
+                  <div className="flex gap-1">
+                    {isEditing && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                        data-testid={`button-delete-${id}`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                      onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                      data-testid={`button-delete-${id}`}
+                      className={cn(
+                        "h-6 w-6 shrink-0",
+                        !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
+                      )}
+                      onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
+                      data-testid={`button-edit-${id}`}
                     >
-                      <Trash2 className="w-3 h-3" />
+                      {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
                     </Button>
-                  )}
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className={cn(
-                      "h-6 w-6 shrink-0",
-                      !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
-                    )}
-                    onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
-                    data-testid={`button-edit-${id}`}
-                  >
-                    {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
-                  </Button>
+                  </div>
                 </div>
               </div>
               
@@ -498,7 +500,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("To Do")}
                         >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs">
+                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-xs">
                             To Do
                           </Badge>
                         </div>
@@ -506,7 +508,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("In Progress")}
                         >
-                          <Badge variant="outline" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs">
                             In Progress
                           </Badge>
                         </div>
@@ -514,7 +516,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("Done")}
                         >
-                          <Badge variant="outline" className="bg-green-500/10 text-green-400 border-green-500/20 text-xs">
+                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs">
                             Done
                           </Badge>
                         </div>
@@ -588,8 +590,11 @@ export function TaskCard({
                 </div>
               )}
               
-              {/* Linha 5: Responsável */}
-              <div className="flex items-center gap-2 text-sm">
+              {/* Linha 5: Responsáveis */}
+              <div className="space-y-2">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Responsáveis
+                </div>
                 {isEditing ? (
                   <Select
                     value={assignee}
@@ -618,16 +623,20 @@ export function TaskCard({
                     </SelectContent>
                   </Select>
                 ) : (
-                  <>
-                    <Avatar className="w-6 h-6">
-                      <AvatarFallback className="text-[10px]">
-                        {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span data-testid={`text-assignee-${id}`}>
-                      {assignee}
-                    </span>
-                  </>
+                  <div className="space-y-2">
+                    {MOCK_RESPONSIBLES.map((responsible) => (
+                      <div key={responsible.id} className="flex items-center gap-2">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className={cn("text-xs text-white", responsible.avatarColor)}>
+                            {responsible.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm" data-testid={responsible.id === "rafael-bernardino" ? `text-assignee-${id}` : undefined}>
+                          {responsible.name}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             </div>
