@@ -516,7 +516,7 @@ export function TaskCard({
                       </PopoverContent>
                     </Popover>
                   ) : (
-                    <span className="font-bold">{clientName}</span>
+                    <span className="font-medium">{clientName}</span>
                   )}
                 </div>
               )}
