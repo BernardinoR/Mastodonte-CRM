@@ -445,8 +445,8 @@ export function TaskCard({
                 
                 return (
                   <div className={cn(
-                    "flex items-center gap-1.5 text-[10px] md:text-xs",
-                    isOverdue ? "text-destructive" : "text-foreground"
+                    "flex items-center gap-1.5 text-[10px] md:text-xs font-semibold",
+                    isOverdue ? "text-red-700 dark:text-red-400" : "text-foreground"
                   )}>
                     {isEditing ? (
                       <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -455,8 +455,8 @@ export function TaskCard({
                           value={editedTask.dueDate}
                           onChange={handleDateChange}
                           className={cn(
-                            "max-w-[120px]",
-                            isOverdue && "text-destructive border-destructive/50"
+                            "max-w-[120px] font-semibold",
+                            isOverdue && "text-red-700 dark:text-red-400 border-red-700/50 dark:border-red-400/50"
                           )}
                           dataTestId={`input-date-${id}`}
                         />
