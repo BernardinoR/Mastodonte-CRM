@@ -388,7 +388,9 @@ export function TaskCard({
           className={cn(
             "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
             isEditing && "ring-2 ring-primary shadow-lg",
-            isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700"
+            isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
+            status === "In Progress" && "bg-blue-950 border-blue-900",
+            status === "Done" && "bg-green-950 border-green-900"
           )}
           onClick={handleCardClick}
           onDoubleClick={handleEditClick}

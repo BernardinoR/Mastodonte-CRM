@@ -203,6 +203,7 @@ export default function Dashboard() {
             title="Em Progresso" 
             count={inProgressTasks.length} 
             color="text-primary"
+            borderColor="border-blue-700"
           >
             {inProgressTasks.map(task => (
               <TaskCard
@@ -219,6 +220,7 @@ export default function Dashboard() {
             title="Concluído" 
             count={doneTasks.length} 
             color="text-green-400"
+            borderColor="border-green-700"
           >
             {doneTasks.map(task => (
               <TaskCard

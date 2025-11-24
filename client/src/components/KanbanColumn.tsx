@@ -8,9 +8,10 @@ interface KanbanColumnProps {
   count: number;
   children: React.ReactNode;
   color?: string;
+  borderColor?: string;
 }
 
-export function KanbanColumn({ id, title, count, children, color = "text-foreground" }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, count, children, color = "text-foreground", borderColor }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
@@ -28,7 +29,9 @@ export function KanbanColumn({ id, title, count, children, color = "text-foregro
       <div 
         ref={setNodeRef}
         className={`space-y-3 min-h-[400px] p-2 rounded-lg transition-colors ${
-          isOver ? 'bg-accent/20 border-2 border-dashed border-accent' : ''
+          borderColor ? `border-2 ${borderColor}` : ''
+        } ${
+          isOver ? `bg-accent/20 border-dashed ${!borderColor ? 'border-2 border-accent' : ''}` : ''
         }`}
       >
         {children}
