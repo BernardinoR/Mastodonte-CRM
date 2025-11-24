@@ -461,144 +461,7 @@ export function TaskCard({
                 )}
               </div>
               
-              {/* Linha 3: Prioridade - Status */}
-              <div className="flex items-center gap-1.5 flex-wrap text-[10px] md:text-[11px]">
-                {/* Priority Badge */}
-                {isEditing ? (
-                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                      >
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "text-[11px] md:text-xs px-2.5 py-0.5 rounded-full cursor-pointer hover:bg-muted/50",
-                            priority ? priorityColors[priority] : "border-dashed"
-                          )}
-                          data-testid={`badge-priority-${id}`}
-                        >
-                          {priority || "Adicionar Prioridade"}
-                        </Badge>
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-1 p-1">
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handlePriorityChange("_none")}
-                        >
-                          Nenhuma
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Urgente")}
-                        >
-                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            Urgente
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Importante")}
-                        >
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            Importante
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Normal")}
-                        >
-                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            Normal
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Baixa")}
-                        >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            Baixa
-                          </Badge>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                ) : priority ? (
-                  <Badge variant="outline" className={`text-[11px] md:text-xs px-2.5 py-0.5 rounded-full ${priorityColors[priority]}`}>
-                    {priority}
-                  </Badge>
-                ) : null}
-                
-                {/* Status Badge */}
-                {isEditing ? (
-                  <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                      >
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "text-[11px] md:text-xs px-2.5 py-0.5 rounded-full cursor-pointer hover:bg-muted/50",
-                            statusColors[status]
-                          )}
-                          data-testid={`badge-status-${id}`}
-                        >
-                          {status}
-                        </Badge>
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-1 p-1">
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("To Do")}
-                        >
-                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            To Do
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("In Progress")}
-                        >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            In Progress
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("Done")}
-                        >
-                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-[11px] md:text-xs px-2.5 py-0.5 rounded-full">
-                            Done
-                          </Badge>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                ) : (
-                  <Badge variant="outline" className={`text-[11px] md:text-xs px-2.5 py-0.5 rounded-full ${statusColors[status]}`}>
-                    {status}
-                  </Badge>
-                )}
-              </div>
-              
-              {/* Linha 4: Cliente */}
+              {/* Linha 3: Cliente */}
               {(clientName || isEditing) && (
                 <div className="text-xs md:text-sm text-foreground mt-1">
                   {isEditing ? (
@@ -657,6 +520,145 @@ export function TaskCard({
                   )}
                 </div>
               )}
+              
+              {/* Linha 4: Prioridade */}
+              <div className="flex items-center gap-1.5 text-xs md:text-sm">
+                {/* Priority Badge */}
+                {isEditing ? (
+                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                      <div
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
+                      >
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-xs md:text-sm px-2.5 py-0.5 rounded-full cursor-pointer hover:bg-muted/50",
+                            priority ? priorityColors[priority] : "border-dashed"
+                          )}
+                          data-testid={`badge-priority-${id}`}
+                        >
+                          {priority || "Adicionar Prioridade"}
+                        </Badge>
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                      <div className="space-y-1 p-1">
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
+                          onClick={() => handlePriorityChange("_none")}
+                        >
+                          Nenhuma
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Urgente")}
+                        >
+                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            Urgente
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Importante")}
+                        >
+                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            Importante
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Normal")}
+                        >
+                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            Normal
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Baixa")}
+                        >
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            Baixa
+                          </Badge>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : priority ? (
+                  <Badge variant="outline" className={`text-xs md:text-sm px-2.5 py-0.5 rounded-full ${priorityColors[priority]}`}>
+                    {priority}
+                  </Badge>
+                ) : null}
+              </div>
+              
+              {/* Linha 5: Status */}
+              <div className="flex items-center gap-1.5 text-xs md:text-sm">
+                {isEditing ? (
+                  <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
+                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                      <div
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
+                      >
+                        <Badge 
+                          variant="outline" 
+                          className={cn(
+                            "text-xs md:text-sm px-2.5 py-0.5 rounded-full cursor-pointer hover:bg-muted/50",
+                            statusColors[status]
+                          )}
+                          data-testid={`badge-status-${id}`}
+                        >
+                          {status}
+                        </Badge>
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                      <div className="space-y-1 p-1">
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("To Do")}
+                        >
+                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            To Do
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("In Progress")}
+                        >
+                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            In Progress
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handleStatusChange("Done")}
+                        >
+                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-xs md:text-sm px-2.5 py-0.5 rounded-full">
+                            Done
+                          </Badge>
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Badge variant="outline" className={`text-xs md:text-sm px-2.5 py-0.5 rounded-full ${statusColors[status]}`}>
+                    {status}
+                  </Badge>
+                )}
+              </div>
               
               {/* Responsáveis */}
               <div className="space-y-3">
