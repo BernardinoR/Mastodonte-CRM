@@ -394,7 +394,7 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardHeader className="p-4">
+          <CardHeader className="p-4 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -436,7 +436,7 @@ export function TaskCard({
                 </Button>
               </div>
             </div>
-            <Separator className="mt-3" />
+            <Separator className="mt-2" />
           </CardHeader>
 
           <CardContent className="p-4 pt-0 space-y-2">
