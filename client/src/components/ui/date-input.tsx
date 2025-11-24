@@ -29,14 +29,16 @@ export function DateInput({
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
   const [isInvalid, setIsInvalid] = React.useState(false);
+  const [displayMonth, setDisplayMonth] = React.useState<Date>(new Date());
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  // Initialize input value from prop
+  // Initialize input value and display month from prop
   React.useEffect(() => {
     const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
     
     if (dateValue && isValid(dateValue)) {
       setInputValue(format(dateValue, "dd/MM/yyyy", { locale: ptBR }));
+      setDisplayMonth(dateValue);
     }
   }, [value]);
 
@@ -123,6 +125,8 @@ export function DateInput({
     const parsed = parseDate(newValue);
     if (parsed) {
       setIsInvalid(false);
+      // Update calendar month in real-time when valid date is typed
+      setDisplayMonth(parsed);
       const cleanedLength = newValue.replace(/[^\d]/g, "").length;
       if (cleanedLength >= 8) {
         onChange(parsed);
@@ -234,7 +238,8 @@ export function DateInput({
             mode="single"
             selected={currentDate}
             onSelect={handleCalendarSelect}
-            defaultMonth={currentDate || new Date()}
+            month={displayMonth}
+            onMonthChange={setDisplayMonth}
             locale={ptBR}
             initialFocus
             className="rounded-b-lg"
