@@ -45,7 +45,7 @@ export function DateInput({
     // Remove any non-numeric characters except separators
     let cleaned = input.replace(/[^\d\/\-\.]/g, "");
     
-    // Remove trailing separators (important for partial dates like "15/12/")
+    // Remove trailing separators
     cleaned = cleaned.replace(/[\/\-\.]+$/, "");
     
     // Try different date formats
@@ -101,19 +101,14 @@ export function DateInput({
     const hasDash = newValue.includes("-");
     const hasSlash = newValue.includes("/");
     
-    // Only auto-format with slashes if:
-    // 1. User is adding characters (not deleting)
-    // 2. No other separator is being used (dots or dashes)
-    // 3. We're at the right position for a separator
+    // Auto-format with slashes
     if (newValue.length > prevLength && !hasDot && !hasDash) {
-      // Check if we should add a slash after day (position 2)
       if (newValue.length === 2 && !hasSlash) {
         const lastChar = newValue[newValue.length - 1];
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
           newValue = newValue + "/";
         }
       }
-      // Check if we should add a slash after month (position 5)
       else if (newValue.length === 5 && newValue.split("/").length === 2) {
         const lastChar = newValue[newValue.length - 1];
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
@@ -128,13 +123,11 @@ export function DateInput({
     const parsed = parseDate(newValue);
     if (parsed) {
       setIsInvalid(false);
-      // Don't call onChange on every keystroke, only on blur or valid complete dates
       const cleanedLength = newValue.replace(/[^\d]/g, "").length;
-      if (cleanedLength >= 8) { // At least DDMMYYYY digits
+      if (cleanedLength >= 8) {
         onChange(parsed);
       }
     } else if (newValue.replace(/[^\d]/g, "").length >= 6) {
-      // Only show invalid after user has typed enough digits
       setIsInvalid(true);
     } else {
       setIsInvalid(false);
@@ -142,7 +135,6 @@ export function DateInput({
   };
 
   const handleInputBlur = () => {
-    // On blur, try to parse and format the date
     const parsed = parseDate(inputValue);
     if (parsed) {
       setInputValue(format(parsed, "dd/MM/yyyy", { locale: ptBR }));
@@ -155,7 +147,6 @@ export function DateInput({
 
   const handleCalendarSelect = (date: Date | undefined) => {
     if (date) {
-      // Ensure we're working with a clean local date
       const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
       const formatted = format(localDate, "dd/MM/yyyy", { locale: ptBR });
       setInputValue(formatted);
@@ -173,13 +164,11 @@ export function DateInput({
     if (e.key === "Escape") {
       setOpen(false);
     }
-    // Prevent opening popover when typing
     if (e.key !== "Tab") {
       e.stopPropagation();
     }
   };
 
-  // Parse current date value correctly to avoid timezone issues
   const currentDate = React.useMemo(() => {
     const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
     return dateValue && isValid(dateValue) ? dateValue : undefined;
@@ -209,8 +198,12 @@ export function DateInput({
             </Button>
           </PopoverTrigger>
         </div>
-        <PopoverContent className="w-auto p-0 date-input-calendar-popover" align="start">
-          <div className="space-y-2 p-3 border-b">
+        <PopoverContent 
+          className="w-auto p-0 date-input-calendar-popover bg-[#1a1a1a] border-[#2a2a2a]" 
+          align="start"
+        >
+          {/* Input no topo com visual dark sofisticado */}
+          <div className="p-3 border-b border-[#2a2a2a]">
             <Input
               ref={inputRef}
               id={dataTestId}
@@ -221,23 +214,29 @@ export function DateInput({
               placeholder={placeholder}
               disabled={disabled}
               className={cn(
-                "text-sm",
-                isInvalid && "border-destructive focus-visible:ring-destructive"
+                "text-center text-sm font-medium",
+                "bg-[#0a0a0a] border-[#2a2a2a]",
+                "text-white placeholder:text-gray-500",
+                "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
+                isInvalid && "border-red-500 focus-visible:ring-red-500"
               )}
               onClick={(e) => e.stopPropagation()}
             />
             {isInvalid && (
-              <span className="text-xs text-destructive block">
+              <span className="text-xs text-red-400 block mt-2 text-center">
                 Data inválida
               </span>
             )}
           </div>
+          
+          {/* Calendário com tema dark */}
           <Calendar
             mode="single"
             selected={currentDate}
             onSelect={handleCalendarSelect}
             locale={ptBR}
             initialFocus
+            className="rounded-b-lg"
           />
         </PopoverContent>
       </Popover>
