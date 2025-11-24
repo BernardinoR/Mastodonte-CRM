@@ -130,16 +130,16 @@ export function TaskCard({
   };
 
   const priorityColors: Record<string, string> = {
-    Urgente: "bg-destructive/10 text-destructive border-destructive/20",
-    Importante: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    Normal: "bg-muted text-muted-foreground border-muted-foreground/20",
-    Baixa: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    Urgente: "bg-destructive/10 text-white border-destructive/20",
+    Importante: "bg-orange-500/10 text-white border-orange-500/20",
+    Normal: "bg-muted text-white border-muted-foreground/20",
+    Baixa: "bg-blue-500/10 text-white border-blue-500/20",
   };
 
   const statusColors: Record<string, string> = {
-    "To Do": "bg-gray-500/10 text-gray-500 border-gray-500/20",
-    "In Progress": "bg-blue-500/10 text-blue-500 border-blue-500/20",
-    Done: "bg-green-500/10 text-green-500 border-green-500/20",
+    "To Do": "bg-gray-500/10 text-white border-gray-500/20",
+    "In Progress": "bg-blue-500/10 text-white border-blue-500/20",
+    Done: "bg-green-500/10 text-white border-green-500/20",
   };
 
   const handleSave = () => {
@@ -560,7 +560,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Urgente")}
                         >
-                          <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-destructive/10 text-white border-destructive/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             Urgente
                           </Badge>
                         </div>
@@ -568,7 +568,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Importante")}
                         >
-                          <Badge variant="outline" className="bg-orange-500/10 text-orange-400 border-orange-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-orange-500/10 text-white border-orange-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             Importante
                           </Badge>
                         </div>
@@ -576,7 +576,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Normal")}
                         >
-                          <Badge variant="outline" className="bg-muted text-muted-foreground border-muted-foreground/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-muted text-white border-muted-foreground/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             Normal
                           </Badge>
                         </div>
@@ -584,7 +584,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handlePriorityChange("Baixa")}
                         >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-blue-500/10 text-white border-blue-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             Baixa
                           </Badge>
                         </div>
@@ -630,7 +630,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("To Do")}
                         >
-                          <Badge variant="outline" className="bg-gray-500/10 text-gray-500 border-gray-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-gray-500/10 text-white border-gray-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             To Do
                           </Badge>
                         </div>
@@ -638,7 +638,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("In Progress")}
                         >
-                          <Badge variant="outline" className="bg-blue-500/10 text-blue-500 border-blue-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-blue-500/10 text-white border-blue-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             In Progress
                           </Badge>
                         </div>
@@ -646,7 +646,7 @@ export function TaskCard({
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
                           onClick={() => handleStatusChange("Done")}
                         >
-                          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
+                          <Badge variant="outline" className="bg-green-500/10 text-white border-green-500/20 text-[10px] md:text-[11px] px-2 py-0.5 rounded-full">
                             Done
                           </Badge>
                         </div>
