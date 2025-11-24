@@ -319,15 +319,16 @@ export function TaskCard({
         <Card
           ref={cardRef}
           className={cn(
-            "cursor-pointer transition-all hover-elevate active-elevate-2",
+            "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2",
             isEditing && "ring-2 ring-primary shadow-lg"
           )}
           onClick={handleCardClick}
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardContent className="p-4">
-            <div className="space-y-3">
+          <CardContent className="p-5">
+            <div className="flex flex-col gap-3">
+              {/* Linha 1: Título + Ações (lápis com hover) */}
               <div className="flex items-start justify-between gap-2">
                 <div
                   ref={titleRef}
@@ -336,14 +337,14 @@ export function TaskCard({
                   onBlur={handleTitleEdit}
                   onClick={(e) => isEditing && e.stopPropagation()}
                   className={cn(
-                    "font-medium text-base flex-1",
+                    "font-semibold text-base flex-1",
                     isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
                   )}
                   data-testid={`text-tasktitle-${id}`}
                 >
                   {title}
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex gap-1">
                   {isEditing && (
                     <Button
                       size="icon"
@@ -358,7 +359,10 @@ export function TaskCard({
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-6 w-6 shrink-0"
+                    className={cn(
+                      "h-6 w-6 shrink-0",
+                      !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
+                    )}
                     onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
                     data-testid={`button-edit-${id}`}
                   >
@@ -367,7 +371,28 @@ export function TaskCard({
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 flex-wrap">
+              {/* Linha 2: Data */}
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                {isEditing ? (
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <CalendarIcon className="w-4 h-4" />
+                    <DateInput
+                      value={editedTask.dueDate}
+                      onChange={handleDateChange}
+                      className="max-w-[120px]"
+                      dataTestId={`input-date-${id}`}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    <CalendarIcon className="w-4 h-4" />
+                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                  </>
+                )}
+              </div>
+              
+              {/* Linha 3: Prioridade - Status */}
+              <div className="flex items-center gap-2 flex-wrap text-xs">
                 {/* Priority Badge */}
                 {isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
@@ -375,7 +400,6 @@ export function TaskCard({
                       <div
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
-                          // Clear any pending timeout when clicking popover trigger
                           if (clickTimeoutRef.current) {
                             clearTimeout(clickTimeoutRef.current);
                             clickTimeoutRef.current = null;
@@ -450,7 +474,6 @@ export function TaskCard({
                       <div
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
-                          // Clear any pending timeout when clicking popover trigger
                           if (clickTimeoutRef.current) {
                             clearTimeout(clickTimeoutRef.current);
                             clickTimeoutRef.current = null;
@@ -503,122 +526,108 @@ export function TaskCard({
                     {status}
                   </Badge>
                 )}
-                
-                {/* Client Name */}
-                {isEditing ? (
-                  <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <span 
-                        className="text-xs text-muted-foreground cursor-pointer hover:bg-muted/50 rounded px-1"
-                        data-testid={`text-client-${id}`}
-                      >
-                        {clientName || "Adicionar cliente"}
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("_none")}
-                        >
-                          Nenhum
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("Ademar João Gréguer")}
-                        >
-                          Ademar João Gréguer
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("Fernanda Carolina De Faria")}
-                        >
-                          Fernanda Carolina De Faria
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("Gustavo Samconi Soares")}
-                        >
-                          Gustavo Samconi Soares
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
-                        >
-                          Israel Schuster Da Fonseca
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
-                        >
-                          Marcia Mozzato Ciampi De Andrade
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                ) : clientName ? (
-                  <span className="text-xs text-muted-foreground">{clientName}</span>
-                ) : null}
               </div>
               
-              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
-                <div className="flex items-center gap-1.5">
+              {/* Linha 4: Cliente */}
+              {(clientName || isEditing) && (
+                <div className="text-sm text-muted-foreground">
                   {isEditing ? (
-                    <Select
-                      value={assignee}
-                      onValueChange={(value) => handleUpdate("assignee", value)}
-                    >
-                      <SelectTrigger 
-                        className="h-7 w-auto min-w-[160px] text-xs border-0 bg-transparent hover:bg-muted/50 focus:ring-0 gap-1.5"
-                        onPointerDownCapture={(e) => e.stopPropagation()}
-                        data-testid={`select-assignee-${id}`}
-                      >
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent onPointerDownCapture={(e) => e.stopPropagation()}>
-                        {MOCK_USERS.map((user) => (
-                          <SelectItem key={user.id} value={user.name}>
-                            <div className="flex items-center gap-2">
-                              <Avatar className="w-5 h-5">
-                                <AvatarFallback className="text-[10px]">
-                                  {user.initials}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span>{user.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
+                      <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                        <span 
+                          className="cursor-pointer hover:bg-muted/50 rounded px-1"
+                          data-testid={`text-client-${id}`}
+                        >
+                          {clientName || "Adicionar cliente"}
+                        </span>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                        <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("_none")}
+                          >
+                            Nenhum
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("Ademar João Gréguer")}
+                          >
+                            Ademar João Gréguer
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("Fernanda Carolina De Faria")}
+                          >
+                            Fernanda Carolina De Faria
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("Gustavo Samconi Soares")}
+                          >
+                            Gustavo Samconi Soares
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
+                          >
+                            Israel Schuster Da Fonseca
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-sm rounded hover:bg-muted cursor-pointer"
+                            onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
+                          >
+                            Marcia Mozzato Ciampi De Andrade
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
                   ) : (
-                    <div className="flex items-center gap-1.5">
-                      <Avatar className="w-5 h-5">
-                        <AvatarFallback className="text-[10px]">
-                          {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span data-testid={`text-assignee-${id}`}>
-                        {assignee}
-                      </span>
-                    </div>
+                    <span>{clientName}</span>
                   )}
                 </div>
-                
-                {/* Date Picker */}
+              )}
+              
+              {/* Linha 5: Responsável */}
+              <div className="flex items-center gap-2 text-sm">
                 {isEditing ? (
-                  <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
-                    <DateInput
-                      value={editedTask.dueDate}
-                      onChange={handleDateChange}
-                      className="max-w-[120px]"
-                      dataTestId={`input-date-${id}`}
-                    />
-                  </div>
+                  <Select
+                    value={assignee}
+                    onValueChange={(value) => handleUpdate("assignee", value)}
+                  >
+                    <SelectTrigger 
+                      className="h-8 w-auto min-w-[160px] text-sm border-0 bg-transparent hover:bg-muted/50 focus:ring-0 gap-2 px-0"
+                      onPointerDownCapture={(e) => e.stopPropagation()}
+                      data-testid={`select-assignee-${id}`}
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent onPointerDownCapture={(e) => e.stopPropagation()}>
+                      {MOCK_USERS.map((user) => (
+                        <SelectItem key={user.id} value={user.name}>
+                          <div className="flex items-center gap-2">
+                            <Avatar className="w-5 h-5">
+                              <AvatarFallback className="text-[10px]">
+                                {user.initials}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span>{user.name}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
-                  <div className="flex items-center gap-1">
-                    <CalendarIcon className="w-3 h-3" />
-                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-                  </div>
+                  <>
+                    <Avatar className="w-6 h-6">
+                      <AvatarFallback className="text-[10px]">
+                        {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span data-testid={`text-assignee-${id}`}>
+                      {assignee}
+                    </span>
+                  </>
                 )}
               </div>
             </div>
