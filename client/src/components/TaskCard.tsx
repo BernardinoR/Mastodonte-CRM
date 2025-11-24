@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
@@ -39,6 +39,8 @@ import {
   Pencil,
   Trash2,
   Check,
+  Plus,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
@@ -46,7 +48,7 @@ import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { MOCK_USERS, MOCK_RESPONSIBLES, getUserByName } from "@/lib/mock-users";
+import { MOCK_USERS } from "@/lib/mock-users";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -57,7 +59,7 @@ interface TaskCardProps {
   clientName?: string;
   priority?: TaskPriority;
   status: TaskStatus;
-  assignee: string;
+  assignees: string[];
   dueDate: Date;
   description?: string;
   notes?: string[];
@@ -74,13 +76,16 @@ export function TaskCard({
   clientName,
   priority,
   status,
-  assignee,
+  assignees,
   dueDate,
   description,
   notes,
   onUpdate,
   onDelete,
 }: TaskCardProps) {
+  // Ensure assignees is always an array (backward compatibility)
+  const safeAssignees = Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -89,16 +94,16 @@ export function TaskCard({
     clientName: clientName || "",
     priority: priority || "",
     status,
-    assignee,
+    assignees: [...safeAssignees],
     dueDate: format(dueDate, "yyyy-MM-dd"),
     description: description || "",
   });
   const [newNote, setNewNote] = useState("");
+  const [newAssigneeName, setNewAssigneeName] = useState("");
   const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | null>(null);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
-  const assigneeRef = useRef<HTMLDivElement>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -107,11 +112,11 @@ export function TaskCard({
       clientName: clientName || "",
       priority: priority || "",
       status,
-      assignee,
+      assignees: [...safeAssignees],
       dueDate: format(dueDate, "yyyy-MM-dd"),
       description: description || "",
     });
-  }, [title, clientName, priority, status, assignee, dueDate, description]);
+  }, [title, clientName, priority, status, safeAssignees, dueDate, description]);
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: id,
@@ -205,9 +210,52 @@ export function TaskCard({
       clientName: updated.clientName || undefined,
       priority: (updated.priority as TaskPriority) || undefined,
       status: updated.status as TaskStatus,
-      assignee: updated.assignee,
+      assignees: updated.assignees,
       dueDate: parsedDueDate,
     });
+  };
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const getAvatarColor = (index: number): string => {
+    const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
+    return colors[index % colors.length];
+  };
+
+  const handleAddAssignee = () => {
+    const trimmedName = newAssigneeName.trim();
+    
+    // Prevent empty submissions
+    if (!trimmedName) {
+      return;
+    }
+    
+    // Prevent duplicates (case-insensitive, normalized spacing)
+    const isDuplicate = editedTask.assignees.some(
+      existing => existing.toLowerCase().replace(/\s+/g, ' ') === trimmedName.toLowerCase().replace(/\s+/g, ' ')
+    );
+    
+    if (isDuplicate) {
+      setNewAssigneeName("");
+      return;
+    }
+    
+    handleUpdate("assignees", [...editedTask.assignees, trimmedName]);
+    setNewAssigneeName("");
+  };
+
+  const handleRemoveAssignee = (assigneeToRemove: string) => {
+    // Sempre manter pelo menos 1 responsável
+    if (editedTask.assignees.length > 1) {
+      handleUpdate("assignees", editedTask.assignees.filter(a => a !== assigneeToRemove));
+    }
   };
 
   const handleDelete = () => {
@@ -278,15 +326,6 @@ export function TaskCard({
     }
   };
 
-  const handleAssigneeEdit = (e: React.FocusEvent<HTMLDivElement>) => {
-    const newAssignee = e.currentTarget.textContent || "";
-    if (newAssignee.trim() && newAssignee !== editedTask.assignee) {
-      handleUpdate("assignee", newAssignee.trim());
-    } else if (!newAssignee.trim()) {
-      // Restore original assignee if empty
-      e.currentTarget.textContent = editedTask.assignee;
-    }
-  };
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -326,52 +365,51 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-3">
-              {/* Linha 1: Título + Ações (lápis com hover) + Divisória */}
-              <div className="pb-3 border-b border-border/80">
-                <div className="flex items-start justify-between gap-2">
-                  <div
-                    ref={titleRef}
-                    contentEditable={isEditing}
-                    suppressContentEditableWarning
-                    onBlur={handleTitleEdit}
-                    onClick={(e) => isEditing && e.stopPropagation()}
-                    className={cn(
-                      "font-semibold text-base leading-tight flex-1",
-                      isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
-                    )}
-                    data-testid={`text-tasktitle-${id}`}
-                  >
-                    {title}
-                  </div>
-                  <div className="flex gap-1">
-                    {isEditing && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                        data-testid={`button-delete-${id}`}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    )}
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className={cn(
-                        "h-6 w-6 shrink-0",
-                        !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
-                      )}
-                      onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
-                      data-testid={`button-edit-${id}`}
-                    >
-                      {isEditing ? <Check className="w-3 h-3" /> : <Pencil className="w-3 h-3" />}
-                    </Button>
-                  </div>
-                </div>
+          <CardHeader className="pb-4">
+            <div className="flex items-start justify-between gap-2">
+              <div
+                ref={titleRef}
+                contentEditable={isEditing}
+                suppressContentEditableWarning
+                onBlur={handleTitleEdit}
+                onClick={(e) => isEditing && e.stopPropagation()}
+                className={cn(
+                  "font-bold text-lg leading-tight flex-1",
+                  isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                )}
+                data-testid={`text-tasktitle-${id}`}
+              >
+                {title}
               </div>
+              <div className="flex gap-1">
+                {isEditing && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
+                    data-testid={`button-delete-${id}`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className={cn(
+                    "h-8 w-8 shrink-0",
+                    !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
+                  )}
+                  onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
+                  data-testid={`button-edit-${id}`}
+                >
+                  {isEditing ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="pt-0 space-y-4">
               
               {/* Linha 2: Data */}
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
@@ -590,56 +628,77 @@ export function TaskCard({
                 </div>
               )}
               
-              {/* Linha 5: Responsáveis */}
-              <div className="space-y-1.5">
-                <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-[0.08em]">
+              {/* Responsáveis */}
+              <div className="space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Responsáveis
                 </div>
-                {isEditing ? (
-                  <Select
-                    value={assignee}
-                    onValueChange={(value) => handleUpdate("assignee", value)}
-                  >
-                    <SelectTrigger 
-                      className="h-8 w-auto min-w-[160px] text-sm border-0 bg-transparent hover:bg-muted/50 focus:ring-0 gap-2 px-0"
-                      onPointerDownCapture={(e) => e.stopPropagation()}
-                      data-testid={`select-assignee-${id}`}
+                
+                {/* Lista de responsáveis */}
+                <div className="space-y-2">
+                  {editedTask.assignees.map((assignee, index) => (
+                    <div key={index} className="flex items-center gap-2 group/assignee">
+                      <Avatar className="w-7 h-7 shrink-0">
+                        <AvatarFallback className={cn("text-xs font-medium text-white", getAvatarColor(index))}>
+                          {getInitials(assignee)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span 
+                        className="text-sm flex-1" 
+                        data-testid={index === 0 ? `text-assignee-${id}` : undefined}
+                      >
+                        {assignee}
+                      </span>
+                      {isEditing && editedTask.assignees.length > 1 && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-6 w-6 opacity-0 group-hover/assignee:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveAssignee(assignee);
+                          }}
+                          data-testid={`button-remove-assignee-${index}`}
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Input para adicionar novo responsável */}
+                {isEditing && (
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <Input
+                      value={newAssigneeName}
+                      onChange={(e) => setNewAssigneeName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddAssignee();
+                        }
+                      }}
+                      placeholder="Adicionar responsável..."
+                      className="flex-1 h-8 text-sm"
+                      data-testid={`input-new-assignee-${id}`}
+                    />
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      className="h-8 w-8 shrink-0"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddAssignee();
+                      }}
+                      disabled={!newAssigneeName.trim()}
+                      data-testid={`button-add-assignee-${id}`}
                     >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent onPointerDownCapture={(e) => e.stopPropagation()}>
-                      {MOCK_USERS.map((user) => (
-                        <SelectItem key={user.id} value={user.name}>
-                          <div className="flex items-center gap-2">
-                            <Avatar className="w-5 h-5">
-                              <AvatarFallback className="text-[10px]">
-                                {user.initials}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span>{user.name}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="space-y-1.5">
-                    {MOCK_RESPONSIBLES.map((responsible) => (
-                      <div key={responsible.id} className="flex items-center gap-1.5">
-                        <Avatar className="w-6 h-6">
-                          <AvatarFallback className={cn("text-[10px] text-white", responsible.avatarColor)}>
-                            {responsible.initials}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm" data-testid={responsible.id === "rafael-bernardino" ? `text-assignee-${id}` : undefined}>
-                          {responsible.name}
-                        </span>
-                      </div>
-                    ))}
+                      <Plus className="w-4 h-4" />
+                    </Button>
                   </div>
                 )}
               </div>
-            </div>
           </CardContent>
         </Card>
       </div>

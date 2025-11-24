@@ -49,8 +49,10 @@ export default function ClientDetails() {
       clientName: "Alessandro Cuçulin Mazer",
       priority: "Normal" as const,
       status: "To Do" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-25'),
+      onUpdate: () => {},
+      onDelete: () => {},
     },
     {
       id: "2",
@@ -58,8 +60,10 @@ export default function ClientDetails() {
       clientName: "Alessandro Cuçulin Mazer",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
       dueDate: new Date('2025-01-22'),
+      onUpdate: () => {},
+      onDelete: () => {},
     },
     {
       id: "3",
@@ -67,8 +71,10 @@ export default function ClientDetails() {
       clientName: "Alessandro Cuçulin Mazer",
       priority: "Normal" as const,
       status: "Done" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-15'),
+      onUpdate: () => {},
+      onDelete: () => {},
     },
   ];
 
@@ -102,7 +108,6 @@ export default function ClientDetails() {
               <TaskCard
                 key={task.id}
                 {...task}
-                onClick={() => console.log('Task clicked:', task.id)}
               />
             ))}
           </>

@@ -1,0 +1,683 @@
+Vou criar uma versão dark mode com múltiplos responsáveis:
+
+```tsx type=react
+import React, { useState, useCallback } from "react";
+import { Pencil, Check, X, Trash2, Calendar, User, Plus, UserPlus } from "lucide-react";
+
+// Simulando componentes Shadcn/UI
+const Card = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`rounded-lg border bg-card text-card-foreground shadow-sm ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardHeader = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`flex flex-col space-y-1.5 p-6 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const CardContent = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`p-6 pt-0 ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const Button = ({ 
+  children, 
+  className, 
+  variant = "default", 
+  size = "default",
+  ...props 
+}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  size?: "default" | "sm" | "lg" | "icon";
+}) => {
+  const variants = {
+    default: "bg-primary text-primary-foreground hover:bg-primary/90",
+    destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
+    outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+    secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    ghost: "hover:bg-accent hover:text-accent-foreground",
+    link: "text-primary underline-offset-4 hover:underline",
+  };
+  
+  const sizes = {
+    default: "h-10 px-4 py-2",
+    sm: "h-9 rounded-md px-3",
+    lg: "h-11 rounded-md px-8",
+    icon: "h-10 w-10",
+  };
+
+  return (
+    <button
+      className={`inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${sizes[size]} ${className}`}
+      {...props}
+    >
+      {children}
+    </button>
+  );
+};
+
+const Badge = ({ 
+  children, 
+  className, 
+  variant = "default",
+  ...props 
+}: React.HTMLAttributes<HTMLDivElement> & {
+  variant?: "default" | "secondary" | "destructive" | "outline";
+}) => {
+  const variants = {
+    default: "border-transparent bg-primary text-primary-foreground hover:bg-primary/80",
+    secondary: "border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80",
+    destructive: "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
+    outline: "text-foreground",
+  };
+
+  return (
+    <div
+      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${variants[variant]} ${className}`}
+      {...props}
+    >
+      {children}
+    </div>
+  );
+};
+
+const Separator = ({ className, orientation = "horizontal", ...props }: React.HTMLAttributes<HTMLDivElement> & { orientation?: "horizontal" | "vertical" }) => (
+  <div
+    className={`shrink-0 bg-border ${
+      orientation === "horizontal" ? "h-px w-full" : "h-full w-px"
+    } ${className}`}
+    {...props}
+  />
+);
+
+const Avatar = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+const AvatarImage = ({ src, alt, className }: { src?: string; alt?: string; className?: string }) => (
+  src ? <img src={src} alt={alt} className={`aspect-square h-full w-full ${className}`} /> : null
+);
+
+const AvatarFallback = ({ children, className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
+  <div className={`flex h-full w-full items-center justify-center rounded-full bg-muted ${className}`} {...props}>
+    {children}
+  </div>
+);
+
+// Componente de texto editável inline
+const InlineEdit = ({ 
+  value, 
+  onChange, 
+  className = "", 
+  multiline = false,
+  placeholder = "Digite aqui..."
+}: { 
+  value: string; 
+  onChange: (value: string) => void; 
+  className?: string;
+  multiline?: boolean;
+  placeholder?: string;
+}) => {
+  const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
+    onChange(e.currentTarget.textContent || "");
+  };
+
+  return (
+    <div
+      contentEditable
+      suppressContentEditableWarning
+      onInput={handleInput}
+      className={`outline-none focus:bg-slate-700 focus:ring-2 focus:ring-blue-500 rounded px-1 -mx-1 ${className}`}
+      style={{ minWidth: '20px' }}
+      placeholder={placeholder}
+    >
+      {value}
+    </div>
+  );
+};
+
+// Types
+type Priority = "urgent" | "high" | "normal" | "low";
+type Status = "pending" | "in-progress" | "review" | "completed";
+
+interface Assignee {
+  id: string;
+  name: string;
+  initials: string;
+  avatar?: string;
+  color: string;
+}
+
+interface TaskData {
+  id: string;
+  title: string;
+  clientName: string;
+  assignees: Assignee[];
+  date: string;
+  priority: Priority;
+  status: Status;
+}
+
+// Constants
+const PRIORITY_CONFIG: Record<Priority, { label: string; color: string }> = {
+  urgent: { label: "Urgente", color: "destructive" },
+  high: { label: "Alta", color: "warning" },
+  normal: { label: "Normal", color: "default" },
+  low: { label: "Baixa", color: "secondary" },
+};
+
+const STATUS_CONFIG: Record<Status, { label: string; color: string }> = {
+  pending: { label: "Pendente", color: "outline" },
+  "in-progress": { label: "Em Progresso", color: "default" },
+  review: { label: "Em Revisão", color: "secondary" },
+  completed: { label: "Concluído", color: "success" },
+};
+
+const AVATAR_COLORS = [
+  "from-indigo-500 to-purple-600",
+  "from-pink-500 to-rose-600",
+  "from-green-500 to-emerald-600",
+  "from-blue-500 to-cyan-600",
+  "from-orange-500 to-red-600",
+  "from-violet-500 to-purple-600",
+  "from-yellow-500 to-orange-600",
+];
+
+// Estilos CSS adicionais para dark mode
+const styles = `
+  .bg-card { background-color: #1e293b; }
+  .text-card-foreground { color: #f1f5f9; }
+  .bg-primary { background-color: #3b82f6; }
+  .text-primary { color: #3b82f6; }
+  .text-primary-foreground { color: white; }
+  .hover\\:bg-primary\\/90:hover { background-color: #2563eb; }
+  .bg-destructive { background-color: #ef4444; }
+  .text-destructive { color: #ef4444; }
+  .text-destructive-foreground { color: white; }
+  .hover\\:bg-destructive\\/90:hover { background-color: #dc2626; }
+  .hover\\:bg-destructive\\/10:hover { background-color: rgba(239, 68, 68, 0.1); }
+  .bg-secondary { background-color: #334155; }
+  .text-secondary-foreground { color: #cbd5e1; }
+  .hover\\:bg-secondary\\/80:hover { background-color: #475569; }
+  .bg-accent { background-color: #334155; }
+  .hover\\:bg-accent:hover { background-color: #475569; }
+  .text-accent-foreground { color: #f1f5f9; }
+  .hover\\:text-accent-foreground:hover { color: #f1f5f9; }
+  .bg-muted { background-color: #475569; }
+  .text-muted-foreground { color: #94a3b8; }
+  .bg-background { background-color: #0f172a; }
+  .border-input { border-color: #334155; }
+  .ring-ring { --tw-ring-color: #3b82f6; }
+  .ring-offset-background { --tw-ring-offset-color: #0f172a; }
+  .bg-border { background-color: #334155; }
+  .bg-warning { background-color: #f59e0b; }
+  .bg-success { background-color: #10b981; }
+  
+  [contenteditable]:empty:before {
+    content: attr(placeholder);
+    color: #64748b;
+  }
+  
+  [contenteditable]:focus {
+    outline: none;
+  }
+
+  .border {
+    border-color: #334155;
+  }
+
+  /* Scrollbar customization for dark mode */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #1e293b;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+`;
+
+export default function TaskCard() {
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [isHovered, setIsHovered] = useState<boolean>(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
+  const [showAddAssignee, setShowAddAssignee] = useState<boolean>(false);
+  const [newAssigneeName, setNewAssigneeName] = useState<string>("");
+  
+  const [taskData, setTaskData] = useState<TaskData>({
+    id: "1",
+    title: "Casa Brasília Dito",
+    clientName: "Marcia Mozzato Ciampi De Andrade",
+    assignees: [
+      {
+        id: "1",
+        name: "Rafael Bernardino Silveira",
+        initials: "RB",
+        color: "from-indigo-500 to-purple-600"
+      },
+      {
+        id: "2",
+        name: "Ana Paula Santos",
+        initials: "AP",
+        color: "from-pink-500 to-rose-600"
+      },
+      {
+        id: "3",
+        name: "Carlos Eduardo Lima",
+        initials: "CE",
+        color: "from-green-500 to-emerald-600"
+      }
+    ],
+    date: "07/11/2025",
+    priority: "urgent",
+    status: "in-progress",
+  });
+
+  const [editData, setEditData] = useState<TaskData>(taskData);
+
+  const handleSave = useCallback(() => {
+    setTaskData(editData);
+    setIsEditMode(false);
+  }, [editData]);
+
+  const handleCancel = useCallback(() => {
+    setEditData(taskData);
+    setIsEditMode(false);
+    setShowAddAssignee(false);
+    setNewAssigneeName("");
+  }, [taskData]);
+
+  const handleEdit = useCallback(() => {
+    setEditData(taskData);
+    setIsEditMode(true);
+  }, [taskData]);
+
+  const handleDelete = useCallback(() => {
+    console.log("Item deletado:", taskData.id);
+    setShowDeleteDialog(false);
+  }, [taskData.id]);
+
+  const handleInputChange = useCallback((field: keyof TaskData, value: any) => {
+    setEditData(prev => ({ ...prev, [field]: value }));
+  }, []);
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(' ')
+      .map(word => word[0])
+      .join('')
+      .substring(0, 2)
+      .toUpperCase();
+  };
+
+  const handleAssigneeNameChange = (assigneeId: string, newName: string) => {
+    const updatedAssignees = editData.assignees.map(assignee =>
+      assignee.id === assigneeId
+        ? { ...assignee, name: newName, initials: getInitials(newName) }
+        : assignee
+    );
+    handleInputChange('assignees', updatedAssignees);
+  };
+
+  const handleRemoveAssignee = (assigneeId: string) => {
+    if (editData.assignees.length > 1) {
+      const updatedAssignees = editData.assignees.filter(a => a.id !== assigneeId);
+      handleInputChange('assignees', updatedAssignees);
+    }
+  };
+
+  const handleAddNewAssignee = () => {
+    if (newAssigneeName.trim()) {
+      const newAssignee: Assignee = {
+        id: Date.now().toString(),
+        name: newAssigneeName,
+        initials: getInitials(newAssigneeName),
+        color: AVATAR_COLORS[editData.assignees.length % AVATAR_COLORS.length]
+      };
+      handleInputChange('assignees', [...editData.assignees, newAssignee]);
+      setNewAssigneeName("");
+      setShowAddAssignee(false);
+    }
+  };
+
+  const getPriorityBadgeClass = (priority: Priority): string => {
+    const classes = {
+      urgent: "bg-red-500/20 text-red-400 border-red-500/30 hover:bg-red-500/30",
+      high: "bg-orange-500/20 text-orange-400 border-orange-500/30 hover:bg-orange-500/30",
+      normal: "bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30",
+      low: "bg-gray-500/20 text-gray-400 border-gray-500/30 hover:bg-gray-500/30",
+    };
+    return classes[priority];
+  };
+
+  const getStatusBadgeClass = (status: Status): string => {
+    const classes = {
+      pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30 hover:bg-yellow-500/30",
+      "in-progress": "bg-blue-500/20 text-blue-400 border-blue-500/30 hover:bg-blue-500/30",
+      review: "bg-purple-500/20 text-purple-400 border-purple-500/30 hover:bg-purple-500/30",
+      completed: "bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30",
+    };
+    return classes[status];
+  };
+
+  const cyclePriority = () => {
+    if (!isEditMode) return;
+    const priorities: Priority[] = ["urgent", "high", "normal", "low"];
+    const currentIndex = priorities.indexOf(editData.priority);
+    const nextIndex = (currentIndex + 1) % priorities.length;
+    handleInputChange('priority', priorities[nextIndex]);
+  };
+
+  const cycleStatus = () => {
+    if (!isEditMode) return;
+    const statuses: Status[] = ["pending", "in-progress", "review", "completed"];
+    const currentIndex = statuses.indexOf(editData.status);
+    const nextIndex = (currentIndex + 1) % statuses.length;
+    handleInputChange('status', statuses[nextIndex]);
+  };
+
+  const displayAssignees = isEditMode ? editData.assignees : taskData.assignees;
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+        <Card 
+          className={`w-full max-w-lg transition-all duration-300 border-slate-700 ${
+            isEditMode ? "ring-2 ring-blue-500 shadow-2xl shadow-blue-500/20" : "hover:shadow-2xl hover:shadow-slate-900/50"
+          }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+        >
+          <CardHeader className="pb-3">
+            <div className="flex items-start justify-between gap-3">
+              {isEditMode ? (
+                <InlineEdit
+                  value={editData.title}
+                  onChange={(value) => handleInputChange('title', value)}
+                  className="flex-1 text-base font-semibold tracking-tight text-slate-100"
+                  placeholder="Digite o título..."
+                />
+              ) : (
+                <h3 className="flex-1 text-base font-semibold tracking-tight text-slate-100">
+                  {taskData.title}
+                </h3>
+              )}
+              
+              <div className={`flex gap-1 transition-opacity duration-200 ${
+                isHovered || isEditMode ? 'opacity-100' : 'opacity-0'
+              }`}>
+                {isEditMode ? (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-green-400 hover:text-green-300 hover:bg-green-500/20"
+                      onClick={handleSave}
+                      aria-label="Salvar alterações"
+                    >
+                      <Check className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                      onClick={handleCancel}
+                      aria-label="Cancelar edição"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-slate-400 hover:text-slate-300"
+                      onClick={handleEdit}
+                      aria-label="Editar cartão"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                      onClick={() => setShowDeleteDialog(true)}
+                      aria-label="Excluir cartão"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardHeader>
+
+          <Separator />
+
+          <CardContent className="pt-6 space-y-4">
+            {/* Data */}
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-slate-500" />
+              {isEditMode ? (
+                <InlineEdit
+                  value={editData.date}
+                  onChange={(value) => handleInputChange('date', value)}
+                  className="text-sm text-slate-400"
+                  placeholder="DD/MM/YYYY"
+                />
+              ) : (
+                <span className="text-sm text-slate-400">{taskData.date}</span>
+              )}
+            </div>
+
+            {/* Badges */}
+            <div className="flex gap-2 flex-wrap">
+              <Badge 
+                className={`border ${getPriorityBadgeClass(isEditMode ? editData.priority : taskData.priority)} ${
+                  isEditMode ? 'cursor-pointer' : 'cursor-default'
+                }`}
+                onClick={cyclePriority}
+              >
+                {PRIORITY_CONFIG[isEditMode ? editData.priority : taskData.priority].label}
+                {isEditMode && <span className="ml-1 text-xs opacity-60">↻</span>}
+              </Badge>
+              <Badge 
+                className={`border ${getStatusBadgeClass(isEditMode ? editData.status : taskData.status)} ${
+                  isEditMode ? 'cursor-pointer' : 'cursor-default'
+                }`}
+                onClick={cycleStatus}
+              >
+                {STATUS_CONFIG[isEditMode ? editData.status : taskData.status].label}
+                {isEditMode && <span className="ml-1 text-xs opacity-60">↻</span>}
+              </Badge>
+            </div>
+
+            {/* Cliente */}
+            <div className="pt-2">
+              {isEditMode ? (
+                <InlineEdit
+                  value={editData.clientName}
+                  onChange={(value) => handleInputChange('clientName', value)}
+                  className="text-base font-medium leading-snug text-slate-200"
+                  placeholder="Nome do cliente..."
+                />
+              ) : (
+                <h2 className="text-base font-medium leading-snug text-slate-200">
+                  {taskData.clientName}
+                </h2>
+              )}
+            </div>
+
+            {/* Responsáveis */}
+            <div className="pt-1">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs text-slate-500 uppercase tracking-wider">Responsáveis</p>
+                {isEditMode && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-xs text-blue-400 hover:text-blue-300 hover:bg-blue-500/20"
+                    onClick={() => setShowAddAssignee(true)}
+                  >
+                    <UserPlus className="h-3 w-3 mr-1" />
+                    Adicionar
+                  </Button>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                {displayAssignees.map((assignee) => (
+                  <div key={assignee.id} className="flex items-center gap-3 group">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={assignee.avatar} />
+                      <AvatarFallback className={`bg-gradient-to-br ${assignee.color} text-white text-xs font-bold`}>
+                        {assignee.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div className="flex-1">
+                      {isEditMode ? (
+                        <InlineEdit
+                          value={assignee.name}
+                          onChange={(value) => handleAssigneeNameChange(assignee.id, value)}
+                          className="text-sm font-medium text-slate-300"
+                          placeholder="Nome do responsável..."
+                        />
+                      ) : (
+                        <p className="text-sm font-medium text-slate-300">{assignee.name}</p>
+                      )}
+                    </div>
+
+                    {isEditMode && displayAssignees.length > 1 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                        onClick={() => handleRemoveAssignee(assignee.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                ))}
+
+                {/* Add new assignee input */}
+                {showAddAssignee && isEditMode && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="bg-gradient-to-br from-slate-600 to-slate-700 text-white text-xs">
+                        <Plus className="h-4 w-4" />
+                      </AvatarFallback>
+                    </Avatar>
+                    <input
+                      type="text"
+                      value={newAssigneeName}
+                      onChange={(e) => setNewAssigneeName(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddNewAssignee()}
+                      placeholder="Nome do novo responsável..."
+                      className="flex-1 text-sm bg-slate-700 border border-slate-600 rounded px-2 py-1 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      autoFocus
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-green-400 hover:text-green-300 hover:bg-green-500/20"
+                      onClick={handleAddNewAssignee}
+                    >
+                      <Check className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-red-400 hover:text-red-300 hover:bg-red-500/20"
+                      onClick={() => {
+                        setShowAddAssignee(false);
+                        setNewAssigneeName("");
+                      }}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Delete Dialog Modal */}
+      {showDeleteDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowDeleteDialog(false)} />
+          <div className="relative bg-slate-800 border border-slate-700 rounded-lg p-6 max-w-md w-full shadow-2xl">
+            <h2 className="text-base font-semibold mb-2 text-slate-100">Confirmar exclusão</h2>
+            <p className="text-sm text-slate-400 mb-6">
+              Tem certeza que deseja excluir "{taskData.title}"? Esta ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDeleteDialog(false)}
+                className="border-slate-600 text-slate-300 hover:bg-slate-700"
+              >
+                Cancelar
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={handleDelete}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                Excluir
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+```
+
+Agora o card tem:
+
+1. **Dark Mode Completo**: 
+   - Fundo escuro com gradiente sutil
+   - Cores ajustadas para contraste no tema escuro
+   - Badges com transparência e bordas coloridas
+   - Sombras azuladas ao editar
+
+2. **Múltiplos Responsáveis**:
+   - Lista de responsáveis com avatares coloridos
+   - Botão para adicionar novos responsáveis em modo de edição
+   - Possibilidade de remover responsáveis (exceto se houver apenas um)
+   - Edição inline dos nomes dos responsáveis
+   - Avatares com gradientes coloridos únicos
+
+3. **Melhorias Visuais**:
+   - Efeitos de hover suaves
+   - Transições fluidas
+   - Modal de confirmação também em dark mode
+   - Scrollbar customizada para dark mode
+
+4. **Funcionalidades de Edição**:
+   - Adicionar/remover responsáveis dinamicamente
+   - Edição inline de todos os campos
+   - Atualização automática das iniciais nos avatares
+
+O design mantém a elegância e funcionalidade, agora com suporte total a dark mode e gestão de múltiplos responsáveis!

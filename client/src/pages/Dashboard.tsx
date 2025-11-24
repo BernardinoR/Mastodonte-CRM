@@ -16,7 +16,7 @@ interface Task {
   clientName?: string;
   priority?: TaskPriority;
   status: TaskStatus;
-  assignee: string;
+  assignees: string[];
   dueDate: Date;
   description?: string;
   notes?: string[];
@@ -35,7 +35,7 @@ export default function Dashboard() {
       clientName: "Ademar João Gréguer",
       priority: "Normal" as const,
       status: "To Do" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-11-19'),
     },
     {
@@ -44,14 +44,14 @@ export default function Dashboard() {
       clientName: "Fernanda Carolina De Faria",
       priority: "Importante" as const,
       status: "To Do" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
       dueDate: new Date('2025-11-15'),
     },
     {
       id: "3",
       title: "Aguardar retorno sobre apresentação do Ariel",
       status: "To Do" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-11-16'),
     },
     {
@@ -60,7 +60,7 @@ export default function Dashboard() {
       clientName: "Israel Schuster Da Fonseca",
       priority: "Baixa" as const,
       status: "To Do" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira", "João Silva", "Ana Costa"],
       dueDate: new Date('2025-11-20'),
     },
     {
@@ -69,7 +69,7 @@ export default function Dashboard() {
       clientName: "Marcia Mozzato Ciampi De Andrade",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
     },
     {
@@ -78,7 +78,7 @@ export default function Dashboard() {
       clientName: "Marcia Mozzato Ciampi De Andrade",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira", "Pedro Oliveira"],
       dueDate: new Date('2025-01-20'),
     },
     {
@@ -87,7 +87,7 @@ export default function Dashboard() {
       clientName: "Marcia Mozzato Ciampi De Andrade",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
     },
     {
@@ -96,7 +96,7 @@ export default function Dashboard() {
       clientName: "Fernanda Garcia Rodrigues de Souza",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
     },
     {
@@ -105,7 +105,7 @@ export default function Dashboard() {
       clientName: "Rodrigo Weber Rocha da Silva",
       priority: "Urgente" as const,
       status: "In Progress" as const,
-      assignee: "Rafael Bernardino Silveira",
+      assignees: ["Rafael Bernardino Silveira", "Carla Mendes"],
       dueDate: new Date('2025-01-21'),
     },
   ]);
@@ -113,7 +113,7 @@ export default function Dashboard() {
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (task.clientName && task.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesAssignee = assigneeFilter === "all" || task.assignee.includes(assigneeFilter);
+    const matchesAssignee = assigneeFilter === "all" || task.assignees.some(a => a.includes(assigneeFilter));
     const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
     return matchesSearch && matchesAssignee && matchesPriority;
   });

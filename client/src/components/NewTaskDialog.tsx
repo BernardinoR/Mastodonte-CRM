@@ -27,8 +27,12 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Task submitted:', formData);
-    onSubmit?.(formData);
+    const taskData = {
+      ...formData,
+      assignees: [formData.assignee], // Convert single assignee to array
+    };
+    console.log('Task submitted:', taskData);
+    onSubmit?.(taskData);
     onOpenChange(false);
     setFormData({
       title: "",
