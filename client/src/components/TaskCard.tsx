@@ -570,19 +570,12 @@ export function TaskCard({
                     >
                       <SelectTrigger 
                         className="h-7 w-auto min-w-[160px] text-xs border-0 bg-transparent hover:bg-muted/50 focus:ring-0 gap-1.5"
-                        onClick={(e) => e.stopPropagation()}
+                        onPointerDownCapture={(e) => e.stopPropagation()}
                         data-testid={`select-assignee-${id}`}
                       >
-                        <div className="flex items-center gap-1.5">
-                          <Avatar className="w-5 h-5">
-                            <AvatarFallback className="text-[10px]">
-                              {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <SelectValue />
-                        </div>
+                        <SelectValue />
                       </SelectTrigger>
-                      <SelectContent onClick={(e) => e.stopPropagation()}>
+                      <SelectContent onPointerDownCapture={(e) => e.stopPropagation()}>
                         {MOCK_USERS.map((user) => (
                           <SelectItem key={user.id} value={user.name}>
                             <div className="flex items-center gap-2">
