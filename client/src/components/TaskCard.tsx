@@ -349,6 +349,33 @@ export function TaskCard({
     setActivePopover(null);
   };
 
+  // Calculate overdue status for Card border styling
+  const today = startOfDay(new Date());
+  let isOverdue = false;
+  
+  if (isEditing) {
+    // Strict format validation with regex
+    const dateStr = editedTask.dueDate;
+    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    
+    if (dateStr && isoDateRegex.test(dateStr)) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      
+      // Validate month (1-12) and day ranges
+      if (m >= 1 && m <= 12) {
+        const daysInMonth = new Date(y, m, 0).getDate();
+        if (d >= 1 && d <= daysInMonth) {
+          // Valid date - check if overdue
+          const parsed = parseLocalDate(dateStr);
+          isOverdue = isBefore(startOfDay(parsed), today);
+        }
+      }
+    }
+  } else {
+    // In read-only mode, use the validated dueDate prop
+    isOverdue = isBefore(startOfDay(dueDate), today);
+  }
+
   return (
     <>
       <div
@@ -359,8 +386,9 @@ export function TaskCard({
         <Card
           ref={cardRef}
           className={cn(
-            "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2",
-            isEditing && "ring-2 ring-primary shadow-lg"
+            "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
+            isEditing && "ring-2 ring-primary shadow-lg",
+            isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700"
           )}
           onClick={handleCardClick}
           onDoubleClick={handleEditClick}
@@ -414,62 +442,24 @@ export function TaskCard({
           <CardContent className="pt-0 space-y-6">
               
               {/* Linha 2: Data */}
-              {(() => {
-                const today = startOfDay(new Date());
-                
-                // Robust date validation for real-time overdue detection
-                let isOverdue = false;
-                
-                if (isEditing) {
-                  // Strict format validation with regex
-                  const dateStr = editedTask.dueDate;
-                  const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-                  
-                  if (dateStr && isoDateRegex.test(dateStr)) {
-                    const [y, m, d] = dateStr.split('-').map(Number);
-                    
-                    // Validate month (1-12) and day ranges
-                    if (m >= 1 && m <= 12) {
-                      const daysInMonth = new Date(y, m, 0).getDate();
-                      if (d >= 1 && d <= daysInMonth) {
-                        // Valid date - check if overdue
-                        const parsed = parseLocalDate(dateStr);
-                        isOverdue = isBefore(startOfDay(parsed), today);
-                      }
-                    }
-                  }
-                } else {
-                  // In read-only mode, use the validated dueDate prop
-                  isOverdue = isBefore(startOfDay(dueDate), today);
-                }
-                
-                return (
-                  <div className={cn(
-                    "flex items-center gap-1.5 text-[10px] md:text-xs font-semibold",
-                    isOverdue ? "text-red-700 dark:text-red-400" : "text-foreground"
-                  )}>
-                    {isEditing ? (
-                      <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        <DateInput
-                          value={editedTask.dueDate}
-                          onChange={handleDateChange}
-                          className={cn(
-                            "max-w-[120px] font-semibold",
-                            isOverdue && "text-red-700 dark:text-red-400 border-red-700/50 dark:border-red-400/50"
-                          )}
-                          dataTestId={`input-date-${id}`}
-                        />
-                      </div>
-                    ) : (
-                      <>
-                        <CalendarIcon className="w-3.5 h-3.5" />
-                        <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-                      </>
-                    )}
+              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-semibold text-foreground">
+                {isEditing ? (
+                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <DateInput
+                      value={editedTask.dueDate}
+                      onChange={handleDateChange}
+                      className="max-w-[120px] font-semibold"
+                      dataTestId={`input-date-${id}`}
+                    />
                   </div>
-                );
-              })()}
+                ) : (
+                  <>
+                    <CalendarIcon className="w-3.5 h-3.5" />
+                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                  </>
+                )}
+              </div>
               
               {/* Linha 3: Prioridade - Status */}
               <div className="flex items-center gap-1.5 flex-wrap text-[10px] md:text-[11px]">
