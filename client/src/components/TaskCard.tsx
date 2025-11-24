@@ -676,7 +676,7 @@ export function TaskCard({
                         </AvatarFallback>
                       </Avatar>
                       <span 
-                        className="text-[10px] md:text-[11px] font-normal flex-1" 
+                        className="md:text-[11px] font-normal flex-1 text-[13px]" 
                         data-testid={index === 0 ? `text-assignee-${id}` : undefined}
                       >
                         {assignee}
