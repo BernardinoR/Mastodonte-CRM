@@ -4,7 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from "react";
+import { MOCK_USERS } from "@/lib/mock-users";
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -19,7 +21,7 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
     description: "",
     clientId: preSelectedClient || "",
     priority: "Normal",
-    assignee: "rafael",
+    assignee: MOCK_USERS[0].name,
     dueDate: "",
   });
 
@@ -33,7 +35,7 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
       description: "",
       clientId: preSelectedClient || "",
       priority: "Normal",
-      assignee: "rafael",
+      assignee: MOCK_USERS[0].name,
       dueDate: "",
     });
   };
@@ -119,8 +121,18 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rafael">Rafael Bernardino</SelectItem>
-                    <SelectItem value="assistant">Assistente</SelectItem>
+                    {MOCK_USERS.map((user) => (
+                      <SelectItem key={user.id} value={user.name}>
+                        <div className="flex items-center gap-2">
+                          <Avatar className="w-5 h-5">
+                            <AvatarFallback className="text-[10px]">
+                              {user.initials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span>{user.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -24,6 +24,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -39,6 +46,7 @@ import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
+import { MOCK_USERS, getUserByName } from "@/lib/mock-users";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -188,13 +196,17 @@ export function TaskCard({
     setEditedTask(updated);
     
     // Auto-save immediately on field change
+    // Always derive the date from the updated state (not from props)
+    // Parse if non-empty, otherwise use the original prop as fallback
+    const parsedDueDate = updated.dueDate ? parseLocalDate(updated.dueDate) : dueDate;
+    
     onUpdate(id, {
       title: updated.title,
       clientName: updated.clientName || undefined,
       priority: (updated.priority as TaskPriority) || undefined,
       status: updated.status as TaskStatus,
       assignee: updated.assignee,
-      dueDate: parseLocalDate(updated.dueDate),
+      dueDate: parsedDueDate,
     });
   };
 
@@ -551,24 +563,52 @@ export function TaskCard({
               
               <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
                 <div className="flex items-center gap-1.5">
-                  <Avatar className="w-5 h-5">
-                    <AvatarFallback className="text-[10px]">
-                      {assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div
-                    ref={assigneeRef}
-                    contentEditable={isEditing}
-                    suppressContentEditableWarning
-                    onBlur={handleAssigneeEdit}
-                    onClick={(e) => isEditing && e.stopPropagation()}
-                    className={cn(
-                      isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
-                    )}
-                    data-testid={`text-assignee-${id}`}
-                  >
-                    {assignee}
-                  </div>
+                  {isEditing ? (
+                    <Select
+                      value={assignee}
+                      onValueChange={(value) => handleUpdate("assignee", value)}
+                    >
+                      <SelectTrigger 
+                        className="h-7 w-auto min-w-[160px] text-xs border-0 bg-transparent hover:bg-muted/50 focus:ring-0 gap-1.5"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`select-assignee-${id}`}
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <Avatar className="w-5 h-5">
+                            <AvatarFallback className="text-[10px]">
+                              {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent onClick={(e) => e.stopPropagation()}>
+                        {MOCK_USERS.map((user) => (
+                          <SelectItem key={user.id} value={user.name}>
+                            <div className="flex items-center gap-2">
+                              <Avatar className="w-5 h-5">
+                                <AvatarFallback className="text-[10px]">
+                                  {user.initials}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span>{user.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <div className="flex items-center gap-1.5">
+                      <Avatar className="w-5 h-5">
+                        <AvatarFallback className="text-[10px]">
+                          {getUserByName(assignee)?.initials || assignee.split(" ").map(n => n[0]).join("").substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span data-testid={`text-assignee-${id}`}>
+                        {assignee}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Date Picker */}
