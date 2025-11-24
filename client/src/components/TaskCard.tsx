@@ -157,15 +157,15 @@ export function TaskCard({
       const isPortal = path.some((element) => {
         if (element instanceof HTMLElement) {
           return (
-            element.hasAttribute('data-radix-portal') ||
+            // react-day-picker calendar
+            (element.hasAttribute('data-radix-portal') ||
             element.hasAttribute('data-popover-portal') ||
             element.getAttribute('role') === 'dialog' ||
             element.getAttribute('role') === 'listbox' ||
             element.getAttribute('role') === 'menu' ||
             element.classList.contains('date-input-calendar-popover') ||
             // Also check for Radix Popover specific classes
-            element.hasAttribute('data-radix-popper-content-wrapper') ||
-            element.classList.contains('rdp') // react-day-picker calendar
+            element.hasAttribute('data-radix-popper-content-wrapper') || element.classList.contains('rdp'))
           );
         }
         return false;
@@ -456,7 +456,7 @@ export function TaskCard({
                 ) : (
                   <>
                     <CalendarIcon className="w-3.5 h-3.5" />
-                    <span>{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
+                    <span className="font-medium">{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
                   </>
                 )}
               </div>
@@ -734,7 +734,6 @@ export function TaskCard({
           </CardContent>
         </Card>
       </div>
-
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
           <DialogHeader className="space-y-0 pb-4">
@@ -800,7 +799,6 @@ export function TaskCard({
           </div>
         </DialogContent>
       </Dialog>
-
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
