@@ -34,6 +34,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Separator } from "@/components/ui/separator";
 import {
   Calendar as CalendarIcon,
   Pencil,
@@ -365,7 +366,7 @@ export function TaskCard({
           onDoubleClick={handleEditClick}
           data-testid={`card-task-${id}`}
         >
-          <CardHeader className="border-b">
+          <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -407,6 +408,7 @@ export function TaskCard({
                 </Button>
               </div>
             </div>
+            <Separator className="mt-6" />
           </CardHeader>
 
           <CardContent className="pt-0 space-y-6">
