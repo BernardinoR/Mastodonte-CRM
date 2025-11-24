@@ -570,12 +570,12 @@ export function TaskCard({
               
               {/* Linha 4: Cliente */}
               {(clientName || isEditing) && (
-                <div className="text-xs md:text-sm text-muted-foreground mt-1">
+                <div className="text-xs md:text-sm text-foreground mt-1">
                   {isEditing ? (
                     <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                         <span 
-                          className="cursor-pointer hover:bg-muted/50 rounded px-1 font-semibold"
+                          className="cursor-pointer hover:bg-muted/50 rounded px-1 font-bold"
                           data-testid={`text-client-${id}`}
                         >
                           {clientName || "Adicionar cliente"}
@@ -623,7 +623,7 @@ export function TaskCard({
                       </PopoverContent>
                     </Popover>
                   ) : (
-                    <span className="font-semibold">{clientName}</span>
+                    <span className="font-bold">{clientName}</span>
                   )}
                 </div>
               )}
@@ -644,7 +644,7 @@ export function TaskCard({
                         </AvatarFallback>
                       </Avatar>
                       <span 
-                        className="text-xs md:text-sm font-normal flex-1" 
+                        className="text-[11px] md:text-xs font-normal flex-1" 
                         data-testid={index === 0 ? `text-assignee-${id}` : undefined}
                       >
                         {assignee}
