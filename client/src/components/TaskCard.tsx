@@ -389,6 +389,7 @@ export function TaskCard({
             "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
             isEditing && "ring-2 ring-primary shadow-lg",
             isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
+            status === "To Do" && "bg-[#202020] border-[#303030]",
             status === "In Progress" && "bg-blue-950 border-blue-900",
             status === "Done" && "bg-green-950 border-green-900"
           )}
