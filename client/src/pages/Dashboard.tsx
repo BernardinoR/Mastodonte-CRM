@@ -189,7 +189,11 @@ export default function Dashboard() {
             color="text-blue-400"
             borderColor="border-[#303030]"
             backgroundColor="bg-[#202020]"
-            icon={Circle}
+            customIcon={
+              <div className="w-4 h-4 rounded-full bg-[#64635E] flex items-center justify-center">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
+              </div>
+            }
           >
             {todoTasks.map(task => (
               <TaskCard

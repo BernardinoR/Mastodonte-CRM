@@ -12,9 +12,10 @@ interface KanbanColumnProps {
   borderColor?: string;
   backgroundColor?: string;
   icon?: LucideIcon;
+  customIcon?: React.ReactNode;
 }
 
-export function KanbanColumn({ id, title, count, children, color = "text-foreground", borderColor, backgroundColor, icon: Icon }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, count, children, color = "text-foreground", borderColor, backgroundColor, icon: Icon, customIcon }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
@@ -30,13 +31,13 @@ export function KanbanColumn({ id, title, count, children, color = "text-foregro
       )}
     >
       <div className="flex items-center justify-between p-3 pb-2">
-        <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-wide ${color}`}>
-          {Icon && <Icon className="w-4 h-4" />}
+        <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}>
+          {customIcon ? customIcon : Icon && <Icon className="w-4 h-4" />}
           <span>{title}</span>
+          <Badge variant="secondary" className="text-xs ml-1">
+            {count}
+          </Badge>
         </div>
-        <Badge variant="secondary" className="text-xs">
-          {count}
-        </Badge>
       </div>
       <div 
         ref={setNodeRef}
