@@ -450,9 +450,13 @@ export function TaskCard({
                 <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
                   <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                     <span 
-                      className="font-medium cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1"
+                      className="font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground"
+                      onPointerDown={(e: React.PointerEvent) => {
+                        e.stopPropagation();
+                      }}
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
+                        e.preventDefault();
                         if (clickTimeoutRef.current) {
                           clearTimeout(clickTimeoutRef.current);
                           clickTimeoutRef.current = null;
