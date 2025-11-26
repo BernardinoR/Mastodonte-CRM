@@ -187,7 +187,8 @@ export default function Dashboard() {
             title="To Do" 
             count={todoTasks.length} 
             color="text-blue-400"
-            borderColor="border-[#202020]"
+            borderColor="border-[#303030]"
+            backgroundColor="bg-[#202020]"
             icon={Circle}
           >
             {todoTasks.map(task => (
