@@ -686,7 +686,7 @@ export function TaskCard({
                   </div>
                 </div>
               ) : isEditing ? (
-                <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground -mx-2">
+                <div className={cn("flex items-center gap-1.5 text-xs md:text-sm", isEditing && "-mx-2")}>
                   <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                     <PopoverTrigger asChild>
                       <span 
