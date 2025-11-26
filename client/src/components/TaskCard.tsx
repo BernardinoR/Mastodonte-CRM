@@ -468,56 +468,69 @@ export function TaskCard({
               {(clientName || isEditing) && (
                 <div className="text-xs md:text-sm text-foreground">
                   {isEditing ? (
-                    <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                      <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                        <span 
-                          className="cursor-pointer hover:bg-muted/50 rounded px-1 font-bold"
-                          data-testid={`text-client-${id}`}
+                    <div className={cn(
+                      "flex items-center gap-1 rounded-md",
+                      clientName && "bg-muted/40 px-2 py-1"
+                    )}>
+                      <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
+                        <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                          <span 
+                            className="cursor-pointer hover:bg-muted/50 rounded px-1 font-bold flex-1"
+                            data-testid={`text-client-${id}`}
+                          >
+                            {clientName || "Adicionar cliente"}
+                          </span>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                          <div className="space-y-0.5 p-1.5 max-h-64 overflow-y-auto">
+                            <div
+                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer transition-colors"
+                              onClick={() => handleClientChange("Ademar João Gréguer")}
+                            >
+                              Ademar João Gréguer
+                            </div>
+                            <div
+                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer transition-colors"
+                              onClick={() => handleClientChange("Fernanda Carolina De Faria")}
+                            >
+                              Fernanda Carolina De Faria
+                            </div>
+                            <div
+                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer transition-colors"
+                              onClick={() => handleClientChange("Gustavo Samconi Soares")}
+                            >
+                              Gustavo Samconi Soares
+                            </div>
+                            <div
+                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer transition-colors"
+                              onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
+                            >
+                              Israel Schuster Da Fonseca
+                            </div>
+                            <div
+                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer transition-colors"
+                              onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
+                            >
+                              Marcia Mozzato Ciampi De Andrade
+                            </div>
+                          </div>
+                        </PopoverContent>
+                      </Popover>
+                      {clientName && (
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleClientChange("_none");
+                          }}
+                          data-testid={`button-clear-client-${id}`}
                         >
-                          {clientName || "Adicionar cliente"}
-                        </span>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                        <div className="space-y-1 p-1 max-h-64 overflow-y-auto">
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("_none")}
-                          >
-                            Nenhum
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("Ademar João Gréguer")}
-                          >
-                            Ademar João Gréguer
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("Fernanda Carolina De Faria")}
-                          >
-                            Fernanda Carolina De Faria
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("Gustavo Samconi Soares")}
-                          >
-                            Gustavo Samconi Soares
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
-                          >
-                            Israel Schuster Da Fonseca
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                            onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
-                          >
-                            Marcia Mozzato Ciampi De Andrade
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
+                          <X className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
                   ) : (
                     <span className="font-medium">{clientName}</span>
                   )}
@@ -528,77 +541,96 @@ export function TaskCard({
               <div className="flex items-center gap-1.5 text-xs md:text-sm">
                 {/* Priority Badge - Always clickable */}
                 {priority ? (
-                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div
-                        onClick={(e: React.MouseEvent) => {
+                  <div className={cn(
+                    "flex items-center gap-1 rounded-md",
+                    isEditing && "bg-muted/40 px-2 py-1"
+                  )}>
+                    <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
+                      <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                        <div
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            if (clickTimeoutRef.current) {
+                              clearTimeout(clickTimeoutRef.current);
+                              clickTimeoutRef.current = null;
+                            }
+                          }}
+                        >
+                          <Badge 
+                            variant="outline" 
+                            className={cn(
+                              "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
+                              priorityColors[priority]
+                            )}
+                            data-testid={`badge-priority-${id}`}
+                          >
+                            <span className={cn(
+                              "w-1.5 h-1.5 rounded-full",
+                              priority === "Urgente" && "bg-red-200",
+                              priority === "Importante" && "bg-orange-200",
+                              priority === "Normal" && "bg-gray-300",
+                              priority === "Baixa" && "bg-blue-200"
+                            )} />
+                            {priority}
+                          </Badge>
+                        </div>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                        <div className="space-y-0.5 p-1.5">
+                          <div
+                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
+                            onClick={() => handlePriorityChange("Urgente")}
+                          >
+                            <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
+                              Urgente
+                            </Badge>
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
+                            onClick={() => handlePriorityChange("Importante")}
+                          >
+                            <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
+                              Importante
+                            </Badge>
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
+                            onClick={() => handlePriorityChange("Normal")}
+                          >
+                            <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                              Normal
+                            </Badge>
+                          </div>
+                          <div
+                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
+                            onClick={() => handlePriorityChange("Baixa")}
+                          >
+                            <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
+                              Baixa
+                            </Badge>
+                          </div>
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                    {isEditing && (
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-5 w-5 text-muted-foreground hover:text-foreground shrink-0"
+                        onClick={(e) => {
                           e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
+                          handlePriorityChange("_none");
                         }}
+                        data-testid={`button-clear-priority-${id}`}
                       >
-                        <Badge 
-                          variant="outline" 
-                          className={cn(
-                            "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                            priorityColors[priority]
-                          )}
-                          data-testid={`badge-priority-${id}`}
-                        >
-                          <span className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            priority === "Urgente" && "bg-red-200",
-                            priority === "Importante" && "bg-orange-200",
-                            priority === "Normal" && "bg-gray-300",
-                            priority === "Baixa" && "bg-blue-200"
-                          )} />
-                          {priority}
-                        </Badge>
-                      </div>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-0.5 p-1.5">
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
-                          onClick={() => handlePriorityChange("Urgente")}
-                        >
-                          <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
-                            Urgente
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
-                          onClick={() => handlePriorityChange("Importante")}
-                        >
-                          <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
-                            Importante
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
-                          onClick={() => handlePriorityChange("Normal")}
-                        >
-                          <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-                            Normal
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
-                          onClick={() => handlePriorityChange("Baixa")}
-                        >
-                          <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                            Baixa
-                          </Badge>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
+                        <X className="w-3 h-3" />
+                      </Button>
+                    )}
+                  </div>
                 ) : isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
@@ -730,7 +762,13 @@ export function TaskCard({
                 {/* Lista de responsáveis */}
                 <div className="space-y-1">
                   {editedTask.assignees.map((assignee, index) => (
-                    <div key={index} className="flex items-center gap-2 group/assignee">
+                    <div 
+                      key={index} 
+                      className={cn(
+                        "flex items-center gap-2 group/assignee",
+                        isEditing && "bg-muted/40 px-2 py-1 rounded-md"
+                      )}
+                    >
                       <Avatar className="w-6 h-6 shrink-0">
                         <AvatarFallback className={cn("text-[10px] font-normal text-white", getAvatarColor(index))}>
                           {getInitials(assignee)}
@@ -746,14 +784,14 @@ export function TaskCard({
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="h-6 w-6 opacity-0 group-hover/assignee:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                          className="h-5 w-5 text-muted-foreground hover:text-foreground shrink-0"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleRemoveAssignee(assignee);
                           }}
                           data-testid={`button-remove-assignee-${index}`}
                         >
-                          <X className="w-3.5 h-3.5" />
+                          <X className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
