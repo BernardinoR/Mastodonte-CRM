@@ -106,6 +106,7 @@ export function TaskCard({
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const datePopoverContentRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setEditedTask({
@@ -471,6 +472,7 @@ export function TaskCard({
                     </span>
                   </PopoverTrigger>
                   <PopoverContent 
+                    ref={datePopoverContentRef}
                     className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
                     side="bottom" 
                     align="start" 
@@ -479,20 +481,23 @@ export function TaskCard({
                     collisionPadding={8}
                     onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                     onInteractOutside={(e) => {
-                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
+                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      const target = originalTarget || (e.target as HTMLElement);
+                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
                         e.preventDefault();
                       }
                     }}
                     onPointerDownOutside={(e) => {
-                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
+                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      const target = originalTarget || (e.target as HTMLElement);
+                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
                         e.preventDefault();
                       }
                     }}
                     onFocusOutside={(e) => {
-                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
+                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      const target = originalTarget || (e.target as HTMLElement);
+                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
                         e.preventDefault();
                       }
                     }}
@@ -506,6 +511,7 @@ export function TaskCard({
                       className="font-semibold"
                       dataTestId={`input-date-${id}`}
                       hideIcon
+                      commitOnInput={false}
                     />
                   </PopoverContent>
                 </Popover>

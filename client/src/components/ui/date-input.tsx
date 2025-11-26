@@ -17,6 +17,7 @@ interface DateInputProps {
   disabled?: boolean;
   dataTestId?: string;
   hideIcon?: boolean;
+  commitOnInput?: boolean;
 }
 
 export function DateInput({
@@ -27,6 +28,7 @@ export function DateInput({
   disabled = false,
   dataTestId,
   hideIcon = false,
+  commitOnInput = true,
 }: DateInputProps) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
@@ -130,7 +132,7 @@ export function DateInput({
       // Update calendar month in real-time when valid date is typed
       setDisplayMonth(parsed);
       const cleanedLength = newValue.replace(/[^\d]/g, "").length;
-      if (cleanedLength >= 8) {
+      if (cleanedLength >= 8 && commitOnInput) {
         onChange(parsed);
       }
     } else if (newValue.replace(/[^\d]/g, "").length >= 6) {
@@ -145,7 +147,9 @@ export function DateInput({
     if (parsed) {
       setInputValue(format(parsed, "dd/MM/yyyy", { locale: ptBR }));
       setIsInvalid(false);
-      onChange(parsed);
+      if (commitOnInput) {
+        onChange(parsed);
+      }
     } else if (inputValue.trim()) {
       setIsInvalid(true);
     }
