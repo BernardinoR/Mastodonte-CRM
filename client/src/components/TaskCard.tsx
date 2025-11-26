@@ -439,7 +439,7 @@ export function TaskCard({
                 </Button>
               </div>
             </div>
-            <Separator className="mt-2" />
+            <Separator className="mt-2 bg-[#64635E]" />
           </CardHeader>
 
           <CardContent className="p-4 pt-0 space-y-2">
