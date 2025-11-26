@@ -457,6 +457,13 @@ export function TaskCard({
                           clickTimeoutRef.current = null;
                         }
                       }}
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
                       data-testid={`text-date-${id}`}
                     >
                       <CalendarIcon className="w-3.5 h-3.5" />
@@ -495,6 +502,13 @@ export function TaskCard({
                         <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                           <span 
                             className="font-medium"
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              if (clickTimeoutRef.current) {
+                                clearTimeout(clickTimeoutRef.current);
+                                clickTimeoutRef.current = null;
+                              }
+                            }}
                             data-testid={`text-client-${id}`}
                           >
                             {clientName}
@@ -553,6 +567,13 @@ export function TaskCard({
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                         <span 
                           className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
+                          onClick={(e: React.MouseEvent) => {
+                            e.stopPropagation();
+                            if (clickTimeoutRef.current) {
+                              clearTimeout(clickTimeoutRef.current);
+                              clickTimeoutRef.current = null;
+                            }
+                          }}
                           data-testid={`text-client-${id}`}
                         >
                           + Adicionar Cliente
@@ -698,7 +719,13 @@ export function TaskCard({
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <span 
                         className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
-                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
                         data-testid={`badge-priority-${id}`}
                       >
                         + Adicionar Prioridade
