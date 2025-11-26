@@ -120,7 +120,7 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
       {selectedClient && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            1 selecionadas
+            Cliente selecionado
           </div>
           <div className="px-3 py-1">
             <div 
