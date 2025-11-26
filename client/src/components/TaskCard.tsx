@@ -125,7 +125,10 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
           <div className="px-3 py-1">
             <div 
               className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
-              onClick={() => onSelect(selectedClient)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(selectedClient);
+              }}
             >
               <Check className="w-4 h-4 text-gray-400" />
               <span className="text-sm text-foreground">{selectedClient}</span>
@@ -145,7 +148,10 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
           <div
             key={client}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-            onClick={() => onSelect(client)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(client);
+            }}
             data-testid={`option-client-${index}`}
           >
             <User className="w-4 h-4 text-gray-500" />
