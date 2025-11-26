@@ -3,7 +3,7 @@ import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Circle, Loader2, CheckCircle2 } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 
@@ -187,6 +187,8 @@ export default function Dashboard() {
             title="To Do" 
             count={todoTasks.length} 
             color="text-blue-400"
+            borderColor="border-[#202020]"
+            icon={Circle}
           >
             {todoTasks.map(task => (
               <TaskCard
@@ -204,6 +206,7 @@ export default function Dashboard() {
             count={inProgressTasks.length} 
             color="text-primary"
             borderColor="border-blue-700"
+            icon={Loader2}
           >
             {inProgressTasks.map(task => (
               <TaskCard
@@ -221,6 +224,7 @@ export default function Dashboard() {
             count={doneTasks.length} 
             color="text-green-400"
             borderColor="border-green-700"
+            icon={CheckCircle2}
           >
             {doneTasks.map(task => (
               <TaskCard
