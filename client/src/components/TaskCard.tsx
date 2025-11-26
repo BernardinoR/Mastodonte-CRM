@@ -498,6 +498,12 @@ export function TaskCard({
                 suppressContentEditableWarning
                 onBlur={handleTitleEdit}
                 onClick={(e) => isEditing && e.stopPropagation()}
+                onKeyDown={(e) => {
+                  if (isEditing && e.key === "Enter") {
+                    e.preventDefault();
+                    (e.target as HTMLDivElement).blur();
+                  }
+                }}
                 className={cn(
                   "font-bold text-sm leading-tight flex-1",
                   isEditing && "cursor-text outline-none bg-[#2a2a2a] hover:bg-[#333333] rounded px-2 py-1 -mx-2 -my-1 focus:bg-[#333333] focus:ring-1 focus:ring-blue-500/50"
