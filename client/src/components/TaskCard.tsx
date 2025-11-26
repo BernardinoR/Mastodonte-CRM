@@ -526,8 +526,8 @@ export function TaskCard({
               
               {/* Linha 4: Prioridade */}
               <div className="flex items-center gap-1.5 text-xs md:text-sm">
-                {/* Priority Badge */}
-                {isEditing ? (
+                {/* Priority Badge - Always clickable */}
+                {priority ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                       <div
@@ -543,18 +543,18 @@ export function TaskCard({
                           variant="outline" 
                           className={cn(
                             "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                            priority ? priorityColors[priority] : "border-dashed"
+                            priorityColors[priority]
                           )}
                           data-testid={`badge-priority-${id}`}
                         >
-                          {priority && <span className={cn(
+                          <span className={cn(
                             "w-1.5 h-1.5 rounded-full",
                             priority === "Urgente" && "bg-red-200",
                             priority === "Importante" && "bg-orange-200",
                             priority === "Normal" && "bg-gray-300",
                             priority === "Baixa" && "bg-blue-200"
-                          )} />}
-                          {priority || "Adicionar Prioridade"}
+                          )} />
+                          {priority}
                         </Badge>
                       </div>
                     </PopoverTrigger>
@@ -605,49 +605,16 @@ export function TaskCard({
                       </div>
                     </PopoverContent>
                   </Popover>
-                ) : priority ? (
-                  <Badge variant="outline" className={`text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 ${priorityColors[priority]}`}>
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      priority === "Urgente" && "bg-red-200",
-                      priority === "Importante" && "bg-orange-200",
-                      priority === "Normal" && "bg-gray-300",
-                      priority === "Baixa" && "bg-blue-200"
-                    )} />
-                    {priority}
-                  </Badge>
-                ) : null}
-              </div>
-              
-              {/* Linha 5: Status */}
-              <div className="flex items-center gap-1.5 text-xs md:text-sm">
-                {isEditing ? (
-                  <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
+                ) : isEditing ? (
+                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                      >
+                      <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
                         <Badge 
                           variant="outline" 
-                          className={cn(
-                            "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                            statusColors[status]
-                          )}
-                          data-testid={`badge-status-${id}`}
+                          className="text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal border-dashed"
+                          data-testid={`badge-priority-${id}`}
                         >
-                          <span className={cn(
-                            "w-1.5 h-1.5 rounded-full",
-                            status === "To Do" && "bg-gray-300",
-                            status === "In Progress" && "bg-blue-200",
-                            status === "Done" && "bg-green-200"
-                          )} />
-                          {status}
+                          Adicionar Prioridade
                         </Badge>
                       </div>
                     </PopoverTrigger>
@@ -655,45 +622,109 @@ export function TaskCard({
                       <div className="space-y-1 p-1">
                         <div
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("To Do")}
+                          onClick={() => handlePriorityChange("Urgente")}
                         >
-                          <Badge variant="outline" className="bg-gray-700 text-white border-gray-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-                            To Do
+                          <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
+                            Urgente
                           </Badge>
                         </div>
                         <div
                           className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("In Progress")}
+                          onClick={() => handlePriorityChange("Importante")}
+                        >
+                          <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
+                            Importante
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Normal")}
+                        >
+                          <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                            Normal
+                          </Badge>
+                        </div>
+                        <div
+                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          onClick={() => handlePriorityChange("Baixa")}
                         >
                           <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
                             <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                            In Progress
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
-                          onClick={() => handleStatusChange("Done")}
-                        >
-                          <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-200" />
-                            Done
+                            Baixa
                           </Badge>
                         </div>
                       </div>
                     </PopoverContent>
                   </Popover>
-                ) : (
-                  <Badge variant="outline" className={`text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 ${statusColors[status]}`}>
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      status === "To Do" && "bg-gray-300",
-                      status === "In Progress" && "bg-blue-200",
-                      status === "Done" && "bg-green-200"
-                    )} />
-                    {status}
-                  </Badge>
-                )}
+                ) : null}
+              </div>
+              
+              {/* Linha 5: Status - Always clickable */}
+              <div className="flex items-center gap-1.5 text-xs md:text-sm">
+                <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
+                  <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                    <div
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
+                    >
+                      <Badge 
+                        variant="outline" 
+                        className={cn(
+                          "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
+                          statusColors[status]
+                        )}
+                        data-testid={`badge-status-${id}`}
+                      >
+                        <span className={cn(
+                          "w-1.5 h-1.5 rounded-full",
+                          status === "To Do" && "bg-gray-300",
+                          status === "In Progress" && "bg-blue-200",
+                          status === "Done" && "bg-green-200"
+                        )} />
+                        {status}
+                      </Badge>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                    <div className="space-y-1 p-1">
+                      <div
+                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("To Do")}
+                      >
+                        <Badge variant="outline" className="bg-gray-700 text-white border-gray-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                          To Do
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("In Progress")}
+                      >
+                        <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
+                          In Progress
+                        </Badge>
+                      </div>
+                      <div
+                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        onClick={() => handleStatusChange("Done")}
+                      >
+                        <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-200" />
+                          Done
+                        </Badge>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               
               {/* Responsáveis */}
