@@ -1057,94 +1057,83 @@ export function TaskCard({
                   Responsáveis
                 </div>
                 
-                {/* Lista de responsáveis */}
-                <div className="space-y-0.5">
-                  {editedTask.assignees.map((assignee, index) => (
+                <Popover open={activePopover === "assignee"} onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}>
+                  <PopoverTrigger asChild>
                     <div 
-                      key={index} 
-                      className={cn(
-                        "flex items-center gap-2 rounded-full",
-                        isEditing ? "px-2 py-0.5" : "",
-                        isEditing && editedTask.assignees.length > 1 && "group/edit-assignee hover:bg-gray-700/80"
-                      )}
+                      className="cursor-pointer"
+                      onPointerDown={(e: React.PointerEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
                     >
-                      <Avatar className="w-6 h-6 shrink-0">
-                        <AvatarFallback className={cn("text-[10px] font-normal text-white", getAvatarColor(index))}>
-                          {getInitials(assignee)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span 
-                        className="text-[13px] font-normal flex-1" 
-                        data-testid={index === 0 ? `text-assignee-${id}` : undefined}
-                      >
-                        {assignee}
-                      </span>
-                      {isEditing && editedTask.assignees.length > 1 && (
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-assignee:inline-flex"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleRemoveAssignee(assignee);
-                          }}
-                          data-testid={`button-remove-assignee-${index}`}
+                      {/* Lista de responsáveis - clicável */}
+                      {editedTask.assignees.length > 0 ? (
+                        <div className="space-y-0.5">
+                          {editedTask.assignees.map((assignee, index) => (
+                            <div 
+                              key={index} 
+                              className={cn(
+                                "flex items-center gap-2 rounded-full group/edit-assignee",
+                                isEditing ? "px-2 py-0.5" : "py-0.5",
+                                "hover:bg-gray-700/80"
+                              )}
+                            >
+                              <Avatar className="w-6 h-6 shrink-0">
+                                <AvatarFallback className={cn("text-[10px] font-normal text-white", getAvatarColor(index))}>
+                                  {getInitials(assignee)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <span 
+                                className="text-[13px] font-normal flex-1" 
+                                data-testid={index === 0 ? `text-assignee-${id}` : undefined}
+                              >
+                                {assignee}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <span 
+                          className="inline-flex px-2 py-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
+                          data-testid={`button-add-assignee-${id}`}
                         >
-                          <X className="w-3 h-3" />
-                        </Button>
+                          + Adicionar Responsável
+                        </span>
                       )}
                     </div>
-                  ))}
-                </div>
-
-                {/* Button to add new assignee */}
-                {isEditing && (
-                  <Popover open={activePopover === "assignee"} onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}>
-                    <PopoverTrigger asChild>
-                      <span 
-                        className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
-                        onPointerDown={(e: React.PointerEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                        data-testid={`button-add-assignee-${id}`}
-                      >
-                        + Adicionar Responsável
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                      side="bottom" 
-                      align="start" 
-                      sideOffset={6} 
-                      avoidCollisions={true} 
-                      collisionPadding={8}
-                      onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
-                    >
-                      <AssigneeSelector 
-                        selectedAssignees={editedTask.assignees}
-                        onSelect={(assignee) => {
-                          handleUpdate("assignees", [...editedTask.assignees, assignee]);
-                        }}
-                        onRemove={(assignee) => {
-                          if (editedTask.assignees.length > 1) {
-                            handleUpdate("assignees", editedTask.assignees.filter(a => a !== assignee));
-                          }
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                )}
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                    side="bottom" 
+                    align="start" 
+                    sideOffset={6} 
+                    avoidCollisions={true} 
+                    collisionPadding={8}
+                    onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
+                  >
+                    <AssigneeSelector 
+                      selectedAssignees={editedTask.assignees}
+                      onSelect={(assignee) => {
+                        handleUpdate("assignees", [...editedTask.assignees, assignee]);
+                      }}
+                      onRemove={(assignee) => {
+                        if (editedTask.assignees.length > 1) {
+                          handleUpdate("assignees", editedTask.assignees.filter(a => a !== assignee));
+                        }
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
           </CardContent>
         </Card>
