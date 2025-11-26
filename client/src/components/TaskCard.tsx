@@ -336,7 +336,7 @@ export function TaskCard({
   };
 
   const statusColors: Record<string, string> = {
-    "To Do": "bg-gray-700 text-white border-gray-700",
+    "To Do": "bg-[#64635E] text-white border-[#64635E]",
     "In Progress": "bg-blue-800 text-white border-blue-800",
     Done: "bg-green-800 text-white border-green-800",
   };
@@ -1009,7 +1009,7 @@ export function TaskCard({
                       >
                         <span className={cn(
                           "w-1.5 h-1.5 rounded-full",
-                          status === "To Do" && "bg-gray-300",
+                          status === "To Do" && "bg-[#8E8B86]",
                           status === "In Progress" && "bg-blue-200",
                           status === "Done" && "bg-green-200"
                         )} />
@@ -1023,8 +1023,8 @@ export function TaskCard({
                         className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
                         onClick={() => handleStatusChange("To Do")}
                       >
-                        <Badge variant="outline" className="bg-gray-700 text-white border-gray-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                        <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
                           To Do
                         </Badge>
                       </div>
