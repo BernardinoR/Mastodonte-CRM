@@ -466,13 +466,13 @@ export function TaskCard({
               
               {/* Linha 3: Cliente */}
               {(clientName || isEditing) && (
-                <div className="text-xs md:text-sm text-foreground">
+                <div className={cn("text-xs md:text-sm text-foreground", isEditing && "-mx-2")}>
                   {isEditing && clientName ? (
-                    <div className="group/edit-client inline-flex items-center gap-1 rounded-md hover:bg-muted/30">
+                    <div className="group/edit-client inline-flex items-center gap-1 px-2 py-0.5 rounded-full hover:bg-gray-700/80 cursor-pointer">
                       <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                         <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                           <span 
-                            className="font-medium cursor-pointer"
+                            className="font-medium"
                             data-testid={`text-client-${id}`}
                           >
                             {clientName}
@@ -530,7 +530,7 @@ export function TaskCard({
                     <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                         <span 
-                          className="cursor-pointer text-muted-foreground hover:text-foreground"
+                          className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
                           data-testid={`text-client-${id}`}
                         >
                           + Adicionar cliente
@@ -578,12 +578,12 @@ export function TaskCard({
               )}
               
               {/* Linha 4: Prioridade */}
-              <div className="flex items-center gap-1.5 text-xs md:text-sm">
+              <div className={cn("flex items-center gap-1.5 text-xs md:text-sm", isEditing && "-mx-2")}>
                 {/* Priority Badge - Always clickable */}
                 {priority ? (
                   <div className={cn(
-                    "inline-flex items-center gap-1 rounded-md",
-                    isEditing && "group/edit-priority hover:bg-muted/30"
+                    "inline-flex items-center gap-1 rounded-full",
+                    isEditing ? "px-2 py-0.5 group/edit-priority hover:bg-gray-700/80" : ""
                   )}>
                     <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                       <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
@@ -794,19 +794,20 @@ export function TaskCard({
               </div>
               
               {/* Responsáveis */}
-              <div className="space-y-1.5">
-                <div className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+              <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
+                <div className={cn("text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
                   Responsáveis
                 </div>
                 
                 {/* Lista de responsáveis */}
-                <div className="space-y-1">
+                <div className="space-y-0.5">
                   {editedTask.assignees.map((assignee, index) => (
                     <div 
                       key={index} 
                       className={cn(
-                        "flex items-center gap-2 rounded-md",
-                        isEditing && editedTask.assignees.length > 1 && "group/edit-assignee hover:bg-muted/30"
+                        "flex items-center gap-2 rounded-full",
+                        isEditing ? "px-2 py-0.5" : "",
+                        isEditing && editedTask.assignees.length > 1 && "group/edit-assignee hover:bg-gray-700/80"
                       )}
                     >
                       <Avatar className="w-6 h-6 shrink-0">
@@ -840,7 +841,7 @@ export function TaskCard({
 
                 {/* Input para adicionar novo responsável */}
                 {isEditing && (
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <div className="flex gap-2 px-2" onClick={(e) => e.stopPropagation()}>
                     <Input
                       value={newAssigneeName}
                       onChange={(e) => setNewAssigneeName(e.target.value)}
