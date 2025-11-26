@@ -42,6 +42,8 @@ import {
   Check,
   Plus,
   X,
+  Search,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
@@ -70,6 +72,96 @@ interface TaskCardProps {
 
 // Global flag to prevent click events after closing edit mode
 let globalJustClosedEdit = false;
+
+// Mock clients list
+const MOCK_CLIENTS = [
+  "Fernanda Carolina De Faria",
+  "Marcos Roberto Neves Monteiro",
+  "Luciene Della Libera",
+  "Marco Alexandre Rodrigues Oliveira",
+  "Erick Soares De Oliveira",
+  "João Pedro Zanetti De Carvalho",
+  "Iatan Oliveira Cardoso dos Reis",
+  "Rafael Bernardino Silveira",
+  "Ademar João Gréguer",
+  "Gustavo Samconi Soares",
+  "Israel Schuster Da Fonseca",
+  "Marcia Mozzato Ciampi De Andrade",
+];
+
+// ClientSelector Component
+interface ClientSelectorProps {
+  selectedClient: string | null;
+  onSelect: (client: string) => void;
+}
+
+function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredClients = MOCK_CLIENTS.filter(client =>
+    client.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  return (
+    <div className="w-full">
+      {/* Search bar */}
+      <div className="p-3 border-b border-[#2a2a2a]">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar cliente..."
+            className="pl-9 bg-[#0a0a0a] border-[#2a2a2a] text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-blue-500"
+            onClick={(e) => e.stopPropagation()}
+            data-testid="input-search-client"
+          />
+        </div>
+      </div>
+      
+      {/* Selected client indicator */}
+      {selectedClient && (
+        <div className="px-3 py-2 border-b border-[#2a2a2a] bg-[#1e1e1e]">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Check className="w-3 h-3 text-emerald-500" />
+            <span className="text-emerald-400 font-medium">{selectedClient}</span>
+          </div>
+        </div>
+      )}
+      
+      {/* "Select client" label */}
+      <div className="px-3 py-2 text-xs text-muted-foreground border-b border-[#2a2a2a]">
+        Selecione o cliente
+      </div>
+      
+      {/* Client list */}
+      <div className="max-h-64 overflow-y-auto">
+        {filteredClients.map((client, index) => (
+          <div
+            key={client}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
+              selectedClient === client && "bg-[#2a2a2a]"
+            )}
+            onClick={() => onSelect(client)}
+            data-testid={`option-client-${index}`}
+          >
+            <User className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-foreground">{client}</span>
+            {selectedClient === client && (
+              <Check className="w-3 h-3 text-emerald-500 ml-auto" />
+            )}
+          </div>
+        ))}
+        {filteredClients.length === 0 && (
+          <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+            Nenhum cliente encontrado
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 export function TaskCard({
   id,
@@ -517,132 +609,50 @@ export function TaskCard({
                 </Popover>
               </div>
               
-              {/* Linha 3: Cliente */}
-              {(clientName || isEditing) && (
-                <div className={cn("text-xs md:text-sm text-foreground", isEditing && "-mx-2")}>
-                  {isEditing && clientName ? (
-                    <div className="group/edit-client inline-flex items-center gap-1 px-2 py-0.5 rounded-full hover:bg-gray-700/80 cursor-pointer">
-                      <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                        <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                          <span 
-                            className="font-medium"
-                            onClick={(e: React.MouseEvent) => {
-                              e.stopPropagation();
-                              if (clickTimeoutRef.current) {
-                                clearTimeout(clickTimeoutRef.current);
-                                clickTimeoutRef.current = null;
-                              }
-                            }}
-                            data-testid={`text-client-${id}`}
-                          >
-                            {clientName}
-                          </span>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                          <div className="space-y-0.5 p-1.5 max-h-64 overflow-y-auto">
-                            <div
-                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                              onClick={() => handleClientChange("Ademar João Gréguer")}
-                            >
-                              Ademar João Gréguer
-                            </div>
-                            <div
-                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                              onClick={() => handleClientChange("Fernanda Carolina De Faria")}
-                            >
-                              Fernanda Carolina De Faria
-                            </div>
-                            <div
-                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                              onClick={() => handleClientChange("Gustavo Samconi Soares")}
-                            >
-                              Gustavo Samconi Soares
-                            </div>
-                            <div
-                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                              onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
-                            >
-                              Israel Schuster Da Fonseca
-                            </div>
-                            <div
-                              className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                              onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
-                            >
-                              Marcia Mozzato Ciampi De Andrade
-                            </div>
-                          </div>
-                        </PopoverContent>
-                      </Popover>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-client:inline-flex"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleClientChange("_none");
-                        }}
-                        data-testid={`button-clear-client-${id}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  ) : isEditing ? (
-                    <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                      <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                        <span 
-                          className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            if (clickTimeoutRef.current) {
-                              clearTimeout(clickTimeoutRef.current);
-                              clickTimeoutRef.current = null;
-                            }
-                          }}
-                          data-testid={`text-client-${id}`}
-                        >
-                          + Adicionar Cliente
-                        </span>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                        <div className="space-y-0.5 p-1.5 max-h-64 overflow-y-auto">
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                            onClick={() => handleClientChange("Ademar João Gréguer")}
-                          >
-                            Ademar João Gréguer
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                            onClick={() => handleClientChange("Fernanda Carolina De Faria")}
-                          >
-                            Fernanda Carolina De Faria
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                            onClick={() => handleClientChange("Gustavo Samconi Soares")}
-                          >
-                            Gustavo Samconi Soares
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                            onClick={() => handleClientChange("Israel Schuster Da Fonseca")}
-                          >
-                            Israel Schuster Da Fonseca
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer"
-                            onClick={() => handleClientChange("Marcia Mozzato Ciampi De Andrade")}
-                          >
-                            Marcia Mozzato Ciampi De Andrade
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                  ) : (
-                    <span className="font-medium">{clientName}</span>
-                  )}
-                </div>
-              )}
+              {/* Linha 3: Cliente - Always clickable like date */}
+              <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
+                <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
+                  <PopoverTrigger asChild>
+                    <span 
+                      className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+                      onPointerDown={(e: React.PointerEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
+                      data-testid={`text-client-${id}`}
+                    >
+                      {clientName || <span className="text-muted-foreground">+ Cliente</span>}
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                    side="bottom" 
+                    align="start" 
+                    sideOffset={6} 
+                    avoidCollisions={true} 
+                    collisionPadding={8}
+                    onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
+                  >
+                    <ClientSelector 
+                      selectedClient={clientName || null}
+                      onSelect={(client) => {
+                        handleClientChange(client);
+                        setActivePopover(null);
+                      }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
               
               {/* Linha 4: Prioridade */}
               <div className={cn("flex items-center gap-1.5 text-xs md:text-sm", isEditing && "-mx-2")}>
