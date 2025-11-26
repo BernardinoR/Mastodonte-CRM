@@ -478,6 +478,12 @@ export function TaskCard({
                     avoidCollisions={true} 
                     collisionPadding={8}
                     onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
+                    onInteractOutside={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('.rdp') || target.closest('[data-radix-popper-content-wrapper]')) {
+                        e.preventDefault();
+                      }
+                    }}
                   >
                     <DateInput
                       value={editedTask.dueDate}

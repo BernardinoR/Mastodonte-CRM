@@ -216,7 +216,6 @@ export function DateInput({
           month={displayMonth}
           onMonthChange={setDisplayMonth}
           locale={ptBR}
-          initialFocus
           className="rounded-b-lg"
         />
       </div>
