@@ -184,14 +184,15 @@ export default function Dashboard() {
         <div className="flex gap-6 overflow-x-auto pb-4">
           <KanbanColumn 
             id="To Do"
-            title="To Do" 
+            title="" 
             count={todoTasks.length} 
             color="text-blue-400"
             borderColor="border-[#303030]"
             backgroundColor="bg-[#202020]"
             customIcon={
-              <div className="w-4 h-4 rounded-full bg-[#64635E] flex items-center justify-center">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#64635E]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
+                <span className="text-xs font-semibold uppercase tracking-wide text-blue-400">To Do</span>
               </div>
             }
           >
