@@ -3,7 +3,7 @@ import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { Plus, Circle, Loader2, CheckCircle2 } from "lucide-react";
+import { Plus, Circle, CheckCircle2 } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { DndContext, DragEndEvent, DragStartEvent, DragOverEvent, PointerSensor, useSensor, useSensors, DragOverlay } from "@dnd-kit/core";
 
@@ -230,12 +230,17 @@ export default function Dashboard() {
 
           <KanbanColumn 
             id="In Progress"
-            title="In Progress" 
+            title="" 
             count={inProgressTasks.length} 
             color="text-blue-400"
             borderColor="border-[#1C2027]"
             backgroundColor="bg-[#1C2027]"
-            icon={Loader2}
+            customIcon={
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(64,97,145)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
+                <span className="text-xs text-white">In Progress</span>
+              </div>
+            }
             showDropPlaceholder={overColumnId === "In Progress" && activeTask?.status !== "In Progress"}
           >
             {inProgressTasks.map(task => (
