@@ -559,15 +559,9 @@ export function TaskCard({
                       </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-1 p-1">
+                      <div className="space-y-0.5 p-1.5">
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer"
-                          onClick={() => handlePriorityChange("_none")}
-                        >
-                          Nenhuma
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Urgente")}
                         >
                           <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -576,7 +570,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Importante")}
                         >
                           <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -585,7 +579,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Normal")}
                         >
                           <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -594,7 +588,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Baixa")}
                         >
                           <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -619,9 +613,9 @@ export function TaskCard({
                       </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-1 p-1">
+                      <div className="space-y-0.5 p-1.5">
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Urgente")}
                         >
                           <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -630,7 +624,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Importante")}
                         >
                           <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -639,7 +633,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Normal")}
                         >
                           <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -648,7 +642,7 @@ export function TaskCard({
                           </Badge>
                         </div>
                         <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                           onClick={() => handlePriorityChange("Baixa")}
                         >
                           <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -694,9 +688,9 @@ export function TaskCard({
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                    <div className="space-y-1 p-1">
+                    <div className="space-y-0.5 p-1.5">
                       <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                         onClick={() => handleStatusChange("To Do")}
                       >
                         <Badge variant="outline" className="bg-gray-700 text-white border-gray-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -705,7 +699,7 @@ export function TaskCard({
                         </Badge>
                       </div>
                       <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                         onClick={() => handleStatusChange("In Progress")}
                       >
                         <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
@@ -714,7 +708,7 @@ export function TaskCard({
                         </Badge>
                       </div>
                       <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded hover:bg-muted cursor-pointer flex items-center"
+                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center transition-colors"
                         onClick={() => handleStatusChange("Done")}
                       >
                         <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
