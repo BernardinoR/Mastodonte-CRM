@@ -675,7 +675,10 @@ export function TaskCard({
                         >
                           <Badge 
                             variant="outline" 
-                            className="whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1 bg-gray-800 text-white border-gray-800 text-[12px]"
+                            className={cn(
+                              "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
+                              priorityColors[priority]
+                            )}
                             data-testid={`badge-priority-${id}`}
                           >
                             <span className={cn(
@@ -821,7 +824,10 @@ export function TaskCard({
                     >
                       <Badge 
                         variant="outline" 
-                        className="whitespace-nowrap transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 hover-elevate border [border-color:var(--badge-outline)] shadow-xs md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1 bg-blue-800 text-white border-blue-800 text-[12px]"
+                        className={cn(
+                          "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
+                          statusColors[status]
+                        )}
                         data-testid={`badge-status-${id}`}
                       >
                         <span className={cn(
