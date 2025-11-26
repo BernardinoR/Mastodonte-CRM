@@ -445,18 +445,13 @@ export function TaskCard({
           <CardContent className="p-4 pt-0 space-y-2">
               
               {/* Linha 2: Data - Always clickable */}
-              <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-semibold text-foreground">
-                <CalendarIcon className="w-3.5 h-3.5" />
+              <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
                 <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
                   <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                     <span 
-                      className="font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground"
-                      onPointerDown={(e: React.PointerEvent) => {
-                        e.stopPropagation();
-                      }}
+                      className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground"
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
-                        e.preventDefault();
                         if (clickTimeoutRef.current) {
                           clearTimeout(clickTimeoutRef.current);
                           clickTimeoutRef.current = null;
@@ -464,6 +459,7 @@ export function TaskCard({
                       }}
                       data-testid={`text-date-${id}`}
                     >
+                      <CalendarIcon className="w-3.5 h-3.5" />
                       {format(parseLocalDate(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}
                     </span>
                   </PopoverTrigger>
