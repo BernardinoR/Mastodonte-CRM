@@ -5,7 +5,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, Loader2, CheckCircle2 } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, DragEndEvent, DragStartEvent, DragOverEvent, PointerSensor, useSensor, useSensors, DragOverlay } from "@dnd-kit/core";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -27,6 +27,8 @@ export default function Dashboard() {
   const [assigneeFilter, setAssigneeFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [overColumnId, setOverColumnId] = useState<string | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -130,8 +132,20 @@ export default function Dashboard() {
     })
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveTaskId(event.active.id as string);
+  };
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { over } = event;
+    setOverColumnId(over ? (over.id as string) : null);
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    
+    setActiveTaskId(null);
+    setOverColumnId(null);
     
     if (!over) return;
     
@@ -146,6 +160,8 @@ export default function Dashboard() {
       )
     );
   };
+
+  const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
     setTasks(prevTasks =>
@@ -180,7 +196,12 @@ export default function Dashboard() {
         onPriorityChange={setPriorityFilter}
       />
 
-      <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <DndContext 
+        sensors={sensors} 
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragEnd={handleDragEnd}
+      >
         <div className="flex gap-6 overflow-x-auto pb-4">
           <KanbanColumn 
             id="To Do"
@@ -195,6 +216,7 @@ export default function Dashboard() {
                 <span className="text-xs text-white">To Do</span>
               </div>
             }
+            showDropPlaceholder={overColumnId === "To Do" && activeTask?.status !== "To Do"}
           >
             {todoTasks.map(task => (
               <TaskCard
@@ -213,6 +235,7 @@ export default function Dashboard() {
             color="text-primary"
             borderColor="border-blue-700"
             icon={Loader2}
+            showDropPlaceholder={overColumnId === "In Progress" && activeTask?.status !== "In Progress"}
           >
             {inProgressTasks.map(task => (
               <TaskCard
@@ -231,6 +254,7 @@ export default function Dashboard() {
             color="text-green-400"
             borderColor="border-green-700"
             icon={CheckCircle2}
+            showDropPlaceholder={overColumnId === "Done" && activeTask?.status !== "Done"}
           >
             {doneTasks.map(task => (
               <TaskCard
@@ -242,6 +266,18 @@ export default function Dashboard() {
             ))}
           </KanbanColumn>
         </div>
+        
+        <DragOverlay>
+          {activeTask && (
+            <div className="opacity-80 rotate-2 scale-105">
+              <TaskCard
+                {...activeTask}
+                onUpdate={() => {}}
+                onDelete={() => {}}
+              />
+            </div>
+          )}
+        </DragOverlay>
       </DndContext>
 
       <NewTaskDialog
