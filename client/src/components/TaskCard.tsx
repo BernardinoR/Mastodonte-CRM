@@ -99,62 +99,60 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   
   const filteredClients = MOCK_CLIENTS.filter(client =>
-    client.toLowerCase().includes(searchQuery.toLowerCase())
+    client.toLowerCase().includes(searchQuery.toLowerCase()) && client !== selectedClient
   );
   
   return (
     <div className="w-full">
       {/* Search bar */}
-      <div className="p-3 border-b border-[#2a2a2a]">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar cliente..."
-            className="pl-9 bg-[#0a0a0a] border-[#2a2a2a] text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-blue-500"
-            onClick={(e) => e.stopPropagation()}
-            data-testid="input-search-client"
-          />
-        </div>
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Vincule ou crie uma página..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          data-testid="input-search-client"
+        />
       </div>
       
-      {/* Selected client indicator */}
+      {/* Selected client section */}
       {selectedClient && (
-        <div className="px-3 py-2 border-b border-[#2a2a2a] bg-[#1e1e1e]">
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Check className="w-3 h-3 text-emerald-500" />
-            <span className="text-emerald-400 font-medium">{selectedClient}</span>
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            1 selecionadas
+          </div>
+          <div 
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a]"
+            onClick={() => onSelect(selectedClient)}
+          >
+            <User className="w-4 h-4 text-gray-500" />
+            <span className="text-base text-gray-400">{selectedClient}</span>
           </div>
         </div>
       )}
       
-      {/* "Select client" label */}
-      <div className="px-3 py-2 text-xs text-muted-foreground border-b border-[#2a2a2a]">
-        Selecione o cliente
+      {/* "Selecione mais" label */}
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        Selecione mais
       </div>
       
-      {/* Client list */}
-      <div className="max-h-64 overflow-y-auto">
+      {/* Client list with gray scrollbar */}
+      <div className="max-h-52 overflow-y-auto scrollbar-thin">
         {filteredClients.map((client, index) => (
           <div
             key={client}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
-              selectedClient === client && "bg-[#2a2a2a]"
-            )}
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={() => onSelect(client)}
             data-testid={`option-client-${index}`}
           >
-            <User className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-foreground">{client}</span>
-            {selectedClient === client && (
-              <Check className="w-3 h-3 text-emerald-500 ml-auto" />
-            )}
+            <User className="w-4 h-4 text-gray-500" />
+            <span className="text-sm text-foreground flex-1">{client}</span>
+            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
         {filteredClients.length === 0 && (
-          <div className="px-3 py-4 text-sm text-muted-foreground text-center">
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
             Nenhum cliente encontrado
           </div>
         )}
