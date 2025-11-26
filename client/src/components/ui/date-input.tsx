@@ -16,6 +16,7 @@ interface DateInputProps {
   placeholder?: string;
   disabled?: boolean;
   dataTestId?: string;
+  hideIcon?: boolean;
 }
 
 export function DateInput({
@@ -25,6 +26,7 @@ export function DateInput({
   placeholder = "DD/MM/YYYY",
   disabled = false,
   dataTestId,
+  hideIcon = false,
 }: DateInputProps) {
   const [open, setOpen] = React.useState(false);
   const [inputValue, setInputValue] = React.useState("");
@@ -177,6 +179,49 @@ export function DateInput({
     const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
     return dateValue && isValid(dateValue) ? dateValue : undefined;
   }, [value]);
+
+  if (hideIcon) {
+    return (
+      <div className={cn("w-auto", className)}>
+        <div className="p-3 border-b border-[#2a2a2a]">
+          <Input
+            ref={inputRef}
+            id={dataTestId}
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            disabled={disabled}
+            className={cn(
+              "text-center text-sm font-medium",
+              "bg-[#0a0a0a] border-[#2a2a2a]",
+              "text-white placeholder:text-gray-500",
+              "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
+              isInvalid && "border-red-500 focus-visible:ring-red-500"
+            )}
+            onClick={(e) => e.stopPropagation()}
+            data-testid={dataTestId}
+          />
+          {isInvalid && (
+            <span className="text-xs text-red-400 block mt-2 text-center">
+              Data inválida
+            </span>
+          )}
+        </div>
+        <Calendar
+          mode="single"
+          selected={currentDate}
+          onSelect={handleCalendarSelect}
+          month={displayMonth}
+          onMonthChange={setDisplayMonth}
+          locale={ptBR}
+          initialFocus
+          className="rounded-b-lg"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={cn("relative flex items-center w-full gap-1", className)}>

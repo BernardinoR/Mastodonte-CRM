@@ -444,24 +444,45 @@ export function TaskCard({
 
           <CardContent className="p-4 pt-0 space-y-2">
               
-              {/* Linha 2: Data */}
+              {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center gap-1.5 text-[10px] md:text-xs font-semibold text-foreground">
-                {isEditing ? (
-                  <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
-                    <CalendarIcon className="w-3.5 h-3.5" />
+                <CalendarIcon className="w-3.5 h-3.5" />
+                <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
+                  <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                    <span 
+                      className="font-medium cursor-pointer hover:bg-muted/50 rounded px-1 -mx-1"
+                      onClick={(e: React.MouseEvent) => {
+                        e.stopPropagation();
+                        if (clickTimeoutRef.current) {
+                          clearTimeout(clickTimeoutRef.current);
+                          clickTimeoutRef.current = null;
+                        }
+                      }}
+                      data-testid={`text-date-${id}`}
+                    >
+                      {format(parseLocalDate(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}
+                    </span>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                    side="bottom" 
+                    align="start" 
+                    sideOffset={6} 
+                    avoidCollisions={true} 
+                    collisionPadding={8}
+                  >
                     <DateInput
                       value={editedTask.dueDate}
-                      onChange={handleDateChange}
-                      className="max-w-[120px] font-semibold"
+                      onChange={(date) => {
+                        handleDateChange(date);
+                        setActivePopover(null);
+                      }}
+                      className="font-semibold"
                       dataTestId={`input-date-${id}`}
+                      hideIcon
                     />
-                  </div>
-                ) : (
-                  <>
-                    <CalendarIcon className="w-3.5 h-3.5" />
-                    <span className="font-medium">{format(dueDate, "dd/MM/yyyy", { locale: ptBR })}</span>
-                  </>
-                )}
+                  </PopoverContent>
+                </Popover>
               </div>
               
               {/* Linha 3: Cliente */}
