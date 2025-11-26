@@ -500,7 +500,7 @@ export function TaskCard({
                 onClick={(e) => isEditing && e.stopPropagation()}
                 className={cn(
                   "font-bold text-sm leading-tight flex-1",
-                  isEditing && "cursor-text outline-none hover:bg-muted/50 rounded px-1 -mx-1 focus:bg-muted/50"
+                  isEditing && "cursor-text outline-none bg-[#2a2a2a] hover:bg-[#333333] rounded px-2 py-1 -mx-2 -my-1 focus:bg-[#333333] focus:ring-1 focus:ring-blue-500/50"
                 )}
                 data-testid={`text-tasktitle-${id}`}
               >
