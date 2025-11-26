@@ -192,7 +192,7 @@ export default function Dashboard() {
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#64635E]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
-                <span className="text-xs font-semibold uppercase tracking-wide text-blue-400">To Do</span>
+                <span className="text-xs text-white">To Do</span>
               </div>
             }
           >
