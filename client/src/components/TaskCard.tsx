@@ -1002,8 +1002,7 @@ export function TaskCard({
                       <Badge 
                         variant="outline" 
                         className={cn(
-                          "text-[10px] md:text-[11px] px-2 rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                          status === "To Do" ? "py-0.5" : "py-[2px]",
+                          "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
                           statusColors[status]
                         )}
                         data-testid={`badge-status-${id}`}
@@ -1024,7 +1023,7 @@ export function TaskCard({
                         className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
                         onClick={() => handleStatusChange("To Do")}
                       >
-                        <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-0.5 rounded-full font-normal flex items-center gap-1">
+                        <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
                           <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
                           To Do
                         </Badge>
