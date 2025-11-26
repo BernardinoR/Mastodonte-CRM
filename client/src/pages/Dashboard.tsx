@@ -232,8 +232,9 @@ export default function Dashboard() {
             id="In Progress"
             title="In Progress" 
             count={inProgressTasks.length} 
-            color="text-primary"
-            borderColor="border-blue-700"
+            color="text-blue-400"
+            borderColor="border-[#1C2027]"
+            backgroundColor="bg-[#1C2027]"
             icon={Loader2}
             showDropPlaceholder={overColumnId === "In Progress" && activeTask?.status !== "In Progress"}
           >

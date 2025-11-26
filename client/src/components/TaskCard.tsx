@@ -589,7 +589,7 @@ export function TaskCard({
             isEditing && "ring-2 ring-primary shadow-lg",
             isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
             status === "To Do" && "bg-[#262626] border-[#363636]",
-            status === "In Progress" && "bg-[#2A303E] border-[#3A404E]",
+            status === "In Progress" && "bg-[#243041] border-[#344151]",
             status === "Done" && "bg-green-950 border-green-900"
           )}
           onClick={handleCardClick}
