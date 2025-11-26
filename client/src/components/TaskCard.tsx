@@ -446,12 +446,15 @@ export function TaskCard({
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
-                <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
+                <Popover open={activePopover === "date"} onOpenChange={(open) => { if (!open) setActivePopover(null); }}>
                   <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
                     <span 
                       className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+                      onMouseDown={(e: React.MouseEvent) => e.preventDefault()}
                       onClick={(e: React.MouseEvent) => {
+                        e.preventDefault();
                         e.stopPropagation();
+                        setActivePopover(prev => prev === "date" ? null : "date");
                         if (clickTimeoutRef.current) {
                           clearTimeout(clickTimeoutRef.current);
                           clickTimeoutRef.current = null;
@@ -470,6 +473,7 @@ export function TaskCard({
                     sideOffset={6} 
                     avoidCollisions={true} 
                     collisionPadding={8}
+                    onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                   >
                     <DateInput
                       value={editedTask.dueDate}
