@@ -1089,7 +1089,7 @@ export function TaskCard({
                               )}
                             >
                               <Avatar className="w-6 h-6 shrink-0">
-                                <AvatarFallback className={cn("text-[10px] font-normal text-white", getAvatarColor(index))}>
+                                <AvatarFallback className="text-[10px] font-normal text-white bg-gray-600">
                                   {getInitials(assignee)}
                                 </AvatarFallback>
                               </Avatar>
