@@ -30,13 +30,43 @@ export const MOCK_RESPONSIBLES: MockResponsible[] = [
     id: "ana-paula",
     name: "Ana Paula Santos",
     initials: "AP",
-    avatarColor: "bg-slate-500",
+    avatarColor: "bg-purple-600",
   },
   {
     id: "carlos-eduardo",
     name: "Carlos Eduardo Lima",
     initials: "CE",
-    avatarColor: "bg-slate-400",
+    avatarColor: "bg-blue-600",
+  },
+  {
+    id: "mariana-costa",
+    name: "Mariana Costa Oliveira",
+    initials: "MC",
+    avatarColor: "bg-emerald-600",
+  },
+  {
+    id: "pedro-henrique",
+    name: "Pedro Henrique Almeida",
+    initials: "PH",
+    avatarColor: "bg-amber-600",
+  },
+  {
+    id: "juliana-ferreira",
+    name: "Juliana Ferreira Rocha",
+    initials: "JF",
+    avatarColor: "bg-rose-600",
+  },
+  {
+    id: "lucas-martins",
+    name: "Lucas Martins Souza",
+    initials: "LM",
+    avatarColor: "bg-cyan-600",
+  },
+  {
+    id: "fernanda-silva",
+    name: "Fernanda Silva Pereira",
+    initials: "FS",
+    avatarColor: "bg-indigo-600",
   },
 ];
 

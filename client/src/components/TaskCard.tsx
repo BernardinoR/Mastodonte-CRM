@@ -51,7 +51,7 @@ import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useDraggable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
-import { MOCK_USERS } from "@/lib/mock-users";
+import { MOCK_USERS, MOCK_RESPONSIBLES } from "@/lib/mock-users";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -169,6 +169,106 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
   );
 }
 
+// AssigneeSelector Component - Multi-select for consultants
+interface AssigneeSelectorProps {
+  selectedAssignees: string[];
+  onSelect: (assignee: string) => void;
+  onRemove: (assignee: string) => void;
+}
+
+function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
+    consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    !selectedAssignees.includes(consultant.name)
+  );
+  
+  const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
+    selectedAssignees.includes(consultant.name)
+  );
+  
+  return (
+    <div className="w-full">
+      {/* Search bar */}
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar consultor..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          data-testid="input-search-assignee"
+        />
+      </div>
+      
+      {/* Selected assignees section */}
+      {selectedConsultants.length > 0 && (
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {selectedConsultants.length} selecionado{selectedConsultants.length > 1 ? 's' : ''}
+          </div>
+          {selectedConsultants.map((consultant) => (
+            <div 
+              key={consultant.id}
+              className="px-3 py-1"
+            >
+              <div 
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(consultant.name);
+                }}
+              >
+                <Avatar className="w-5 h-5 shrink-0">
+                  <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.avatarColor)}>
+                    {consultant.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      {/* "Selecione mais" label */}
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        {selectedConsultants.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
+      </div>
+      
+      {/* Consultant list with gray scrollbar */}
+      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+        {availableConsultants.map((consultant) => (
+          <div
+            key={consultant.id}
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(consultant.name);
+            }}
+            data-testid={`option-assignee-${consultant.id}`}
+          >
+            <Avatar className="w-5 h-5 shrink-0">
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.avatarColor)}>
+                {consultant.initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+        {availableConsultants.length === 0 && (
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            {searchQuery ? 'Nenhum consultor encontrado' : 'Todos os consultores já foram selecionados'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function TaskCard({
   id,
   title,
@@ -199,7 +299,7 @@ export function TaskCard({
   });
   const [newNote, setNewNote] = useState("");
   const [newAssigneeName, setNewAssigneeName] = useState("");
-  const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | null>(null);
+  const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | "assignee" | null>(null);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
@@ -997,36 +1097,53 @@ export function TaskCard({
                   ))}
                 </div>
 
-                {/* Input para adicionar novo responsável */}
+                {/* Button to add new assignee */}
                 {isEditing && (
-                  <div className="flex gap-2 px-2" onClick={(e) => e.stopPropagation()}>
-                    <Input
-                      value={newAssigneeName}
-                      onChange={(e) => setNewAssigneeName(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddAssignee();
-                        }
-                      }}
-                      placeholder="Adicionar responsável..."
-                      className="flex-1 h-8 text-xs md:text-sm"
-                      data-testid={`input-new-assignee-${id}`}
-                    />
-                    <Button
-                      size="icon"
-                      variant="outline"
-                      className="h-8 w-8 shrink-0"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddAssignee();
-                      }}
-                      disabled={!newAssigneeName.trim()}
-                      data-testid={`button-add-assignee-${id}`}
+                  <Popover open={activePopover === "assignee"} onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}>
+                    <PopoverTrigger asChild>
+                      <span 
+                        className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
+                        onPointerDown={(e: React.PointerEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
+                        data-testid={`button-add-assignee-${id}`}
+                      >
+                        + Adicionar Responsável
+                      </span>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                      side="bottom" 
+                      align="start" 
+                      sideOffset={6} 
+                      avoidCollisions={true} 
+                      collisionPadding={8}
+                      onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                     >
-                      <Plus className="w-4 h-4" />
-                    </Button>
-                  </div>
+                      <AssigneeSelector 
+                        selectedAssignees={editedTask.assignees}
+                        onSelect={(assignee) => {
+                          handleUpdate("assignees", [...editedTask.assignees, assignee]);
+                        }}
+                        onRemove={(assignee) => {
+                          if (editedTask.assignees.length > 1) {
+                            handleUpdate("assignees", editedTask.assignees.filter(a => a !== assignee));
+                          }
+                        }}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 )}
               </div>
           </CardContent>
