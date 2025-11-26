@@ -695,15 +695,13 @@ export function TaskCard({
                 ) : isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
                     <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
-                      <div onClick={(e: React.MouseEvent) => e.stopPropagation()}>
-                        <Badge 
-                          variant="outline" 
-                          className="text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal border-dashed"
-                          data-testid={`badge-priority-${id}`}
-                        >
-                          Adicionar Prioridade
-                        </Badge>
-                      </div>
+                      <span 
+                        className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
+                        data-testid={`badge-priority-${id}`}
+                      >
+                        + Adicionar Prioridade
+                      </span>
                     </PopoverTrigger>
                     <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="space-y-0.5 p-1.5">
