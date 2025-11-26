@@ -122,12 +122,14 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
           <div className="px-3 py-1.5 text-xs text-gray-500">
             1 selecionadas
           </div>
-          <div 
-            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a]"
-            onClick={() => onSelect(selectedClient)}
-          >
-            <User className="w-4 h-4 text-gray-500" />
-            <span className="text-base text-gray-400">{selectedClient}</span>
+          <div className="px-3 py-1">
+            <div 
+              className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
+              onClick={() => onSelect(selectedClient)}
+            >
+              <Check className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-foreground">{selectedClient}</span>
+            </div>
           </div>
         </div>
       )}
