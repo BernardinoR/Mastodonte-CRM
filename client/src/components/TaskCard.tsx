@@ -479,8 +479,20 @@ export function TaskCard({
                     collisionPadding={8}
                     onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                     onInteractOutside={(e) => {
-                      const target = e.target as HTMLElement;
-                      if (target.closest('.rdp') || target.closest('[data-radix-popper-content-wrapper]')) {
+                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onPointerDownOutside={(e) => {
+                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
+                        e.preventDefault();
+                      }
+                    }}
+                    onFocusOutside={(e) => {
+                      const target = (e as any).detail?.originalEvent?.target as HTMLElement | null;
+                      if (target?.closest('.rdp') || target?.closest('[data-radix-popper-content-wrapper]')) {
                         e.preventDefault();
                       }
                     }}
