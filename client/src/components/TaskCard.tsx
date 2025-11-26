@@ -554,7 +554,7 @@ export function TaskCard({
                           className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
                           data-testid={`text-client-${id}`}
                         >
-                          + Adicionar cliente
+                          + Adicionar Cliente
                         </span>
                       </PopoverTrigger>
                       <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
