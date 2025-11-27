@@ -221,7 +221,7 @@ function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSel
                 }}
               >
                 <Avatar className="w-5 h-5 shrink-0">
-                  <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.avatarColor)}>
+                  <AvatarFallback className="text-[9px] font-normal text-white bg-gray-600">
                     {consultant.initials}
                   </AvatarFallback>
                 </Avatar>
