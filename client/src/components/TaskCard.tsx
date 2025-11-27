@@ -869,43 +869,87 @@ export function TaskCard({
                           </Badge>
                         </div>
                       </PopoverTrigger>
-                      <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                        <div className="space-y-0.5 p-1.5">
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                            onClick={() => handlePriorityChange("Urgente")}
-                          >
-                            <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
-                              Urgente
-                            </Badge>
+                      <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                        <div className="w-full">
+                          {/* Selected priority section */}
+                          <div className="border-b border-[#2a2a2a]">
+                            <div className="px-3 py-1.5 text-xs text-gray-500">
+                              Selecionado
+                            </div>
+                            <div className="px-3 py-1">
+                              <div 
+                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handlePriorityChange("_none");
+                                }}
+                              >
+                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 flex-1", priorityColors[priority])}>
+                                  <span className={cn(
+                                    "w-1.5 h-1.5 rounded-full",
+                                    priority === "Urgente" && "bg-red-200",
+                                    priority === "Importante" && "bg-orange-200",
+                                    priority === "Normal" && "bg-gray-300",
+                                    priority === "Baixa" && "bg-blue-200"
+                                  )} />
+                                  {priority}
+                                </Badge>
+                                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            </div>
                           </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                            onClick={() => handlePriorityChange("Importante")}
-                          >
-                            <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
-                              Importante
-                            </Badge>
+                          
+                          {/* Other options label */}
+                          <div className="px-3 py-1.5 text-xs text-gray-500">
+                            Outras opções
                           </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                            onClick={() => handlePriorityChange("Normal")}
-                          >
-                            <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-                              Normal
-                            </Badge>
-                          </div>
-                          <div
-                            className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                            onClick={() => handlePriorityChange("Baixa")}
-                          >
-                            <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                              Baixa
-                            </Badge>
+                          
+                          {/* Available priorities */}
+                          <div className="pb-1">
+                            {priority !== "Urgente" && (
+                              <div
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={() => handlePriorityChange("Urgente")}
+                              >
+                                <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
+                                  Urgente
+                                </Badge>
+                              </div>
+                            )}
+                            {priority !== "Importante" && (
+                              <div
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={() => handlePriorityChange("Importante")}
+                              >
+                                <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
+                                  Importante
+                                </Badge>
+                              </div>
+                            )}
+                            {priority !== "Normal" && (
+                              <div
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={() => handlePriorityChange("Normal")}
+                              >
+                                <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                                  Normal
+                                </Badge>
+                              </div>
+                            )}
+                            {priority !== "Baixa" && (
+                              <div
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={() => handlePriorityChange("Baixa")}
+                              >
+                                <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
+                                  Baixa
+                                </Badge>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </PopoverContent>
@@ -942,43 +986,51 @@ export function TaskCard({
                         + Adicionar Prioridade
                       </span>
                     </PopoverTrigger>
-                    <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="space-y-0.5 p-1.5">
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Urgente")}
-                        >
-                          <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
-                            Urgente
-                          </Badge>
+                    <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                      <div className="w-full">
+                        {/* Options label */}
+                        <div className="px-3 py-1.5 text-xs text-gray-500">
+                          Selecionar prioridade
                         </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Importante")}
-                        >
-                          <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
-                            Importante
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Normal")}
-                        >
-                          <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
-                            Normal
-                          </Badge>
-                        </div>
-                        <div
-                          className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                          onClick={() => handlePriorityChange("Baixa")}
-                        >
-                          <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                            Baixa
-                          </Badge>
+                        
+                        {/* Available priorities */}
+                        <div className="pb-1">
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handlePriorityChange("Urgente")}
+                          >
+                            <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
+                              Urgente
+                            </Badge>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handlePriorityChange("Importante")}
+                          >
+                            <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
+                              Importante
+                            </Badge>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handlePriorityChange("Normal")}
+                          >
+                            <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                              Normal
+                            </Badge>
+                          </div>
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handlePriorityChange("Baixa")}
+                          >
+                            <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
+                              Baixa
+                            </Badge>
+                          </div>
                         </div>
                       </div>
                     </PopoverContent>
