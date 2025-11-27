@@ -251,7 +251,7 @@ function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSel
             data-testid={`option-assignee-${consultant.id}`}
           >
             <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.avatarColor)}>
+              <AvatarFallback className="text-[9px] font-normal text-white bg-gray-600">
                 {consultant.initials}
               </AvatarFallback>
             </Avatar>
