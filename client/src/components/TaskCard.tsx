@@ -1069,34 +1069,68 @@ export function TaskCard({
                       </Badge>
                     </div>
                   </PopoverTrigger>
-                  <PopoverContent className="w-48 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                    <div className="space-y-0.5 p-1.5">
-                      <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("To Do")}
-                      >
-                        <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
-                          To Do
-                        </Badge>
+                  <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+                    <div className="w-full">
+                      {/* Selected status section */}
+                      <div className="border-b border-[#2a2a2a]">
+                        <div className="px-3 py-1.5 text-xs text-gray-500">
+                          Selecionado
+                        </div>
+                        <div className="px-3 py-1">
+                          <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
+                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 flex-1", statusColors[status])}>
+                              <span className={cn(
+                                "w-1.5 h-1.5 rounded-full",
+                                status === "To Do" && "bg-[#8E8B86]",
+                                status === "In Progress" && "bg-[rgb(66,129,220)]",
+                                status === "Done" && "bg-green-200"
+                              )} />
+                              {status}
+                            </Badge>
+                          </div>
+                        </div>
                       </div>
-                      <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("In Progress")}
-                      >
-                        <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
-                          In Progress
-                        </Badge>
+                      
+                      {/* Other options label */}
+                      <div className="px-3 py-1.5 text-xs text-gray-500">
+                        Outras opções
                       </div>
-                      <div
-                        className="px-2 py-1.5 text-xs md:text-sm rounded-md hover:bg-muted/60 cursor-pointer flex items-center"
-                        onClick={() => handleStatusChange("Done")}
-                      >
-                        <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-200" />
-                          Done
-                        </Badge>
+                      
+                      {/* Available statuses */}
+                      <div className="pb-1">
+                        {status !== "To Do" && (
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handleStatusChange("To Do")}
+                          >
+                            <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
+                              To Do
+                            </Badge>
+                          </div>
+                        )}
+                        {status !== "In Progress" && (
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handleStatusChange("In Progress")}
+                          >
+                            <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
+                              In Progress
+                            </Badge>
+                          </div>
+                        )}
+                        {status !== "Done" && (
+                          <div
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                            onClick={() => handleStatusChange("Done")}
+                          >
+                            <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-200" />
+                              Done
+                            </Badge>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </PopoverContent>
