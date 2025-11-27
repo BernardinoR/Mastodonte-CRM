@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -282,6 +283,7 @@ export function TaskCard({
   onUpdate,
   onDelete,
 }: TaskCardProps) {
+  const [, navigate] = useLocation();
   // Ensure assignees is always an array (backward compatibility)
   const safeAssignees = Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
   
@@ -728,47 +730,71 @@ export function TaskCard({
                     "inline-flex items-center gap-1",
                     isEditing ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
                   )}>
-                    <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                      <PopoverTrigger asChild>
-                        <span 
-                          className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                          onPointerDown={(e: React.PointerEvent) => {
-                            e.stopPropagation();
-                            if (clickTimeoutRef.current) {
-                              clearTimeout(clickTimeoutRef.current);
-                              clickTimeoutRef.current = null;
-                            }
-                          }}
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            if (clickTimeoutRef.current) {
-                              clearTimeout(clickTimeoutRef.current);
-                              clickTimeoutRef.current = null;
-                            }
-                          }}
-                          data-testid={`text-client-${id}`}
+                    {isEditing ? (
+                      <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
+                        <PopoverTrigger asChild>
+                          <span 
+                            className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+                            onPointerDown={(e: React.PointerEvent) => {
+                              e.stopPropagation();
+                              if (clickTimeoutRef.current) {
+                                clearTimeout(clickTimeoutRef.current);
+                                clickTimeoutRef.current = null;
+                              }
+                            }}
+                            onClick={(e: React.MouseEvent) => {
+                              e.stopPropagation();
+                              if (clickTimeoutRef.current) {
+                                clearTimeout(clickTimeoutRef.current);
+                                clickTimeoutRef.current = null;
+                              }
+                            }}
+                            data-testid={`text-client-${id}`}
+                          >
+                            {clientName}
+                          </span>
+                        </PopoverTrigger>
+                        <PopoverContent 
+                          className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                          side="bottom" 
+                          align="start" 
+                          sideOffset={6} 
+                          avoidCollisions={true} 
+                          collisionPadding={8}
+                          onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                         >
-                          {clientName}
-                        </span>
-                      </PopoverTrigger>
-                      <PopoverContent 
-                        className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                        side="bottom" 
-                        align="start" 
-                        sideOffset={6} 
-                        avoidCollisions={true} 
-                        collisionPadding={8}
-                        onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
+                          <ClientSelector 
+                            selectedClient={clientName || null}
+                            onSelect={(client) => {
+                              handleClientChange(client);
+                              setActivePopover(null);
+                            }}
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    ) : (
+                      <span 
+                        className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+                        onPointerDown={(e: React.PointerEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                        }}
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation();
+                          if (clickTimeoutRef.current) {
+                            clearTimeout(clickTimeoutRef.current);
+                            clickTimeoutRef.current = null;
+                          }
+                          navigate(`/clients/${encodeURIComponent(clientName)}`);
+                        }}
+                        data-testid={`text-client-${id}`}
                       >
-                        <ClientSelector 
-                          selectedClient={clientName || null}
-                          onSelect={(client) => {
-                            handleClientChange(client);
-                            setActivePopover(null);
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
+                        {clientName}
+                      </span>
+                    )}
                     {isEditing && (
                       <Button
                         size="icon"
