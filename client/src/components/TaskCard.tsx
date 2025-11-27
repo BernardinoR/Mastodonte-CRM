@@ -331,7 +331,7 @@ export function TaskCard({
   const priorityColors: Record<string, string> = {
     Urgente: "bg-red-900 text-white border-red-900",
     Importante: "bg-orange-800 text-white border-orange-800",
-    Normal: "bg-gray-800 text-white border-gray-800",
+    Normal: "bg-yellow-700 text-white border-yellow-700",
     Baixa: "bg-blue-800 text-white border-blue-800",
   };
 
@@ -862,7 +862,7 @@ export function TaskCard({
                               "w-1.5 h-1.5 rounded-full",
                               priority === "Urgente" && "bg-red-200",
                               priority === "Importante" && "bg-orange-200",
-                              priority === "Normal" && "bg-gray-300",
+                              priority === "Normal" && "bg-yellow-200",
                               priority === "Baixa" && "bg-blue-200"
                             )} />
                             {priority}
@@ -889,7 +889,7 @@ export function TaskCard({
                                     "w-1.5 h-1.5 rounded-full",
                                     priority === "Urgente" && "bg-red-200",
                                     priority === "Importante" && "bg-orange-200",
-                                    priority === "Normal" && "bg-gray-300",
+                                    priority === "Normal" && "bg-yellow-200",
                                     priority === "Baixa" && "bg-blue-200"
                                   )} />
                                   {priority}
@@ -933,8 +933,8 @@ export function TaskCard({
                                 className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
                                 onClick={() => handlePriorityChange("Normal")}
                               >
-                                <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                                <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />
                                   Normal
                                 </Badge>
                               </div>
@@ -1017,8 +1017,8 @@ export function TaskCard({
                             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
                             onClick={() => handlePriorityChange("Normal")}
                           >
-                            <Badge variant="outline" className="bg-gray-800 text-white border-gray-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+                            <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />
                               Normal
                             </Badge>
                           </div>
