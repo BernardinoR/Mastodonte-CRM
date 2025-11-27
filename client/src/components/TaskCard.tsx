@@ -884,7 +884,7 @@ export function TaskCard({
                                   handlePriorityChange("_none");
                                 }}
                               >
-                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 flex-1", priorityColors[priority])}>
+                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", priorityColors[priority])}>
                                   <span className={cn(
                                     "w-1.5 h-1.5 rounded-full",
                                     priority === "Urgente" && "bg-red-200",
@@ -894,7 +894,7 @@ export function TaskCard({
                                   )} />
                                   {priority}
                                 </Badge>
-                                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
                               </div>
                             </div>
                           </div>
@@ -1078,7 +1078,7 @@ export function TaskCard({
                         </div>
                         <div className="px-3 py-1">
                           <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
-                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1 flex-1", statusColors[status])}>
+                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", statusColors[status])}>
                               <span className={cn(
                                 "w-1.5 h-1.5 rounded-full",
                                 status === "To Do" && "bg-[#8E8B86]",
