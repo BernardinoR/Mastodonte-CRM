@@ -178,7 +178,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 min-h-screen bg-[rgb(32,32,32)]">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Tarefas</h1>
         <Button onClick={() => setNewTaskOpen(true)} data-testid="button-newtask">
