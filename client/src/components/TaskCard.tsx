@@ -1165,28 +1165,32 @@ export function TaskCard({
                       {/* Lista de responsáveis - clicável */}
                       {editedTask.assignees.length > 0 ? (
                         <div className="space-y-0.5">
-                          {editedTask.assignees.map((assignee, index) => (
-                            <div 
-                              key={index} 
-                              className={cn(
-                                "flex items-center gap-2 rounded-full group/edit-assignee",
-                                isEditing ? "px-2 py-0.5" : "py-0.5",
-                                "hover:bg-gray-700/80"
-                              )}
-                            >
-                              <Avatar className="w-6 h-6 shrink-0">
-                                <AvatarFallback className="text-[10px] font-normal text-white bg-gray-600">
-                                  {getInitials(assignee)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span 
-                                className="text-[13px] font-normal flex-1" 
-                                data-testid={index === 0 ? `text-assignee-${id}` : undefined}
+                          {editedTask.assignees.map((assignee, index) => {
+                            const consultant = MOCK_RESPONSIBLES.find(c => c.name === assignee);
+                            const grayColor = consultant?.grayColor || "bg-gray-600";
+                            return (
+                              <div 
+                                key={index} 
+                                className={cn(
+                                  "flex items-center gap-2 rounded-full group/edit-assignee",
+                                  isEditing ? "px-2 py-0.5" : "py-0.5",
+                                  "hover:bg-gray-700/80"
+                                )}
                               >
-                                {assignee}
-                              </span>
-                            </div>
-                          ))}
+                                <Avatar className="w-6 h-6 shrink-0">
+                                  <AvatarFallback className={cn("text-[10px] font-normal text-white", grayColor)}>
+                                    {getInitials(assignee)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span 
+                                  className="text-[13px] font-normal flex-1" 
+                                  data-testid={index === 0 ? `text-assignee-${id}` : undefined}
+                                >
+                                  {assignee}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
                       ) : (
                         <span 
