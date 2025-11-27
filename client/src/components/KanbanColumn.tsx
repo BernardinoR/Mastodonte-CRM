@@ -24,7 +24,7 @@ export function KanbanColumn({ id, title, count, children, color = "text-foregro
   return (
     <div 
       className={cn(
-        "flex-1 min-w-[320px] rounded-lg transition-all duration-200",
+        "w-[340px] shrink-0 rounded-lg transition-all duration-200",
         borderColor && `border-2 ${borderColor}`,
         backgroundColor,
         isOver && "border-dashed",
