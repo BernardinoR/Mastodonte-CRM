@@ -427,25 +427,54 @@ export default function Dashboard() {
 
   // Selection handlers
   const handleSelectTask = useCallback((taskId: string, shiftKey: boolean) => {
-    if (shiftKey && lastSelectedId) {
-      // Range selection with Shift+click
-      const allTaskIds = filteredTasks.map(t => t.id);
-      const lastIndex = allTaskIds.indexOf(lastSelectedId);
-      const currentIndex = allTaskIds.indexOf(taskId);
+    const clickedTask = tasks.find(t => t.id === taskId);
+    const lastTask = lastSelectedId ? tasks.find(t => t.id === lastSelectedId) : null;
+    
+    if (shiftKey && lastTask && clickedTask) {
+      // Check if same column
+      const sameColumn = lastTask.status === clickedTask.status;
       
-      if (lastIndex !== -1 && currentIndex !== -1) {
-        const start = Math.min(lastIndex, currentIndex);
-        const end = Math.max(lastIndex, currentIndex);
-        const rangeIds = allTaskIds.slice(start, end + 1);
+      if (sameColumn) {
+        // Range selection within same column
+        let columnTasks: Task[];
+        if (clickedTask.status === "To Do") {
+          columnTasks = todoTasks;
+        } else if (clickedTask.status === "In Progress") {
+          columnTasks = inProgressTasks;
+        } else {
+          columnTasks = doneTasks;
+        }
         
+        const columnTaskIds = columnTasks.map(t => t.id);
+        const lastIndex = columnTaskIds.indexOf(lastSelectedId!);
+        const currentIndex = columnTaskIds.indexOf(taskId);
+        
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeIds = columnTaskIds.slice(start, end + 1);
+          
+          setSelectedTaskIds(prev => {
+            const newSet = new Set(prev);
+            rangeIds.forEach(id => newSet.add(id));
+            return newSet;
+          });
+        }
+      } else {
+        // Different column: toggle individual selection (add/remove clicked task)
         setSelectedTaskIds(prev => {
           const newSet = new Set(prev);
-          rangeIds.forEach(id => newSet.add(id));
+          if (newSet.has(taskId)) {
+            newSet.delete(taskId);
+          } else {
+            newSet.add(taskId);
+          }
           return newSet;
         });
+        setLastSelectedId(taskId);
       }
     } else {
-      // Toggle single selection
+      // Toggle single selection (first click or no shift)
       setSelectedTaskIds(prev => {
         const newSet = new Set(prev);
         if (newSet.has(taskId)) {
@@ -457,7 +486,7 @@ export default function Dashboard() {
       });
       setLastSelectedId(taskId);
     }
-  }, [lastSelectedId, filteredTasks]);
+  }, [lastSelectedId, tasks, todoTasks, inProgressTasks, doneTasks]);
 
   const handleClearSelection = useCallback(() => {
     setSelectedTaskIds(new Set());
