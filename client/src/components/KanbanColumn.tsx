@@ -13,10 +13,9 @@ interface KanbanColumnProps {
   backgroundColor?: string;
   icon?: LucideIcon;
   customIcon?: React.ReactNode;
-  showDropPlaceholder?: boolean;
 }
 
-export function KanbanColumn({ id, title, count, children, color = "text-foreground", borderColor, backgroundColor, icon: Icon, customIcon, showDropPlaceholder }: KanbanColumnProps) {
+export function KanbanColumn({ id, title, count, children, color = "text-foreground", borderColor, backgroundColor, icon: Icon, customIcon }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
   });
@@ -27,8 +26,7 @@ export function KanbanColumn({ id, title, count, children, color = "text-foregro
         "w-[340px] shrink-0 rounded-lg transition-all duration-200",
         borderColor && `border-2 ${borderColor}`,
         backgroundColor,
-        isOver && "border-dashed",
-        isOver && !borderColor && "border-2 border-accent"
+        isOver && "border-dashed border-accent"
       )}
     >
       <div className="flex items-center justify-between p-3 pb-2">
@@ -47,16 +45,6 @@ export function KanbanColumn({ id, title, count, children, color = "text-foregro
           isOver && "bg-accent/10"
         )}
       >
-        {/* Drop placeholder - animated slot for incoming card */}
-        {showDropPlaceholder && (
-          <div 
-            className={cn(
-              "h-[120px] rounded-lg border-2 border-dashed transition-all duration-300 ease-out",
-              "bg-accent/5 border-accent/40",
-              "animate-in fade-in-0 zoom-in-95"
-            )}
-          />
-        )}
         {children}
       </div>
     </div>

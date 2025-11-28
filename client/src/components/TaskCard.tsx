@@ -69,7 +69,7 @@ import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
-import { useDraggable } from "@dnd-kit/core";
+import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MOCK_USERS, MOCK_RESPONSIBLES } from "@/lib/mock-users";
 
@@ -363,10 +363,22 @@ export function TaskCard({
     });
   }, [title, clientName, priority, status, safeAssignees, dueDate, description]);
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { 
+    attributes, 
+    listeners, 
+    setNodeRef, 
+    transform, 
+    transition,
+    isDragging 
+  } = useSortable({
     id: id,
     disabled: isEditing || activePopover !== null,
   });
+  
+  const sortableStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
 
   const shouldHideForDrag = isDragActive && isSelected;
 
@@ -708,10 +720,9 @@ export function TaskCard({
           <div
             ref={setNodeRef}
             style={{
-              transform: CSS.Translate.toString(transform),
+              ...sortableStyle,
               opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
               pointerEvents: shouldHideForDrag ? 'none' : 'auto',
-              transition: 'opacity 0.15s ease-out, transform 0.15s ease-out',
             }}
             data-task-card
             {...(!isEditing ? { ...attributes, ...listeners } : {})}

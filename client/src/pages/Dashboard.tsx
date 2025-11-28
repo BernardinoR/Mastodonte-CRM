@@ -1,11 +1,27 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, CheckCircle2 } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
-import { DndContext, DragEndEvent, DragStartEvent, DragOverEvent, PointerSensor, useSensor, useSensors, DragOverlay } from "@dnd-kit/core";
+import { 
+  DndContext, 
+  DragEndEvent, 
+  DragStartEvent, 
+  DragOverEvent, 
+  PointerSensor, 
+  useSensor, 
+  useSensors, 
+  DragOverlay,
+  closestCenter,
+  MeasuringStrategy,
+} from "@dnd-kit/core";
+import { 
+  SortableContext, 
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -20,6 +36,7 @@ interface Task {
   dueDate: Date;
   description?: string;
   notes?: string[];
+  order: number;
 }
 
 export default function Dashboard() {
@@ -41,6 +58,7 @@ export default function Dashboard() {
       status: "To Do" as const,
       assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-11-19'),
+      order: 0,
     },
     {
       id: "2",
@@ -50,6 +68,7 @@ export default function Dashboard() {
       status: "To Do" as const,
       assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
       dueDate: new Date('2025-11-15'),
+      order: 1,
     },
     {
       id: "3",
@@ -57,6 +76,7 @@ export default function Dashboard() {
       status: "To Do" as const,
       assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-11-16'),
+      order: 2,
     },
     {
       id: "4",
@@ -66,6 +86,7 @@ export default function Dashboard() {
       status: "To Do" as const,
       assignees: ["Rafael Bernardino Silveira", "João Silva", "Ana Costa"],
       dueDate: new Date('2025-11-20'),
+      order: 3,
     },
     {
       id: "5",
@@ -75,6 +96,7 @@ export default function Dashboard() {
       status: "In Progress" as const,
       assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
+      order: 0,
     },
     {
       id: "6",
@@ -84,6 +106,7 @@ export default function Dashboard() {
       status: "In Progress" as const,
       assignees: ["Rafael Bernardino Silveira", "Pedro Oliveira"],
       dueDate: new Date('2025-01-20'),
+      order: 1,
     },
     {
       id: "7",
@@ -93,6 +116,7 @@ export default function Dashboard() {
       status: "In Progress" as const,
       assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
+      order: 2,
     },
     {
       id: "8",
@@ -102,6 +126,7 @@ export default function Dashboard() {
       status: "In Progress" as const,
       assignees: ["Rafael Bernardino Silveira"],
       dueDate: new Date('2025-01-20'),
+      order: 3,
     },
     {
       id: "9",
@@ -111,6 +136,7 @@ export default function Dashboard() {
       status: "In Progress" as const,
       assignees: ["Rafael Bernardino Silveira", "Carla Mendes"],
       dueDate: new Date('2025-01-21'),
+      order: 4,
     },
   ]);
 
@@ -122,9 +148,23 @@ export default function Dashboard() {
     return matchesSearch && matchesAssignee && matchesPriority;
   });
 
-  const todoTasks = filteredTasks.filter(t => t.status === "To Do");
-  const inProgressTasks = filteredTasks.filter(t => t.status === "In Progress");
-  const doneTasks = filteredTasks.filter(t => t.status === "Done");
+  const todoTasks = useMemo(() => 
+    filteredTasks.filter(t => t.status === "To Do").sort((a, b) => a.order - b.order),
+    [filteredTasks]
+  );
+  const inProgressTasks = useMemo(() => 
+    filteredTasks.filter(t => t.status === "In Progress").sort((a, b) => a.order - b.order),
+    [filteredTasks]
+  );
+  const doneTasks = useMemo(() => 
+    filteredTasks.filter(t => t.status === "Done").sort((a, b) => a.order - b.order),
+    [filteredTasks]
+  );
+  
+  // Task IDs for SortableContext
+  const todoTaskIds = useMemo(() => todoTasks.map(t => t.id), [todoTasks]);
+  const inProgressTaskIds = useMemo(() => inProgressTasks.map(t => t.id), [inProgressTasks]);
+  const doneTaskIds = useMemo(() => doneTasks.map(t => t.id), [doneTasks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -146,8 +186,25 @@ export default function Dashboard() {
   };
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { over } = event;
-    setOverColumnId(over ? (over.id as string) : null);
+    const { active, over } = event;
+    if (!over) {
+      setOverColumnId(null);
+      return;
+    }
+    
+    const overId = over.id as string;
+    
+    // Determine if over is a column or a task
+    const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
+    const overTask = !isOverColumn ? tasks.find(t => t.id === overId) : null;
+    
+    // Get target column for visual feedback
+    const activeTask = tasks.find(t => t.id === active.id);
+    const targetStatus: TaskStatus = isOverColumn 
+      ? overId as TaskStatus 
+      : overTask?.status || activeTask?.status || "To Do";
+    
+    setOverColumnId(targetStatus);
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -158,16 +215,102 @@ export default function Dashboard() {
     
     if (!over) return;
     
-    const newStatus = over.id as TaskStatus;
+    const activeId = active.id as string;
+    const overId = over.id as string;
     
-    // Move all selected tasks to the new column
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        selectedTaskIds.has(task.id) 
-          ? { ...task, status: newStatus }
-          : task
-      )
-    );
+    // Skip if dropped on itself
+    if (activeId === overId) {
+      handleClearSelection();
+      return;
+    }
+    
+    const activeTask = tasks.find(t => t.id === activeId);
+    if (!activeTask) return;
+    
+    // Determine if over is a column or a task
+    const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
+    const overTask = !isOverColumn ? tasks.find(t => t.id === overId) : null;
+    
+    // Get target column
+    const targetStatus: TaskStatus = isOverColumn 
+      ? overId as TaskStatus 
+      : overTask?.status || activeTask.status;
+    
+    setTasks(prevTasks => {
+      let newTasks = [...prevTasks];
+      
+      // Get IDs being moved (all selected tasks), sorted by their original order
+      const movingTasks = Array.from(selectedTaskIds)
+        .map(id => newTasks.find(t => t.id === id))
+        .filter(Boolean) as Task[];
+      
+      // Sort by order to preserve relative positions when moving multiple cards
+      movingTasks.sort((a, b) => a.order - b.order);
+      const movingIds = movingTasks.map(t => t.id);
+      
+      // Get all tasks that will remain in the source column after move
+      const sourceStatus = activeTask.status;
+      const sourceColumnTasks = newTasks
+        .filter(t => t.status === sourceStatus && !movingIds.includes(t.id))
+        .sort((a, b) => a.order - b.order);
+      
+      // Renumber source column tasks
+      sourceColumnTasks.forEach((t, idx) => {
+        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+        if (taskIndex !== -1) {
+          newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+        }
+      });
+      
+      // Get tasks in target column (excluding moving tasks) sorted by order
+      const targetColumnTasks = newTasks
+        .filter(t => t.status === targetStatus && !movingIds.includes(t.id))
+        .sort((a, b) => a.order - b.order);
+      
+      // Calculate insertion index
+      let insertIndex = targetColumnTasks.length; // Default: end of list
+      if (overTask && !movingIds.includes(overTask.id)) {
+        // Find position in target column
+        const overIndex = targetColumnTasks.findIndex(t => t.id === overTask.id);
+        if (overIndex !== -1) {
+          insertIndex = overIndex;
+        }
+      }
+      
+      // Build new order for target column
+      const beforeInsert = targetColumnTasks.slice(0, insertIndex);
+      const afterInsert = targetColumnTasks.slice(insertIndex);
+      
+      // Update orders for tasks before insertion point
+      beforeInsert.forEach((t, idx) => {
+        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+        if (taskIndex !== -1) {
+          newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+        }
+      });
+      
+      // Update moving tasks with new status and orders
+      movingIds.forEach((id, idx) => {
+        const taskIndex = newTasks.findIndex(t => t.id === id);
+        if (taskIndex !== -1) {
+          newTasks[taskIndex] = {
+            ...newTasks[taskIndex],
+            status: targetStatus,
+            order: insertIndex + idx,
+          };
+        }
+      });
+      
+      // Update orders for tasks after insertion point
+      afterInsert.forEach((t, idx) => {
+        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+        if (taskIndex !== -1) {
+          newTasks[taskIndex] = { ...newTasks[taskIndex], order: insertIndex + movingIds.length + idx };
+        }
+      });
+      
+      return newTasks;
+    });
     
     // Clear selection after drag
     handleClearSelection();
@@ -313,6 +456,7 @@ export default function Dashboard() {
 
       <DndContext 
         sensors={sensors} 
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
@@ -331,25 +475,26 @@ export default function Dashboard() {
                 <span className="text-xs text-white">To Do</span>
               </div>
             }
-            showDropPlaceholder={overColumnId === "To Do" && activeTask?.status !== "To Do"}
           >
-            {todoTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                {...task}
-                isSelected={selectedTaskIds.has(task.id)}
-                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                isDragActive={activeTaskId !== null}
-                onSelect={handleSelectTask}
-                onUpdate={handleUpdateTask}
-                onDelete={handleDeleteTask}
-                onBulkUpdate={handleBulkUpdate}
-                onBulkDelete={handleBulkDelete}
-                onBulkAppendTitle={handleBulkAppendTitle}
-                onBulkReplaceTitle={handleBulkReplaceTitle}
-                onBulkAddAssignee={handleBulkAddAssignee}
-              />
-            ))}
+            <SortableContext items={todoTaskIds} strategy={verticalListSortingStrategy}>
+              {todoTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  {...task}
+                  isSelected={selectedTaskIds.has(task.id)}
+                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                  isDragActive={activeTaskId !== null}
+                  onSelect={handleSelectTask}
+                  onUpdate={handleUpdateTask}
+                  onDelete={handleDeleteTask}
+                  onBulkUpdate={handleBulkUpdate}
+                  onBulkDelete={handleBulkDelete}
+                  onBulkAppendTitle={handleBulkAppendTitle}
+                  onBulkReplaceTitle={handleBulkReplaceTitle}
+                  onBulkAddAssignee={handleBulkAddAssignee}
+                />
+              ))}
+            </SortableContext>
           </KanbanColumn>
 
           <KanbanColumn 
@@ -365,25 +510,26 @@ export default function Dashboard() {
                 <span className="text-xs text-white">In Progress</span>
               </div>
             }
-            showDropPlaceholder={overColumnId === "In Progress" && activeTask?.status !== "In Progress"}
           >
-            {inProgressTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                {...task}
-                isSelected={selectedTaskIds.has(task.id)}
-                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                isDragActive={activeTaskId !== null}
-                onSelect={handleSelectTask}
-                onUpdate={handleUpdateTask}
-                onDelete={handleDeleteTask}
-                onBulkUpdate={handleBulkUpdate}
-                onBulkDelete={handleBulkDelete}
-                onBulkAppendTitle={handleBulkAppendTitle}
-                onBulkReplaceTitle={handleBulkReplaceTitle}
-                onBulkAddAssignee={handleBulkAddAssignee}
-              />
-            ))}
+            <SortableContext items={inProgressTaskIds} strategy={verticalListSortingStrategy}>
+              {inProgressTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  {...task}
+                  isSelected={selectedTaskIds.has(task.id)}
+                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                  isDragActive={activeTaskId !== null}
+                  onSelect={handleSelectTask}
+                  onUpdate={handleUpdateTask}
+                  onDelete={handleDeleteTask}
+                  onBulkUpdate={handleBulkUpdate}
+                  onBulkDelete={handleBulkDelete}
+                  onBulkAppendTitle={handleBulkAppendTitle}
+                  onBulkReplaceTitle={handleBulkReplaceTitle}
+                  onBulkAddAssignee={handleBulkAddAssignee}
+                />
+              ))}
+            </SortableContext>
           </KanbanColumn>
 
           <KanbanColumn 
@@ -393,25 +539,26 @@ export default function Dashboard() {
             color="text-green-400"
             borderColor="border-green-700"
             icon={CheckCircle2}
-            showDropPlaceholder={overColumnId === "Done" && activeTask?.status !== "Done"}
           >
-            {doneTasks.map(task => (
-              <TaskCard
-                key={task.id}
-                {...task}
-                isSelected={selectedTaskIds.has(task.id)}
-                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                isDragActive={activeTaskId !== null}
-                onSelect={handleSelectTask}
-                onUpdate={handleUpdateTask}
-                onDelete={handleDeleteTask}
-                onBulkUpdate={handleBulkUpdate}
-                onBulkDelete={handleBulkDelete}
-                onBulkAppendTitle={handleBulkAppendTitle}
-                onBulkReplaceTitle={handleBulkReplaceTitle}
-                onBulkAddAssignee={handleBulkAddAssignee}
-              />
-            ))}
+            <SortableContext items={doneTaskIds} strategy={verticalListSortingStrategy}>
+              {doneTasks.map(task => (
+                <TaskCard
+                  key={task.id}
+                  {...task}
+                  isSelected={selectedTaskIds.has(task.id)}
+                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                  isDragActive={activeTaskId !== null}
+                  onSelect={handleSelectTask}
+                  onUpdate={handleUpdateTask}
+                  onDelete={handleDeleteTask}
+                  onBulkUpdate={handleBulkUpdate}
+                  onBulkDelete={handleBulkDelete}
+                  onBulkAppendTitle={handleBulkAppendTitle}
+                  onBulkReplaceTitle={handleBulkReplaceTitle}
+                  onBulkAddAssignee={handleBulkAddAssignee}
+                />
+              ))}
+            </SortableContext>
           </KanbanColumn>
         </div>
         
