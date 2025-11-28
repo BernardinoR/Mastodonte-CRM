@@ -88,6 +88,7 @@ interface TaskCardProps {
   notes?: string[];
   isSelected?: boolean;
   selectedCount?: number;
+  isDragActive?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean) => void;
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
@@ -309,6 +310,7 @@ export function TaskCard({
   notes,
   isSelected = false,
   selectedCount = 0,
+  isDragActive = false,
   onSelect,
   onUpdate,
   onDelete,
@@ -366,9 +368,13 @@ export function TaskCard({
     disabled: isEditing || activePopover !== null,
   });
 
+  const shouldHideForDrag = isDragActive && isSelected;
+  
   const style = {
     transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.5 : 1,
+    opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
+    visibility: shouldHideForDrag ? 'hidden' as const : 'visible' as const,
+    pointerEvents: shouldHideForDrag ? 'none' as const : 'auto' as const,
   };
 
   const priorityColors: Record<string, string> = {

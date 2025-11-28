@@ -339,6 +339,7 @@ export default function Dashboard() {
                 {...task}
                 isSelected={selectedTaskIds.has(task.id)}
                 selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                isDragActive={activeTaskId !== null}
                 onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
@@ -372,6 +373,7 @@ export default function Dashboard() {
                 {...task}
                 isSelected={selectedTaskIds.has(task.id)}
                 selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                isDragActive={activeTaskId !== null}
                 onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
@@ -399,6 +401,7 @@ export default function Dashboard() {
                 {...task}
                 isSelected={selectedTaskIds.has(task.id)}
                 selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                isDragActive={activeTaskId !== null}
                 onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
