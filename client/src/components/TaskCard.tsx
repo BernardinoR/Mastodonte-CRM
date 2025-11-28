@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -369,13 +370,6 @@ export function TaskCard({
   });
 
   const shouldHideForDrag = isDragActive && isSelected;
-  
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
-    visibility: shouldHideForDrag ? 'hidden' as const : 'visible' as const,
-    pointerEvents: shouldHideForDrag ? 'none' as const : 'auto' as const,
-  };
 
   const priorityColors: Record<string, string> = {
     Urgente: "bg-red-900 text-white border-red-900",
@@ -712,10 +706,22 @@ export function TaskCard({
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
+          <motion.div
             ref={setNodeRef}
-            style={style}
+            style={{
+              transform: CSS.Translate.toString(transform),
+              pointerEvents: shouldHideForDrag ? 'none' : 'auto',
+            }}
             data-task-card
+            initial={false}
+            animate={{
+              opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
+              scale: shouldHideForDrag ? 0.95 : 1,
+            }}
+            transition={{
+              opacity: { duration: 0.15, ease: "easeOut" },
+              scale: { duration: 0.15, ease: "easeOut" },
+            }}
             {...(!isEditing ? { ...attributes, ...listeners } : {})}
           >
             <Card
@@ -1350,7 +1356,7 @@ export function TaskCard({
               </div>
           </CardContent>
             </Card>
-          </div>
+          </motion.div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
           <ContextMenuSub>
