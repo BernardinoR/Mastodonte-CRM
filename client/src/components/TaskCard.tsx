@@ -657,13 +657,6 @@ export function TaskCard({
                   <PopoverTrigger asChild>
                     <span 
                       className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                      onPointerDown={(e: React.PointerEvent) => {
-                        e.stopPropagation();
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                      }}
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         if (clickTimeoutRef.current) {
@@ -685,7 +678,6 @@ export function TaskCard({
                     sideOffset={6} 
                     avoidCollisions={true} 
                     collisionPadding={8}
-                    onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                     onInteractOutside={(e) => {
                       const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
                       const target = originalTarget || (e.target as HTMLElement);
@@ -735,13 +727,6 @@ export function TaskCard({
                         <PopoverTrigger asChild>
                           <span 
                             className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                            onPointerDown={(e: React.PointerEvent) => {
-                              e.stopPropagation();
-                              if (clickTimeoutRef.current) {
-                                clearTimeout(clickTimeoutRef.current);
-                                clickTimeoutRef.current = null;
-                              }
-                            }}
                             onClick={(e: React.MouseEvent) => {
                               e.stopPropagation();
                               if (clickTimeoutRef.current) {
@@ -761,7 +746,6 @@ export function TaskCard({
                           sideOffset={6} 
                           avoidCollisions={true} 
                           collisionPadding={8}
-                          onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                         >
                           <ClientSelector 
                             selectedClient={clientName || null}
@@ -775,13 +759,6 @@ export function TaskCard({
                     ) : (
                       <span 
                         className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                        onPointerDown={(e: React.PointerEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           if (clickTimeoutRef.current) {
@@ -817,13 +794,6 @@ export function TaskCard({
                     <PopoverTrigger asChild>
                       <span 
                         className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
-                        onPointerDown={(e: React.PointerEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
                         onClick={(e: React.MouseEvent) => {
                           e.stopPropagation();
                           if (clickTimeoutRef.current) {
@@ -843,7 +813,6 @@ export function TaskCard({
                       sideOffset={6} 
                       avoidCollisions={true} 
                       collisionPadding={8}
-                      onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                     >
                       <ClientSelector 
                         selectedClient={null}
@@ -866,7 +835,7 @@ export function TaskCard({
                     isEditing ? "px-2 py-0.5 group/edit-priority hover:bg-gray-700/80" : ""
                   )}>
                     <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                      <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                      <PopoverTrigger asChild>
                         <div
                           onClick={(e: React.MouseEvent) => {
                             e.stopPropagation();
@@ -997,7 +966,7 @@ export function TaskCard({
                   </div>
                 ) : isEditing ? (
                   <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                    <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                    <PopoverTrigger asChild>
                       <span 
                         className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
                         onClick={(e: React.MouseEvent) => {
@@ -1067,7 +1036,7 @@ export function TaskCard({
               {/* Linha 5: Status - Always clickable */}
               <div className="flex items-center gap-1.5 text-xs md:text-sm">
                 <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
-                  <PopoverTrigger asChild onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}>
+                  <PopoverTrigger asChild>
                     <div
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
@@ -1173,13 +1142,6 @@ export function TaskCard({
                   <PopoverTrigger asChild>
                     <div 
                       className="cursor-pointer"
-                      onPointerDown={(e: React.PointerEvent) => {
-                        e.stopPropagation();
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                      }}
                       onClick={(e: React.MouseEvent) => {
                         e.stopPropagation();
                         if (clickTimeoutRef.current) {
@@ -1235,7 +1197,6 @@ export function TaskCard({
                     sideOffset={6} 
                     avoidCollisions={true} 
                     collisionPadding={8}
-                    onPointerDownCapture={(e: React.PointerEvent) => e.stopPropagation()}
                   >
                     <AssigneeSelector 
                       selectedAssignees={editedTask.assignees}
