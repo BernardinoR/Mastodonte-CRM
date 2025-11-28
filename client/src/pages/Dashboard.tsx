@@ -245,6 +245,44 @@ export default function Dashboard() {
     handleClearSelection();
   }, [selectedTaskIds, handleClearSelection]);
 
+  // Bulk append title for selected tasks
+  const handleBulkAppendTitle = useCallback((suffix: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { ...task, title: task.title + suffix }
+          : task
+      )
+    );
+  }, [selectedTaskIds]);
+
+  // Bulk replace title for selected tasks
+  const handleBulkReplaceTitle = useCallback((newTitle: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { ...task, title: newTitle }
+          : task
+      )
+    );
+  }, [selectedTaskIds]);
+
+  // Bulk add assignee to selected tasks
+  const handleBulkAddAssignee = useCallback((assignee: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { 
+              ...task, 
+              assignees: task.assignees.includes(assignee) 
+                ? task.assignees 
+                : [...task.assignees, assignee] 
+            }
+          : task
+      )
+    );
+  }, [selectedTaskIds]);
+
   // Get count of selected tasks for DragOverlay
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
@@ -306,6 +344,9 @@ export default function Dashboard() {
                 onDelete={handleDeleteTask}
                 onBulkUpdate={handleBulkUpdate}
                 onBulkDelete={handleBulkDelete}
+                onBulkAppendTitle={handleBulkAppendTitle}
+                onBulkReplaceTitle={handleBulkReplaceTitle}
+                onBulkAddAssignee={handleBulkAddAssignee}
               />
             ))}
           </KanbanColumn>
@@ -336,6 +377,9 @@ export default function Dashboard() {
                 onDelete={handleDeleteTask}
                 onBulkUpdate={handleBulkUpdate}
                 onBulkDelete={handleBulkDelete}
+                onBulkAppendTitle={handleBulkAppendTitle}
+                onBulkReplaceTitle={handleBulkReplaceTitle}
+                onBulkAddAssignee={handleBulkAddAssignee}
               />
             ))}
           </KanbanColumn>
@@ -360,6 +404,9 @@ export default function Dashboard() {
                 onDelete={handleDeleteTask}
                 onBulkUpdate={handleBulkUpdate}
                 onBulkDelete={handleBulkDelete}
+                onBulkAppendTitle={handleBulkAppendTitle}
+                onBulkReplaceTitle={handleBulkReplaceTitle}
+                onBulkAddAssignee={handleBulkAddAssignee}
               />
             ))}
           </KanbanColumn>
@@ -389,6 +436,9 @@ export default function Dashboard() {
                   onDelete={() => {}}
                   onBulkUpdate={() => {}}
                   onBulkDelete={() => {}}
+                  onBulkAppendTitle={() => {}}
+                  onBulkReplaceTitle={() => {}}
+                  onBulkAddAssignee={() => {}}
                 />
               </div>
             </div>

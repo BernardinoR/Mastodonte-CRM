@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +60,10 @@ import {
   Circle,
   CheckCircle2,
   Users,
+  Type,
+  Briefcase,
+  UserPlus,
+  PenLine,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
@@ -88,6 +93,9 @@ interface TaskCardProps {
   onDelete: (taskId: string) => void;
   onBulkUpdate?: (updates: any) => void;
   onBulkDelete?: () => void;
+  onBulkAppendTitle?: (suffix: string) => void;
+  onBulkReplaceTitle?: (newTitle: string) => void;
+  onBulkAddAssignee?: (assignee: string) => void;
 }
 
 // Global flag to prevent click events after closing edit mode
@@ -306,6 +314,9 @@ export function TaskCard({
   onDelete,
   onBulkUpdate,
   onBulkDelete,
+  onBulkAppendTitle,
+  onBulkReplaceTitle,
+  onBulkAddAssignee,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   // Ensure assignees is always an array (backward compatibility)
@@ -326,6 +337,12 @@ export function TaskCard({
   const [newNote, setNewNote] = useState("");
   const [newAssigneeName, setNewAssigneeName] = useState("");
   const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | "assignee" | null>(null);
+  
+  const [showReplaceTitleDialog, setShowReplaceTitleDialog] = useState(false);
+  const [showAppendTitleDialog, setShowAppendTitleDialog] = useState(false);
+  const [newTitleText, setNewTitleText] = useState("");
+  const [appendTitleText, setAppendTitleText] = useState("");
+  const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
   
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
@@ -633,6 +650,56 @@ export function TaskCard({
     } else {
       onDelete(id);
     }
+  };
+
+  const handleContextClientChange = (newClient: string) => {
+    if (selectedCount > 1 && onBulkUpdate) {
+      onBulkUpdate({ clientName: newClient });
+    } else {
+      onUpdate(id, { clientName: newClient });
+    }
+  };
+
+  const handleContextDateChange = (newDate: Date) => {
+    if (selectedCount > 1 && onBulkUpdate) {
+      onBulkUpdate({ dueDate: newDate });
+    } else {
+      onUpdate(id, { dueDate: newDate });
+    }
+    setShowBulkDatePicker(false);
+  };
+
+  const handleContextAddAssignee = (assignee: string) => {
+    if (selectedCount > 1 && onBulkAddAssignee) {
+      onBulkAddAssignee(assignee);
+    } else {
+      const newAssignees = editedTask.assignees.includes(assignee) 
+        ? editedTask.assignees 
+        : [...editedTask.assignees, assignee];
+      onUpdate(id, { assignees: newAssignees });
+    }
+  };
+
+  const handleReplaceTitleSubmit = () => {
+    if (!newTitleText.trim()) return;
+    if (selectedCount > 1 && onBulkReplaceTitle) {
+      onBulkReplaceTitle(newTitleText.trim());
+    } else {
+      onUpdate(id, { title: newTitleText.trim() });
+    }
+    setNewTitleText("");
+    setShowReplaceTitleDialog(false);
+  };
+
+  const handleAppendTitleSubmit = () => {
+    if (!appendTitleText.trim()) return;
+    if (selectedCount > 1 && onBulkAppendTitle) {
+      onBulkAppendTitle(appendTitleText.trim());
+    } else {
+      onUpdate(id, { title: title + appendTitleText.trim() });
+    }
+    setAppendTitleText("");
+    setShowAppendTitleDialog(false);
   };
 
   return (
@@ -1340,6 +1407,84 @@ export function TaskCard({
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
+          
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              <span>Responsáveis</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] max-h-64 overflow-y-auto">
+              {MOCK_RESPONSIBLES.map((consultant) => (
+                <ContextMenuItem 
+                  key={consultant.id} 
+                  onClick={() => handleContextAddAssignee(consultant.name)} 
+                  className="flex items-center gap-2"
+                >
+                  <Avatar className="w-5 h-5">
+                    <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
+                      {consultant.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm">{consultant.name}</span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              <span>Cliente</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] max-h-64 overflow-y-auto">
+              {MOCK_CLIENTS.map((client) => (
+                <ContextMenuItem 
+                  key={client} 
+                  onClick={() => handleContextClientChange(client)} 
+                  className="flex items-center gap-2"
+                >
+                  <User className="w-4 h-4 text-muted-foreground" />
+                  <span className="text-sm">{client}</span>
+                </ContextMenuItem>
+              ))}
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
+          <ContextMenuItem 
+            onClick={() => setShowBulkDatePicker(true)} 
+            className="flex items-center gap-2"
+          >
+            <CalendarIcon className="w-4 h-4" />
+            <span>Data</span>
+            {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+          </ContextMenuItem>
+          
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Type className="w-4 h-4" />
+              <span>Nome da tarefa</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+              <ContextMenuItem 
+                onClick={() => setShowReplaceTitleDialog(true)} 
+                className="flex items-center gap-2"
+              >
+                <Pencil className="w-4 h-4" />
+                <span>Substituir nome</span>
+              </ContextMenuItem>
+              <ContextMenuItem 
+                onClick={() => setShowAppendTitleDialog(true)} 
+                className="flex items-center gap-2"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Adicionar ao final</span>
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
           <ContextMenuSeparator className="bg-[#2a2a2a]" />
           <ContextMenuItem 
             onClick={handleContextDelete} 
@@ -1435,6 +1580,88 @@ export function TaskCard({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <Dialog open={showReplaceTitleDialog} onOpenChange={setShowReplaceTitleDialog}>
+        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle>Substituir nome{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <Input
+              value={newTitleText}
+              onChange={(e) => setNewTitleText(e.target.value)}
+              placeholder="Digite o novo nome..."
+              className="bg-[#2a2a2a] border-[#3a3a3a]"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleReplaceTitleSubmit();
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowReplaceTitleDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleReplaceTitleSubmit} disabled={!newTitleText.trim()}>
+                Substituir
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showAppendTitleDialog} onOpenChange={setShowAppendTitleDialog}>
+        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle>Adicionar ao final{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              O texto será adicionado ao final do nome de cada tarefa selecionada.
+            </p>
+            <Input
+              value={appendTitleText}
+              onChange={(e) => setAppendTitleText(e.target.value)}
+              placeholder="Digite o texto a adicionar..."
+              className="bg-[#2a2a2a] border-[#3a3a3a]"
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAppendTitleSubmit();
+                }
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowAppendTitleDialog(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleAppendTitleSubmit} disabled={!appendTitleText.trim()}>
+                Adicionar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={showBulkDatePicker} onOpenChange={setShowBulkDatePicker}>
+        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+          <DialogHeader>
+            <DialogTitle>Alterar data{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Calendar
+              mode="single"
+              selected={dueDate}
+              onSelect={(date) => date && handleContextDateChange(date)}
+              locale={ptBR}
+              className="rounded-md border border-[#2a2a2a]"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
