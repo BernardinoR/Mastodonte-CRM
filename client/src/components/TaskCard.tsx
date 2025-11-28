@@ -26,6 +26,16 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -45,6 +55,10 @@ import {
   X,
   Search,
   User,
+  AlertTriangle,
+  Circle,
+  CheckCircle2,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
@@ -67,8 +81,13 @@ interface TaskCardProps {
   dueDate: Date;
   description?: string;
   notes?: string[];
+  isSelected?: boolean;
+  selectedCount?: number;
+  onSelect?: (taskId: string, shiftKey: boolean) => void;
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
+  onBulkUpdate?: (updates: any) => void;
+  onBulkDelete?: () => void;
 }
 
 // Global flag to prevent click events after closing edit mode
@@ -280,8 +299,13 @@ export function TaskCard({
   dueDate,
   description,
   notes,
+  isSelected = false,
+  selectedCount = 0,
+  onSelect,
   onUpdate,
   onDelete,
+  onBulkUpdate,
+  onBulkDelete,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   // Ensure assignees is always an array (backward compatibility)
@@ -481,6 +505,14 @@ export function TaskCard({
       clickTimeoutRef.current = null;
     }
     
+    // Handle Shift+click for multi-selection
+    if (e.shiftKey && onSelect) {
+      e.preventDefault();
+      e.stopPropagation();
+      onSelect(id, true);
+      return;
+    }
+    
     // Don't open modal if in edit mode
     if (isEditing) {
       return;
@@ -577,27 +609,57 @@ export function TaskCard({
     isOverdue = isBefore(startOfDay(dueDate), today);
   }
 
+
+  // Context menu handlers
+  const handleContextPriorityChange = (newPriority: TaskPriority) => {
+    if (selectedCount > 1 && onBulkUpdate) {
+      onBulkUpdate({ priority: newPriority });
+    } else {
+      onUpdate(id, { priority: newPriority });
+    }
+  };
+
+  const handleContextStatusChange = (newStatus: TaskStatus) => {
+    if (selectedCount > 1 && onBulkUpdate) {
+      onBulkUpdate({ status: newStatus });
+    } else {
+      onUpdate(id, { status: newStatus });
+    }
+  };
+
+  const handleContextDelete = () => {
+    if (selectedCount > 1 && onBulkDelete) {
+      onBulkDelete();
+    } else {
+      onDelete(id);
+    }
+  };
+
   return (
     <>
-      <div
-        ref={setNodeRef}
-        style={style}
-        {...(!isEditing ? { ...attributes, ...listeners } : {})}
-      >
-        <Card
-          ref={cardRef}
-          className={cn(
-            "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
-            isEditing && "ring-2 ring-primary shadow-lg",
-            isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
-            status === "To Do" && "bg-[#262626] border-[#363636]",
-            status === "In Progress" && "bg-[#243041] border-[#344151]",
-            status === "Done" && "bg-green-950 border-green-900"
-          )}
-          onClick={handleCardClick}
-          onDoubleClick={handleEditClick}
-          data-testid={`card-task-${id}`}
-        >
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            ref={setNodeRef}
+            style={style}
+            data-task-card
+            {...(!isEditing ? { ...attributes, ...listeners } : {})}
+          >
+            <Card
+              ref={cardRef}
+              className={cn(
+                "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
+                isEditing && "ring-2 ring-primary shadow-lg",
+                isSelected && !isEditing && "ring-2 ring-blue-500 shadow-lg",
+                isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
+                status === "To Do" && "bg-[#262626] border-[#363636]",
+                status === "In Progress" && "bg-[#243041] border-[#344151]",
+                status === "Done" && "bg-green-950 border-green-900"
+              )}
+              onClick={handleCardClick}
+              onDoubleClick={handleEditClick}
+              data-testid={`card-task-${id}`}
+            >
           <CardHeader className="p-4 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <div
@@ -1213,8 +1275,80 @@ export function TaskCard({
                 </Popover>
               </div>
           </CardContent>
-        </Card>
-      </div>
+            </Card>
+          </div>
+        </ContextMenuTrigger>
+        <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span>Prioridade</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+              <ContextMenuItem onClick={() => handleContextPriorityChange("Urgente")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-200 mr-1" />
+                  Urgente
+                </Badge>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => handleContextPriorityChange("Importante")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-200 mr-1" />
+                  Importante
+                </Badge>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => handleContextPriorityChange("Normal")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-200 mr-1" />
+                  Normal
+                </Badge>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => handleContextPriorityChange("Baixa")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 mr-1" />
+                  Baixa
+                </Badge>
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Circle className="w-4 h-4" />
+              <span>Status</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+              <ContextMenuItem onClick={() => handleContextStatusChange("To Do")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86] mr-1" />
+                  To Do
+                </Badge>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => handleContextStatusChange("In Progress")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)] mr-1" />
+                  In Progress
+                </Badge>
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => handleContextStatusChange("Done")} className="flex items-center gap-2">
+                <Badge variant="outline" className="bg-green-900 text-white border-green-900 text-[10px] px-2 py-[2px] rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-200 mr-1" />
+                  Done
+                </Badge>
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          <ContextMenuSeparator className="bg-[#2a2a2a]" />
+          <ContextMenuItem 
+            onClick={handleContextDelete} 
+            className="flex items-center gap-2 text-destructive focus:text-destructive"
+          >
+            <Trash2 className="w-4 h-4" />
+            <span>Excluir{selectedCount > 1 ? ` (${selectedCount})` : ''}</span>
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
           <DialogHeader className="space-y-0 pb-4">

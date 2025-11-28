@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
@@ -29,6 +29,8 @@ export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
+  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -133,7 +135,14 @@ export default function Dashboard() {
   );
 
   const handleDragStart = (event: DragStartEvent) => {
-    setActiveTaskId(event.active.id as string);
+    const draggedId = event.active.id as string;
+    setActiveTaskId(draggedId);
+    
+    // If dragging a non-selected card, clear selection and select only this card
+    if (!selectedTaskIds.has(draggedId)) {
+      setSelectedTaskIds(new Set([draggedId]));
+      setLastSelectedId(draggedId);
+    }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -149,16 +158,19 @@ export default function Dashboard() {
     
     if (!over) return;
     
-    const taskId = active.id as string;
     const newStatus = over.id as TaskStatus;
     
+    // Move all selected tasks to the new column
     setTasks(prevTasks => 
       prevTasks.map(task => 
-        task.id === taskId 
+        selectedTaskIds.has(task.id) 
           ? { ...task, status: newStatus }
           : task
       )
     );
+    
+    // Clear selection after drag
+    handleClearSelection();
   };
 
   const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
@@ -177,9 +189,74 @@ export default function Dashboard() {
     setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
 
+  // Selection handlers
+  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean) => {
+    if (shiftKey && lastSelectedId) {
+      // Range selection with Shift+click
+      const allTaskIds = filteredTasks.map(t => t.id);
+      const lastIndex = allTaskIds.indexOf(lastSelectedId);
+      const currentIndex = allTaskIds.indexOf(taskId);
+      
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeIds = allTaskIds.slice(start, end + 1);
+        
+        setSelectedTaskIds(prev => {
+          const newSet = new Set(prev);
+          rangeIds.forEach(id => newSet.add(id));
+          return newSet;
+        });
+      }
+    } else {
+      // Toggle single selection
+      setSelectedTaskIds(prev => {
+        const newSet = new Set(prev);
+        if (newSet.has(taskId)) {
+          newSet.delete(taskId);
+        } else {
+          newSet.add(taskId);
+        }
+        return newSet;
+      });
+      setLastSelectedId(taskId);
+    }
+  }, [lastSelectedId, filteredTasks]);
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedTaskIds(new Set());
+    setLastSelectedId(null);
+  }, []);
+
+  // Bulk update for selected tasks (used by context menu)
+  const handleBulkUpdate = useCallback((updates: Partial<Task>) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { ...task, ...updates }
+          : task
+      )
+    );
+  }, [selectedTaskIds]);
+
+  // Bulk delete for selected tasks
+  const handleBulkDelete = useCallback(() => {
+    setTasks(prevTasks => prevTasks.filter(task => !selectedTaskIds.has(task.id)));
+    handleClearSelection();
+  }, [selectedTaskIds, handleClearSelection]);
+
+  // Get count of selected tasks for DragOverlay
+  const selectedCount = selectedTaskIds.size;
+  const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
+
   return (
-    <div className="p-6">
-      <div className="mb-6 flex items-center justify-between">
+    <div className="p-6" onClick={(e) => {
+      // Clear selection when clicking on empty area
+      if ((e.target as HTMLElement).closest('[data-task-card]') === null) {
+        handleClearSelection();
+      }
+    }}>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
         <h1 className="text-2xl font-semibold">Tarefas</h1>
         <Button onClick={() => setNewTaskOpen(true)} data-testid="button-newtask">
           <Plus className="w-4 h-4 mr-2" />
@@ -222,8 +299,13 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
+                isSelected={selectedTaskIds.has(task.id)}
+                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
+                onBulkUpdate={handleBulkUpdate}
+                onBulkDelete={handleBulkDelete}
               />
             ))}
           </KanbanColumn>
@@ -247,8 +329,13 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
+                isSelected={selectedTaskIds.has(task.id)}
+                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
+                onBulkUpdate={handleBulkUpdate}
+                onBulkDelete={handleBulkDelete}
               />
             ))}
           </KanbanColumn>
@@ -266,8 +353,13 @@ export default function Dashboard() {
               <TaskCard
                 key={task.id}
                 {...task}
+                isSelected={selectedTaskIds.has(task.id)}
+                selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+                onSelect={handleSelectTask}
                 onUpdate={handleUpdateTask}
                 onDelete={handleDeleteTask}
+                onBulkUpdate={handleBulkUpdate}
+                onBulkDelete={handleBulkDelete}
               />
             ))}
           </KanbanColumn>
@@ -275,12 +367,27 @@ export default function Dashboard() {
         
         <DragOverlay>
           {activeTask && (
-            <div className="opacity-80 rotate-2 scale-105">
+            <div className="opacity-90 rotate-2 scale-105 relative">
+              {selectedCount > 1 && (
+                <div className="absolute -top-2 -right-2 z-10 bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full shadow-lg">
+                  {selectedCount} cards
+                </div>
+              )}
               <TaskCard
                 {...activeTask}
+                isSelected={false}
+                selectedCount={0}
+                onSelect={() => {}}
                 onUpdate={() => {}}
                 onDelete={() => {}}
+                onBulkUpdate={() => {}}
+                onBulkDelete={() => {}}
               />
+              {selectedCount > 1 && (
+                <div className="absolute inset-0 -z-10 transform translate-x-1 translate-y-1">
+                  <div className="w-full h-full bg-[#262626] rounded-lg border border-[#303030] opacity-60" />
+                </div>
+              )}
             </div>
           )}
         </DragOverlay>
