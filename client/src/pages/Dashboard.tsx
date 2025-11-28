@@ -307,60 +307,92 @@ export default function Dashboard() {
     
     setTasks(prevTasks => {
       let newTasks = [...prevTasks];
-      
-      // Get all tasks that will remain in the source column after move
       const sourceStatus = activeTask.status;
-      const sourceColumnTasks = newTasks
-        .filter(t => t.status === sourceStatus && !movingIds.includes(t.id))
-        .sort((a, b) => a.order - b.order);
+      const isSameColumn = sourceStatus === targetStatus;
       
-      // Renumber source column tasks
-      sourceColumnTasks.forEach((t, idx) => {
-        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
-        if (taskIndex !== -1) {
-          newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
-        }
-      });
-      
-      // Get tasks in target column (excluding moving tasks) sorted by order
-      const targetColumnTasks = newTasks
-        .filter(t => t.status === targetStatus && !movingIds.includes(t.id))
-        .sort((a, b) => a.order - b.order);
-      
-      // Use the projection's insert index directly
-      const finalInsertIndex = Math.min(insertIndex, targetColumnTasks.length);
-      
-      // Build new order for target column
-      const beforeInsert = targetColumnTasks.slice(0, finalInsertIndex);
-      const afterInsert = targetColumnTasks.slice(finalInsertIndex);
-      
-      // Update orders for tasks before insertion point
-      beforeInsert.forEach((t, idx) => {
-        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
-        if (taskIndex !== -1) {
-          newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
-        }
-      });
-      
-      // Update moving tasks with new status and orders
-      movingIds.forEach((id, idx) => {
-        const taskIndex = newTasks.findIndex(t => t.id === id);
-        if (taskIndex !== -1) {
-          newTasks[taskIndex] = {
-            ...newTasks[taskIndex],
-            status: targetStatus,
-            order: finalInsertIndex + idx,
-          };
-        }
-      });
-      
-      // Update orders for tasks after insertion point
-      afterInsert.forEach((t, idx) => {
-        const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
-        if (taskIndex !== -1) {
-          newTasks[taskIndex] = { ...newTasks[taskIndex], order: finalInsertIndex + movingIds.length + idx };
-        }
-      });
+      if (isSameColumn) {
+        // SAME COLUMN: Simple reordering
+        // Get all tasks in this column sorted by current order
+        const columnTasks = newTasks
+          .filter(t => t.status === sourceStatus)
+          .sort((a, b) => a.order - b.order);
+        
+        // Get tasks not being moved
+        const stationaryTasks = columnTasks.filter(t => !movingIds.includes(t.id));
+        
+        // Get tasks being moved (maintain their relative order)
+        const movingTasks = columnTasks.filter(t => movingIds.includes(t.id));
+        
+        // Calculate insert index (clamped to valid range)
+        const finalInsertIndex = Math.min(Math.max(0, insertIndex), stationaryTasks.length);
+        
+        // Build new order: insert moving tasks at the specified position
+        const newOrder = [
+          ...stationaryTasks.slice(0, finalInsertIndex),
+          ...movingTasks,
+          ...stationaryTasks.slice(finalInsertIndex),
+        ];
+        
+        // Apply new orders to tasks
+        newOrder.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+      } else {
+        // DIFFERENT COLUMNS: Move between columns
+        // Renumber source column (excluding moving tasks)
+        const sourceColumnTasks = newTasks
+          .filter(t => t.status === sourceStatus && !movingIds.includes(t.id))
+          .sort((a, b) => a.order - b.order);
+        
+        sourceColumnTasks.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+        
+        // Get target column tasks (excluding moving tasks)
+        const targetColumnTasks = newTasks
+          .filter(t => t.status === targetStatus && !movingIds.includes(t.id))
+          .sort((a, b) => a.order - b.order);
+        
+        const finalInsertIndex = Math.min(insertIndex, targetColumnTasks.length);
+        
+        // Build new order for target column
+        const beforeInsert = targetColumnTasks.slice(0, finalInsertIndex);
+        const afterInsert = targetColumnTasks.slice(finalInsertIndex);
+        
+        // Update orders for tasks before insertion point
+        beforeInsert.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+        
+        // Update moving tasks with new status and orders
+        movingIds.forEach((id, idx) => {
+          const taskIndex = newTasks.findIndex(t => t.id === id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = {
+              ...newTasks[taskIndex],
+              status: targetStatus,
+              order: finalInsertIndex + idx,
+            };
+          }
+        });
+        
+        // Update orders for tasks after insertion point
+        afterInsert.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: finalInsertIndex + movingIds.length + idx };
+          }
+        });
+      }
       
       return newTasks;
     });
