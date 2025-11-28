@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useLocation } from "wouter";
-import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -706,22 +705,15 @@ export function TaskCard({
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <motion.div
+          <div
             ref={setNodeRef}
             style={{
               transform: CSS.Translate.toString(transform),
+              opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
               pointerEvents: shouldHideForDrag ? 'none' : 'auto',
+              transition: 'opacity 0.15s ease-out, transform 0.15s ease-out',
             }}
             data-task-card
-            initial={false}
-            animate={{
-              opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
-              scale: shouldHideForDrag ? 0.95 : 1,
-            }}
-            transition={{
-              opacity: { duration: 0.15, ease: "easeOut" },
-              scale: { duration: 0.15, ease: "easeOut" },
-            }}
             {...(!isEditing ? { ...attributes, ...listeners } : {})}
           >
             <Card
@@ -1356,7 +1348,7 @@ export function TaskCard({
               </div>
           </CardContent>
             </Card>
-          </motion.div>
+          </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
           <ContextMenuSub>
