@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Clients from "@/pages/Clients";
@@ -38,7 +40,25 @@ export default function App() {
             <AppSidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
               <header className="flex items-center justify-between p-3 border-b border-border">
-                <SidebarTrigger data-testid="button-sidebar-toggle" />
+                <div className="flex flex-wrap items-center gap-1">
+                  <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => window.history.back()}
+                    data-testid="button-nav-back"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => window.history.forward()}
+                    data-testid="button-nav-forward"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </header>
               <main className="flex-1 overflow-auto">
                 <Router />
