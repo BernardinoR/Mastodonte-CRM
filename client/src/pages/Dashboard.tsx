@@ -367,27 +367,30 @@ export default function Dashboard() {
         
         <DragOverlay>
           {activeTask && (
-            <div className="opacity-90 rotate-2 scale-105 relative">
+            <div className="opacity-95 rotate-2 scale-105 relative">
               {selectedCount > 1 && (
-                <div className="absolute -top-2 -right-2 z-10 bg-blue-500 text-white text-xs font-medium px-2 py-0.5 rounded-full shadow-lg">
-                  {selectedCount} cards
-                </div>
+                <>
+                  <div className="absolute inset-0 transform translate-x-3 translate-y-3 rounded-lg bg-[#1a1a1a] border border-[#404040] opacity-40" />
+                  <div className="absolute inset-0 transform translate-x-1.5 translate-y-1.5 rounded-lg bg-[#222222] border border-[#383838] opacity-60" />
+                </>
               )}
-              <TaskCard
-                {...activeTask}
-                isSelected={false}
-                selectedCount={0}
-                onSelect={() => {}}
-                onUpdate={() => {}}
-                onDelete={() => {}}
-                onBulkUpdate={() => {}}
-                onBulkDelete={() => {}}
-              />
-              {selectedCount > 1 && (
-                <div className="absolute inset-0 -z-10 transform translate-x-1 translate-y-1">
-                  <div className="w-full h-full bg-[#262626] rounded-lg border border-[#303030] opacity-60" />
-                </div>
-              )}
+              <div className="relative">
+                {selectedCount > 1 && (
+                  <div className="absolute -top-3 -right-3 z-20 bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg border-2 border-blue-400">
+                    {selectedCount}
+                  </div>
+                )}
+                <TaskCard
+                  {...activeTask}
+                  isSelected={false}
+                  selectedCount={0}
+                  onSelect={() => {}}
+                  onUpdate={() => {}}
+                  onDelete={() => {}}
+                  onBulkUpdate={() => {}}
+                  onBulkDelete={() => {}}
+                />
+              </div>
             </div>
           )}
         </DragOverlay>

@@ -649,6 +649,7 @@ export function TaskCard({
               ref={cardRef}
               className={cn(
                 "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
+                !isEditing && "select-none",
                 isEditing && "ring-2 ring-primary shadow-lg",
                 isSelected && !isEditing && "ring-2 ring-blue-500 shadow-lg",
                 isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
