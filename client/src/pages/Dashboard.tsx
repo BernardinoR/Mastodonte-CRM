@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
@@ -54,6 +54,10 @@ export default function Dashboard() {
     targetStatus: TaskStatus;
     insertIndex: number;
   } | null>(null);
+  
+  // History stack for undo functionality (Ctrl+Z)
+  const historyRef = useRef<Task[][]>([]);
+  const MAX_HISTORY = 20;
 
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -172,6 +176,43 @@ export default function Dashboard() {
   const todoTaskIds = useMemo(() => todoTasks.map(t => t.id), [todoTasks]);
   const inProgressTaskIds = useMemo(() => inProgressTasks.map(t => t.id), [inProgressTasks]);
   const doneTaskIds = useMemo(() => doneTasks.map(t => t.id), [doneTasks]);
+
+  // Helper to update tasks with history tracking
+  const setTasksWithHistory = useCallback((updater: (prevTasks: Task[]) => Task[]) => {
+    setTasks(prevTasks => {
+      // Push current state to history INSIDE the updater to get the correct state
+      const historyCopy = [...historyRef.current];
+      historyCopy.push(prevTasks.map(t => ({ ...t })));
+      if (historyCopy.length > MAX_HISTORY) {
+        historyCopy.shift();
+      }
+      historyRef.current = historyCopy;
+      
+      // Return the updated tasks
+      return updater(prevTasks);
+    });
+  }, []);
+
+  // Undo: restore previous state
+  const handleUndo = useCallback(() => {
+    if (historyRef.current.length === 0) return;
+    const previousState = historyRef.current.pop();
+    if (previousState) {
+      setTasks(previousState);
+    }
+  }, []);
+
+  // Listen for Ctrl+Z
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        handleUndo();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -313,7 +354,8 @@ export default function Dashboard() {
     
     const { movingIds, targetStatus, insertIndex } = projection;
     
-    setTasks(prevTasks => {
+    // Use setTasksWithHistory to save state before modification
+    setTasksWithHistory(prevTasks => {
       let newTasks = [...prevTasks];
       const sourceStatus = activeTask.status;
       const isSameColumn = sourceStatus === targetStatus;
@@ -412,7 +454,7 @@ export default function Dashboard() {
   const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
 
   const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
-    setTasks(prevTasks =>
+    setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         task.id === taskId
           ? { ...task, ...updates }
@@ -422,7 +464,7 @@ export default function Dashboard() {
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
+    setTasksWithHistory(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
 
   // Selection handlers
@@ -495,46 +537,46 @@ export default function Dashboard() {
 
   // Bulk update for selected tasks (used by context menu)
   const handleBulkUpdate = useCallback((updates: Partial<Task>) => {
-    setTasks(prevTasks =>
+    setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         selectedTaskIds.has(task.id)
           ? { ...task, ...updates }
           : task
       )
     );
-  }, [selectedTaskIds]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Bulk delete for selected tasks
   const handleBulkDelete = useCallback(() => {
-    setTasks(prevTasks => prevTasks.filter(task => !selectedTaskIds.has(task.id)));
+    setTasksWithHistory(prevTasks => prevTasks.filter(task => !selectedTaskIds.has(task.id)));
     handleClearSelection();
-  }, [selectedTaskIds, handleClearSelection]);
+  }, [selectedTaskIds, handleClearSelection, setTasksWithHistory]);
 
   // Bulk append title for selected tasks
   const handleBulkAppendTitle = useCallback((suffix: string) => {
-    setTasks(prevTasks =>
+    setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         selectedTaskIds.has(task.id)
           ? { ...task, title: task.title + suffix }
           : task
       )
     );
-  }, [selectedTaskIds]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Bulk replace title for selected tasks
   const handleBulkReplaceTitle = useCallback((newTitle: string) => {
-    setTasks(prevTasks =>
+    setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         selectedTaskIds.has(task.id)
           ? { ...task, title: newTitle }
           : task
       )
     );
-  }, [selectedTaskIds]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Bulk add assignee to selected tasks
   const handleBulkAddAssignee = useCallback((assignee: string) => {
-    setTasks(prevTasks =>
+    setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         selectedTaskIds.has(task.id)
           ? { 
@@ -546,7 +588,7 @@ export default function Dashboard() {
           : task
       )
     );
-  }, [selectedTaskIds]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Get count of selected tasks for DragOverlay
   const selectedCount = selectedTaskIds.size;
