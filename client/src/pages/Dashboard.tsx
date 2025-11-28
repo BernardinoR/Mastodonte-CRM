@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
@@ -15,7 +15,6 @@ import {
   useSensors, 
   DragOverlay,
   closestCenter,
-  MeasuringStrategy,
 } from "@dnd-kit/core";
 import { 
   SortableContext, 
@@ -48,6 +47,13 @@ export default function Dashboard() {
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+  
+  // Projection ref for drag - stores the final calculated position
+  const projectionRef = useRef<{
+    movingIds: string[];
+    targetStatus: TaskStatus;
+    insertIndex: number;
+  } | null>(null);
 
   const [tasks, setTasks] = useState<Task[]>([
     {
@@ -148,6 +154,7 @@ export default function Dashboard() {
     return matchesSearch && matchesAssignee && matchesPriority;
   });
 
+  // Get base filtered tasks per column
   const todoTasks = useMemo(() => 
     filteredTasks.filter(t => t.status === "To Do").sort((a, b) => a.order - b.order),
     [filteredTasks]
@@ -161,7 +168,7 @@ export default function Dashboard() {
     [filteredTasks]
   );
   
-  // Task IDs for SortableContext
+  // Task IDs for SortableContext (no projection - cards render in their actual positions)
   const todoTaskIds = useMemo(() => todoTasks.map(t => t.id), [todoTasks]);
   const inProgressTaskIds = useMemo(() => inProgressTasks.map(t => t.id), [inProgressTasks]);
   const doneTaskIds = useMemo(() => doneTasks.map(t => t.id), [doneTasks]);
@@ -183,43 +190,112 @@ export default function Dashboard() {
       setSelectedTaskIds(new Set([draggedId]));
       setLastSelectedId(draggedId);
     }
+    
+    // Initialize projection ref
+    const activeTask = tasks.find(t => t.id === draggedId);
+    if (activeTask) {
+      projectionRef.current = {
+        movingIds: [draggedId],
+        targetStatus: activeTask.status,
+        insertIndex: activeTask.order,
+      };
+    }
   };
 
   const handleDragOver = (event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) {
       setOverColumnId(null);
+      projectionRef.current = null;
       return;
     }
     
     const overId = over.id as string;
+    const activeId = active.id as string;
     
     // Determine if over is a column or a task
     const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
     const overTask = !isOverColumn ? tasks.find(t => t.id === overId) : null;
     
     // Get target column for visual feedback
-    const activeTask = tasks.find(t => t.id === active.id);
+    const activeTask = tasks.find(t => t.id === activeId);
     const targetStatus: TaskStatus = isOverColumn 
       ? overId as TaskStatus 
       : overTask?.status || activeTask?.status || "To Do";
     
     setOverColumnId(targetStatus);
+    
+    // Calculate projection for final position
+    if (!activeTask) return;
+    
+    // Get moving IDs sorted by order
+    const movingIds = selectedTaskIds.has(activeId)
+      ? Array.from(selectedTaskIds)
+          .map(id => tasks.find(t => t.id === id))
+          .filter(Boolean)
+          .sort((a, b) => (a as Task).order - (b as Task).order)
+          .map(t => (t as Task).id)
+      : [activeId];
+    
+    // Get the base column tasks (without the moving cards)
+    let baseColumnTasks: Task[];
+    if (targetStatus === "To Do") {
+      baseColumnTasks = todoTasks.filter(t => !movingIds.includes(t.id));
+    } else if (targetStatus === "In Progress") {
+      baseColumnTasks = inProgressTasks.filter(t => !movingIds.includes(t.id));
+    } else {
+      baseColumnTasks = doneTasks.filter(t => !movingIds.includes(t.id));
+    }
+    
+    // Calculate insert index
+    let insertIndex = baseColumnTasks.length; // Default: end of list
+    
+    if (overTask && !movingIds.includes(overTask.id)) {
+      const overIndex = baseColumnTasks.findIndex(t => t.id === overTask.id);
+      if (overIndex !== -1) {
+        // Check if the dragged element is in the bottom half of the target card
+        const overRect = over.rect;
+        const activeRect = active.rect.current.translated;
+        
+        if (activeRect) {
+          const activeCenterY = activeRect.top + activeRect.height / 2;
+          const overMidpoint = overRect.top + overRect.height / 2;
+          
+          // If active center is below over midpoint, insert after; otherwise insert before
+          if (activeCenterY > overMidpoint) {
+            insertIndex = overIndex + 1;
+          } else {
+            insertIndex = overIndex;
+          }
+        } else {
+          insertIndex = overIndex;
+        }
+      }
+    }
+    
+    // Store projection in ref (no re-render)
+    projectionRef.current = { movingIds, targetStatus, insertIndex };
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     
+    // Clear drag states
     setActiveTaskId(null);
     setOverColumnId(null);
+    const projection = projectionRef.current;
+    projectionRef.current = null;
     
-    if (!over) return;
+    if (!over || !projection) {
+      handleClearSelection();
+      return;
+    }
     
     const activeId = active.id as string;
     const overId = over.id as string;
     
-    // Skip if dropped on itself
-    if (activeId === overId) {
+    // Skip if dropped on itself with no movement
+    if (activeId === overId && !projection) {
       handleClearSelection();
       return;
     }
@@ -227,26 +303,10 @@ export default function Dashboard() {
     const activeTask = tasks.find(t => t.id === activeId);
     if (!activeTask) return;
     
-    // Determine if over is a column or a task
-    const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
-    const overTask = !isOverColumn ? tasks.find(t => t.id === overId) : null;
-    
-    // Get target column
-    const targetStatus: TaskStatus = isOverColumn 
-      ? overId as TaskStatus 
-      : overTask?.status || activeTask.status;
+    const { movingIds, targetStatus, insertIndex } = projection;
     
     setTasks(prevTasks => {
       let newTasks = [...prevTasks];
-      
-      // Get IDs being moved (all selected tasks), sorted by their original order
-      const movingTasks = Array.from(selectedTaskIds)
-        .map(id => newTasks.find(t => t.id === id))
-        .filter(Boolean) as Task[];
-      
-      // Sort by order to preserve relative positions when moving multiple cards
-      movingTasks.sort((a, b) => a.order - b.order);
-      const movingIds = movingTasks.map(t => t.id);
       
       // Get all tasks that will remain in the source column after move
       const sourceStatus = activeTask.status;
@@ -267,19 +327,12 @@ export default function Dashboard() {
         .filter(t => t.status === targetStatus && !movingIds.includes(t.id))
         .sort((a, b) => a.order - b.order);
       
-      // Calculate insertion index
-      let insertIndex = targetColumnTasks.length; // Default: end of list
-      if (overTask && !movingIds.includes(overTask.id)) {
-        // Find position in target column
-        const overIndex = targetColumnTasks.findIndex(t => t.id === overTask.id);
-        if (overIndex !== -1) {
-          insertIndex = overIndex;
-        }
-      }
+      // Use the projection's insert index directly
+      const finalInsertIndex = Math.min(insertIndex, targetColumnTasks.length);
       
       // Build new order for target column
-      const beforeInsert = targetColumnTasks.slice(0, insertIndex);
-      const afterInsert = targetColumnTasks.slice(insertIndex);
+      const beforeInsert = targetColumnTasks.slice(0, finalInsertIndex);
+      const afterInsert = targetColumnTasks.slice(finalInsertIndex);
       
       // Update orders for tasks before insertion point
       beforeInsert.forEach((t, idx) => {
@@ -296,7 +349,7 @@ export default function Dashboard() {
           newTasks[taskIndex] = {
             ...newTasks[taskIndex],
             status: targetStatus,
-            order: insertIndex + idx,
+            order: finalInsertIndex + idx,
           };
         }
       });
@@ -305,7 +358,7 @@ export default function Dashboard() {
       afterInsert.forEach((t, idx) => {
         const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
         if (taskIndex !== -1) {
-          newTasks[taskIndex] = { ...newTasks[taskIndex], order: insertIndex + movingIds.length + idx };
+          newTasks[taskIndex] = { ...newTasks[taskIndex], order: finalInsertIndex + movingIds.length + idx };
         }
       });
       
