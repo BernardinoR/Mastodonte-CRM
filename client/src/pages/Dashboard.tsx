@@ -253,20 +253,28 @@ export default function Dashboard() {
     if (overTask && !movingIds.includes(overTask.id)) {
       const overIndex = baseColumnTasks.findIndex(t => t.id === overTask.id);
       if (overIndex !== -1) {
-        // Check if the dragged element is in the bottom half of the target card
+        // Use pointer position to determine if we're in the top or bottom half of the target card
         const overRect = over.rect;
-        const activeRect = active.rect.current.translated;
+        const overMidpoint = overRect.top + overRect.height / 2;
         
-        if (activeRect) {
-          const activeCenterY = activeRect.top + activeRect.height / 2;
-          const overMidpoint = overRect.top + overRect.height / 2;
-          
-          // If active center is below over midpoint, insert after; otherwise insert before
-          if (activeCenterY > overMidpoint) {
-            insertIndex = overIndex + 1;
-          } else {
-            insertIndex = overIndex;
-          }
+        // Get pointer Y position using activatorEvent (initial) + delta.y (movement)
+        const activatorEvent = event.activatorEvent as PointerEvent | MouseEvent | TouchEvent;
+        let pointerY: number;
+        
+        if ('clientY' in activatorEvent) {
+          pointerY = activatorEvent.clientY + event.delta.y;
+        } else if ('touches' in activatorEvent && activatorEvent.touches.length > 0) {
+          pointerY = activatorEvent.touches[0].clientY + event.delta.y;
+        } else {
+          // Fallback: insert before
+          insertIndex = overIndex;
+          projectionRef.current = { movingIds, targetStatus, insertIndex };
+          return;
+        }
+        
+        // If pointer is below target card midpoint, insert after; otherwise insert before
+        if (pointerY > overMidpoint) {
+          insertIndex = overIndex + 1;
         } else {
           insertIndex = overIndex;
         }
