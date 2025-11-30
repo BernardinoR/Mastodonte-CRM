@@ -596,15 +596,25 @@ function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }: Contex
           </span>
         )}
       </div>
-      <Calendar
-        mode="single"
-        selected={currentDateValue}
-        onSelect={handleCalendarSelect}
-        month={displayMonth}
-        onMonthChange={setDisplayMonth}
-        locale={ptBR}
-        className="rounded-b-lg"
-      />
+      <div 
+        onClickCapture={(e) => e.stopPropagation()}
+        onPointerDownCapture={(e) => {
+          // Prevent Radix from closing the context menu when interacting with calendar
+          e.stopPropagation();
+        }}
+        onKeyDownCapture={(e) => e.stopPropagation()}
+        onFocusCapture={(e) => e.stopPropagation()}
+      >
+        <Calendar
+          mode="single"
+          selected={currentDateValue}
+          onSelect={handleCalendarSelect}
+          month={displayMonth}
+          onMonthChange={setDisplayMonth}
+          locale={ptBR}
+          className="rounded-b-lg"
+        />
+      </div>
     </div>
   );
 }
