@@ -626,7 +626,14 @@ export default function Dashboard() {
   return (
     <div className="p-6" onClick={(e) => {
       // Clear selection when clicking on empty area
-      if ((e.target as HTMLElement).closest('[data-task-card]') === null) {
+      const target = e.target as HTMLElement;
+      // Don't clear selection if clicking inside a task card, context menu, or any Radix UI component
+      const isInsideTaskCard = target.closest('[data-task-card]') !== null;
+      const isInsideContextMenu = target.closest('[data-radix-menu-content]') !== null;
+      const isInsideRadixPortal = target.closest('[data-radix-popper-content-wrapper]') !== null;
+      const isInsideCalendar = target.closest('[data-calendar-container]') !== null;
+      
+      if (!isInsideTaskCard && !isInsideContextMenu && !isInsideRadixPortal && !isInsideCalendar) {
         handleClearSelection();
       }
     }}>
