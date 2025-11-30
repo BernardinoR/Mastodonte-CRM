@@ -9,7 +9,12 @@ export function useTaskHistory(initialTasks: Task[]) {
 
   const setTasksWithHistory = useCallback((updater: (prev: Task[]) => Task[]) => {
     setTasks(prevTasks => {
-      historyRef.current.push([...prevTasks]);
+      // Deep copy each task object to prevent mutation issues with undo
+      const deepCopy = prevTasks.map(task => ({
+        ...task,
+        assignees: [...task.assignees],
+      }));
+      historyRef.current.push(deepCopy);
       if (historyRef.current.length > MAX_HISTORY) {
         historyRef.current.shift();
       }

@@ -25,6 +25,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
+import { useTaskHistory } from "@/hooks/useTaskHistory";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -84,11 +85,8 @@ export default function Dashboard() {
     insertIndex: number;
   } | null>(null);
   
-  // History stack for undo functionality (Ctrl+Z)
-  const historyRef = useRef<Task[][]>([]);
-  const MAX_HISTORY = 20;
-
-  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
+  // Use the task history hook for undo functionality (Ctrl+Z)
+  const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -112,15 +110,12 @@ export default function Dashboard() {
     [filteredTasks]
   );
   
-  // Task IDs for SortableContext
-  // During cross-column drag, inject a placeholder ID into target column's IDs at the insertion point
-  // This makes the sortable strategy animate cards to make room for the incoming item
+  // Task IDs for SortableContext - inject placeholder during cross-column drag
   const todoTaskIds = useMemo(() => {
     const baseIds = todoTasks.map(t => t.id);
     if (!crossColumnPlaceholder || crossColumnPlaceholder.targetStatus !== "To Do") {
       return baseIds;
     }
-    // Insert placeholder ID at the insertion position
     const placeholderId = "__placeholder__To Do";
     const result = [...baseIds];
     result.splice(crossColumnPlaceholder.insertIndex, 0, placeholderId);
@@ -148,43 +143,6 @@ export default function Dashboard() {
     result.splice(crossColumnPlaceholder.insertIndex, 0, placeholderId);
     return result;
   }, [doneTasks, crossColumnPlaceholder]);
-
-  // Helper to update tasks with history tracking
-  const setTasksWithHistory = useCallback((updater: (prevTasks: Task[]) => Task[]) => {
-    setTasks(prevTasks => {
-      // Push current state to history INSIDE the updater to get the correct state
-      const historyCopy = [...historyRef.current];
-      historyCopy.push(prevTasks.map(t => ({ ...t })));
-      if (historyCopy.length > MAX_HISTORY) {
-        historyCopy.shift();
-      }
-      historyRef.current = historyCopy;
-      
-      // Return the updated tasks
-      return updater(prevTasks);
-    });
-  }, []);
-
-  // Undo: restore previous state
-  const handleUndo = useCallback(() => {
-    if (historyRef.current.length === 0) return;
-    const previousState = historyRef.current.pop();
-    if (previousState) {
-      setTasks(previousState);
-    }
-  }, []);
-
-  // Listen for Ctrl+Z
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
-        e.preventDefault();
-        handleUndo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
