@@ -315,13 +315,15 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
   const [searchQuery, setSearchQuery] = useState("");
   const [showSetSingle, setShowSetSingle] = useState(false);
   
+  const safeCurrentAssignees = currentAssignees || [];
+  
   const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
     consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    !currentAssignees.includes(consultant.name)
+    !safeCurrentAssignees.includes(consultant.name)
   );
   
   const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    currentAssignees.includes(consultant.name)
+    safeCurrentAssignees.includes(consultant.name)
   );
   
   const filteredForSetSingle = MOCK_RESPONSIBLES.filter(consultant =>
@@ -418,7 +420,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
       {selectedConsultants.length > 0 && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            {currentAssignees.length} selecionado{currentAssignees.length > 1 ? 's' : ''}
+            {safeCurrentAssignees.length} selecionado{safeCurrentAssignees.length > 1 ? 's' : ''}
           </div>
           {selectedConsultants.map((consultant) => (
             <div 
@@ -446,7 +448,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
       )}
       
       <div className="px-3 py-1.5 text-xs text-gray-500">
-        {currentAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
+        {safeCurrentAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
       
       <div className="max-h-52 overflow-y-auto scrollbar-thin">
@@ -1613,34 +1615,48 @@ export function TaskCard({
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
               <ContextMenuAssigneeEditor 
-                currentAssignees={editedTask.assignees}
+                currentAssignees={editedTask.assignees || []}
                 isBulk={selectedCount > 1}
                 onAdd={(assignee) => {
-                  if (selectedCount > 1 && onBulkAddAssignee) {
-                    onBulkAddAssignee(assignee);
-                  } else {
-                    if (!editedTask.assignees.includes(assignee)) {
-                      const newAssignees = [...editedTask.assignees, assignee];
-                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                      onUpdate(id, { assignees: newAssignees });
+                  try {
+                    if (selectedCount > 1 && onBulkAddAssignee) {
+                      onBulkAddAssignee(assignee);
+                    } else {
+                      const currentAssignees = editedTask.assignees || [];
+                      if (!currentAssignees.includes(assignee)) {
+                        const newAssignees = [...currentAssignees, assignee];
+                        setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                        onUpdate(id, { assignees: newAssignees });
+                      }
                     }
+                  } catch (error) {
+                    console.error('Error adding assignee:', error);
                   }
                 }}
                 onRemove={(assignee) => {
-                  if (selectedCount > 1 && onBulkRemoveAssignee) {
-                    onBulkRemoveAssignee(assignee);
-                  } else {
-                    const newAssignees = editedTask.assignees.filter(a => a !== assignee);
-                    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                    onUpdate(id, { assignees: newAssignees });
+                  try {
+                    if (selectedCount > 1 && onBulkRemoveAssignee) {
+                      onBulkRemoveAssignee(assignee);
+                    } else {
+                      const currentAssignees = editedTask.assignees || [];
+                      const newAssignees = currentAssignees.filter(a => a !== assignee);
+                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                      onUpdate(id, { assignees: newAssignees });
+                    }
+                  } catch (error) {
+                    console.error('Error removing assignee:', error);
                   }
                 }}
                 onSetSingle={(assignee) => {
-                  if (selectedCount > 1 && onBulkSetAssignees) {
-                    onBulkSetAssignees([assignee]);
-                  } else {
-                    setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
-                    onUpdate(id, { assignees: [assignee] });
+                  try {
+                    if (selectedCount > 1 && onBulkSetAssignees) {
+                      onBulkSetAssignees([assignee]);
+                    } else {
+                      setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
+                      onUpdate(id, { assignees: [assignee] });
+                    }
+                  } catch (error) {
+                    console.error('Error setting single assignee:', error);
                   }
                 }}
               />
