@@ -82,9 +82,8 @@ import {
   AssigneeSelector,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
-
-type TaskStatus = "To Do" | "In Progress" | "Done";
-type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
+import { STATUS_CONFIG, PRIORITY_CONFIG, getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
+import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TaskCardProps {
   id: string;
@@ -229,17 +228,14 @@ export function TaskCard({
 
   const shouldHideForDrag = isDragActive && isSelected;
 
-  const priorityColors: Record<string, string> = {
-    Urgente: "bg-red-900 text-white border-red-900",
-    Importante: "bg-orange-800 text-white border-orange-800",
-    Normal: "bg-yellow-700 text-white border-yellow-700",
-    Baixa: "bg-blue-800 text-white border-blue-800",
+  const getPriorityClasses = (p: TaskPriority) => {
+    const config = getPriorityConfig(p);
+    return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
   };
 
-  const statusColors: Record<string, string> = {
-    "To Do": "bg-[#64635E] text-white border-[#64635E]",
-    "In Progress": "bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)]",
-    Done: "bg-green-800 text-white border-green-800",
+  const getStatusClasses = (s: TaskStatus) => {
+    const config = getStatusConfig(s);
+    return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
   };
 
   const handleSave = () => {
@@ -846,7 +842,7 @@ export function TaskCard({
                             variant="outline" 
                             className={cn(
                               "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                              priorityColors[priority]
+                              getPriorityClasses(priority)
                             )}
                             data-testid={`badge-priority-${id}`}
                           >
@@ -876,7 +872,7 @@ export function TaskCard({
                                   handlePriorityChange("_none");
                                 }}
                               >
-                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", priorityColors[priority])}>
+                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", getPriorityClasses(priority))}>
                                   <span className={cn(
                                     "w-1.5 h-1.5 rounded-full",
                                     priority === "Urgente" && "bg-red-200",
@@ -1047,7 +1043,7 @@ export function TaskCard({
                         variant="outline" 
                         className={cn(
                           "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                          statusColors[status]
+                          getStatusClasses(status)
                         )}
                         data-testid={`badge-status-${id}`}
                       >
@@ -1070,7 +1066,7 @@ export function TaskCard({
                         </div>
                         <div className="px-3 py-1">
                           <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
-                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", statusColors[status])}>
+                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", getStatusClasses(status))}>
                               <span className={cn(
                                 "w-1.5 h-1.5 rounded-full",
                                 status === "To Do" && "bg-[#8E8B86]",
