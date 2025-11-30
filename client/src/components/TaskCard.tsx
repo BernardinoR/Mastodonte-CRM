@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -505,13 +505,20 @@ export function TaskCard({
   onBulkRemoveAssignee,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
-  // Ensure assignees is always an array (backward compatibility)
-  const safeAssignees = Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
+  
+  // Memoize safeAssignees to prevent infinite re-renders
+  const safeAssignees = useMemo(() => {
+    if (!assignees) return [];
+    return Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
+  }, [assignees]);
+  
+  // Serialize assignees for useEffect dependency (stable string comparison)
+  const assigneesKey = useMemo(() => safeAssignees.join(','), [safeAssignees]);
   
   const [isEditing, setIsEditing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [editedTask, setEditedTask] = useState({
+  const [editedTask, setEditedTask] = useState(() => ({
     title,
     clientName: clientName || "",
     priority: priority || "",
@@ -519,7 +526,7 @@ export function TaskCard({
     assignees: [...safeAssignees],
     dueDate: format(dueDate, "yyyy-MM-dd"),
     description: description || "",
-  });
+  }));
   const [newNote, setNewNote] = useState("");
   const [newAssigneeName, setNewAssigneeName] = useState("");
   const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | "assignee" | null>(null);
@@ -535,17 +542,36 @@ export function TaskCard({
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
 
+  // Sync editedTask with props using stable dependency
   useEffect(() => {
-    setEditedTask({
-      title,
-      clientName: clientName || "",
-      priority: priority || "",
-      status,
-      assignees: [...safeAssignees],
-      dueDate: format(dueDate, "yyyy-MM-dd"),
-      description: description || "",
+    setEditedTask(prev => {
+      const newAssignees = safeAssignees;
+      const newDueDate = format(dueDate, "yyyy-MM-dd");
+      
+      // Only update if values actually changed
+      if (
+        prev.title === title &&
+        prev.clientName === (clientName || "") &&
+        prev.priority === (priority || "") &&
+        prev.status === status &&
+        prev.assignees.join(',') === newAssignees.join(',') &&
+        prev.dueDate === newDueDate &&
+        prev.description === (description || "")
+      ) {
+        return prev;
+      }
+      
+      return {
+        title,
+        clientName: clientName || "",
+        priority: priority || "",
+        status,
+        assignees: [...newAssignees],
+        dueDate: newDueDate,
+        description: description || "",
+      };
     });
-  }, [title, clientName, priority, status, safeAssignees, dueDate, description]);
+  }, [title, clientName, priority, status, assigneesKey, dueDate, description, safeAssignees]);
 
   const { 
     attributes, 
