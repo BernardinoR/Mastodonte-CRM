@@ -2062,12 +2062,21 @@ export function TaskCard({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
+          {/* Header for multi-selection */}
+          {selectedCount > 1 && (
+            <>
+              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
+                Selecionando {selectedCount} tarefas
+              </div>
+              <ContextMenuSeparator className="bg-[#2a2a2a]" />
+            </>
+          )}
+          
           {/* 1. Título */}
           <ContextMenuSub>
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Type className="w-4 h-4" />
               <span>Título</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
               <ContextMenuItem 
@@ -2092,7 +2101,6 @@ export function TaskCard({
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <CalendarIcon className="w-4 h-4" />
               <span>Data</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent 
               className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
@@ -2125,7 +2133,6 @@ export function TaskCard({
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Briefcase className="w-4 h-4" />
               <span>Cliente</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
               <ContextMenuClientEditor 
@@ -2143,7 +2150,6 @@ export function TaskCard({
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
               <span>Prioridade</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
               <ContextMenuItem onClick={() => handleContextPriorityChange("Urgente")} className="flex items-center gap-2">
@@ -2178,7 +2184,6 @@ export function TaskCard({
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Circle className="w-4 h-4" />
               <span>Status</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
               <ContextMenuItem onClick={() => handleContextStatusChange("To Do")} className="flex items-center gap-2">
@@ -2207,7 +2212,6 @@ export function TaskCard({
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Users className="w-4 h-4" />
               <span>Responsável</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
               <ContextMenuAssigneeEditor 
@@ -2256,7 +2260,7 @@ export function TaskCard({
             className="flex items-center gap-2 text-destructive focus:text-destructive"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Excluir{selectedCount > 1 ? ` (${selectedCount})` : ''}</span>
+            <span>Excluir</span>
           </ContextMenuItem>
         </ContextMenuContent>
       </ContextMenu>
