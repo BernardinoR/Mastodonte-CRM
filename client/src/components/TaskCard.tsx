@@ -1644,46 +1644,55 @@ export function TaskCard({
                 currentAssignees={editedTask.assignees || []}
                 isBulk={selectedCount > 1}
                 onAdd={(assignee) => {
-                  try {
-                    if (selectedCount > 1 && onBulkAddAssignee) {
-                      onBulkAddAssignee(assignee);
-                    } else {
-                      const currentAssignees = editedTask.assignees || [];
-                      if (!currentAssignees.includes(assignee)) {
-                        const newAssignees = [...currentAssignees, assignee];
+                  // Use setTimeout to allow context menu to close before state update
+                  setTimeout(() => {
+                    try {
+                      if (selectedCount > 1 && onBulkAddAssignee) {
+                        onBulkAddAssignee(assignee);
+                      } else {
+                        const currentAssignees = editedTask.assignees || [];
+                        if (!currentAssignees.includes(assignee)) {
+                          const newAssignees = [...currentAssignees, assignee];
+                          setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                          onUpdate(id, { assignees: newAssignees });
+                        }
+                      }
+                    } catch (error) {
+                      console.error('Error adding assignee:', error);
+                    }
+                  }, 0);
+                }}
+                onRemove={(assignee) => {
+                  // Use setTimeout to allow context menu to close before state update
+                  setTimeout(() => {
+                    try {
+                      if (selectedCount > 1 && onBulkRemoveAssignee) {
+                        onBulkRemoveAssignee(assignee);
+                      } else {
+                        const currentAssignees = editedTask.assignees || [];
+                        const newAssignees = currentAssignees.filter(a => a !== assignee);
                         setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
                         onUpdate(id, { assignees: newAssignees });
                       }
+                    } catch (error) {
+                      console.error('Error removing assignee:', error);
                     }
-                  } catch (error) {
-                    console.error('Error adding assignee:', error);
-                  }
-                }}
-                onRemove={(assignee) => {
-                  try {
-                    if (selectedCount > 1 && onBulkRemoveAssignee) {
-                      onBulkRemoveAssignee(assignee);
-                    } else {
-                      const currentAssignees = editedTask.assignees || [];
-                      const newAssignees = currentAssignees.filter(a => a !== assignee);
-                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                      onUpdate(id, { assignees: newAssignees });
-                    }
-                  } catch (error) {
-                    console.error('Error removing assignee:', error);
-                  }
+                  }, 0);
                 }}
                 onSetSingle={(assignee) => {
-                  try {
-                    if (selectedCount > 1 && onBulkSetAssignees) {
-                      onBulkSetAssignees([assignee]);
-                    } else {
-                      setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
-                      onUpdate(id, { assignees: [assignee] });
+                  // Use setTimeout to allow context menu to close before state update
+                  setTimeout(() => {
+                    try {
+                      if (selectedCount > 1 && onBulkSetAssignees) {
+                        onBulkSetAssignees([assignee]);
+                      } else {
+                        setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
+                        onUpdate(id, { assignees: [assignee] });
+                      }
+                    } catch (error) {
+                      console.error('Error setting single assignee:', error);
                     }
-                  } catch (error) {
-                    console.error('Error setting single assignee:', error);
-                  }
+                  }, 0);
                 }}
               />
             </ContextMenuSubContent>
