@@ -48,6 +48,13 @@ export default function Dashboard() {
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   
+  // Cross-column drop placeholder state
+  const [crossColumnPlaceholder, setCrossColumnPlaceholder] = useState<{
+    targetStatus: TaskStatus;
+    insertIndex: number;
+    count: number;
+  } | null>(null);
+  
   // Ref to keep the current selectedTaskIds for use in callbacks
   const selectedTaskIdsRef = useRef<Set<string>>(selectedTaskIds);
   useEffect(() => {
@@ -253,6 +260,7 @@ export default function Dashboard() {
     const { active, over } = event;
     if (!over) {
       setOverColumnId(null);
+      setCrossColumnPlaceholder(null);
       projectionRef.current = null;
       return;
     }
@@ -294,12 +302,38 @@ export default function Dashboard() {
     
     let insertIndex: number;
     
-    if (isSameColumn && typeof activeSortableIndex === 'number' && typeof overSortableIndex === 'number') {
+    if (isSameColumn) {
       // Same column: use the over sortable index directly
       // DnD Kit's SortableContext already shows the gap at this position
-      insertIndex = overSortableIndex;
-    } else if (overTask) {
-      // Cross-column or fallback: find over task's position in target column
+      if (typeof activeSortableIndex === 'number' && typeof overSortableIndex === 'number') {
+        insertIndex = overSortableIndex;
+      } else if (overTask) {
+        let targetColumnTasks: Task[];
+        if (targetStatus === "To Do") {
+          targetColumnTasks = todoTasks;
+        } else if (targetStatus === "In Progress") {
+          targetColumnTasks = inProgressTasks;
+        } else {
+          targetColumnTasks = doneTasks;
+        }
+        insertIndex = targetColumnTasks.findIndex(t => t.id === overTask.id);
+        if (insertIndex === -1) insertIndex = targetColumnTasks.length;
+      } else {
+        // Dropping on column container in same column
+        let targetColumnTasks: Task[];
+        if (targetStatus === "To Do") {
+          targetColumnTasks = todoTasks;
+        } else if (targetStatus === "In Progress") {
+          targetColumnTasks = inProgressTasks;
+        } else {
+          targetColumnTasks = doneTasks;
+        }
+        insertIndex = targetColumnTasks.length;
+      }
+      // Clear cross-column placeholder for same column drags
+      setCrossColumnPlaceholder(null);
+    } else {
+      // Cross-column move: calculate insert position
       let targetColumnTasks: Task[];
       if (targetStatus === "To Do") {
         targetColumnTasks = todoTasks;
@@ -309,28 +343,50 @@ export default function Dashboard() {
         targetColumnTasks = doneTasks;
       }
       
-      const overIndexInColumn = targetColumnTasks.findIndex(t => t.id === overTask.id);
-      if (overIndexInColumn !== -1) {
-        // Use sortable index if available, otherwise calculate with geometry
-        if (typeof overSortableIndex === 'number') {
-          insertIndex = overSortableIndex;
+      if (overTask) {
+        // Hovering over a task - calculate position based on cursor relative to task
+        const overIndexInColumn = targetColumnTasks.findIndex(t => t.id === overTask.id);
+        if (overIndexInColumn !== -1) {
+          const baseIndex = typeof overSortableIndex === 'number' ? overSortableIndex : overIndexInColumn;
+          
+          // Check if cursor is in the bottom half of the over task
+          const overRect = over.rect;
+          const cursorY = event.activatorEvent instanceof MouseEvent 
+            ? (event.activatorEvent as MouseEvent).clientY + (event.delta?.y || 0)
+            : null;
+          
+          if (overRect && cursorY !== null) {
+            const midpoint = overRect.top + overRect.height / 2;
+            insertIndex = cursorY > midpoint ? baseIndex + 1 : baseIndex;
+          } else {
+            insertIndex = baseIndex;
+          }
         } else {
-          insertIndex = overIndexInColumn;
+          insertIndex = targetColumnTasks.length;
         }
       } else {
-        insertIndex = targetColumnTasks.length;
+        // Hovering over column container (empty space or empty column)
+        // Use the previous placeholder position if it exists and matches this column
+        // Otherwise default to end of list
+        if (crossColumnPlaceholder?.targetStatus === targetStatus) {
+          // Keep the previous insert index - provides stability
+          insertIndex = crossColumnPlaceholder.insertIndex;
+        } else {
+          // New column - insert at end
+          insertIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
+        }
       }
-    } else {
-      // Dropping on column header - append to end
-      let targetColumnTasks: Task[];
-      if (targetStatus === "To Do") {
-        targetColumnTasks = todoTasks;
-      } else if (targetStatus === "In Progress") {
-        targetColumnTasks = inProgressTasks;
-      } else {
-        targetColumnTasks = doneTasks;
-      }
-      insertIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
+      
+      // Clamp insertIndex to valid range
+      const maxIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
+      insertIndex = Math.min(insertIndex, maxIndex);
+      
+      // Set cross-column placeholder for visual feedback
+      setCrossColumnPlaceholder({
+        targetStatus,
+        insertIndex,
+        count: movingIds.length,
+      });
     }
     
     // Store projection in ref (no re-render)
@@ -343,6 +399,7 @@ export default function Dashboard() {
     // Clear drag states
     setActiveTaskId(null);
     setOverColumnId(null);
+    setCrossColumnPlaceholder(null);
     const projection = projectionRef.current;
     projectionRef.current = null;
     
@@ -708,6 +765,85 @@ export default function Dashboard() {
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
 
+  // Placeholder component for cross-column drops
+  const DropPlaceholder = ({ count }: { count: number }) => (
+    <div 
+      className="h-16 rounded-lg border-2 border-dashed border-blue-500/50 bg-blue-500/10 flex items-center justify-center transition-all duration-200"
+      style={{ minHeight: count > 1 ? `${count * 4 + 4}rem` : '4rem' }}
+    >
+      <span className="text-blue-400 text-sm font-medium">
+        {count > 1 ? `${count} tarefas` : '1 tarefa'}
+      </span>
+    </div>
+  );
+
+  // Helper to render tasks with placeholder at correct position for cross-column drag
+  const renderTasksWithPlaceholder = (
+    columnTasks: Task[],
+    columnStatus: TaskStatus
+  ) => {
+    const showPlaceholder = crossColumnPlaceholder?.targetStatus === columnStatus;
+    
+    if (!showPlaceholder) {
+      return columnTasks.map(task => (
+        <TaskCard
+          key={task.id}
+          {...task}
+          isSelected={selectedTaskIds.has(task.id)}
+          selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+          isDragActive={activeTaskId !== null}
+          onSelect={handleSelectTask}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
+          onBulkUpdate={handleBulkUpdate}
+          onBulkDelete={handleBulkDelete}
+          onBulkAppendTitle={handleBulkAppendTitle}
+          onBulkReplaceTitle={handleBulkReplaceTitle}
+          onBulkAddAssignee={handleBulkAddAssignee}
+          onBulkSetAssignees={handleBulkSetAssignees}
+          onBulkRemoveAssignee={handleBulkRemoveAssignee}
+        />
+      ));
+    }
+
+    const { insertIndex, count } = crossColumnPlaceholder;
+    const elements: JSX.Element[] = [];
+    
+    columnTasks.forEach((task, index) => {
+      // Insert placeholder before this task if at the right index
+      if (index === insertIndex) {
+        elements.push(<DropPlaceholder key="placeholder" count={count} />);
+      }
+      
+      elements.push(
+        <TaskCard
+          key={task.id}
+          {...task}
+          isSelected={selectedTaskIds.has(task.id)}
+          selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+          isDragActive={activeTaskId !== null}
+          onSelect={handleSelectTask}
+          onUpdate={handleUpdateTask}
+          onDelete={handleDeleteTask}
+          onBulkUpdate={handleBulkUpdate}
+          onBulkDelete={handleBulkDelete}
+          onBulkAppendTitle={handleBulkAppendTitle}
+          onBulkReplaceTitle={handleBulkReplaceTitle}
+          onBulkAddAssignee={handleBulkAddAssignee}
+          onBulkSetAssignees={handleBulkSetAssignees}
+          onBulkRemoveAssignee={handleBulkRemoveAssignee}
+        />
+      );
+    });
+    
+    // Insert at end if insertIndex is at or beyond the end
+    if (insertIndex >= columnTasks.length) {
+      elements.push(<DropPlaceholder key="placeholder" count={count} />);
+    }
+    
+    return elements;
+  };
+
   return (
     <div className="p-6" onClick={(e) => {
       // Clear selection when clicking on empty area
@@ -766,25 +902,7 @@ export default function Dashboard() {
             }
           >
             <SortableContext items={todoTaskIds} strategy={verticalListSortingStrategy}>
-              {todoTasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  {...task}
-                  isSelected={selectedTaskIds.has(task.id)}
-                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                  isDragActive={activeTaskId !== null}
-                  onSelect={handleSelectTask}
-                  onUpdate={handleUpdateTask}
-                  onDelete={handleDeleteTask}
-                  onBulkUpdate={handleBulkUpdate}
-                  onBulkDelete={handleBulkDelete}
-                  onBulkAppendTitle={handleBulkAppendTitle}
-                  onBulkReplaceTitle={handleBulkReplaceTitle}
-                  onBulkAddAssignee={handleBulkAddAssignee}
-                  onBulkSetAssignees={handleBulkSetAssignees}
-                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
-                />
-              ))}
+              {renderTasksWithPlaceholder(todoTasks, "To Do")}
             </SortableContext>
           </KanbanColumn>
 
@@ -803,25 +921,7 @@ export default function Dashboard() {
             }
           >
             <SortableContext items={inProgressTaskIds} strategy={verticalListSortingStrategy}>
-              {inProgressTasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  {...task}
-                  isSelected={selectedTaskIds.has(task.id)}
-                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                  isDragActive={activeTaskId !== null}
-                  onSelect={handleSelectTask}
-                  onUpdate={handleUpdateTask}
-                  onDelete={handleDeleteTask}
-                  onBulkUpdate={handleBulkUpdate}
-                  onBulkDelete={handleBulkDelete}
-                  onBulkAppendTitle={handleBulkAppendTitle}
-                  onBulkReplaceTitle={handleBulkReplaceTitle}
-                  onBulkAddAssignee={handleBulkAddAssignee}
-                  onBulkSetAssignees={handleBulkSetAssignees}
-                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
-                />
-              ))}
+              {renderTasksWithPlaceholder(inProgressTasks, "In Progress")}
             </SortableContext>
           </KanbanColumn>
 
@@ -834,25 +934,7 @@ export default function Dashboard() {
             icon={CheckCircle2}
           >
             <SortableContext items={doneTaskIds} strategy={verticalListSortingStrategy}>
-              {doneTasks.map(task => (
-                <TaskCard
-                  key={task.id}
-                  {...task}
-                  isSelected={selectedTaskIds.has(task.id)}
-                  selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-                  isDragActive={activeTaskId !== null}
-                  onSelect={handleSelectTask}
-                  onUpdate={handleUpdateTask}
-                  onDelete={handleDeleteTask}
-                  onBulkUpdate={handleBulkUpdate}
-                  onBulkDelete={handleBulkDelete}
-                  onBulkAppendTitle={handleBulkAppendTitle}
-                  onBulkReplaceTitle={handleBulkReplaceTitle}
-                  onBulkAddAssignee={handleBulkAddAssignee}
-                  onBulkSetAssignees={handleBulkSetAssignees}
-                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
-                />
-              ))}
+              {renderTasksWithPlaceholder(doneTasks, "Done")}
             </SortableContext>
           </KanbanColumn>
         </div>
