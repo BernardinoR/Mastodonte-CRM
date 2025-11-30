@@ -26,6 +26,7 @@ import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
+import { useTaskFilters } from "@/hooks/useTaskFilters";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -56,9 +57,6 @@ function SortablePlaceholder({ id, count }: { id: string; count: number }) {
 }
 
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
-  const [priorityFilter, setPriorityFilter] = useState("all");
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
@@ -87,28 +85,19 @@ export default function Dashboard() {
   
   // Use the task history hook for undo functionality (Ctrl+Z)
   const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
-
-  const filteredTasks = tasks.filter(task => {
-    const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          (task.clientName && task.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesAssignee = assigneeFilter === "all" || task.assignees.some(a => a.includes(assigneeFilter));
-    const matchesPriority = priorityFilter === "all" || task.priority === priorityFilter;
-    return matchesSearch && matchesAssignee && matchesPriority;
-  });
-
-  // Get base filtered tasks per column
-  const todoTasks = useMemo(() => 
-    filteredTasks.filter(t => t.status === "To Do").sort((a, b) => a.order - b.order),
-    [filteredTasks]
-  );
-  const inProgressTasks = useMemo(() => 
-    filteredTasks.filter(t => t.status === "In Progress").sort((a, b) => a.order - b.order),
-    [filteredTasks]
-  );
-  const doneTasks = useMemo(() => 
-    filteredTasks.filter(t => t.status === "Done").sort((a, b) => a.order - b.order),
-    [filteredTasks]
-  );
+  
+  // Use the task filters hook for search, assignee, and priority filtering
+  const {
+    searchQuery,
+    setSearchQuery,
+    assigneeFilter,
+    setAssigneeFilter,
+    priorityFilter,
+    setPriorityFilter,
+    todoTasks,
+    inProgressTasks,
+    doneTasks,
+  } = useTaskFilters(tasks);
   
   // Task IDs for SortableContext - inject placeholder during cross-column drag
   const todoTaskIds = useMemo(() => {
