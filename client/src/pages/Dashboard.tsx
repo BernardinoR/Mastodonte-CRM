@@ -284,47 +284,53 @@ export default function Dashboard() {
           .map(t => (t as Task).id)
       : [activeId];
     
-    // Get the base column tasks (without the moving cards)
-    let baseColumnTasks: Task[];
-    if (targetStatus === "To Do") {
-      baseColumnTasks = todoTasks.filter(t => !movingIds.includes(t.id));
-    } else if (targetStatus === "In Progress") {
-      baseColumnTasks = inProgressTasks.filter(t => !movingIds.includes(t.id));
-    } else {
-      baseColumnTasks = doneTasks.filter(t => !movingIds.includes(t.id));
-    }
+    // Use DnD Kit's sortable indices directly - these match the visual gap
+    const activeSortableIndex = active.data?.current?.sortable?.index;
+    const overSortableIndex = over.data?.current?.sortable?.index;
     
-    // Calculate insert index
-    let insertIndex = baseColumnTasks.length; // Default: end of list
+    // For same column moves, use the sortable index directly
+    // For cross-column moves, calculate based on target column
+    const isSameColumn = activeTask.status === targetStatus;
     
-    if (overTask && !movingIds.includes(overTask.id)) {
-      const overIndex = baseColumnTasks.findIndex(t => t.id === overTask.id);
-      if (overIndex !== -1) {
-        // Use the dragged item's translated rect to determine position relative to target
-        const activeRect = active.rect.current.translated;
-        const overRect = over.rect;
-        
-        if (activeRect) {
-          // Calculate the center of the dragged item
-          const activeCenterY = activeRect.top + activeRect.height / 2;
-          const overMidpoint = overRect.top + overRect.height / 2;
-          
-          // If dragged item center is below target card midpoint, insert after; otherwise insert before
-          if (activeCenterY > overMidpoint) {
-            insertIndex = overIndex + 1;
-          } else {
-            insertIndex = overIndex;
-          }
-        } else {
-          // Fallback: use sortable index from over data if available
-          const sortableIndex = over.data?.current?.sortable?.index;
-          if (typeof sortableIndex === 'number') {
-            insertIndex = sortableIndex;
-          } else {
-            insertIndex = overIndex;
-          }
-        }
+    let insertIndex: number;
+    
+    if (isSameColumn && typeof activeSortableIndex === 'number' && typeof overSortableIndex === 'number') {
+      // Same column: use the over sortable index directly
+      // DnD Kit's SortableContext already shows the gap at this position
+      insertIndex = overSortableIndex;
+    } else if (overTask) {
+      // Cross-column or fallback: find over task's position in target column
+      let targetColumnTasks: Task[];
+      if (targetStatus === "To Do") {
+        targetColumnTasks = todoTasks;
+      } else if (targetStatus === "In Progress") {
+        targetColumnTasks = inProgressTasks;
+      } else {
+        targetColumnTasks = doneTasks;
       }
+      
+      const overIndexInColumn = targetColumnTasks.findIndex(t => t.id === overTask.id);
+      if (overIndexInColumn !== -1) {
+        // Use sortable index if available, otherwise calculate with geometry
+        if (typeof overSortableIndex === 'number') {
+          insertIndex = overSortableIndex;
+        } else {
+          insertIndex = overIndexInColumn;
+        }
+      } else {
+        insertIndex = targetColumnTasks.length;
+      }
+    } else {
+      // Dropping on column header - append to end
+      let targetColumnTasks: Task[];
+      if (targetStatus === "To Do") {
+        targetColumnTasks = todoTasks;
+      } else if (targetStatus === "In Progress") {
+        targetColumnTasks = inProgressTasks;
+      } else {
+        targetColumnTasks = doneTasks;
+      }
+      insertIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
     }
     
     // Store projection in ref (no re-render)
@@ -357,7 +363,10 @@ export default function Dashboard() {
     const activeTask = tasks.find(t => t.id === activeId);
     if (!activeTask) return;
     
-    const { movingIds, targetStatus, insertIndex } = projection;
+    const { movingIds, targetStatus } = projection;
+    
+    // Get sortable indices from DnD Kit
+    const overSortableIndex = over.data?.current?.sortable?.index;
     
     // Use setTasksWithHistory to save state before modification
     setTasksWithHistory(prevTasks => {
@@ -366,26 +375,69 @@ export default function Dashboard() {
       const isSameColumn = sourceStatus === targetStatus;
       
       if (isSameColumn) {
-        // SAME COLUMN: Simple reordering
+        // SAME COLUMN: Use sortable index for insertion point, move all selected together
+        
+        // Short-circuit: if dropped on itself or another selected card, no reordering needed
+        if (movingIds.includes(overId)) {
+          return newTasks; // No change
+        }
+        
         // Get all tasks in this column sorted by current order
         const columnTasks = newTasks
           .filter(t => t.status === sourceStatus)
           .sort((a, b) => a.order - b.order);
         
-        // Get tasks not being moved
+        // Get tasks not being moved (stationary)
         const stationaryTasks = columnTasks.filter(t => !movingIds.includes(t.id));
         
         // Get tasks being moved (maintain their relative order)
         const movingTasks = columnTasks.filter(t => movingIds.includes(t.id));
         
-        // Calculate insert index (clamped to valid range)
-        const finalInsertIndex = Math.min(Math.max(0, insertIndex), stationaryTasks.length);
+        // Check if dropped on column container (not a task)
+        const isDroppedOnColumn = ["To Do", "In Progress", "Done"].includes(overId);
+        
+        let insertIndex: number;
+        
+        if (isDroppedOnColumn) {
+          // Dropped on column container - use projection's insertIndex (usually end of list)
+          insertIndex = Math.min(projection.insertIndex, stationaryTasks.length);
+        } else {
+          // Dropped on a stationary task - calculate based on direction
+          
+          // Find the first moving task's original index (the "block start")
+          const firstMovingIndex = columnTasks.findIndex(t => movingIds.includes(t.id));
+          
+          // Find the over task in the original column order
+          const overTaskOriginalIndex = columnTasks.findIndex(t => t.id === overId);
+          
+          // Determine if we're moving down or up
+          const movingDown = firstMovingIndex < overTaskOriginalIndex;
+          
+          // Find over task's position in stationary array
+          const overIndexInStationary = stationaryTasks.findIndex(t => t.id === overId);
+          
+          if (overIndexInStationary !== -1) {
+            if (movingDown) {
+              // Moving down: insert AFTER the over item
+              insertIndex = overIndexInStationary + 1;
+            } else {
+              // Moving up: insert BEFORE the over item
+              insertIndex = overIndexInStationary;
+            }
+          } else {
+            // Over task not found in stationary - shouldn't happen, keep original
+            return newTasks;
+          }
+        }
+        
+        // Clamp to valid range
+        insertIndex = Math.min(Math.max(0, insertIndex), stationaryTasks.length);
         
         // Build new order: insert moving tasks at the specified position
         const newOrder = [
-          ...stationaryTasks.slice(0, finalInsertIndex),
+          ...stationaryTasks.slice(0, insertIndex),
           ...movingTasks,
-          ...stationaryTasks.slice(finalInsertIndex),
+          ...stationaryTasks.slice(insertIndex),
         ];
         
         // Apply new orders to tasks
@@ -397,6 +449,12 @@ export default function Dashboard() {
         });
       } else {
         // DIFFERENT COLUMNS: Move between columns
+        // Use sortable index if available for target position
+        let insertIndex = projection.insertIndex;
+        if (typeof overSortableIndex === 'number') {
+          insertIndex = overSortableIndex;
+        }
+        
         // Renumber source column (excluding moving tasks)
         const sourceColumnTasks = newTasks
           .filter(t => t.status === sourceStatus && !movingIds.includes(t.id))
