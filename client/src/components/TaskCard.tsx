@@ -68,7 +68,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, startOfDay, isBefore } from "date-fns";
+import { format, startOfDay, isBefore, parse, isValid, setYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useSortable } from "@dnd-kit/sortable";
@@ -352,6 +352,259 @@ function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: Co
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ContextMenuDateEditor Component - Date editor for context menu with input and calendar
+interface ContextMenuDateEditorProps {
+  currentDate: string;
+  onSelect: (date: string) => void;
+  isBulk?: boolean;
+}
+
+function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }: ContextMenuDateEditorProps) {
+  const [inputValue, setInputValue] = useState(() => {
+    const dateValue = parseLocalDate(currentDate);
+    return dateValue && isValid(dateValue) ? format(dateValue, "dd/MM/yyyy", { locale: ptBR }) : "";
+  });
+  const [isInvalid, setIsInvalid] = useState(false);
+  const [displayMonth, setDisplayMonth] = useState<Date>(() => {
+    const dateValue = parseLocalDate(currentDate);
+    return dateValue && isValid(dateValue) ? dateValue : new Date();
+  });
+  
+  // Track if we're currently processing a local update to avoid sync conflicts
+  const isLocalUpdate = useRef(false);
+  
+  // Track if component is mounted to avoid calling callbacks after unmount
+  const isMountedRef = useRef(true);
+  
+  // Queue to batch external updates
+  const pendingUpdatesRef = useRef<string[]>([]);
+  const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Sync local state when props change from external sources
+  useEffect(() => {
+    if (!isLocalUpdate.current) {
+      const dateValue = parseLocalDate(currentDate);
+      if (dateValue && isValid(dateValue)) {
+        const newInputValue = format(dateValue, "dd/MM/yyyy", { locale: ptBR });
+        if (inputValue !== newInputValue) {
+          setInputValue(newInputValue);
+          setDisplayMonth(dateValue);
+          // Clear any pending updates when props change externally
+          pendingUpdatesRef.current = [];
+        }
+      }
+    }
+    isLocalUpdate.current = false;
+  }, [currentDate]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Flush pending updates with a safe delay
+  const flushPendingUpdates = () => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current);
+    }
+    flushTimeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      
+      const updates = [...pendingUpdatesRef.current];
+      pendingUpdatesRef.current = [];
+      
+      // Process all pending updates - only the last one matters for date
+      if (updates.length > 0) {
+        const lastUpdate = updates[updates.length - 1];
+        try {
+          onSelect(lastUpdate);
+        } catch (e) {
+          // Silently ignore errors to prevent Radix UI conflicts
+        }
+      }
+    }, 100);
+  };
+  
+  // Parse date from input string with flexible formats
+  const parseDate = (input: string): Date | null => {
+    let cleaned = input.replace(/[^\d\/\-\.]/g, "");
+    cleaned = cleaned.replace(/[\/\-\.]+$/, "");
+    
+    const formats = [
+      "dd/MM/yyyy",
+      "dd/MM/yy",
+      "dd/MM",
+      "dd-MM-yyyy", 
+      "dd-MM-yy",
+      "dd-MM",
+      "dd.MM.yyyy",
+      "dd.MM.yy",
+      "dd.MM",
+      "d/M/yyyy",
+      "d/M/yy",
+      "d/M",
+    ];
+
+    for (const formatString of formats) {
+      try {
+        let parsed = parse(cleaned, formatString, new Date(), { locale: ptBR });
+        
+        if (formatString.indexOf("yyyy") === -1 && formatString.indexOf("yy") === -1) {
+          parsed = setYear(parsed, new Date().getFullYear());
+        }
+        
+        if (formatString.includes("yy") && !formatString.includes("yyyy")) {
+          const year = parsed.getFullYear();
+          if (year < 100) {
+            parsed = setYear(parsed, 2000 + year);
+          }
+        }
+        
+        if (isValid(parsed)) {
+          return parsed;
+        }
+      } catch {
+        // Continue trying other formats
+      }
+    }
+
+    return null;
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = e.target.value;
+    const prevLength = inputValue.length;
+    
+    const hasDot = newValue.includes(".");
+    const hasDash = newValue.includes("-");
+    const hasSlash = newValue.includes("/");
+    
+    // Auto-format with slashes
+    if (newValue.length > prevLength && !hasDot && !hasDash) {
+      if (newValue.length === 2 && !hasSlash) {
+        const lastChar = newValue[newValue.length - 1];
+        if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
+          newValue = newValue + "/";
+        }
+      }
+      else if (newValue.length === 5 && newValue.split("/").length === 2) {
+        const lastChar = newValue[newValue.length - 1];
+        if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
+          newValue = newValue + "/";
+        }
+      }
+    }
+    
+    setInputValue(newValue);
+    
+    const parsed = parseDate(newValue);
+    if (parsed) {
+      setIsInvalid(false);
+      setDisplayMonth(parsed);
+    } else if (newValue.replace(/[^\d]/g, "").length >= 6) {
+      setIsInvalid(true);
+    } else {
+      setIsInvalid(false);
+    }
+  };
+
+  const handleInputBlur = () => {
+    const parsed = parseDate(inputValue);
+    if (parsed) {
+      const formatted = format(parsed, "dd/MM/yyyy", { locale: ptBR });
+      setInputValue(formatted);
+      setIsInvalid(false);
+      
+      // Queue the external callback
+      const dateString = format(parsed, "yyyy-MM-dd");
+      pendingUpdatesRef.current.push(dateString);
+      flushPendingUpdates();
+    } else if (inputValue.trim()) {
+      setIsInvalid(true);
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      const localDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const formatted = format(localDate, "dd/MM/yyyy", { locale: ptBR });
+      setInputValue(formatted);
+      setIsInvalid(false);
+      
+      isLocalUpdate.current = true;
+      
+      // Queue the external callback
+      const dateString = format(localDate, "yyyy-MM-dd");
+      pendingUpdatesRef.current.push(dateString);
+      flushPendingUpdates();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleInputBlur();
+    }
+    if (e.key !== "Tab") {
+      e.stopPropagation();
+    }
+  };
+
+  const currentDateValue = useMemo(() => {
+    const dateValue = parseLocalDate(currentDate);
+    return dateValue && isValid(dateValue) ? dateValue : undefined;
+  }, [currentDate]);
+
+  return (
+    <div className="w-auto">
+      <div className="p-3 border-b border-[#2a2a2a]">
+        {isBulk && (
+          <div className="text-xs text-gray-500 mb-2 text-center">
+            Definir data para todos
+          </div>
+        )}
+        <Input
+          value={inputValue}
+          onChange={handleInputChange}
+          onBlur={handleInputBlur}
+          onKeyDown={handleKeyDown}
+          placeholder="DD/MM/YYYY"
+          className={cn(
+            "text-center text-sm font-medium",
+            "bg-[#0a0a0a] border-[#2a2a2a]",
+            "text-white placeholder:text-gray-500",
+            "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
+            isInvalid && "border-red-500 focus-visible:ring-red-500"
+          )}
+          onClick={(e) => e.stopPropagation()}
+          onKeyDownCapture={(e) => e.stopPropagation()}
+          autoFocus
+          data-testid="input-date-context"
+        />
+        {isInvalid && (
+          <span className="text-xs text-red-400 block mt-2 text-center">
+            Data inválida
+          </span>
+        )}
+      </div>
+      <Calendar
+        mode="single"
+        selected={currentDateValue}
+        onSelect={handleCalendarSelect}
+        month={displayMonth}
+        onMonthChange={setDisplayMonth}
+        locale={ptBR}
+        className="rounded-b-lg"
+      />
     </div>
   );
 }
@@ -1932,14 +2185,22 @@ export function TaskCard({
             </ContextMenuSubContent>
           </ContextMenuSub>
           
-          <ContextMenuItem 
-            onClick={() => setShowBulkDatePicker(true)} 
-            className="flex items-center gap-2"
-          >
-            <CalendarIcon className="w-4 h-4" />
-            <span>Data</span>
-            {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
-          </ContextMenuItem>
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4" />
+              <span>Data</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+              <ContextMenuDateEditor 
+                currentDate={editedTask.dueDate}
+                isBulk={selectedCount > 1}
+                onSelect={(dateString) => {
+                  handleContextDateChange(parseLocalDate(dateString));
+                }}
+              />
+            </ContextMenuSubContent>
+          </ContextMenuSub>
           
           <ContextMenuSub>
             <ContextMenuSubTrigger className="flex items-center gap-2">
