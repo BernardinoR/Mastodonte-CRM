@@ -315,20 +315,101 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
   const [searchQuery, setSearchQuery] = useState("");
   const [showSetSingle, setShowSetSingle] = useState(false);
   
-  const safeCurrentAssignees = currentAssignees || [];
+  // Keep LOCAL state to avoid re-render issues with Radix UI
+  // Initialize once and manage internally during the editing session
+  const [localAssignees, setLocalAssignees] = useState<string[]>(() => currentAssignees || []);
   
+  // Track if we're currently processing a local update to avoid sync conflicts
+  const isLocalUpdate = useRef(false);
+  
+  // Sync local state when props change from external sources (undo/redo, other updates)
+  // But skip sync if we just made a local update
+  useEffect(() => {
+    if (!isLocalUpdate.current) {
+      const propsAssignees = currentAssignees || [];
+      const localKey = localAssignees.join(',');
+      const propsKey = propsAssignees.join(',');
+      if (localKey !== propsKey) {
+        setLocalAssignees(propsAssignees);
+      }
+    }
+    isLocalUpdate.current = false;
+  }, [currentAssignees]);
+  
+  // Use local state for filtering, not props
   const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
     consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    !safeCurrentAssignees.includes(consultant.name)
+    !localAssignees.includes(consultant.name)
   );
   
   const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    safeCurrentAssignees.includes(consultant.name)
+    localAssignees.includes(consultant.name)
   );
   
   const filteredForSetSingle = MOCK_RESPONSIBLES.filter(consultant =>
     consultant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
+  
+  // Queue to batch external updates
+  const pendingUpdatesRef = useRef<{type: 'add' | 'remove' | 'setSingle', value: string}[]>([]);
+  const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Flush pending updates with a safe delay
+  const flushPendingUpdates = () => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current);
+    }
+    flushTimeoutRef.current = setTimeout(() => {
+      const updates = [...pendingUpdatesRef.current];
+      pendingUpdatesRef.current = [];
+      
+      // Process all pending updates in a single batch
+      updates.forEach(update => {
+        try {
+          if (update.type === 'add') {
+            onAdd(update.value);
+          } else if (update.type === 'remove') {
+            onRemove(update.value);
+          } else if (update.type === 'setSingle' && onSetSingle) {
+            onSetSingle(update.value);
+          }
+        } catch (e) {
+          // Silently ignore errors to prevent Radix UI conflicts
+        }
+      });
+    }, 100);
+  };
+  
+  // Handle add with local state update first
+  const handleLocalAdd = (assignee: string) => {
+    if (!localAssignees.includes(assignee)) {
+      isLocalUpdate.current = true;
+      setLocalAssignees(prev => [...prev, assignee]);
+      // Queue the external callback
+      pendingUpdatesRef.current.push({ type: 'add', value: assignee });
+      flushPendingUpdates();
+    }
+  };
+  
+  // Handle remove with local state update first
+  const handleLocalRemove = (assignee: string) => {
+    isLocalUpdate.current = true;
+    setLocalAssignees(prev => prev.filter(a => a !== assignee));
+    // Queue the external callback
+    pendingUpdatesRef.current.push({ type: 'remove', value: assignee });
+    flushPendingUpdates();
+  };
+  
+  // Handle set single with local state update first
+  const handleLocalSetSingle = (assignee: string) => {
+    isLocalUpdate.current = true;
+    setLocalAssignees([assignee]);
+    if (onSetSingle) {
+      // Queue the external callback
+      pendingUpdatesRef.current.push({ type: 'setSingle', value: assignee });
+      flushPendingUpdates();
+    }
+  };
   
   if (showSetSingle && isBulk && onSetSingle) {
     return (
@@ -366,7 +447,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
               className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
               onClick={(e) => {
                 e.stopPropagation();
-                onSetSingle(consultant.name);
+                handleLocalSetSingle(consultant.name);
               }}
             >
               <Avatar className="w-5 h-5 shrink-0">
@@ -420,7 +501,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
       {selectedConsultants.length > 0 && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            {safeCurrentAssignees.length} selecionado{safeCurrentAssignees.length > 1 ? 's' : ''}
+            {localAssignees.length} selecionado{localAssignees.length > 1 ? 's' : ''}
           </div>
           {selectedConsultants.map((consultant) => (
             <div 
@@ -431,7 +512,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
                 className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onRemove(consultant.name);
+                  handleLocalRemove(consultant.name);
                 }}
               >
                 <Avatar className="w-5 h-5 shrink-0">
@@ -448,7 +529,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
       )}
       
       <div className="px-3 py-1.5 text-xs text-gray-500">
-        {safeCurrentAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
+        {localAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
       
       <div className="max-h-52 overflow-y-auto scrollbar-thin">
@@ -458,7 +539,7 @@ function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSin
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              onAdd(consultant.name);
+              handleLocalAdd(consultant.name);
             }}
           >
             <Avatar className="w-5 h-5 shrink-0">
@@ -1644,55 +1725,37 @@ export function TaskCard({
                 currentAssignees={editedTask.assignees || []}
                 isBulk={selectedCount > 1}
                 onAdd={(assignee) => {
-                  // Use setTimeout to allow context menu to close before state update
-                  setTimeout(() => {
-                    try {
-                      if (selectedCount > 1 && onBulkAddAssignee) {
-                        onBulkAddAssignee(assignee);
-                      } else {
-                        const currentAssignees = editedTask.assignees || [];
-                        if (!currentAssignees.includes(assignee)) {
-                          const newAssignees = [...currentAssignees, assignee];
-                          setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                          onUpdate(id, { assignees: newAssignees });
-                        }
-                      }
-                    } catch (error) {
-                      console.error('Error adding assignee:', error);
+                  // ContextMenuAssigneeEditor handles setTimeout internally
+                  if (selectedCount > 1 && onBulkAddAssignee) {
+                    onBulkAddAssignee(assignee);
+                  } else {
+                    const currentAssignees = editedTask.assignees || [];
+                    if (!currentAssignees.includes(assignee)) {
+                      const newAssignees = [...currentAssignees, assignee];
+                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                      onUpdate(id, { assignees: newAssignees });
                     }
-                  }, 0);
+                  }
                 }}
                 onRemove={(assignee) => {
-                  // Use setTimeout to allow context menu to close before state update
-                  setTimeout(() => {
-                    try {
-                      if (selectedCount > 1 && onBulkRemoveAssignee) {
-                        onBulkRemoveAssignee(assignee);
-                      } else {
-                        const currentAssignees = editedTask.assignees || [];
-                        const newAssignees = currentAssignees.filter(a => a !== assignee);
-                        setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                        onUpdate(id, { assignees: newAssignees });
-                      }
-                    } catch (error) {
-                      console.error('Error removing assignee:', error);
-                    }
-                  }, 0);
+                  // ContextMenuAssigneeEditor handles setTimeout internally
+                  if (selectedCount > 1 && onBulkRemoveAssignee) {
+                    onBulkRemoveAssignee(assignee);
+                  } else {
+                    const currentAssignees = editedTask.assignees || [];
+                    const newAssignees = currentAssignees.filter(a => a !== assignee);
+                    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                    onUpdate(id, { assignees: newAssignees });
+                  }
                 }}
                 onSetSingle={(assignee) => {
-                  // Use setTimeout to allow context menu to close before state update
-                  setTimeout(() => {
-                    try {
-                      if (selectedCount > 1 && onBulkSetAssignees) {
-                        onBulkSetAssignees([assignee]);
-                      } else {
-                        setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
-                        onUpdate(id, { assignees: [assignee] });
-                      }
-                    } catch (error) {
-                      console.error('Error setting single assignee:', error);
-                    }
-                  }, 0);
+                  // ContextMenuAssigneeEditor handles setTimeout internally
+                  if (selectedCount > 1 && onBulkSetAssignees) {
+                    onBulkSetAssignees([assignee]);
+                  } else {
+                    setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
+                    onUpdate(id, { assignees: [assignee] });
+                  }
                 }}
               />
             </ContextMenuSubContent>
