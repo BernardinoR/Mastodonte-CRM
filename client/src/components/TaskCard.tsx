@@ -74,18 +74,9 @@ import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MOCK_USERS, MOCK_RESPONSIBLES } from "@/lib/mock-users";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
-import { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
-import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
-import { 
-  ClientSelector, 
-  ContextMenuClientEditor 
-} from "@/components/task-editors/ClientSelector";
-import { ContextMenuDateEditor } from "@/components/task-editors/DateEditor";
-import { 
-  AssigneeSelector, 
-  ContextMenuAssigneeEditor 
-} from "@/components/task-editors/AssigneeSelector";
+
+type TaskStatus = "To Do" | "In Progress" | "Done";
+type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 
 interface TaskCardProps {
   id: string;
@@ -101,9 +92,9 @@ interface TaskCardProps {
   selectedCount?: number;
   isDragActive?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
-  onUpdate: (taskId: string, updates: TaskUpdates) => void;
+  onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
-  onBulkUpdate?: (updates: TaskUpdates) => void;
+  onBulkUpdate?: (updates: any) => void;
   onBulkDelete?: () => void;
   onBulkAppendTitle?: (suffix: string) => void;
   onBulkReplaceTitle?: (newTitle: string) => void;
@@ -112,12 +103,148 @@ interface TaskCardProps {
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
 
-// Ref-based flag to prevent click events after closing edit mode (avoids global variable)
-const justClosedEditRef = { current: false };
+// Global flag to prevent click events after closing edit mode
+let globalJustClosedEdit = false;
 
-// ================================
-// TaskCard Component - Main export
-// ================================
+// Mock clients list
+const MOCK_CLIENTS = [
+  "Fernanda Carolina De Faria",
+  "Marcos Roberto Neves Monteiro",
+  "Luciene Della Libera",
+  "Marco Alexandre Rodrigues Oliveira",
+  "Erick Soares De Oliveira",
+  "João Pedro Zanetti De Carvalho",
+  "Iatan Oliveira Cardoso dos Reis",
+  "Rafael Bernardino Silveira",
+  "Ademar João Gréguer",
+  "Gustavo Samconi Soares",
+  "Israel Schuster Da Fonseca",
+  "Marcia Mozzato Ciampi De Andrade",
+];
+
+// ClientSelector Component
+interface ClientSelectorProps {
+  selectedClient: string | null;
+  onSelect: (client: string) => void;
+}
+
+function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredClients = MOCK_CLIENTS.filter(client =>
+    client.toLowerCase().includes(searchQuery.toLowerCase()) && client !== selectedClient
+  );
+  
+  return (
+    <div className="w-full">
+      {/* Search bar */}
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Vincule ou crie uma página..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          data-testid="input-search-client"
+        />
+      </div>
+      
+      {/* Selected client section */}
+      {selectedClient && (
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            Cliente selecionado
+          </div>
+          <div className="px-3 py-1">
+            <div 
+              className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(selectedClient);
+              }}
+            >
+              <Check className="w-4 h-4 text-gray-400" />
+              <span className="text-sm text-foreground">{selectedClient}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* "Selecione mais" label */}
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        Selecione mais
+      </div>
+      
+      {/* Client list with gray scrollbar */}
+      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+        {filteredClients.map((client, index) => (
+          <div
+            key={client}
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(client);
+            }}
+            data-testid={`option-client-${index}`}
+          >
+            <User className="w-4 h-4 text-gray-500" />
+            <span className="text-sm text-foreground flex-1">{client}</span>
+            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+        {filteredClients.length === 0 && (
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            Nenhum cliente encontrado
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ContextMenuClientEditor Component - Client selector for context menu with search
+interface ContextMenuClientEditorProps {
+  currentClient: string | null;
+  onSelect: (client: string) => void;
+  isBulk?: boolean;
+}
+
+function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: ContextMenuClientEditorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Keep LOCAL state to avoid re-render issues with Radix UI
+  const [localClient, setLocalClient] = useState<string | null>(() => currentClient);
+  
+  // Track if we're currently processing a local update to avoid sync conflicts
+  const isLocalUpdate = useRef(false);
+  
+  // Track if component is mounted to avoid calling callbacks after unmount
+  const isMountedRef = useRef(true);
+  
+  // Sync local state when props change from external sources
+  useEffect(() => {
+    if (!isLocalUpdate.current) {
+      if (localClient !== currentClient) {
+        setLocalClient(currentClient);
+      }
+    }
+    isLocalUpdate.current = false;
+  }, [currentClient]);
+  
+  // Queue to batch external updates (using array like ContextMenuAssigneeEditor)
+  const pendingUpdatesRef = useRef<string[]>([]);
+  const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current);
+      }
+    };
+  }, []);
   
   // Flush pending updates with a safe delay
   const flushPendingUpdates = () => {
