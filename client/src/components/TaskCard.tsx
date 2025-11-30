@@ -307,7 +307,7 @@ function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: Co
             <div 
               className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md"
             >
-              <Check className="w-4 h-4 text-green-500" />
+              <Check className="w-4 h-4 text-gray-400" />
               <span className="text-sm text-foreground truncate">{localClient}</span>
             </div>
           </div>
@@ -339,7 +339,7 @@ function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: Co
               <User className="w-4 h-4 text-gray-500" />
               <span className="text-sm text-foreground flex-1 truncate">{client}</span>
               {isCurrentClient ? (
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-gray-400" />
               ) : (
                 <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               )}
