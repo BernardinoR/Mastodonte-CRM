@@ -363,7 +363,21 @@ export default function Dashboard() {
     const activeTask = tasks.find(t => t.id === activeId);
     if (!activeTask) return;
     
-    const { movingIds, targetStatus } = projection;
+    const { targetStatus } = projection;
+    
+    // CRITICAL: Ensure movingIds includes ALL selected cards
+    // projection.movingIds may only have the active card if handleDragOver didn't fire
+    let movingIds = projection.movingIds;
+    const currentSelection = selectedTaskIdsRef.current;
+    
+    // If there are more selected cards than in movingIds, use the full selection
+    if (currentSelection.size > movingIds.length && currentSelection.has(activeId)) {
+      // Get all selected task IDs, sorted by their current order
+      const selectedTasks = tasks
+        .filter(t => currentSelection.has(t.id))
+        .sort((a, b) => a.order - b.order);
+      movingIds = selectedTasks.map(t => t.id);
+    }
     
     // Get sortable indices from DnD Kit
     const overSortableIndex = over.data?.current?.sortable?.index;
