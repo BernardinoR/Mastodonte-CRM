@@ -202,6 +202,160 @@ function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
   );
 }
 
+// ContextMenuClientEditor Component - Client selector for context menu with search
+interface ContextMenuClientEditorProps {
+  currentClient: string | null;
+  onSelect: (client: string) => void;
+  isBulk?: boolean;
+}
+
+function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: ContextMenuClientEditorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Keep LOCAL state to avoid re-render issues with Radix UI
+  const [localClient, setLocalClient] = useState<string | null>(() => currentClient);
+  
+  // Track if we're currently processing a local update to avoid sync conflicts
+  const isLocalUpdate = useRef(false);
+  
+  // Track if component is mounted to avoid calling callbacks after unmount
+  const isMountedRef = useRef(true);
+  
+  // Sync local state when props change from external sources
+  useEffect(() => {
+    if (!isLocalUpdate.current) {
+      if (localClient !== currentClient) {
+        setLocalClient(currentClient);
+      }
+    }
+    isLocalUpdate.current = false;
+  }, [currentClient]);
+  
+  // Queue to batch external updates (using array like ContextMenuAssigneeEditor)
+  const pendingUpdatesRef = useRef<string[]>([]);
+  const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (flushTimeoutRef.current) {
+        clearTimeout(flushTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Flush pending updates with a safe delay
+  const flushPendingUpdates = () => {
+    if (flushTimeoutRef.current) {
+      clearTimeout(flushTimeoutRef.current);
+    }
+    flushTimeoutRef.current = setTimeout(() => {
+      if (!isMountedRef.current) return;
+      
+      const updates = [...pendingUpdatesRef.current];
+      pendingUpdatesRef.current = [];
+      
+      // Process all pending updates - only the last one matters for client
+      if (updates.length > 0) {
+        const lastUpdate = updates[updates.length - 1];
+        try {
+          onSelect(lastUpdate);
+        } catch (e) {
+          // Silently ignore errors to prevent Radix UI conflicts
+        }
+      }
+    }, 100);
+  };
+  
+  // Handle select with local state update first
+  const handleLocalSelect = (client: string) => {
+    isLocalUpdate.current = true;
+    setLocalClient(client);
+    // Queue the external callback
+    pendingUpdatesRef.current.push(client);
+    flushPendingUpdates();
+  };
+  
+  const filteredClients = MOCK_CLIENTS.filter(client =>
+    client.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  return (
+    <div className="w-64">
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar cliente..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          autoFocus
+          data-testid="input-search-client-context"
+        />
+      </div>
+      
+      {/* Selected client section (only in single mode) */}
+      {!isBulk && localClient && (
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            Cliente atual
+          </div>
+          <div className="px-3 py-1">
+            <div 
+              className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md"
+            >
+              <Check className="w-4 h-4 text-green-500" />
+              <span className="text-sm text-foreground truncate">{localClient}</span>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Label */}
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        {isBulk ? 'Definir cliente para todos' : (localClient ? 'Alterar para' : 'Selecionar cliente')}
+      </div>
+      
+      {/* Client list with scrollbar */}
+      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+        {filteredClients.map((client, index) => {
+          const isCurrentClient = client === localClient;
+          return (
+            <div
+              key={client}
+              className={cn(
+                "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group",
+                isCurrentClient ? "bg-[#2a2a2a]" : "hover:bg-[#2a2a2a]"
+              )}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleLocalSelect(client);
+              }}
+              data-testid={`context-option-client-${index}`}
+            >
+              <User className="w-4 h-4 text-gray-500" />
+              <span className="text-sm text-foreground flex-1 truncate">{client}</span>
+              {isCurrentClient ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              )}
+            </div>
+          );
+        })}
+        {filteredClients.length === 0 && (
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            Nenhum cliente encontrado
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // AssigneeSelector Component - Multi-select for consultants
 interface AssigneeSelectorProps {
   selectedAssignees: string[];
@@ -1767,17 +1921,14 @@ export function TaskCard({
               <span>Cliente</span>
               {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] max-h-64 overflow-y-auto">
-              {MOCK_CLIENTS.map((client) => (
-                <ContextMenuItem 
-                  key={client} 
-                  onClick={() => handleContextClientChange(client)} 
-                  className="flex items-center gap-2"
-                >
-                  <User className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">{client}</span>
-                </ContextMenuItem>
-              ))}
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+              <ContextMenuClientEditor 
+                currentClient={editedTask.clientName || null}
+                isBulk={selectedCount > 1}
+                onSelect={(client) => {
+                  handleContextClientChange(client);
+                }}
+              />
             </ContextMenuSubContent>
           </ContextMenuSub>
           
