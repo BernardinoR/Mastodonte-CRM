@@ -10,7 +10,7 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
-  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean) => {
+  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean, ctrlKey: boolean = false) => {
     const clickedTask = tasks.find(t => t.id === taskId);
     if (!clickedTask) return;
 
@@ -18,6 +18,7 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
       const lastTask = tasks.find(t => t.id === lastSelectedId);
       
       if (lastTask && lastTask.status === clickedTask.status) {
+        // Range selection within same column
         const columnTasks = getTasksByStatus(clickedTask.status);
         const lastIndex = columnTasks.findIndex(t => t.id === lastSelectedId);
         const currentIndex = columnTasks.findIndex(t => t.id === taskId);
@@ -36,6 +37,7 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
           return;
         }
       } else {
+        // Different column with Shift: toggle individual selection
         setSelectedTaskIds(prev => {
           const newSet = new Set(prev);
           if (newSet.has(taskId)) {
@@ -47,7 +49,8 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
         });
         setLastSelectedId(taskId);
       }
-    } else {
+    } else if (ctrlKey) {
+      // Ctrl+click: Toggle individual selection (add/remove from current selection)
       setSelectedTaskIds(prev => {
         const newSet = new Set(prev);
         if (newSet.has(taskId)) {
@@ -57,6 +60,10 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
         }
         return newSet;
       });
+      setLastSelectedId(taskId);
+    } else {
+      // Regular click: Select only this card (clear others)
+      setSelectedTaskIds(new Set([taskId]));
       setLastSelectedId(taskId);
     }
   }, [lastSelectedId, tasks, getTasksByStatus]);

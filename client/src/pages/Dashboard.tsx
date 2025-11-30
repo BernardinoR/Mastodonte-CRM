@@ -27,6 +27,7 @@ import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
+import { useTaskSelection } from "@/hooks/useTaskSelection";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -60,8 +61,6 @@ export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
-  const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
-  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   
   // Cross-column drop placeholder state
   const [crossColumnPlaceholder, setCrossColumnPlaceholder] = useState<{
@@ -69,12 +68,6 @@ export default function Dashboard() {
     insertIndex: number;
     count: number;
   } | null>(null);
-  
-  // Ref to keep the current selectedTaskIds for use in callbacks
-  const selectedTaskIdsRef = useRef<Set<string>>(selectedTaskIds);
-  useEffect(() => {
-    selectedTaskIdsRef.current = selectedTaskIds;
-  }, [selectedTaskIds]);
   
   // Projection ref for drag - stores the final calculated position
   const projectionRef = useRef<{
@@ -98,6 +91,20 @@ export default function Dashboard() {
     inProgressTasks,
     doneTasks,
   } = useTaskFilters(tasks);
+  
+  // Helper function for selection hook
+  const getTasksByStatus = useCallback((status: TaskStatus): Task[] => {
+    if (status === "To Do") return todoTasks;
+    if (status === "In Progress") return inProgressTasks;
+    return doneTasks;
+  }, [todoTasks, inProgressTasks, doneTasks]);
+  
+  // Use the task selection hook for multi-select with Shift+click
+  const {
+    selectedTaskIds,
+    clearSelection,
+    handleSelectTask,
+  } = useTaskSelection({ tasks, getTasksByStatus });
   
   // Task IDs for SortableContext - inject placeholder during cross-column drag
   const todoTaskIds = useMemo(() => {
@@ -147,8 +154,8 @@ export default function Dashboard() {
     
     // If dragging a non-selected card, clear selection and select only this card
     if (!selectedTaskIds.has(draggedId)) {
-      setSelectedTaskIds(new Set([draggedId]));
-      setLastSelectedId(draggedId);
+      clearSelection();
+      handleSelectTask(draggedId, false);
     }
     
     // Initialize projection ref
@@ -333,7 +340,7 @@ export default function Dashboard() {
     projectionRef.current = null;
     
     if (!over || !projection) {
-      handleClearSelection();
+      clearSelection();
       return;
     }
     
@@ -342,7 +349,7 @@ export default function Dashboard() {
     
     // Skip if dropped on itself with no movement
     if (activeId === overId && !projection) {
-      handleClearSelection();
+      clearSelection();
       return;
     }
     
@@ -354,7 +361,7 @@ export default function Dashboard() {
     // CRITICAL: Ensure movingIds includes ALL selected cards
     // projection.movingIds may only have the active card if handleDragOver didn't fire
     let movingIds = projection.movingIds;
-    const currentSelection = selectedTaskIdsRef.current;
+    const currentSelection = selectedTaskIds;
     
     // If there are more selected cards than in movingIds, use the full selection
     if (currentSelection.size > movingIds.length && currentSelection.has(activeId)) {
@@ -511,7 +518,7 @@ export default function Dashboard() {
     });
     
     // Clear selection after drag
-    handleClearSelection();
+    clearSelection();
   };
 
   const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
@@ -530,77 +537,6 @@ export default function Dashboard() {
     setTasksWithHistory(prevTasks => prevTasks.filter(task => task.id !== taskId));
   };
 
-  // Selection handlers
-  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean, ctrlKey: boolean) => {
-    const clickedTask = tasks.find(t => t.id === taskId);
-    const lastTask = lastSelectedId ? tasks.find(t => t.id === lastSelectedId) : null;
-    
-    if (shiftKey && lastTask && clickedTask) {
-      // Shift+click: Range selection within same column, toggle across columns
-      const sameColumn = lastTask.status === clickedTask.status;
-      
-      if (sameColumn) {
-        // Range selection within same column
-        let columnTasks: Task[];
-        if (clickedTask.status === "To Do") {
-          columnTasks = todoTasks;
-        } else if (clickedTask.status === "In Progress") {
-          columnTasks = inProgressTasks;
-        } else {
-          columnTasks = doneTasks;
-        }
-        
-        const columnTaskIds = columnTasks.map(t => t.id);
-        const lastIndex = columnTaskIds.indexOf(lastSelectedId!);
-        const currentIndex = columnTaskIds.indexOf(taskId);
-        
-        if (lastIndex !== -1 && currentIndex !== -1) {
-          const start = Math.min(lastIndex, currentIndex);
-          const end = Math.max(lastIndex, currentIndex);
-          const rangeIds = columnTaskIds.slice(start, end + 1);
-          
-          setSelectedTaskIds(prev => {
-            const newSet = new Set(prev);
-            rangeIds.forEach(id => newSet.add(id));
-            return newSet;
-          });
-        }
-      } else {
-        // Different column with Shift: toggle individual selection
-        setSelectedTaskIds(prev => {
-          const newSet = new Set(prev);
-          if (newSet.has(taskId)) {
-            newSet.delete(taskId);
-          } else {
-            newSet.add(taskId);
-          }
-          return newSet;
-        });
-        setLastSelectedId(taskId);
-      }
-    } else if (ctrlKey) {
-      // Ctrl+click: Toggle individual selection (add/remove from current selection)
-      setSelectedTaskIds(prev => {
-        const newSet = new Set(prev);
-        if (newSet.has(taskId)) {
-          newSet.delete(taskId);
-        } else {
-          newSet.add(taskId);
-        }
-        return newSet;
-      });
-      setLastSelectedId(taskId);
-    } else {
-      // Regular click: Select only this card (clear others)
-      setSelectedTaskIds(new Set([taskId]));
-      setLastSelectedId(taskId);
-    }
-  }, [lastSelectedId, tasks, todoTasks, inProgressTasks, doneTasks]);
-
-  const handleClearSelection = useCallback(() => {
-    setSelectedTaskIds(new Set());
-    setLastSelectedId(null);
-  }, []);
 
   // Bulk update for selected tasks (used by context menu)
   const handleBulkUpdate = useCallback((updates: Partial<Task>) => {
@@ -616,38 +552,34 @@ export default function Dashboard() {
   // Bulk delete for selected tasks
   const handleBulkDelete = useCallback(() => {
     setTasksWithHistory(prevTasks => prevTasks.filter(task => !selectedTaskIds.has(task.id)));
-    handleClearSelection();
-  }, [selectedTaskIds, handleClearSelection, setTasksWithHistory]);
+    clearSelection();
+  }, [selectedTaskIds, clearSelection, setTasksWithHistory]);
 
   // Bulk append title for selected tasks
   const handleBulkAppendTitle = useCallback((textToAppend: string) => {
-    // Use ref to get the most current selectedTaskIds
-    const currentSelectedIds = selectedTaskIdsRef.current;
     // Add space only if suffix starts with alphanumeric character
     const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task => {
-        if (!currentSelectedIds.has(task.id)) return task;
+        if (!selectedTaskIds.has(task.id)) return task;
         // Add space before suffix if title doesn't end with whitespace and suffix starts with alphanumeric
         const needsSpace = task.title.length > 0 && !/\s$/.test(task.title) && startsWithAlphanumeric;
         const suffix = needsSpace ? " " + textToAppend : textToAppend;
         return { ...task, title: task.title + suffix };
       })
     );
-  }, [setTasksWithHistory]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Bulk replace title for selected tasks
   const handleBulkReplaceTitle = useCallback((newTitle: string) => {
-    // Use ref to get the most current selectedTaskIds
-    const currentSelectedIds = selectedTaskIdsRef.current;
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
-        currentSelectedIds.has(task.id)
+        selectedTaskIds.has(task.id)
           ? { ...task, title: newTitle }
           : task
       )
     );
-  }, [setTasksWithHistory]);
+  }, [selectedTaskIds, setTasksWithHistory]);
 
   // Bulk add assignee to selected tasks
   const handleBulkAddAssignee = useCallback((assignee: string) => {
@@ -777,7 +709,7 @@ export default function Dashboard() {
       const isInsideAlertDialog = target.closest('[role="alertdialog"]') !== null;
       
       if (!isInsideTaskCard && !isInsideContextMenu && !isInsideContextMenuContent && !isInsideRadixPortal && !isInsideCalendar && !isInsideDialog && !isInsideDialogOverlay && !isInsideAlertDialog) {
-        handleClearSelection();
+        clearSelection();
       }
     }}>
       <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
