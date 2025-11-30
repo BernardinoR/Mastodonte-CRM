@@ -64,6 +64,8 @@ import {
   Briefcase,
   UserPlus,
   PenLine,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
@@ -300,61 +302,161 @@ function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSel
   );
 }
 
-// ContextMenuAssigneeSelector Component - For context menu with search and tabs
-interface ContextMenuAssigneeSelectorProps {
-  mode: "set" | "add" | "remove";
+// ContextMenuAssigneeEditor Component - Full editor for context menu (same style as popover)
+interface ContextMenuAssigneeEditorProps {
   currentAssignees: string[];
-  onSelect: (assignee: string) => void;
-  onClose?: () => void;
+  onAdd: (assignee: string) => void;
+  onRemove: (assignee: string) => void;
+  onSetSingle?: (assignee: string) => void;
+  isBulk?: boolean;
 }
 
-function ContextMenuAssigneeSelector({ mode, currentAssignees, onSelect, onClose }: ContextMenuAssigneeSelectorProps) {
+function ContextMenuAssigneeEditor({ currentAssignees, onAdd, onRemove, onSetSingle, isBulk = false }: ContextMenuAssigneeEditorProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const [showSetSingle, setShowSetSingle] = useState(false);
   
-  const filteredConsultants = MOCK_RESPONSIBLES.filter(consultant => {
-    const matchesSearch = consultant.name.toLowerCase().includes(searchQuery.toLowerCase());
-    if (mode === "remove") {
-      return matchesSearch && currentAssignees.includes(consultant.name);
-    }
-    if (mode === "add") {
-      return matchesSearch && !currentAssignees.includes(consultant.name);
-    }
-    return matchesSearch;
-  });
+  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
+    consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    !currentAssignees.includes(consultant.name)
+  );
   
-  const getEmptyMessage = () => {
-    if (searchQuery) return 'Nenhum consultor encontrado';
-    if (mode === "remove") return 'Nenhum responsável para remover';
-    if (mode === "add") return 'Todos os consultores já foram adicionados';
-    return 'Nenhum consultor disponível';
-  };
+  const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
+    currentAssignees.includes(consultant.name)
+  );
+  
+  const filteredForSetSingle = MOCK_RESPONSIBLES.filter(consultant =>
+    consultant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  if (showSetSingle && isBulk && onSetSingle) {
+    return (
+      <div className="w-64">
+        <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowSetSingle(false);
+                setSearchQuery("");
+              }}
+              className="text-gray-500 hover:text-gray-300"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar consultor..."
+              className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => e.stopPropagation()}
+              autoFocus
+            />
+          </div>
+        </div>
+        <div className="px-3 py-1.5 text-xs text-gray-500">
+          Substituir todos por
+        </div>
+        <div className="max-h-52 overflow-y-auto scrollbar-thin">
+          {filteredForSetSingle.map((consultant) => (
+            <div
+              key={consultant.id}
+              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSetSingle(consultant.name);
+              }}
+            >
+              <Avatar className="w-5 h-5 shrink-0">
+                <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
+                  {consultant.initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+              <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+          ))}
+          {filteredForSetSingle.length === 0 && (
+            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+              Nenhum consultor encontrado
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="w-64">
       <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
-        <div className="flex items-center gap-2">
-          <Search className="w-4 h-4 text-gray-500" />
-          <Input
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar consultor..."
-            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
-            onClick={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
-            autoFocus
-          />
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar consultor..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          autoFocus
+        />
+      </div>
+      
+      {isBulk && onSetSingle && (
+        <div 
+          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors border-b border-[#2a2a2a]"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowSetSingle(true);
+            setSearchQuery("");
+          }}
+        >
+          <User className="w-4 h-4 text-gray-500" />
+          <span className="text-sm text-foreground">Definir único responsável</span>
+          <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
         </div>
+      )}
+      
+      {selectedConsultants.length > 0 && (
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {currentAssignees.length} selecionado{currentAssignees.length > 1 ? 's' : ''}
+          </div>
+          {selectedConsultants.map((consultant) => (
+            <div 
+              key={consultant.id}
+              className="px-3 py-1"
+            >
+              <div 
+                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(consultant.name);
+                }}
+              >
+                <Avatar className="w-5 h-5 shrink-0">
+                  <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
+                    {consultant.initials}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        {currentAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
       
       <div className="max-h-52 overflow-y-auto scrollbar-thin">
-        {filteredConsultants.map((consultant) => (
+        {availableConsultants.map((consultant) => (
           <div
             key={consultant.id}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(consultant.name);
-              onClose?.();
+              onAdd(consultant.name);
             }}
           >
             <Avatar className="w-5 h-5 shrink-0">
@@ -363,16 +465,12 @@ function ContextMenuAssigneeSelector({ mode, currentAssignees, onSelect, onClose
               </AvatarFallback>
             </Avatar>
             <span className="text-sm text-foreground flex-1">{consultant.name}</span>
-            {mode === "remove" ? (
-              <X className="w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-            ) : (
-              <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            )}
+            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
-        {filteredConsultants.length === 0 && (
+        {availableConsultants.length === 0 && (
           <div className="px-3 py-4 text-sm text-gray-500 text-center">
-            {getEmptyMessage()}
+            {searchQuery ? 'Nenhum consultor encontrado' : 'Todos os consultores já foram selecionados'}
           </div>
         )}
       </div>
@@ -1514,65 +1612,38 @@ export function TaskCard({
               {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-              <ContextMenuSub>
-                <ContextMenuSubTrigger className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>Definir único</span>
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-                  <ContextMenuAssigneeSelector 
-                    mode="set"
-                    currentAssignees={editedTask.assignees}
-                    onSelect={(assignee) => {
-                      if (selectedCount > 1 && onBulkSetAssignees) {
-                        onBulkSetAssignees([assignee]);
-                      } else {
-                        onUpdate(id, { assignees: [assignee] });
-                      }
-                    }}
-                  />
-                </ContextMenuSubContent>
-              </ContextMenuSub>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger className="flex items-center gap-2">
-                  <UserPlus className="w-4 h-4" />
-                  <span>Adicionar</span>
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-                  <ContextMenuAssigneeSelector 
-                    mode="add"
-                    currentAssignees={editedTask.assignees}
-                    onSelect={(assignee) => {
-                      if (selectedCount > 1 && onBulkAddAssignee) {
-                        onBulkAddAssignee(assignee);
-                      } else {
-                        if (!editedTask.assignees.includes(assignee)) {
-                          onUpdate(id, { assignees: [...editedTask.assignees, assignee] });
-                        }
-                      }
-                    }}
-                  />
-                </ContextMenuSubContent>
-              </ContextMenuSub>
-              <ContextMenuSub>
-                <ContextMenuSubTrigger className="flex items-center gap-2">
-                  <X className="w-4 h-4" />
-                  <span>Remover</span>
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-                  <ContextMenuAssigneeSelector 
-                    mode="remove"
-                    currentAssignees={editedTask.assignees}
-                    onSelect={(assignee) => {
-                      if (selectedCount > 1 && onBulkRemoveAssignee) {
-                        onBulkRemoveAssignee(assignee);
-                      } else {
-                        onUpdate(id, { assignees: editedTask.assignees.filter(a => a !== assignee) });
-                      }
-                    }}
-                  />
-                </ContextMenuSubContent>
-              </ContextMenuSub>
+              <ContextMenuAssigneeEditor 
+                currentAssignees={editedTask.assignees}
+                isBulk={selectedCount > 1}
+                onAdd={(assignee) => {
+                  if (selectedCount > 1 && onBulkAddAssignee) {
+                    onBulkAddAssignee(assignee);
+                  } else {
+                    if (!editedTask.assignees.includes(assignee)) {
+                      const newAssignees = [...editedTask.assignees, assignee];
+                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                      onUpdate(id, { assignees: newAssignees });
+                    }
+                  }
+                }}
+                onRemove={(assignee) => {
+                  if (selectedCount > 1 && onBulkRemoveAssignee) {
+                    onBulkRemoveAssignee(assignee);
+                  } else {
+                    const newAssignees = editedTask.assignees.filter(a => a !== assignee);
+                    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+                    onUpdate(id, { assignees: newAssignees });
+                  }
+                }}
+                onSetSingle={(assignee) => {
+                  if (selectedCount > 1 && onBulkSetAssignees) {
+                    onBulkSetAssignees([assignee]);
+                  } else {
+                    setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
+                    onUpdate(id, { assignees: [assignee] });
+                  }
+                }}
+              />
             </ContextMenuSubContent>
           </ContextMenuSub>
           
