@@ -48,6 +48,12 @@ export default function Dashboard() {
   const [selectedTaskIds, setSelectedTaskIds] = useState<Set<string>>(new Set());
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
   
+  // Ref to keep the current selectedTaskIds for use in callbacks
+  const selectedTaskIdsRef = useRef<Set<string>>(selectedTaskIds);
+  useEffect(() => {
+    selectedTaskIdsRef.current = selectedTaskIds;
+  }, [selectedTaskIds]);
+  
   // Projection ref for drag - stores the final calculated position
   const projectionRef = useRef<{
     movingIds: string[];
@@ -558,25 +564,29 @@ export default function Dashboard() {
 
   // Bulk append title for selected tasks
   const handleBulkAppendTitle = useCallback((suffix: string) => {
+    // Use ref to get the most current selectedTaskIds
+    const currentSelectedIds = selectedTaskIdsRef.current;
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
-        selectedTaskIds.has(task.id)
+        currentSelectedIds.has(task.id)
           ? { ...task, title: task.title + suffix }
           : task
       )
     );
-  }, [selectedTaskIds, setTasksWithHistory]);
+  }, [setTasksWithHistory]);
 
   // Bulk replace title for selected tasks
   const handleBulkReplaceTitle = useCallback((newTitle: string) => {
+    // Use ref to get the most current selectedTaskIds
+    const currentSelectedIds = selectedTaskIdsRef.current;
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
-        selectedTaskIds.has(task.id)
+        currentSelectedIds.has(task.id)
           ? { ...task, title: newTitle }
           : task
       )
     );
-  }, [selectedTaskIds, setTasksWithHistory]);
+  }, [setTasksWithHistory]);
 
   // Bulk add assignee to selected tasks
   const handleBulkAddAssignee = useCallback((assignee: string) => {
@@ -627,13 +637,17 @@ export default function Dashboard() {
     <div className="p-6" onClick={(e) => {
       // Clear selection when clicking on empty area
       const target = e.target as HTMLElement;
-      // Don't clear selection if clicking inside a task card, context menu, or any Radix UI component
+      // Don't clear selection if clicking inside a task card, context menu, dialog, or any Radix UI component
       const isInsideTaskCard = target.closest('[data-task-card]') !== null;
       const isInsideContextMenu = target.closest('[data-radix-menu-content]') !== null;
+      const isInsideContextMenuContent = target.closest('[data-radix-context-menu-content]') !== null;
       const isInsideRadixPortal = target.closest('[data-radix-popper-content-wrapper]') !== null;
       const isInsideCalendar = target.closest('[data-calendar-container]') !== null;
+      const isInsideDialog = target.closest('[role="dialog"]') !== null;
+      const isInsideDialogOverlay = target.closest('[data-radix-dialog-overlay]') !== null;
+      const isInsideAlertDialog = target.closest('[role="alertdialog"]') !== null;
       
-      if (!isInsideTaskCard && !isInsideContextMenu && !isInsideRadixPortal && !isInsideCalendar) {
+      if (!isInsideTaskCard && !isInsideContextMenu && !isInsideContextMenuContent && !isInsideRadixPortal && !isInsideCalendar && !isInsideDialog && !isInsideDialogOverlay && !isInsideAlertDialog) {
         handleClearSelection();
       }
     }}>
