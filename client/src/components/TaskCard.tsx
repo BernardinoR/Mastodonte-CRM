@@ -97,6 +97,8 @@ interface TaskCardProps {
   onBulkAppendTitle?: (suffix: string) => void;
   onBulkReplaceTitle?: (newTitle: string) => void;
   onBulkAddAssignee?: (assignee: string) => void;
+  onBulkSetAssignees?: (assignees: string[]) => void;
+  onBulkRemoveAssignee?: (assignee: string) => void;
 }
 
 // Global flag to prevent click events after closing edit mode
@@ -298,6 +300,86 @@ function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSel
   );
 }
 
+// ContextMenuAssigneeSelector Component - For context menu with search and tabs
+interface ContextMenuAssigneeSelectorProps {
+  mode: "set" | "add" | "remove";
+  currentAssignees: string[];
+  onSelect: (assignee: string) => void;
+  onClose?: () => void;
+}
+
+function ContextMenuAssigneeSelector({ mode, currentAssignees, onSelect, onClose }: ContextMenuAssigneeSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const filteredConsultants = MOCK_RESPONSIBLES.filter(consultant => {
+    const matchesSearch = consultant.name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (mode === "remove") {
+      return matchesSearch && currentAssignees.includes(consultant.name);
+    }
+    if (mode === "add") {
+      return matchesSearch && !currentAssignees.includes(consultant.name);
+    }
+    return matchesSearch;
+  });
+  
+  const getEmptyMessage = () => {
+    if (searchQuery) return 'Nenhum consultor encontrado';
+    if (mode === "remove") return 'Nenhum responsável para remover';
+    if (mode === "add") return 'Todos os consultores já foram adicionados';
+    return 'Nenhum consultor disponível';
+  };
+  
+  return (
+    <div className="w-64">
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <div className="flex items-center gap-2">
+          <Search className="w-4 h-4 text-gray-500" />
+          <Input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar consultor..."
+            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+            autoFocus
+          />
+        </div>
+      </div>
+      
+      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+        {filteredConsultants.map((consultant) => (
+          <div
+            key={consultant.id}
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(consultant.name);
+              onClose?.();
+            }}
+          >
+            <Avatar className="w-5 h-5 shrink-0">
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
+                {consultant.initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            {mode === "remove" ? (
+              <X className="w-4 h-4 text-red-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            ) : (
+              <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+            )}
+          </div>
+        ))}
+        {filteredConsultants.length === 0 && (
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            {getEmptyMessage()}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function TaskCard({
   id,
   title,
@@ -319,6 +401,8 @@ export function TaskCard({
   onBulkAppendTitle,
   onBulkReplaceTitle,
   onBulkAddAssignee,
+  onBulkSetAssignees,
+  onBulkRemoveAssignee,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   // Ensure assignees is always an array (backward compatibility)
@@ -1429,21 +1513,66 @@ export function TaskCard({
               <span>Responsáveis</span>
               {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] max-h-64 overflow-y-auto">
-              {MOCK_RESPONSIBLES.map((consultant) => (
-                <ContextMenuItem 
-                  key={consultant.id} 
-                  onClick={() => handleContextAddAssignee(consultant.name)} 
-                  className="flex items-center gap-2"
-                >
-                  <Avatar className="w-5 h-5">
-                    <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                      {consultant.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{consultant.name}</span>
-                </ContextMenuItem>
-              ))}
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+              <ContextMenuSub>
+                <ContextMenuSubTrigger className="flex items-center gap-2">
+                  <User className="w-4 h-4" />
+                  <span>Definir único</span>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+                  <ContextMenuAssigneeSelector 
+                    mode="set"
+                    currentAssignees={editedTask.assignees}
+                    onSelect={(assignee) => {
+                      if (selectedCount > 1 && onBulkSetAssignees) {
+                        onBulkSetAssignees([assignee]);
+                      } else {
+                        onUpdate(id, { assignees: [assignee] });
+                      }
+                    }}
+                  />
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSub>
+                <ContextMenuSubTrigger className="flex items-center gap-2">
+                  <UserPlus className="w-4 h-4" />
+                  <span>Adicionar</span>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+                  <ContextMenuAssigneeSelector 
+                    mode="add"
+                    currentAssignees={editedTask.assignees}
+                    onSelect={(assignee) => {
+                      if (selectedCount > 1 && onBulkAddAssignee) {
+                        onBulkAddAssignee(assignee);
+                      } else {
+                        if (!editedTask.assignees.includes(assignee)) {
+                          onUpdate(id, { assignees: [...editedTask.assignees, assignee] });
+                        }
+                      }
+                    }}
+                  />
+                </ContextMenuSubContent>
+              </ContextMenuSub>
+              <ContextMenuSub>
+                <ContextMenuSubTrigger className="flex items-center gap-2">
+                  <X className="w-4 h-4" />
+                  <span>Remover</span>
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+                  <ContextMenuAssigneeSelector 
+                    mode="remove"
+                    currentAssignees={editedTask.assignees}
+                    onSelect={(assignee) => {
+                      if (selectedCount > 1 && onBulkRemoveAssignee) {
+                        onBulkRemoveAssignee(assignee);
+                      } else {
+                        onUpdate(id, { assignees: editedTask.assignees.filter(a => a !== assignee) });
+                      }
+                    }}
+                  />
+                </ContextMenuSubContent>
+              </ContextMenuSub>
             </ContextMenuSubContent>
           </ContextMenuSub>
           

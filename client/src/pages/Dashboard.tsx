@@ -594,6 +594,31 @@ export default function Dashboard() {
     );
   }, [selectedTaskIds, setTasksWithHistory]);
 
+  // Bulk set assignees (replace all assignees with new ones)
+  const handleBulkSetAssignees = useCallback((assignees: string[]) => {
+    setTasksWithHistory(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { ...task, assignees }
+          : task
+      )
+    );
+  }, [selectedTaskIds, setTasksWithHistory]);
+
+  // Bulk remove assignee from selected tasks
+  const handleBulkRemoveAssignee = useCallback((assignee: string) => {
+    setTasksWithHistory(prevTasks =>
+      prevTasks.map(task =>
+        selectedTaskIds.has(task.id)
+          ? { 
+              ...task, 
+              assignees: task.assignees.filter(a => a !== assignee)
+            }
+          : task
+      )
+    );
+  }, [selectedTaskIds, setTasksWithHistory]);
+
   // Get count of selected tasks for DragOverlay
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
@@ -660,6 +685,8 @@ export default function Dashboard() {
                   onBulkAppendTitle={handleBulkAppendTitle}
                   onBulkReplaceTitle={handleBulkReplaceTitle}
                   onBulkAddAssignee={handleBulkAddAssignee}
+                  onBulkSetAssignees={handleBulkSetAssignees}
+                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
                 />
               ))}
             </SortableContext>
@@ -695,6 +722,8 @@ export default function Dashboard() {
                   onBulkAppendTitle={handleBulkAppendTitle}
                   onBulkReplaceTitle={handleBulkReplaceTitle}
                   onBulkAddAssignee={handleBulkAddAssignee}
+                  onBulkSetAssignees={handleBulkSetAssignees}
+                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
                 />
               ))}
             </SortableContext>
@@ -724,6 +753,8 @@ export default function Dashboard() {
                   onBulkAppendTitle={handleBulkAppendTitle}
                   onBulkReplaceTitle={handleBulkReplaceTitle}
                   onBulkAddAssignee={handleBulkAddAssignee}
+                  onBulkSetAssignees={handleBulkSetAssignees}
+                  onBulkRemoveAssignee={handleBulkRemoveAssignee}
                 />
               ))}
             </SortableContext>
@@ -757,6 +788,8 @@ export default function Dashboard() {
                   onBulkAppendTitle={() => {}}
                   onBulkReplaceTitle={() => {}}
                   onBulkAddAssignee={() => {}}
+                  onBulkSetAssignees={() => {}}
+                  onBulkRemoveAssignee={() => {}}
                 />
               </div>
             </div>
