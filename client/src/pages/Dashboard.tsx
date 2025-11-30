@@ -23,22 +23,13 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-
-type TaskStatus = "To Do" | "In Progress" | "Done";
-type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
-
-interface Task {
-  id: string;
-  title: string;
-  clientName?: string;
-  priority?: TaskPriority;
-  status: TaskStatus;
-  assignees: string[];
-  dueDate: Date;
-  description?: string;
-  notes?: string[];
-  order: number;
-}
+import type { Task, TaskStatus, TaskPriority } from "@/types/task";
+import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
+import { useTaskHistory } from "@/hooks/useTaskHistory";
+import { useTaskFilters } from "@/hooks/useTaskFilters";
+import { useTaskSelection } from "@/hooks/useTaskSelection";
+import { useTaskDrag } from "@/hooks/useTaskDrag";
+import { useTaskBulkActions } from "@/hooks/useTaskBulkActions";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -102,96 +93,7 @@ export default function Dashboard() {
   const historyRef = useRef<Task[][]>([]);
   const MAX_HISTORY = 20;
 
-  const [tasks, setTasks] = useState<Task[]>([
-    {
-      id: "1",
-      title: "Ademar plan fin",
-      clientName: "Ademar João Gréguer",
-      priority: "Normal" as const,
-      status: "To Do" as const,
-      assignees: ["Rafael Bernardino Silveira"],
-      dueDate: new Date('2025-11-19'),
-      order: 0,
-    },
-    {
-      id: "2",
-      title: "Atualizar plano financeiro da Fernanda",
-      clientName: "Fernanda Carolina De Faria",
-      priority: "Importante" as const,
-      status: "To Do" as const,
-      assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
-      dueDate: new Date('2025-11-15'),
-      order: 1,
-    },
-    {
-      id: "3",
-      title: "Aguardar retorno sobre apresentação do Ariel",
-      status: "To Do" as const,
-      assignees: ["Rafael Bernardino Silveira"],
-      dueDate: new Date('2025-11-16'),
-      order: 2,
-    },
-    {
-      id: "4",
-      title: "Receber documentação da Viva",
-      clientName: "Israel Schuster Da Fonseca",
-      priority: "Baixa" as const,
-      status: "To Do" as const,
-      assignees: ["Rafael Bernardino Silveira", "João Silva", "Ana Costa"],
-      dueDate: new Date('2025-11-20'),
-      order: 3,
-    },
-    {
-      id: "5",
-      title: "REALOCAR MARCOS",
-      clientName: "Marcia Mozzato Ciampi De Andrade",
-      priority: "Urgente" as const,
-      status: "In Progress" as const,
-      assignees: ["Rafael Bernardino Silveira"],
-      dueDate: new Date('2025-01-20'),
-      order: 0,
-    },
-    {
-      id: "6",
-      title: "Falar com Marcia",
-      clientName: "Marcia Mozzato Ciampi De Andrade",
-      priority: "Urgente" as const,
-      status: "In Progress" as const,
-      assignees: ["Rafael Bernardino Silveira", "Pedro Oliveira"],
-      dueDate: new Date('2025-01-20'),
-      order: 1,
-    },
-    {
-      id: "7",
-      title: "Macter",
-      clientName: "Marcia Mozzato Ciampi De Andrade",
-      priority: "Urgente" as const,
-      status: "In Progress" as const,
-      assignees: ["Rafael Bernardino Silveira"],
-      dueDate: new Date('2025-01-20'),
-      order: 2,
-    },
-    {
-      id: "8",
-      title: "Receber IRPF Fernanda",
-      clientName: "Fernanda Garcia Rodrigues de Souza",
-      priority: "Urgente" as const,
-      status: "In Progress" as const,
-      assignees: ["Rafael Bernardino Silveira"],
-      dueDate: new Date('2025-01-20'),
-      order: 3,
-    },
-    {
-      id: "9",
-      title: "Ajustar luiza",
-      clientName: "Rodrigo Weber Rocha da Silva",
-      priority: "Urgente" as const,
-      status: "In Progress" as const,
-      assignees: ["Rafael Bernardino Silveira", "Carla Mendes"],
-      dueDate: new Date('2025-01-21'),
-      order: 4,
-    },
-  ]);
+  const [tasks, setTasks] = useState<Task[]>(INITIAL_TASKS);
 
   const filteredTasks = tasks.filter(task => {
     const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
