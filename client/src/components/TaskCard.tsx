@@ -596,15 +596,7 @@ function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }: Contex
           </span>
         )}
       </div>
-      <div 
-        onClickCapture={(e) => e.stopPropagation()}
-        onPointerDownCapture={(e) => {
-          // Prevent Radix from closing the context menu when interacting with calendar
-          e.stopPropagation();
-        }}
-        onKeyDownCapture={(e) => e.stopPropagation()}
-        onFocusCapture={(e) => e.stopPropagation()}
-      >
+      <div data-calendar-container>
         <Calendar
           mode="single"
           selected={currentDateValue}
@@ -2201,7 +2193,22 @@ export function TaskCard({
               <span>Data</span>
               {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+            <ContextMenuSubContent 
+              className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
+              onPointerDownOutside={(e) => {
+                // Prevent closing if clicking inside a calendar container
+                const target = e.target as HTMLElement;
+                if (target.closest('[data-calendar-container]')) {
+                  e.preventDefault();
+                }
+              }}
+              onInteractOutside={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('[data-calendar-container]')) {
+                  e.preventDefault();
+                }
+              }}
+            >
               <ContextMenuDateEditor 
                 currentDate={editedTask.dueDate}
                 isBulk={selectedCount > 1}
