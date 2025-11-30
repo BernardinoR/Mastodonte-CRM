@@ -1404,10 +1404,13 @@ export function TaskCard({
 
   const handleAppendTitleSubmit = () => {
     if (!appendTitleText.trim()) return;
+    const textToAppend = appendTitleText.trim();
+    const needsSpace = title.length > 0 && !title.endsWith(" ");
+    const suffix = needsSpace ? " " + textToAppend : textToAppend;
     if (selectedCount > 1 && onBulkAppendTitle) {
-      onBulkAppendTitle(appendTitleText.trim());
+      onBulkAppendTitle(textToAppend);
     } else {
-      onUpdate(id, { title: title + appendTitleText.trim() });
+      onUpdate(id, { title: title + suffix });
     }
     setAppendTitleText("");
     setShowAppendTitleDialog(false);

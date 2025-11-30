@@ -563,15 +563,17 @@ export default function Dashboard() {
   }, [selectedTaskIds, handleClearSelection, setTasksWithHistory]);
 
   // Bulk append title for selected tasks
-  const handleBulkAppendTitle = useCallback((suffix: string) => {
+  const handleBulkAppendTitle = useCallback((textToAppend: string) => {
     // Use ref to get the most current selectedTaskIds
     const currentSelectedIds = selectedTaskIdsRef.current;
     setTasksWithHistory(prevTasks =>
-      prevTasks.map(task =>
-        currentSelectedIds.has(task.id)
-          ? { ...task, title: task.title + suffix }
-          : task
-      )
+      prevTasks.map(task => {
+        if (!currentSelectedIds.has(task.id)) return task;
+        // Add space before suffix if title doesn't end with space
+        const needsSpace = task.title.length > 0 && !task.title.endsWith(" ");
+        const suffix = needsSpace ? " " + textToAppend : textToAppend;
+        return { ...task, title: task.title + suffix };
+      })
     );
   }, [setTasksWithHistory]);
 
