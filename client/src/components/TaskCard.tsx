@@ -2062,6 +2062,83 @@ export function TaskCard({
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
+          {/* 1. Título */}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Type className="w-4 h-4" />
+              <span>Título</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+              <ContextMenuItem 
+                onClick={() => setShowReplaceTitleDialog(true)} 
+                className="flex items-center gap-2"
+              >
+                <Pencil className="w-4 h-4" />
+                <span>Substituir nome</span>
+              </ContextMenuItem>
+              <ContextMenuItem 
+                onClick={() => setShowAppendTitleDialog(true)} 
+                className="flex items-center gap-2"
+              >
+                <PenLine className="w-4 h-4" />
+                <span>Adicionar ao final</span>
+              </ContextMenuItem>
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
+          {/* 2. Data */}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <CalendarIcon className="w-4 h-4" />
+              <span>Data</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent 
+              className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
+              onPointerDownOutside={(e) => {
+                // Prevent closing if clicking inside a calendar container
+                const target = e.target as HTMLElement;
+                if (target.closest('[data-calendar-container]')) {
+                  e.preventDefault();
+                }
+              }}
+              onInteractOutside={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest('[data-calendar-container]')) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              <ContextMenuDateEditor 
+                currentDate={editedTask.dueDate}
+                isBulk={selectedCount > 1}
+                onSelect={(dateString) => {
+                  handleContextDateChange(parseLocalDate(dateString));
+                }}
+              />
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
+          {/* 3. Cliente */}
+          <ContextMenuSub>
+            <ContextMenuSubTrigger className="flex items-center gap-2">
+              <Briefcase className="w-4 h-4" />
+              <span>Cliente</span>
+              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
+            </ContextMenuSubTrigger>
+            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
+              <ContextMenuClientEditor 
+                currentClient={editedTask.clientName || null}
+                isBulk={selectedCount > 1}
+                onSelect={(client) => {
+                  handleContextClientChange(client);
+                }}
+              />
+            </ContextMenuSubContent>
+          </ContextMenuSub>
+          
+          {/* 4. Prioridade */}
           <ContextMenuSub>
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4" />
@@ -2095,6 +2172,8 @@ export function TaskCard({
               </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
+          
+          {/* 5. Status */}
           <ContextMenuSub>
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Circle className="w-4 h-4" />
@@ -2123,10 +2202,11 @@ export function TaskCard({
             </ContextMenuSubContent>
           </ContextMenuSub>
           
+          {/* 6. Responsável */}
           <ContextMenuSub>
             <ContextMenuSubTrigger className="flex items-center gap-2">
               <Users className="w-4 h-4" />
-              <span>Responsáveis</span>
+              <span>Responsável</span>
               {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
             </ContextMenuSubTrigger>
             <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
@@ -2167,79 +2247,6 @@ export function TaskCard({
                   }
                 }}
               />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4" />
-              <span>Cliente</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-              <ContextMenuClientEditor 
-                currentClient={editedTask.clientName || null}
-                isBulk={selectedCount > 1}
-                onSelect={(client) => {
-                  handleContextClientChange(client);
-                }}
-              />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4" />
-              <span>Data</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent 
-              className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
-              onPointerDownOutside={(e) => {
-                // Prevent closing if clicking inside a calendar container
-                const target = e.target as HTMLElement;
-                if (target.closest('[data-calendar-container]')) {
-                  e.preventDefault();
-                }
-              }}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest('[data-calendar-container]')) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              <ContextMenuDateEditor 
-                currentDate={editedTask.dueDate}
-                isBulk={selectedCount > 1}
-                onSelect={(dateString) => {
-                  handleContextDateChange(parseLocalDate(dateString));
-                }}
-              />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Type className="w-4 h-4" />
-              <span>Nome da tarefa</span>
-              {selectedCount > 1 && <span className="ml-auto text-xs text-muted-foreground">({selectedCount})</span>}
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <ContextMenuItem 
-                onClick={() => setShowReplaceTitleDialog(true)} 
-                className="flex items-center gap-2"
-              >
-                <Pencil className="w-4 h-4" />
-                <span>Substituir nome</span>
-              </ContextMenuItem>
-              <ContextMenuItem 
-                onClick={() => setShowAppendTitleDialog(true)} 
-                className="flex items-center gap-2"
-              >
-                <PenLine className="w-4 h-4" />
-                <span>Adicionar ao final</span>
-              </ContextMenuItem>
             </ContextMenuSubContent>
           </ContextMenuSub>
           
