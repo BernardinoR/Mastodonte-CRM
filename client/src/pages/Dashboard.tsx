@@ -468,12 +468,12 @@ export default function Dashboard() {
   };
 
   // Selection handlers
-  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean) => {
+  const handleSelectTask = useCallback((taskId: string, shiftKey: boolean, ctrlKey: boolean) => {
     const clickedTask = tasks.find(t => t.id === taskId);
     const lastTask = lastSelectedId ? tasks.find(t => t.id === lastSelectedId) : null;
     
     if (shiftKey && lastTask && clickedTask) {
-      // Check if same column
+      // Shift+click: Range selection within same column, toggle across columns
       const sameColumn = lastTask.status === clickedTask.status;
       
       if (sameColumn) {
@@ -503,7 +503,7 @@ export default function Dashboard() {
           });
         }
       } else {
-        // Different column: toggle individual selection (add/remove clicked task)
+        // Different column with Shift: toggle individual selection
         setSelectedTaskIds(prev => {
           const newSet = new Set(prev);
           if (newSet.has(taskId)) {
@@ -515,8 +515,8 @@ export default function Dashboard() {
         });
         setLastSelectedId(taskId);
       }
-    } else {
-      // Toggle single selection (first click or no shift)
+    } else if (ctrlKey) {
+      // Ctrl+click: Toggle individual selection (add/remove from current selection)
       setSelectedTaskIds(prev => {
         const newSet = new Set(prev);
         if (newSet.has(taskId)) {
@@ -526,6 +526,10 @@ export default function Dashboard() {
         }
         return newSet;
       });
+      setLastSelectedId(taskId);
+    } else {
+      // Regular click: Select only this card (clear others)
+      setSelectedTaskIds(new Set([taskId]));
       setLastSelectedId(taskId);
     }
   }, [lastSelectedId, tasks, todoTasks, inProgressTasks, doneTasks]);

@@ -89,7 +89,7 @@ interface TaskCardProps {
   isSelected?: boolean;
   selectedCount?: number;
   isDragActive?: boolean;
-  onSelect?: (taskId: string, shiftKey: boolean) => void;
+  onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
   onBulkUpdate?: (updates: any) => void;
@@ -533,11 +533,11 @@ export function TaskCard({
       clickTimeoutRef.current = null;
     }
     
-    // Handle Shift+click for multi-selection
-    if (e.shiftKey && onSelect) {
+    // Handle Shift+click or Ctrl+click for multi-selection
+    if ((e.shiftKey || e.ctrlKey || e.metaKey) && onSelect) {
       e.preventDefault();
       e.stopPropagation();
-      onSelect(id, true);
+      onSelect(id, e.shiftKey, e.ctrlKey || e.metaKey);
       return;
     }
     
