@@ -67,9 +67,19 @@ Preferred communication style: Simple, everyday language.
 /client          - Frontend React application
   /src
     /components  - Reusable UI components
+      /task-editors  - Extracted task editing components (ClientSelector, AssigneeSelector, ContextMenu editors)
     /pages       - Route-level page components
     /lib         - Utilities and configurations
+      /statusConfig.ts  - Centralized status/priority colors and configurations
+      /mock-data.ts     - Initial task data and mock data generators
     /hooks       - Custom React hooks
+      /useTaskHistory.ts    - Undo/redo functionality with Ctrl+Z support
+      /useTaskFilters.ts    - Search, assignee, priority filtering
+      /useTaskSelection.ts  - Multi-select with Shift+click
+      /useTaskDrag.ts       - Cross-column drag with placeholder
+      /useTaskBulkActions.ts - Bulk update/delete operations
+    /types       - TypeScript type definitions
+      /task.ts   - Task, TaskStatus, TaskPriority types
 /server          - Backend Express application
   /routes.ts     - API route definitions
   /storage.ts    - Data persistence layer

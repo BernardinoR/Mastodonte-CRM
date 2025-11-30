@@ -25,11 +25,6 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
-import { useTaskHistory } from "@/hooks/useTaskHistory";
-import { useTaskFilters } from "@/hooks/useTaskFilters";
-import { useTaskSelection } from "@/hooks/useTaskSelection";
-import { useTaskDrag } from "@/hooks/useTaskDrag";
-import { useTaskBulkActions } from "@/hooks/useTaskBulkActions";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
