@@ -20,7 +20,9 @@ import {
   SortableContext, 
   verticalListSortingStrategy,
   arrayMove,
+  useSortable,
 } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type TaskStatus = "To Do" | "In Progress" | "Done";
 type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
@@ -36,6 +38,34 @@ interface Task {
   description?: string;
   notes?: string[];
   order: number;
+}
+
+// Sortable placeholder component for cross-column drops
+// Defined outside of Dashboard to avoid recreating on every render
+function SortablePlaceholder({ id, count }: { id: string; count: number }) {
+  const { 
+    setNodeRef, 
+    transform, 
+    transition,
+  } = useSortable({ id });
+  
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    height: count > 1 ? `${count * 5 + 2}rem` : '5rem',
+  };
+  
+  return (
+    <div 
+      ref={setNodeRef}
+      style={style}
+      className="rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-500/5 flex items-center justify-center pointer-events-none"
+    >
+      <span className="text-blue-400/60 text-sm font-medium">
+        {count > 1 ? `${count} tarefas` : ''}
+      </span>
+    </div>
+  );
 }
 
 export default function Dashboard() {
@@ -185,10 +215,42 @@ export default function Dashboard() {
     [filteredTasks]
   );
   
-  // Task IDs for SortableContext (no projection - cards render in their actual positions)
-  const todoTaskIds = useMemo(() => todoTasks.map(t => t.id), [todoTasks]);
-  const inProgressTaskIds = useMemo(() => inProgressTasks.map(t => t.id), [inProgressTasks]);
-  const doneTaskIds = useMemo(() => doneTasks.map(t => t.id), [doneTasks]);
+  // Task IDs for SortableContext
+  // During cross-column drag, inject a placeholder ID into target column's IDs at the insertion point
+  // This makes the sortable strategy animate cards to make room for the incoming item
+  const todoTaskIds = useMemo(() => {
+    const baseIds = todoTasks.map(t => t.id);
+    if (!crossColumnPlaceholder || crossColumnPlaceholder.targetStatus !== "To Do") {
+      return baseIds;
+    }
+    // Insert placeholder ID at the insertion position
+    const placeholderId = "__placeholder__To Do";
+    const result = [...baseIds];
+    result.splice(crossColumnPlaceholder.insertIndex, 0, placeholderId);
+    return result;
+  }, [todoTasks, crossColumnPlaceholder]);
+  
+  const inProgressTaskIds = useMemo(() => {
+    const baseIds = inProgressTasks.map(t => t.id);
+    if (!crossColumnPlaceholder || crossColumnPlaceholder.targetStatus !== "In Progress") {
+      return baseIds;
+    }
+    const placeholderId = "__placeholder__In Progress";
+    const result = [...baseIds];
+    result.splice(crossColumnPlaceholder.insertIndex, 0, placeholderId);
+    return result;
+  }, [inProgressTasks, crossColumnPlaceholder]);
+  
+  const doneTaskIds = useMemo(() => {
+    const baseIds = doneTasks.map(t => t.id);
+    if (!crossColumnPlaceholder || crossColumnPlaceholder.targetStatus !== "Done") {
+      return baseIds;
+    }
+    const placeholderId = "__placeholder__Done";
+    const result = [...baseIds];
+    result.splice(crossColumnPlaceholder.insertIndex, 0, placeholderId);
+    return result;
+  }, [doneTasks, crossColumnPlaceholder]);
 
   // Helper to update tasks with history tracking
   const setTasksWithHistory = useCallback((updater: (prevTasks: Task[]) => Task[]) => {
@@ -268,15 +330,30 @@ export default function Dashboard() {
     const overId = over.id as string;
     const activeId = active.id as string;
     
+    // Check if hovering over a placeholder - extract column from placeholder ID
+    const isOverPlaceholder = overId.startsWith("__placeholder__");
+    const placeholderColumn = isOverPlaceholder 
+      ? overId.replace("__placeholder__", "") as TaskStatus 
+      : null;
+    
     // Determine if over is a column or a task
     const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
-    const overTask = !isOverColumn ? tasks.find(t => t.id === overId) : null;
+    const overTask = !isOverColumn && !isOverPlaceholder ? tasks.find(t => t.id === overId) : null;
     
     // Get target column for visual feedback
     const activeTask = tasks.find(t => t.id === activeId);
-    const targetStatus: TaskStatus = isOverColumn 
-      ? overId as TaskStatus 
-      : overTask?.status || activeTask?.status || "To Do";
+    
+    // Priority: placeholder column > column ID > over task's column > active task's column
+    let targetStatus: TaskStatus;
+    if (placeholderColumn) {
+      targetStatus = placeholderColumn;
+    } else if (isOverColumn) {
+      targetStatus = overId as TaskStatus;
+    } else if (overTask) {
+      targetStatus = overTask.status;
+    } else {
+      targetStatus = activeTask?.status || "To Do";
+    }
     
     setOverColumnId(targetStatus);
     
@@ -343,7 +420,15 @@ export default function Dashboard() {
         targetColumnTasks = doneTasks;
       }
       
-      if (overTask) {
+      if (isOverPlaceholder) {
+        // Hovering over the placeholder itself - maintain current position
+        if (crossColumnPlaceholder?.targetStatus === targetStatus) {
+          insertIndex = crossColumnPlaceholder.insertIndex;
+        } else {
+          // Shouldn't happen, but fallback to end
+          insertIndex = targetColumnTasks.length;
+        }
+      } else if (overTask) {
         // Hovering over a task - calculate position based on cursor relative to task
         const overIndexInColumn = targetColumnTasks.findIndex(t => t.id === overTask.id);
         if (overIndexInColumn !== -1) {
@@ -765,18 +850,6 @@ export default function Dashboard() {
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
 
-  // Placeholder component for cross-column drops
-  const DropPlaceholder = ({ count }: { count: number }) => (
-    <div 
-      className="h-16 rounded-lg border-2 border-dashed border-blue-500/50 bg-blue-500/10 flex items-center justify-center transition-all duration-200"
-      style={{ minHeight: count > 1 ? `${count * 4 + 4}rem` : '4rem' }}
-    >
-      <span className="text-blue-400 text-sm font-medium">
-        {count > 1 ? `${count} tarefas` : '1 tarefa'}
-      </span>
-    </div>
-  );
-
   // Helper to render tasks with placeholder at correct position for cross-column drag
   const renderTasksWithPlaceholder = (
     columnTasks: Task[],
@@ -807,12 +880,13 @@ export default function Dashboard() {
     }
 
     const { insertIndex, count } = crossColumnPlaceholder;
+    const placeholderId = `__placeholder__${columnStatus}`;
     const elements: JSX.Element[] = [];
     
     columnTasks.forEach((task, index) => {
       // Insert placeholder before this task if at the right index
       if (index === insertIndex) {
-        elements.push(<DropPlaceholder key="placeholder" count={count} />);
+        elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} count={count} />);
       }
       
       elements.push(
@@ -838,7 +912,7 @@ export default function Dashboard() {
     
     // Insert at end if insertIndex is at or beyond the end
     if (insertIndex >= columnTasks.length) {
-      elements.push(<DropPlaceholder key="placeholder" count={count} />);
+      elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} count={count} />);
     }
     
     return elements;
