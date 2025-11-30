@@ -300,30 +300,29 @@ export default function Dashboard() {
     if (overTask && !movingIds.includes(overTask.id)) {
       const overIndex = baseColumnTasks.findIndex(t => t.id === overTask.id);
       if (overIndex !== -1) {
-        // Use pointer position to determine if we're in the top or bottom half of the target card
+        // Use the dragged item's translated rect to determine position relative to target
+        const activeRect = active.rect.current.translated;
         const overRect = over.rect;
-        const overMidpoint = overRect.top + overRect.height / 2;
         
-        // Get pointer Y position using activatorEvent (initial) + delta.y (movement)
-        const activatorEvent = event.activatorEvent as PointerEvent | MouseEvent | TouchEvent;
-        let pointerY: number;
-        
-        if ('clientY' in activatorEvent) {
-          pointerY = activatorEvent.clientY + event.delta.y;
-        } else if ('touches' in activatorEvent && activatorEvent.touches.length > 0) {
-          pointerY = activatorEvent.touches[0].clientY + event.delta.y;
+        if (activeRect) {
+          // Calculate the center of the dragged item
+          const activeCenterY = activeRect.top + activeRect.height / 2;
+          const overMidpoint = overRect.top + overRect.height / 2;
+          
+          // If dragged item center is below target card midpoint, insert after; otherwise insert before
+          if (activeCenterY > overMidpoint) {
+            insertIndex = overIndex + 1;
+          } else {
+            insertIndex = overIndex;
+          }
         } else {
-          // Fallback: insert before
-          insertIndex = overIndex;
-          projectionRef.current = { movingIds, targetStatus, insertIndex };
-          return;
-        }
-        
-        // If pointer is below target card midpoint, insert after; otherwise insert before
-        if (pointerY > overMidpoint) {
-          insertIndex = overIndex + 1;
-        } else {
-          insertIndex = overIndex;
+          // Fallback: use sortable index from over data if available
+          const sortableIndex = over.data?.current?.sortable?.index;
+          if (typeof sortableIndex === 'number') {
+            insertIndex = sortableIndex;
+          } else {
+            insertIndex = overIndex;
+          }
         }
       }
     }
