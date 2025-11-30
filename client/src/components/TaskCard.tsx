@@ -1405,7 +1405,9 @@ export function TaskCard({
   const handleAppendTitleSubmit = () => {
     if (!appendTitleText.trim()) return;
     const textToAppend = appendTitleText.trim();
-    const needsSpace = title.length > 0 && !title.endsWith(" ");
+    // Add space only if: title exists, doesn't end with whitespace, and suffix starts with alphanumeric
+    const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
+    const needsSpace = title.length > 0 && !/\s$/.test(title) && startsWithAlphanumeric;
     const suffix = needsSpace ? " " + textToAppend : textToAppend;
     if (selectedCount > 1 && onBulkAppendTitle) {
       onBulkAppendTitle(textToAppend);

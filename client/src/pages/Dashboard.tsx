@@ -566,11 +566,13 @@ export default function Dashboard() {
   const handleBulkAppendTitle = useCallback((textToAppend: string) => {
     // Use ref to get the most current selectedTaskIds
     const currentSelectedIds = selectedTaskIdsRef.current;
+    // Add space only if suffix starts with alphanumeric character
+    const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task => {
         if (!currentSelectedIds.has(task.id)) return task;
-        // Add space before suffix if title doesn't end with space
-        const needsSpace = task.title.length > 0 && !task.title.endsWith(" ");
+        // Add space before suffix if title doesn't end with whitespace and suffix starts with alphanumeric
+        const needsSpace = task.title.length > 0 && !/\s$/.test(task.title) && startsWithAlphanumeric;
         const suffix = needsSpace ? " " + textToAppend : textToAppend;
         return { ...task, title: task.title + suffix };
       })
