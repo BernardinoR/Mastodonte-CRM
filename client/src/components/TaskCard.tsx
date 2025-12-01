@@ -87,6 +87,21 @@ const getInitials = (name: string): string => {
     .toUpperCase();
 };
 
+const getPriorityClasses = (p: TaskPriority) => {
+  const config = getPriorityConfig(p);
+  return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
+};
+
+const getStatusClasses = (s: TaskStatus) => {
+  const config = getStatusConfig(s);
+  return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
+};
+
+const getAvatarColor = (index: number): string => {
+  const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
+  return colors[index % colors.length];
+};
+
 interface TaskCardProps {
   id: string;
   title: string;
@@ -315,21 +330,6 @@ export function TaskCard({
   };
 
   const shouldHideForDrag = isDragActive && isSelected;
-
-  const getPriorityClasses = (p: TaskPriority) => {
-    const config = getPriorityConfig(p);
-    return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-  };
-
-  const getStatusClasses = (s: TaskStatus) => {
-    const config = getStatusConfig(s);
-    return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-  };
-
-  const getAvatarColor = (index: number): string => {
-    const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
-    return colors[index % colors.length];
-  };
 
   const handleDelete = () => {
     onDelete(id);
