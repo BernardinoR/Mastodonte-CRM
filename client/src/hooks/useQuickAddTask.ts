@@ -41,7 +41,7 @@ export function useQuickAddTask({
     
     const newTask: Task = {
       id: newId,
-      title: "Sem título",
+      title: "",
       status,
       assignees: defaultAssignee ? [defaultAssignee] : [],
       dueDate: new Date(),

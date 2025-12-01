@@ -197,8 +197,16 @@ export function useTaskCardEditing({
       pendingUpdateRef.current = null;
     }
     
+    // If title is empty, set it to "Sem título"
+    const dataToSave = { ...latestDraftRef.current };
+    if (!dataToSave.title.trim()) {
+      dataToSave.title = "Sem título";
+      latestDraftRef.current = dataToSave;
+      setEditedTask(dataToSave);
+    }
+    
     // Always flush the latest draft to ensure data is saved
-    flushUpdate(latestDraftRef.current);
+    flushUpdate(dataToSave);
     
     setActivePopover(null);
     setIsEditing(false);
@@ -261,10 +269,8 @@ export function useTaskCardEditing({
 
   const handleTitleEdit = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
     const newTitle = e.currentTarget.textContent || "";
-    if (newTitle.trim() && newTitle !== editedTask.title) {
-      handleUpdate("title", newTitle.trim());
-    } else if (!newTitle.trim()) {
-      e.currentTarget.textContent = editedTask.title;
+    if (newTitle !== editedTask.title) {
+      handleUpdate("title", newTitle);
     }
   }, [editedTask.title, handleUpdate]);
 
