@@ -25,6 +25,7 @@ import { useTaskHistory } from "@/hooks/useTaskHistory";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
 import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
+import { useQuickAddTask } from "@/hooks/useQuickAddTask";
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -56,6 +57,7 @@ function SortablePlaceholder({ id, count }: { id: string; count: number }) {
 
 export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   
   // Use the task history hook for undo functionality (Ctrl+Z)
   const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
@@ -217,6 +219,30 @@ export default function Dashboard() {
     );
   }, [selectedTaskIds, setTasksWithHistory]);
 
+  // Quick add task callback
+  const handleAddNewTask = useCallback((task: Task) => {
+    setTasksWithHistory(prevTasks => [...prevTasks, task]);
+  }, [setTasksWithHistory]);
+
+  // Use the quick add task hook
+  const { handleQuickAdd } = useQuickAddTask({
+    tasks,
+    onAddTask: handleAddNewTask,
+    onSetEditingTaskId: setEditingTaskId,
+  });
+
+  // Update task without clearing edit mode - edit mode is controlled by explicit finish action
+  const handleUpdateTaskWithClearEdit = useCallback((taskId: string, updates: Partial<Task>) => {
+    handleUpdateTask(taskId, updates);
+  }, [handleUpdateTask]);
+
+  // Explicit action to finish editing a new task
+  const handleFinishEditing = useCallback((taskId: string) => {
+    if (editingTaskId === taskId) {
+      setEditingTaskId(null);
+    }
+  }, [editingTaskId]);
+
   // Get count of selected tasks for DragOverlay
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
@@ -236,9 +262,11 @@ export default function Dashboard() {
           isSelected={selectedTaskIds.has(task.id)}
           selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
           isDragActive={activeTaskId !== null}
+          initialEditMode={editingTaskId === task.id}
           onSelect={handleSelectTask}
-          onUpdate={handleUpdateTask}
+          onUpdate={handleUpdateTaskWithClearEdit}
           onDelete={handleDeleteTask}
+          onFinishEditing={handleFinishEditing}
           onBulkUpdate={handleBulkUpdate}
           onBulkDelete={handleBulkDelete}
           onBulkAppendTitle={handleBulkAppendTitle}
@@ -267,9 +295,11 @@ export default function Dashboard() {
           isSelected={selectedTaskIds.has(task.id)}
           selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
           isDragActive={activeTaskId !== null}
+          initialEditMode={editingTaskId === task.id}
           onSelect={handleSelectTask}
-          onUpdate={handleUpdateTask}
+          onUpdate={handleUpdateTaskWithClearEdit}
           onDelete={handleDeleteTask}
+          onFinishEditing={handleFinishEditing}
           onBulkUpdate={handleBulkUpdate}
           onBulkDelete={handleBulkDelete}
           onBulkAppendTitle={handleBulkAppendTitle}
@@ -339,6 +369,7 @@ export default function Dashboard() {
             color="text-blue-400"
             borderColor="border-[#303030]"
             backgroundColor="bg-[#202020]"
+            onAddTask={handleQuickAdd}
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#64635E]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
@@ -358,6 +389,7 @@ export default function Dashboard() {
             color="text-blue-400"
             borderColor="border-[#1C2027]"
             backgroundColor="bg-[#1C2027]"
+            onAddTask={handleQuickAdd}
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(64,97,145)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
@@ -377,6 +409,7 @@ export default function Dashboard() {
             color="text-green-400"
             borderColor="border-green-700"
             icon={CheckCircle2}
+            onAddTask={handleQuickAdd}
           >
             <SortableContext items={doneTaskIds} strategy={verticalListSortingStrategy}>
               {renderTasksWithPlaceholder(doneTasks, "Done")}

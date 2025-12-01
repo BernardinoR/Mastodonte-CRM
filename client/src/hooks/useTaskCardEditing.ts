@@ -37,6 +37,8 @@ interface UseTaskCardEditingProps {
   dueDate: Date;
   description?: string;
   onUpdate: (taskId: string, updates: any) => void;
+  onFinishEditing?: (taskId: string) => void;
+  initialEditMode?: boolean;
 }
 
 interface UseTaskCardEditingReturn {
@@ -69,6 +71,8 @@ export function useTaskCardEditing({
   dueDate,
   description,
   onUpdate,
+  onFinishEditing,
+  initialEditMode = false,
 }: UseTaskCardEditingProps): UseTaskCardEditingReturn {
   
   const safeAssignees = useMemo(() => {
@@ -78,7 +82,7 @@ export function useTaskCardEditing({
   
   const assigneesKey = useMemo(() => safeAssignees.join(','), [safeAssignees]);
   
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedTask, setEditedTask] = useState<EditedTaskData>(() => ({
     title,
     clientName: clientName || "",
@@ -96,6 +100,23 @@ export function useTaskCardEditing({
   const pendingUpdateRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedRef = useRef<EditedTaskData | null>(null);
   const latestDraftRef = useRef<EditedTaskData>(editedTask);
+  const prevInitialEditModeRef = useRef(initialEditMode);
+  
+  // Sync isEditing with initialEditMode prop changes
+  // Always honor prop transitions from parent
+  useEffect(() => {
+    // Only sync when prop actually changed
+    if (prevInitialEditModeRef.current !== initialEditMode) {
+      const wasEditing = prevInitialEditModeRef.current;
+      prevInitialEditModeRef.current = initialEditMode;
+      setIsEditing(initialEditMode);
+      
+      // If transitioning from editing to not editing, notify parent
+      if (wasEditing && !initialEditMode && onFinishEditing) {
+        onFinishEditing(id);
+      }
+    }
+  }, [initialEditMode, onFinishEditing, id]);
 
   useEffect(() => {
     setEditedTask(prev => {
@@ -152,7 +173,8 @@ export function useTaskCardEditing({
         clearTimeout(pendingUpdateRef.current);
       }
       
-      const isTextFieldEdit = field === 'title' || field === 'description';
+      const isTitleEdit = field === 'title';
+      const isTextFieldEdit = isTitleEdit || field === 'description';
       const debounceTime = isTextFieldEdit ? 300 : 0;
       
       if (debounceTime > 0) {
@@ -169,16 +191,23 @@ export function useTaskCardEditing({
   }, [flushUpdate]);
 
   const handleSave = useCallback(() => {
+    // Clear any pending debounced updates
     if (pendingUpdateRef.current) {
       clearTimeout(pendingUpdateRef.current);
       pendingUpdateRef.current = null;
-      
-      flushUpdate(latestDraftRef.current);
     }
+    
+    // Always flush the latest draft to ensure data is saved
+    flushUpdate(latestDraftRef.current);
     
     setActivePopover(null);
     setIsEditing(false);
-  }, [flushUpdate]);
+    
+    // Always notify parent that editing is finished
+    if (onFinishEditing) {
+      onFinishEditing(id);
+    }
+  }, [flushUpdate, onFinishEditing, id]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

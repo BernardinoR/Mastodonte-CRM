@@ -75,9 +75,11 @@ interface TaskCardProps {
   isSelected?: boolean;
   selectedCount?: number;
   isDragActive?: boolean;
+  initialEditMode?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
+  onFinishEditing?: (taskId: string) => void;
   onBulkUpdate?: (updates: any) => void;
   onBulkDelete?: () => void;
   onBulkAppendTitle?: (suffix: string) => void;
@@ -100,9 +102,11 @@ export function TaskCard({
   isSelected = false,
   selectedCount = 0,
   isDragActive = false,
+  initialEditMode = false,
   onSelect,
   onUpdate,
   onDelete,
+  onFinishEditing,
   onBulkUpdate,
   onBulkDelete,
   onBulkAppendTitle,
@@ -140,6 +144,8 @@ export function TaskCard({
     dueDate,
     description,
     onUpdate,
+    onFinishEditing,
+    initialEditMode,
   });
   
   const updateAssigneesInEditedTask = useCallback((newAssignees: string[]) => {
