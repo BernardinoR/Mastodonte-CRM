@@ -58,73 +58,77 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div 
       ref={setNodeRef}
-      className={cn(
-        "w-[340px] shrink-0 rounded-lg transition-all duration-200 flex flex-col",
-        borderColor && `border-2 ${borderColor}`,
-        backgroundColor,
-        isOver && "ring-2 ring-accent ring-inset"
-      )}
+      className="w-[340px] shrink-0 min-h-[500px]"
     >
-      <div className="flex items-center justify-between p-3 pb-2">
-        <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}>
-          {customIcon ? customIcon : Icon && <Icon className="w-4 h-4" />}
-          <span>{title}</span>
-          <Badge variant="secondary" className="text-xs ml-1">
-            {count}
-          </Badge>
-        </div>
-        {onAddTaskTop && (
-          <button
-            className="flex items-center justify-center w-6 h-6 rounded transition-colors"
-            style={{
-              color: addButtonTextColor,
-              backgroundColor: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              if (addButtonHoverBgColor) {
-                e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-            onClick={handleAddTopClick}
-            data-testid={`button-add-task-top-${id}`}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        )}
-      </div>
       <div 
         className={cn(
-          "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200 flex-1 min-h-[200px]",
-          isOver && "bg-accent/10"
+          "w-full rounded-lg transition-all duration-200",
+          borderColor && `border-2 ${borderColor}`,
+          backgroundColor,
+          isOver && "ring-2 ring-accent ring-inset"
         )}
       >
-        {children}
-        
-        {onAddTask && (
-          <button
-            className="w-full flex items-center justify-start gap-2 h-9 px-3 rounded-md transition-colors"
-            style={{
-              color: addButtonTextColor,
-              backgroundColor: 'transparent',
-            }}
-            onMouseEnter={(e) => {
-              if (addButtonHoverBgColor) {
-                e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = 'transparent';
-            }}
-            onClick={handleAddClick}
-            data-testid={`button-add-task-${id}`}
-          >
-            <Plus className="w-4 h-4" />
-            <span>Nova task</span>
-          </button>
-        )}
+        <div className="flex items-center justify-between p-3 pb-2">
+          <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}>
+            {customIcon ? customIcon : Icon && <Icon className="w-4 h-4" />}
+            <span>{title}</span>
+            <Badge variant="secondary" className="text-xs ml-1">
+              {count}
+            </Badge>
+          </div>
+          {onAddTaskTop && (
+            <button
+              className="flex items-center justify-center w-6 h-6 rounded transition-colors"
+              style={{
+                color: addButtonTextColor,
+                backgroundColor: 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (addButtonHoverBgColor) {
+                  e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              onClick={handleAddTopClick}
+              data-testid={`button-add-task-top-${id}`}
+            >
+              <Plus className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+        <div 
+          className={cn(
+            "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200",
+            isOver && "bg-accent/10"
+          )}
+        >
+          {children}
+          
+          {onAddTask && (
+            <button
+              className="w-full flex items-center justify-start gap-2 h-9 px-3 rounded-md transition-colors"
+              style={{
+                color: addButtonTextColor,
+                backgroundColor: 'transparent',
+              }}
+              onMouseEnter={(e) => {
+                if (addButtonHoverBgColor) {
+                  e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              onClick={handleAddClick}
+              data-testid={`button-add-task-${id}`}
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nova task</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
