@@ -17,6 +17,7 @@ interface KanbanColumnProps {
   icon?: LucideIcon;
   customIcon?: React.ReactNode;
   onAddTask?: (status: TaskStatus) => void;
+  onAddTaskTop?: (status: TaskStatus) => void;
   addButtonTextColor?: string;
   addButtonHoverBgColor?: string;
 }
@@ -32,6 +33,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   icon: Icon, 
   customIcon,
   onAddTask,
+  onAddTaskTop,
   addButtonTextColor,
   addButtonHoverBgColor,
 }: KanbanColumnProps) {
@@ -45,6 +47,13 @@ export const KanbanColumn = memo(function KanbanColumn({
       onAddTask(id as TaskStatus);
     }
   }, [onAddTask, id]);
+
+  const handleAddTopClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onAddTaskTop) {
+      onAddTaskTop(id as TaskStatus);
+    }
+  }, [onAddTaskTop, id]);
 
   return (
     <div 
@@ -63,6 +72,27 @@ export const KanbanColumn = memo(function KanbanColumn({
             {count}
           </Badge>
         </div>
+        {onAddTaskTop && (
+          <button
+            className="flex items-center justify-center w-6 h-6 rounded transition-colors"
+            style={{
+              color: addButtonTextColor,
+              backgroundColor: 'transparent',
+            }}
+            onMouseEnter={(e) => {
+              if (addButtonHoverBgColor) {
+                e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+            onClick={handleAddTopClick}
+            data-testid={`button-add-task-top-${id}`}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        )}
       </div>
       <div 
         ref={setNodeRef}
