@@ -31,8 +31,8 @@ import {
 } from "@/components/ui/context-menu";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
+import { AssigneeList, getInitials } from "@/components/ui/task-assignees";
 import {
   CalendarIcon,
   Pencil,
@@ -63,21 +63,6 @@ import { TaskCardContextMenu } from "@/components/task-context-menu";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
-const getInitials = (name: string): string => {
-  return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
-    .substring(0, 2)
-    .toUpperCase();
-};
-
-
-const getAvatarColor = (index: number): string => {
-  const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
-  return colors[index % colors.length];
-};
-
 interface TaskCardProps {
   id: string;
   title: string;
@@ -102,61 +87,6 @@ interface TaskCardProps {
   onBulkSetAssignees?: (assignees: string[]) => void;
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
-
-interface AssigneeListProps {
-  assignees: string[];
-  isEditing: boolean;
-  taskId: string;
-}
-
-const AssigneeList = memo(function AssigneeList({ 
-  assignees, 
-  isEditing, 
-  taskId
-}: AssigneeListProps) {
-  if (assignees.length === 0) {
-    return (
-      <span 
-        className="inline-flex px-2 py-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
-        data-testid={`button-add-assignee-${taskId}`}
-      >
-        + Adicionar Responsável
-      </span>
-    );
-  }
-
-  return (
-    <div className="space-y-0.5">
-      {assignees.map((assignee, index) => {
-        const consultant = MOCK_RESPONSIBLES.find(c => c.name === assignee);
-        const grayColor = consultant?.grayColor || "bg-gray-600";
-        return (
-          <div 
-            key={index} 
-            className={cn(
-              "flex items-center gap-2 rounded-full group/edit-assignee",
-              isEditing ? "px-2 py-0.5" : "py-0.5",
-              "hover:bg-gray-700/80"
-            )}
-          >
-            <Avatar className="w-6 h-6 shrink-0">
-              <AvatarFallback className={cn("text-[10px] font-normal text-white", grayColor)}>
-                {getInitials(assignee)}
-              </AvatarFallback>
-            </Avatar>
-            <span 
-              className="text-[13px] font-normal flex-1" 
-              data-testid={index === 0 ? `text-assignee-${taskId}` : undefined}
-            >
-              {assignee}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-});
-
 
 export function TaskCard({
   id,
