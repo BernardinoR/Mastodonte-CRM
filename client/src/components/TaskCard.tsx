@@ -28,12 +28,6 @@ import {
 } from "@/components/ui/popover";
 import {
   ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,7 +35,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import {
-  Calendar as CalendarIcon,
+  CalendarIcon,
   Pencil,
   Trash2,
   Check,
@@ -49,14 +43,6 @@ import {
   X,
   Search,
   User,
-  AlertTriangle,
-  Circle,
-  Users,
-  Type,
-  Briefcase,
-  PenLine,
-  ChevronLeft,
-  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
@@ -67,16 +53,15 @@ import { CSS } from "@dnd-kit/utilities";
 import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { 
   ClientSelector, 
-  ContextMenuClientEditor,
-  ContextMenuDateEditor,
-  AssigneeSelector,
-  ContextMenuAssigneeEditor
+  AssigneeSelector
 } from "@/components/task-editors";
 import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
+import { TaskDatePopover } from "@/components/task-popovers";
+import { TaskCardContextMenu } from "@/components/task-context-menu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 const getInitials = (name: string): string => {
@@ -401,6 +386,13 @@ export function TaskCard({
     setActivePopover(null);
   }, [handleUpdate]);
 
+  const cancelClickTimeout = useCallback(() => {
+    if (clickTimeoutRef.current) {
+      clearTimeout(clickTimeoutRef.current);
+      clickTimeoutRef.current = null;
+    }
+  }, []);
+
   // Calculate overdue status for Card border styling
   const today = startOfDay(new Date());
   let isOverdue = false;
@@ -513,66 +505,15 @@ export function TaskCard({
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
-                <Popover open={activePopover === "date"} onOpenChange={(open) => setActivePopover(open ? "date" : null)}>
-                  <PopoverTrigger asChild>
-                    <span 
-                      className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                      }}
-                      data-testid={`text-date-${id}`}
-                    >
-                      <CalendarIcon className="w-3.5 h-3.5" />
-                      {format(parseLocalDate(editedTask.dueDate), "dd/MM/yyyy", { locale: ptBR })}
-                    </span>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    ref={datePopoverContentRef}
-                    className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                    side="bottom" 
-                    align="start" 
-                    sideOffset={6} 
-                    avoidCollisions={true} 
-                    collisionPadding={8}
-                    onInteractOutside={(e) => {
-                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      const target = originalTarget || (e.target as HTMLElement);
-                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onPointerDownOutside={(e) => {
-                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      const target = originalTarget || (e.target as HTMLElement);
-                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onFocusOutside={(e) => {
-                      const originalTarget = (e as any).detail?.originalEvent?.target as HTMLElement | null;
-                      const target = originalTarget || (e.target as HTMLElement);
-                      if (datePopoverContentRef.current?.contains(target) || target?.closest('.rdp')) {
-                        e.preventDefault();
-                      }
-                    }}
-                  >
-                    <DateInput
-                      value={editedTask.dueDate}
-                      onChange={(date) => {
-                        handleDateChange(date);
-                        setActivePopover(null);
-                      }}
-                      className="font-semibold"
-                      dataTestId={`input-date-${id}`}
-                      hideIcon
-                      commitOnInput={false}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <TaskDatePopover
+                  id={id}
+                  dateValue={editedTask.dueDate}
+                  isOpen={activePopover === "date"}
+                  onOpenChange={(open) => setActivePopover(open ? "date" : null)}
+                  onDateChange={handleDateChange}
+                  onStopPropagation={cancelClickTimeout}
+                  popoverRef={datePopoverContentRef}
+                />
               </div>
               
               {/* Linha 3: Cliente - Only show if has client or in edit mode */}
@@ -1037,178 +978,22 @@ export function TaskCard({
             </Card>
           </div>
         </ContextMenuTrigger>
-        <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
-          {/* Header for multi-selection */}
-          {selectedCount > 1 && (
-            <>
-              <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
-                Selecionando {selectedCount} tarefas
-              </div>
-              <ContextMenuSeparator className="bg-[#2a2a2a]" />
-            </>
-          )}
-          
-          {/* 1. Título */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Type className="w-4 h-4" />
-              <span>Título</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <ContextMenuItem 
-                onClick={() => setShowReplaceTitleDialog(true)} 
-                className="flex items-center gap-2"
-              >
-                <Pencil className="w-4 h-4" />
-                <span>Substituir nome</span>
-              </ContextMenuItem>
-              <ContextMenuItem 
-                onClick={() => setShowAppendTitleDialog(true)} 
-                className="flex items-center gap-2"
-              >
-                <PenLine className="w-4 h-4" />
-                <span>Adicionar ao final</span>
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          {/* 2. Data */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <CalendarIcon className="w-4 h-4" />
-              <span>Data</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent 
-              className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
-              onPointerDownOutside={(e) => {
-                // Prevent closing if clicking inside a calendar container
-                const target = e.target as HTMLElement;
-                if (target.closest('[data-calendar-container]')) {
-                  e.preventDefault();
-                }
-              }}
-              onInteractOutside={(e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest('[data-calendar-container]')) {
-                  e.preventDefault();
-                }
-              }}
-            >
-              <ContextMenuDateEditor 
-                currentDate={editedTask.dueDate}
-                isBulk={selectedCount > 1}
-                onSelect={(dateString) => {
-                  handleContextDateChange(parseLocalDate(dateString));
-                }}
-              />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          {/* 3. Cliente */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Briefcase className="w-4 h-4" />
-              <span>Cliente</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-              <ContextMenuClientEditor 
-                currentClient={editedTask.clientName || null}
-                isBulk={selectedCount > 1}
-                onSelect={(client) => {
-                  handleContextClientChange(client);
-                }}
-              />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          {/* 4. Prioridade */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4" />
-              <span>Prioridade</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <ContextMenuItem onClick={() => handleContextPriorityChange("Urgente")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-200 mr-1" />
-                  Urgente
-                </Badge>
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => handleContextPriorityChange("Importante")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-orange-200 mr-1" />
-                  Importante
-                </Badge>
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => handleContextPriorityChange("Normal")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-200 mr-1" />
-                  Normal
-                </Badge>
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => handleContextPriorityChange("Baixa")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200 mr-1" />
-                  Baixa
-                </Badge>
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          {/* 5. Status */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Circle className="w-4 h-4" />
-              <span>Status</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-              <ContextMenuItem onClick={() => handleContextStatusChange("To Do")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86] mr-1" />
-                  To Do
-                </Badge>
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => handleContextStatusChange("In Progress")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)] mr-1" />
-                  In Progress
-                </Badge>
-              </ContextMenuItem>
-              <ContextMenuItem onClick={() => handleContextStatusChange("Done")} className="flex items-center gap-2">
-                <Badge variant="outline" className="bg-green-900 text-white border-green-900 text-[10px] px-2 py-[2px] rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-200 mr-1" />
-                  Done
-                </Badge>
-              </ContextMenuItem>
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          {/* 6. Responsável */}
-          <ContextMenuSub>
-            <ContextMenuSubTrigger className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              <span>Responsável</span>
-            </ContextMenuSubTrigger>
-            <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-              <ContextMenuAssigneeEditor 
-                currentAssignees={editedTask.assignees || []}
-                isBulk={selectedCount > 1}
-                onAdd={handleContextAddAssignee}
-                onRemove={handleContextRemoveAssignee}
-                onSetSingle={handleContextSetSingleAssignee}
-              />
-            </ContextMenuSubContent>
-          </ContextMenuSub>
-          
-          <ContextMenuSeparator className="bg-[#2a2a2a]" />
-          <ContextMenuItem 
-            onClick={handleContextDelete} 
-            className="flex items-center gap-2 text-destructive focus:text-destructive"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Excluir</span>
-          </ContextMenuItem>
-        </ContextMenuContent>
+        <TaskCardContextMenu
+          selectedCount={selectedCount}
+          currentDate={editedTask.dueDate}
+          currentClient={editedTask.clientName || ""}
+          currentAssignees={editedTask.assignees || []}
+          onShowReplaceTitleDialog={() => setShowReplaceTitleDialog(true)}
+          onShowAppendTitleDialog={() => setShowAppendTitleDialog(true)}
+          onDateChange={handleContextDateChange}
+          onClientChange={handleContextClientChange}
+          onPriorityChange={handleContextPriorityChange}
+          onStatusChange={handleContextStatusChange}
+          onAddAssignee={handleContextAddAssignee}
+          onRemoveAssignee={handleContextRemoveAssignee}
+          onSetSingleAssignee={handleContextSetSingleAssignee}
+          onDelete={handleContextDelete}
+        />
       </ContextMenu>
       <Dialog open={showDetails} onOpenChange={setShowDetails}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
