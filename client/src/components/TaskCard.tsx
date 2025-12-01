@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { useState, useRef, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -36,13 +36,6 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -58,23 +51,20 @@ import {
   User,
   AlertTriangle,
   Circle,
-  CheckCircle2,
   Users,
   Type,
   Briefcase,
-  UserPlus,
   PenLine,
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { format, startOfDay, isBefore, parse, isValid, setYear } from "date-fns";
+import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { parseLocalDate, formatLocalDate } from "@/lib/date-utils";
+import { parseLocalDate } from "@/lib/date-utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { MOCK_USERS, MOCK_RESPONSIBLES } from "@/lib/mock-users";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
+import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { 
   ClientSelector, 
   ContextMenuClientEditor,
@@ -82,7 +72,8 @@ import {
   AssigneeSelector,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
-import { STATUS_CONFIG, PRIORITY_CONFIG, getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
+import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
+import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TaskCardProps {
@@ -110,8 +101,6 @@ interface TaskCardProps {
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
 
-// Global flag to prevent click events after closing edit mode
-let globalJustClosedEdit = false;
 
 
 
@@ -142,30 +131,38 @@ export function TaskCard({
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   
-  // Memoize safeAssignees to prevent infinite re-renders
-  const safeAssignees = useMemo(() => {
-    if (!assignees) return [];
-    return Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
-  }, [assignees]);
+  const {
+    isEditing,
+    setIsEditing,
+    editedTask,
+    setEditedTask,
+    activePopover,
+    setActivePopover,
+    cardRef,
+    titleRef,
+    clickTimeoutRef,
+    handleUpdate,
+    handleTitleEdit,
+    handleEditClick,
+    handleCloseEditing,
+    isJustClosedEdit,
+    safeAssignees,
+  } = useTaskCardEditing({
+    id,
+    title,
+    clientName,
+    priority,
+    status,
+    assignees,
+    dueDate,
+    description,
+    onUpdate,
+  });
   
-  // Serialize assignees for useEffect dependency (stable string comparison)
-  const assigneesKey = useMemo(() => safeAssignees.join(','), [safeAssignees]);
-  
-  const [isEditing, setIsEditing] = useState(false);
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [editedTask, setEditedTask] = useState(() => ({
-    title,
-    clientName: clientName || "",
-    priority: priority || "",
-    status,
-    assignees: [...safeAssignees],
-    dueDate: format(dueDate, "yyyy-MM-dd"),
-    description: description || "",
-  }));
   const [newNote, setNewNote] = useState("");
   const [newAssigneeName, setNewAssigneeName] = useState("");
-  const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | "assignee" | null>(null);
   
   const [showReplaceTitleDialog, setShowReplaceTitleDialog] = useState(false);
   const [showAppendTitleDialog, setShowAppendTitleDialog] = useState(false);
@@ -173,41 +170,7 @@ export function TaskCard({
   const [appendTitleText, setAppendTitleText] = useState("");
   const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
   
-  const cardRef = useRef<HTMLDivElement>(null);
-  const titleRef = useRef<HTMLDivElement>(null);
-  const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
-
-  // Sync editedTask with props using stable dependency
-  useEffect(() => {
-    setEditedTask(prev => {
-      const newAssignees = safeAssignees;
-      const newDueDate = format(dueDate, "yyyy-MM-dd");
-      
-      // Only update if values actually changed
-      if (
-        prev.title === title &&
-        prev.clientName === (clientName || "") &&
-        prev.priority === (priority || "") &&
-        prev.status === status &&
-        prev.assignees.join(',') === newAssignees.join(',') &&
-        prev.dueDate === newDueDate &&
-        prev.description === (description || "")
-      ) {
-        return prev;
-      }
-      
-      return {
-        title,
-        clientName: clientName || "",
-        priority: priority || "",
-        status,
-        assignees: [...newAssignees],
-        dueDate: newDueDate,
-        description: description || "",
-      };
-    });
-  }, [title, clientName, priority, status, assigneesKey, dueDate, description, safeAssignees]);
 
   const { 
     attributes, 
@@ -236,80 +199,6 @@ export function TaskCard({
   const getStatusClasses = (s: TaskStatus) => {
     const config = getStatusConfig(s);
     return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-  };
-
-  const handleSave = () => {
-    // Close all popovers when exiting edit mode
-    setActivePopover(null);
-    setIsEditing(false);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as HTMLElement;
-      
-      // Check if click is inside any Radix portal using composedPath
-      const path = event.composedPath();
-      const isPortal = path.some((element) => {
-        if (element instanceof HTMLElement) {
-          return (
-            // react-day-picker calendar
-            (element.hasAttribute('data-radix-portal') ||
-            element.hasAttribute('data-popover-portal') ||
-            element.getAttribute('role') === 'dialog' ||
-            element.getAttribute('role') === 'listbox' ||
-            element.getAttribute('role') === 'menu' ||
-            element.classList.contains('date-input-calendar-popover') ||
-            // Also check for Radix Popover specific classes
-            element.hasAttribute('data-radix-popper-content-wrapper') || element.classList.contains('rdp'))
-          );
-        }
-        return false;
-      });
-      
-      if (isEditing && cardRef.current && !cardRef.current.contains(target) && !isPortal) {
-        // Set flag FIRST to prevent any card clicks in the same event cycle
-        globalJustClosedEdit = true;
-        setTimeout(() => {
-          globalJustClosedEdit = false;
-        }, 300);
-        
-        // Stop propagation to prevent click from reaching other elements
-        event.preventDefault();
-        event.stopPropagation();
-        event.stopImmediatePropagation();
-        
-        handleSave();
-      }
-    };
-
-    if (isEditing) {
-      document.addEventListener("mousedown", handleClickOutside, true);
-      document.addEventListener("click", handleClickOutside, true);
-      return () => {
-        document.removeEventListener("mousedown", handleClickOutside, true);
-        document.removeEventListener("click", handleClickOutside, true);
-      };
-    }
-  }, [isEditing]);
-
-  const handleUpdate = (field: string, value: any) => {
-    const updated = { ...editedTask, [field]: value };
-    setEditedTask(updated);
-    
-    // Auto-save immediately on field change
-    // Always derive the date from the updated state (not from props)
-    // Parse if non-empty, otherwise use the original prop as fallback
-    const parsedDueDate = updated.dueDate ? parseLocalDate(updated.dueDate) : dueDate;
-    
-    onUpdate(id, {
-      title: updated.title,
-      clientName: updated.clientName || undefined,
-      priority: (updated.priority as TaskPriority) || undefined,
-      status: updated.status as TaskStatus,
-      assignees: updated.assignees,
-      dueDate: parsedDueDate,
-    });
   };
 
   const getInitials = (name: string): string => {
@@ -397,7 +286,7 @@ export function TaskCard({
       target.closest('[role="combobox"]') ||
       target.closest('[data-radix-collection-item]');
     
-    if (!isInteractiveElement && !globalJustClosedEdit) {
+    if (!isInteractiveElement && !isJustClosedEdit()) {
       // Set a timeout to open details modal only if not followed by a double click or edit mode
       clickTimeoutRef.current = setTimeout(() => {
         // Double check we're still not in edit mode when timeout fires
@@ -408,29 +297,6 @@ export function TaskCard({
       }, 250);
     }
   };
-
-  const handleEditClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    // Clear the single click timeout to prevent modal from opening
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-    
-    setIsEditing(true);
-  };
-
-  const handleTitleEdit = (e: React.FocusEvent<HTMLDivElement>) => {
-    const newTitle = e.currentTarget.textContent || "";
-    if (newTitle.trim() && newTitle !== editedTask.title) {
-      handleUpdate("title", newTitle.trim());
-    } else if (!newTitle.trim()) {
-      // Restore original title if empty
-      e.currentTarget.textContent = editedTask.title;
-    }
-  };
-
 
   const handleDateChange = (date: Date | undefined) => {
     if (date) {
@@ -632,7 +498,7 @@ export function TaskCard({
                     "h-8 w-8 shrink-0",
                     !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
                   )}
-                  onClick={isEditing ? (e) => { e.stopPropagation(); setIsEditing(false); } : handleEditClick}
+                  onClick={isEditing ? (e) => { e.stopPropagation(); handleCloseEditing(); } : handleEditClick}
                   data-testid={`button-edit-${id}`}
                 >
                   {isEditing ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
