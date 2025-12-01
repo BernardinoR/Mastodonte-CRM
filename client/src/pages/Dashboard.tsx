@@ -370,6 +370,8 @@ export default function Dashboard() {
             borderColor="border-[#303030]"
             backgroundColor="bg-[#202020]"
             onAddTask={handleQuickAdd}
+            addButtonBgColor="#64635E"
+            addButtonHoverBgColor="#262626"
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#64635E]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
@@ -390,6 +392,8 @@ export default function Dashboard() {
             borderColor="border-[#1C2027]"
             backgroundColor="bg-[#1C2027]"
             onAddTask={handleQuickAdd}
+            addButtonBgColor="rgb(64,97,145)"
+            addButtonHoverBgColor="#243041"
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(64,97,145)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
@@ -410,6 +414,8 @@ export default function Dashboard() {
             borderColor="border-[rgb(27,33,29)]"
             backgroundColor="bg-[rgb(27,33,29)]"
             onAddTask={handleQuickAdd}
+            addButtonBgColor="rgb(56,108,78)"
+            addButtonHoverBgColor="rgb(35,43,38)"
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(56,108,78)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(70,161,113)]" />
