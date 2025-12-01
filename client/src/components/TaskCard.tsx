@@ -74,6 +74,7 @@ import {
 } from "@/components/task-editors";
 import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
+import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TaskCardProps {
@@ -159,10 +160,33 @@ export function TaskCard({
     onUpdate,
   });
   
+  const updateAssigneesInEditedTask = (newAssignees: string[]) => {
+    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
+  };
+  
+  const {
+    newAssigneeName,
+    setNewAssigneeName,
+    addAssignee,
+    removeAssignee,
+    handleAddFromInput: handleAddAssignee,
+    handleContextAdd: handleContextAddAssignee,
+    handleContextRemove: handleContextRemoveAssignee,
+    handleContextSetSingle: handleContextSetSingleAssignee,
+  } = useTaskAssignees({
+    taskId: id,
+    assignees: editedTask.assignees,
+    selectedCount,
+    onUpdate,
+    onBulkAddAssignee,
+    onBulkRemoveAssignee,
+    onBulkSetAssignees,
+    updateEditedTask: updateAssigneesInEditedTask,
+  });
+  
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [newNote, setNewNote] = useState("");
-  const [newAssigneeName, setNewAssigneeName] = useState("");
   
   const [showReplaceTitleDialog, setShowReplaceTitleDialog] = useState(false);
   const [showAppendTitleDialog, setShowAppendTitleDialog] = useState(false);
@@ -213,35 +237,6 @@ export function TaskCard({
   const getAvatarColor = (index: number): string => {
     const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
     return colors[index % colors.length];
-  };
-
-  const handleAddAssignee = () => {
-    const trimmedName = newAssigneeName.trim();
-    
-    // Prevent empty submissions
-    if (!trimmedName) {
-      return;
-    }
-    
-    // Prevent duplicates (case-insensitive, normalized spacing)
-    const isDuplicate = editedTask.assignees.some(
-      existing => existing.toLowerCase().replace(/\s+/g, ' ') === trimmedName.toLowerCase().replace(/\s+/g, ' ')
-    );
-    
-    if (isDuplicate) {
-      setNewAssigneeName("");
-      return;
-    }
-    
-    handleUpdate("assignees", [...editedTask.assignees, trimmedName]);
-    setNewAssigneeName("");
-  };
-
-  const handleRemoveAssignee = (assigneeToRemove: string) => {
-    // Sempre manter pelo menos 1 responsável
-    if (editedTask.assignees.length > 1) {
-      handleUpdate("assignees", editedTask.assignees.filter(a => a !== assigneeToRemove));
-    }
   };
 
   const handleDelete = () => {
@@ -387,17 +382,6 @@ export function TaskCard({
       onUpdate(id, { dueDate: newDate });
     }
     setShowBulkDatePicker(false);
-  };
-
-  const handleContextAddAssignee = (assignee: string) => {
-    if (selectedCount > 1 && onBulkAddAssignee) {
-      onBulkAddAssignee(assignee);
-    } else {
-      const newAssignees = editedTask.assignees.includes(assignee) 
-        ? editedTask.assignees 
-        : [...editedTask.assignees, assignee];
-      onUpdate(id, { assignees: newAssignees });
-    }
   };
 
   const handleReplaceTitleSubmit = () => {
@@ -1059,14 +1043,8 @@ export function TaskCard({
                   >
                     <AssigneeSelector 
                       selectedAssignees={editedTask.assignees}
-                      onSelect={(assignee) => {
-                        handleUpdate("assignees", [...editedTask.assignees, assignee]);
-                      }}
-                      onRemove={(assignee) => {
-                        if (editedTask.assignees.length > 1) {
-                          handleUpdate("assignees", editedTask.assignees.filter(a => a !== assignee));
-                        }
-                      }}
+                      onSelect={addAssignee}
+                      onRemove={removeAssignee}
                     />
                   </PopoverContent>
                 </Popover>
@@ -1231,39 +1209,9 @@ export function TaskCard({
               <ContextMenuAssigneeEditor 
                 currentAssignees={editedTask.assignees || []}
                 isBulk={selectedCount > 1}
-                onAdd={(assignee) => {
-                  // ContextMenuAssigneeEditor handles setTimeout internally
-                  if (selectedCount > 1 && onBulkAddAssignee) {
-                    onBulkAddAssignee(assignee);
-                  } else {
-                    const currentAssignees = editedTask.assignees || [];
-                    if (!currentAssignees.includes(assignee)) {
-                      const newAssignees = [...currentAssignees, assignee];
-                      setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                      onUpdate(id, { assignees: newAssignees });
-                    }
-                  }
-                }}
-                onRemove={(assignee) => {
-                  // ContextMenuAssigneeEditor handles setTimeout internally
-                  if (selectedCount > 1 && onBulkRemoveAssignee) {
-                    onBulkRemoveAssignee(assignee);
-                  } else {
-                    const currentAssignees = editedTask.assignees || [];
-                    const newAssignees = currentAssignees.filter(a => a !== assignee);
-                    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-                    onUpdate(id, { assignees: newAssignees });
-                  }
-                }}
-                onSetSingle={(assignee) => {
-                  // ContextMenuAssigneeEditor handles setTimeout internally
-                  if (selectedCount > 1 && onBulkSetAssignees) {
-                    onBulkSetAssignees([assignee]);
-                  } else {
-                    setEditedTask(prev => ({ ...prev, assignees: [assignee] }));
-                    onUpdate(id, { assignees: [assignee] });
-                  }
-                }}
+                onAdd={handleContextAddAssignee}
+                onRemove={handleContextRemoveAssignee}
+                onSetSingle={handleContextSetSingleAssignee}
               />
             </ContextMenuSubContent>
           </ContextMenuSub>
