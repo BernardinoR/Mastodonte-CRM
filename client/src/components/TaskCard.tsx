@@ -58,9 +58,8 @@ import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
-import { TaskDatePopover } from "@/components/task-popovers";
+import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TaskCardProps {
@@ -548,158 +547,25 @@ export function TaskCard({
               ) : null}
               
               {/* Linha 4: Prioridade */}
-              <div className={cn("flex items-center gap-1.5 text-xs md:text-sm", isEditing && "-mx-2")}>
-                {/* Priority Badge - Always clickable */}
-                {priority ? (
-                  <div className={cn(
-                    "inline-flex items-center gap-1 rounded-full",
-                    isEditing ? "px-2 py-0.5 group/edit-priority hover:bg-gray-700/80" : ""
-                  )}>
-                    <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                      <PopoverTrigger asChild>
-                        <div
-                          onClick={(e: React.MouseEvent) => {
-                            e.stopPropagation();
-                            if (clickTimeoutRef.current) {
-                              clearTimeout(clickTimeoutRef.current);
-                              clickTimeoutRef.current = null;
-                            }
-                          }}
-                        >
-                          <PriorityBadge 
-                            priority={priority}
-                            className="cursor-pointer hover:bg-muted/50"
-                            data-testid={`badge-priority-${id}`}
-                          />
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                        <div className="w-full">
-                          <div className="border-b border-[#2a2a2a]">
-                            <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-                            <div className="px-3 py-1">
-                              <div 
-                                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
-                                onClick={(e) => { e.stopPropagation(); handlePriorityChange("_none"); }}
-                              >
-                                <PriorityBadge priority={priority} />
-                                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
-                              </div>
-                            </div>
-                          </div>
-                          <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
-                          <div className="pb-1">
-                            {PRIORITY_OPTIONS.filter(p => p !== priority).map(p => (
-                              <div
-                                key={p}
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                                onClick={() => handlePriorityChange(p)}
-                              >
-                                <PriorityBadge priority={p} />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </PopoverContent>
-                    </Popover>
-                    {isEditing && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-priority:inline-flex"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePriorityChange("_none");
-                        }}
-                        data-testid={`button-clear-priority-${id}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                ) : isEditing ? (
-                  <Popover open={activePopover === "priority"} onOpenChange={(open) => setActivePopover(open ? "priority" : null)}>
-                    <PopoverTrigger asChild>
-                      <span 
-                        className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                        data-testid={`badge-priority-${id}`}
-                      >
-                        + Adicionar Prioridade
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                      <div className="w-full">
-                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionar prioridade</div>
-                        <div className="pb-1">
-                          {PRIORITY_OPTIONS.map(p => (
-                            <div
-                              key={p}
-                              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                              onClick={() => handlePriorityChange(p)}
-                            >
-                              <PriorityBadge priority={p} />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                ) : null}
-              </div>
+              <TaskPriorityPopover
+                id={id}
+                priority={priority}
+                isEditing={isEditing}
+                isOpen={activePopover === "priority"}
+                onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
+                onPriorityChange={handlePriorityChange}
+                onStopPropagation={cancelClickTimeout}
+              />
               
               {/* Linha 5: Status - Always clickable */}
-              <div className="flex items-center gap-1.5 text-xs md:text-sm">
-                <Popover open={activePopover === "status"} onOpenChange={(open) => setActivePopover(open ? "status" : null)}>
-                  <PopoverTrigger asChild>
-                    <div
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                      }}
-                    >
-                      <StatusBadge 
-                        status={status}
-                        className="cursor-pointer hover:bg-muted/50"
-                        data-testid={`badge-status-${id}`}
-                      />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
-                    <div className="w-full">
-                      <div className="border-b border-[#2a2a2a]">
-                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-                        <div className="px-3 py-1">
-                          <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
-                            <StatusBadge status={status} />
-                          </div>
-                        </div>
-                      </div>
-                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
-                      <div className="pb-1">
-                        {STATUS_OPTIONS.filter(s => s !== status).map(s => (
-                          <div
-                            key={s}
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                            onClick={() => handleStatusChange(s)}
-                          >
-                            <StatusBadge status={s} />
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <TaskStatusPopover
+                id={id}
+                status={status}
+                isOpen={activePopover === "status"}
+                onOpenChange={(open) => setActivePopover(open ? "status" : null)}
+                onStatusChange={handleStatusChange}
+                onStopPropagation={cancelClickTimeout}
+              />
               
               {/* Responsáveis */}
               <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
