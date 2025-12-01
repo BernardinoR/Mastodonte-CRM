@@ -391,7 +391,9 @@ export function TaskCard({
                 }}
                 className={cn(
                   "font-bold text-sm leading-tight flex-1",
-                  isEditing && "cursor-text outline-none bg-[#2a2a2a] hover:bg-[#333333] rounded px-2 py-1 -mx-2 -my-1 focus:bg-[#333333] focus:ring-1 focus:ring-blue-500/50"
+                  isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
+                  isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
+                  isEditing && status !== "In Progress" && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]"
                 )}
                 data-testid={`text-tasktitle-${id}`}
               >
