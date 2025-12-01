@@ -404,12 +404,18 @@ export default function Dashboard() {
 
           <KanbanColumn 
             id="Done"
-            title="Done" 
+            title="" 
             count={doneTasks.length} 
             color="text-green-400"
-            borderColor="border-green-700"
-            icon={CheckCircle2}
+            borderColor="border-[rgb(27,33,29)]"
+            backgroundColor="bg-[rgb(27,33,29)]"
             onAddTask={handleQuickAdd}
+            customIcon={
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(56,108,78)]">
+                <div className="w-1.5 h-1.5 rounded-full bg-[rgb(70,161,113)]" />
+                <span className="text-xs text-white">Done</span>
+              </div>
+            }
           >
             <SortableContext items={doneTaskIds} strategy={verticalListSortingStrategy}>
               {renderTasksWithPlaceholder(doneTasks, "Done")}

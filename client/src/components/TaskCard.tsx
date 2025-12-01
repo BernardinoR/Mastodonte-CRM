@@ -369,7 +369,7 @@ export function TaskCard({
                 isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
                 status === "To Do" && "bg-[#262626] border-[#363636]",
                 status === "In Progress" && "bg-[#243041] border-[#344151]",
-                status === "Done" && "bg-green-950 border-green-900"
+                status === "Done" && "bg-[rgb(35,43,38)] border-[rgb(45,55,48)]"
               )}
               onClick={handleCardClick}
               onDoubleClick={handleEditClick}
@@ -393,7 +393,8 @@ export function TaskCard({
                   "font-bold text-sm leading-tight flex-1",
                   isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
                   isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
-                  isEditing && status !== "In Progress" && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]"
+                  isEditing && status === "Done" && "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
+                  isEditing && status === "To Do" && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]"
                 )}
                 data-testid={`text-tasktitle-${id}`}
               >
