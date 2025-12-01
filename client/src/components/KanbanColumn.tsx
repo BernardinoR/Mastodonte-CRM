@@ -57,11 +57,12 @@ export const KanbanColumn = memo(function KanbanColumn({
 
   return (
     <div 
+      ref={setNodeRef}
       className={cn(
-        "w-[340px] shrink-0 rounded-lg transition-all duration-200",
+        "w-[340px] shrink-0 rounded-lg transition-all duration-200 flex flex-col",
         borderColor && `border-2 ${borderColor}`,
         backgroundColor,
-        isOver && "border-dashed border-accent"
+        isOver && "ring-2 ring-accent ring-inset"
       )}
     >
       <div className="flex items-center justify-between p-3 pb-2">
@@ -95,9 +96,8 @@ export const KanbanColumn = memo(function KanbanColumn({
         )}
       </div>
       <div 
-        ref={setNodeRef}
         className={cn(
-          "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200",
+          "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200 flex-1 min-h-[200px]",
           isOver && "bg-accent/10"
         )}
       >
