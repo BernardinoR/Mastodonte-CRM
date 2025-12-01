@@ -67,17 +67,27 @@ Preferred communication style: Simple, everyday language.
 /client          - Frontend React application
   /src
     /components  - Reusable UI components
-      /task-editors  - Extracted task editing components (ClientSelector, AssigneeSelector, ContextMenu editors)
+      /ui        - Shadcn UI primitives + custom reusables
+        /task-badges.tsx    - PriorityBadge, StatusBadge (86 lines)
+        /task-assignees.tsx - AssigneeList, AssigneeBadge, AssigneeAvatarStack (161 lines)
+      /task-editors        - Extracted task editing components (ClientSelector, AssigneeSelector)
+      /task-popovers.tsx   - TaskDatePopover, TaskPriorityPopover, TaskStatusPopover (284 lines)
+      /task-context-menu.tsx - Right-click context menu with bulk operations (203 lines)
+      /task-card-dialogs.tsx - Modal dialogs for task operations
+      /TaskCard.tsx        - Main task card component (719 lines, down from 1416)
     /pages       - Route-level page components
     /lib         - Utilities and configurations
       /statusConfig.ts  - Centralized status/priority colors and configurations
       /mock-data.ts     - Initial task data and mock data generators
-    /hooks       - Custom React hooks
-      /useTaskHistory.ts    - Undo/redo functionality with Ctrl+Z support
-      /useTaskFilters.ts    - Search, assignee, priority filtering
-      /useTaskSelection.ts  - Multi-select with Shift+click
-      /useTaskDrag.ts       - Cross-column drag with placeholder
-      /useTaskBulkActions.ts - Bulk update/delete operations
+    /hooks       - Custom React hooks (hook-first architecture)
+      /useTaskCardEditing.ts  - Task card editing state and handlers
+      /useTaskAssignees.ts    - Assignee management logic
+      /useTaskContextMenu.ts  - Context menu state management
+      /useTaskHistory.ts      - Undo/redo functionality with Ctrl+Z support
+      /useTaskFilters.ts      - Search, assignee, priority filtering
+      /useTaskSelection.ts    - Multi-select with Shift+click
+      /useTaskDrag.ts         - Cross-column drag with placeholder
+      /useTaskBulkActions.ts  - Bulk update/delete operations
     /types       - TypeScript type definitions
       /task.ts   - Task, TaskStatus, TaskPriority types
 /server          - Backend Express application
@@ -87,6 +97,13 @@ Preferred communication style: Simple, everyday language.
 /shared          - Code shared between client/server
   /schema.ts     - Database schemas and types
 ```
+
+**Architecture Patterns (Maintainability Score: 85+)**
+- Hook-first design: Business logic extracted to custom hooks
+- Centralized configuration: statusConfig.ts drives consistent styling
+- Reusable UI primitives: Badge and assignee components shared across features
+- Component extraction: Popovers, context menu, dialogs in separate modules
+- Memoization: Performance-optimized with memo() for re-render prevention
 
 **Routing Strategy**
 - Frontend: Client-side routing with Wouter (/, /clients, /clients/:id, /meetings, /tasks)
