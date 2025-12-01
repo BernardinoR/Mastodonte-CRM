@@ -63,7 +63,7 @@ export const KanbanColumn = memo(function KanbanColumn({
       <div 
         ref={setNodeRef}
         className={cn(
-          "space-y-3 min-h-[400px] p-2 pt-0 transition-colors duration-200",
+          "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200",
           isOver && "bg-accent/10"
         )}
       >
@@ -77,7 +77,7 @@ export const KanbanColumn = memo(function KanbanColumn({
             data-testid={`button-add-task-${id}`}
           >
             <Plus className="w-4 h-4" />
-            <span>Nova página</span>
+            <span>Nova task</span>
           </Button>
         )}
       </div>
