@@ -11,7 +11,11 @@ import {
   useSensor, 
   useSensors, 
   DragOverlay,
-  closestCenter,
+  pointerWithin,
+  rectIntersection,
+  CollisionDetection,
+  DroppableContainer,
+  getFirstCollision,
 } from "@dnd-kit/core";
 import { 
   SortableContext, 
@@ -26,6 +30,26 @@ import { useTaskFilters } from "@/hooks/useTaskFilters";
 import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
+
+// Custom collision detection that prioritizes column detection for cross-column drops
+const customCollisionDetection: CollisionDetection = (args) => {
+  // First, check for collisions with droppable columns using pointerWithin
+  const pointerCollisions = pointerWithin(args);
+  
+  // Filter to only include column droppables (To Do, In Progress, Done)
+  const columnIds = ["To Do", "In Progress", "Done"];
+  const columnCollisions = pointerCollisions.filter(
+    collision => columnIds.includes(collision.id as string)
+  );
+  
+  // If pointer is within a column, prioritize that
+  if (columnCollisions.length > 0) {
+    return columnCollisions;
+  }
+  
+  // Fall back to rectIntersection for card-to-card sorting within columns
+  return rectIntersection(args);
+};
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -356,7 +380,7 @@ export default function Dashboard() {
 
       <DndContext 
         sensors={sensors} 
-        collisionDetection={closestCenter}
+        collisionDetection={customCollisionDetection}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
