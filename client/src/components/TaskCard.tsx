@@ -76,6 +76,7 @@ import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
+import { TaskCardDialogs } from "@/components/task-card-dialogs";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 const getInitials = (name: string): string => {
@@ -1274,108 +1275,27 @@ export function TaskCard({
           </div>
         </DialogContent>
       </Dialog>
-      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Isso excluirá permanentemente esta tarefa.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete} 
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              data-testid={`button-confirmdelete-${id}`}
-            >
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
-      <Dialog open={showReplaceTitleDialog} onOpenChange={setShowReplaceTitleDialog}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
-          <DialogHeader>
-            <DialogTitle>Substituir nome{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <Input
-              value={newTitleText}
-              onChange={(e) => setNewTitleText(e.target.value)}
-              placeholder="Digite o novo nome..."
-              className="bg-[#2a2a2a] border-[#3a3a3a]"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onReplaceTitleSubmit();
-                }
-              }}
-            />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowReplaceTitleDialog(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={onReplaceTitleSubmit} disabled={!newTitleText.trim()}>
-                Substituir
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={showAppendTitleDialog} onOpenChange={setShowAppendTitleDialog}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
-          <DialogHeader>
-            <DialogTitle>Adicionar ao final{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <p className="text-sm text-muted-foreground">
-              O texto será adicionado ao final do nome de cada tarefa selecionada.
-            </p>
-            <Input
-              value={appendTitleText}
-              onChange={(e) => setAppendTitleText(e.target.value)}
-              placeholder="Digite o texto a adicionar..."
-              className="bg-[#2a2a2a] border-[#3a3a3a]"
-              autoFocus
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  onAppendTitleSubmit();
-                }
-              }}
-            />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowAppendTitleDialog(false)}>
-                Cancelar
-              </Button>
-              <Button onClick={onAppendTitleSubmit} disabled={!appendTitleText.trim()}>
-                Adicionar
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-      
-      <Dialog open={showBulkDatePicker} onOpenChange={setShowBulkDatePicker}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
-          <DialogHeader>
-            <DialogTitle>Alterar data{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Calendar
-              mode="single"
-              selected={dueDate}
-              onSelect={(date) => date && onContextDateChange(date)}
-              locale={ptBR}
-              className="rounded-md border border-[#2a2a2a]"
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TaskCardDialogs
+        id={id}
+        dueDate={dueDate}
+        selectedCount={selectedCount}
+        showDeleteConfirm={showDeleteConfirm}
+        setShowDeleteConfirm={setShowDeleteConfirm}
+        showReplaceTitleDialog={showReplaceTitleDialog}
+        setShowReplaceTitleDialog={setShowReplaceTitleDialog}
+        showAppendTitleDialog={showAppendTitleDialog}
+        setShowAppendTitleDialog={setShowAppendTitleDialog}
+        showBulkDatePicker={showBulkDatePicker}
+        setShowBulkDatePicker={setShowBulkDatePicker}
+        newTitleText={newTitleText}
+        setNewTitleText={setNewTitleText}
+        appendTitleText={appendTitleText}
+        setAppendTitleText={setAppendTitleText}
+        onDelete={handleDelete}
+        onReplaceTitleSubmit={onReplaceTitleSubmit}
+        onAppendTitleSubmit={onAppendTitleSubmit}
+        onContextDateChange={onContextDateChange}
+      />
     </>
   );
 }
