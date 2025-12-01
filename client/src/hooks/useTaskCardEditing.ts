@@ -197,13 +197,21 @@ export function useTaskCardEditing({
       pendingUpdateRef.current = null;
     }
     
-    // If title is empty, set it to "Sem título"
+    // Read the current title directly from the DOM if titleRef is available
+    // This ensures we get the latest value even if onBlur hasn't fired yet
     const dataToSave = { ...latestDraftRef.current };
+    if (titleRef.current) {
+      const currentTitle = titleRef.current.textContent || "";
+      dataToSave.title = currentTitle;
+    }
+    
+    // If title is empty, set it to "Sem título"
     if (!dataToSave.title.trim()) {
       dataToSave.title = "Sem título";
-      latestDraftRef.current = dataToSave;
-      setEditedTask(dataToSave);
     }
+    
+    latestDraftRef.current = dataToSave;
+    setEditedTask(dataToSave);
     
     // Always flush the latest draft to ensure data is saved
     flushUpdate(dataToSave);
