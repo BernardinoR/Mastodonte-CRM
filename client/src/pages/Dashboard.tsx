@@ -225,7 +225,7 @@ export default function Dashboard() {
   }, [setTasksWithHistory]);
 
   // Use the quick add task hook
-  const { handleQuickAdd } = useQuickAddTask({
+  const { handleQuickAdd, handleQuickAddTop } = useQuickAddTask({
     tasks,
     onAddTask: handleAddNewTask,
     onSetEditingTaskId: setEditingTaskId,
@@ -370,6 +370,7 @@ export default function Dashboard() {
             borderColor="border-[#303030]"
             backgroundColor="bg-[#202020]"
             onAddTask={handleQuickAdd}
+            onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="#8E8B86"
             addButtonHoverBgColor="#262626"
             customIcon={
@@ -392,6 +393,7 @@ export default function Dashboard() {
             borderColor="border-[#1C2027]"
             backgroundColor="bg-[#1C2027]"
             onAddTask={handleQuickAdd}
+            onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="rgb(66,129,220)"
             addButtonHoverBgColor="#243041"
             customIcon={
@@ -414,6 +416,7 @@ export default function Dashboard() {
             borderColor="border-[rgb(27,33,29)]"
             backgroundColor="bg-[rgb(27,33,29)]"
             onAddTask={handleQuickAdd}
+            onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="rgb(70,161,113)"
             addButtonHoverBgColor="rgb(35,43,38)"
             customIcon={

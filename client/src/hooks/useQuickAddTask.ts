@@ -10,6 +10,7 @@ interface UseQuickAddTaskProps {
 
 interface UseQuickAddTaskReturn {
   handleQuickAdd: (status: TaskStatus) => void;
+  handleQuickAddTop: (status: TaskStatus) => void;
 }
 
 function generateUniqueId(existingIds: Set<string>): string {
@@ -53,5 +54,28 @@ export function useQuickAddTask({
     onSetEditingTaskId(newTask.id);
   }, [tasks, onAddTask, onSetEditingTaskId]);
 
-  return { handleQuickAdd };
+  const handleQuickAddTop = useCallback((status: TaskStatus) => {
+    const existingIds = new Set(tasks.map(t => t.id));
+    const newId = generateUniqueId(existingIds);
+    
+    const statusTasks = tasks.filter(t => t.status === status);
+    const minOrder = statusTasks.reduce((min, t) => Math.min(min, t.order), 1);
+    
+    const defaultAssignee = MOCK_USERS[0]?.name || "";
+    
+    const newTask: Task = {
+      id: newId,
+      title: "",
+      status,
+      assignees: defaultAssignee ? [defaultAssignee] : [],
+      dueDate: new Date(),
+      order: minOrder - 1,
+      notes: [],
+    };
+    
+    onAddTask(newTask);
+    onSetEditingTaskId(newTask.id);
+  }, [tasks, onAddTask, onSetEditingTaskId]);
+
+  return { handleQuickAdd, handleQuickAddTop };
 }
