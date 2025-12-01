@@ -1,7 +1,6 @@
 import { useState, useRef, useMemo, memo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
 import { Calendar } from "@/components/ui/calendar";
@@ -55,13 +54,13 @@ import {
   ClientSelector, 
   AssigneeSelector
 } from "@/components/task-editors";
-import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
 import { TaskDatePopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 const getInitials = (name: string): string => {
@@ -73,15 +72,6 @@ const getInitials = (name: string): string => {
     .toUpperCase();
 };
 
-const getPriorityClasses = (p: TaskPriority) => {
-  const config = getPriorityConfig(p);
-  return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-};
-
-const getStatusClasses = (s: TaskStatus) => {
-  const config = getStatusConfig(s);
-  return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-};
 
 const getAvatarColor = (index: number): string => {
   const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
@@ -646,106 +636,38 @@ export function TaskCard({
                             }
                           }}
                         >
-                          <Badge 
-                            variant="outline" 
-                            className={cn(
-                              "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                              getPriorityClasses(priority)
-                            )}
+                          <PriorityBadge 
+                            priority={priority}
+                            className="cursor-pointer hover:bg-muted/50"
                             data-testid={`badge-priority-${id}`}
-                          >
-                            <span className={cn(
-                              "w-1.5 h-1.5 rounded-full",
-                              priority === "Urgente" && "bg-red-200",
-                              priority === "Importante" && "bg-orange-200",
-                              priority === "Normal" && "bg-yellow-200",
-                              priority === "Baixa" && "bg-blue-200"
-                            )} />
-                            {priority}
-                          </Badge>
+                          />
                         </div>
                       </PopoverTrigger>
                       <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                         <div className="w-full">
-                          {/* Selected priority section */}
                           <div className="border-b border-[#2a2a2a]">
-                            <div className="px-3 py-1.5 text-xs text-gray-500">
-                              Selecionado
-                            </div>
+                            <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                             <div className="px-3 py-1">
                               <div 
                                 className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handlePriorityChange("_none");
-                                }}
+                                onClick={(e) => { e.stopPropagation(); handlePriorityChange("_none"); }}
                               >
-                                <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", getPriorityClasses(priority))}>
-                                  <span className={cn(
-                                    "w-1.5 h-1.5 rounded-full",
-                                    priority === "Urgente" && "bg-red-200",
-                                    priority === "Importante" && "bg-orange-200",
-                                    priority === "Normal" && "bg-yellow-200",
-                                    priority === "Baixa" && "bg-blue-200"
-                                  )} />
-                                  {priority}
-                                </Badge>
+                                <PriorityBadge priority={priority} />
                                 <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
                               </div>
                             </div>
                           </div>
-                          
-                          {/* Other options label */}
-                          <div className="px-3 py-1.5 text-xs text-gray-500">
-                            Outras opções
-                          </div>
-                          
-                          {/* Available priorities */}
+                          <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
                           <div className="pb-1">
-                            {priority !== "Urgente" && (
+                            {PRIORITY_OPTIONS.filter(p => p !== priority).map(p => (
                               <div
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={() => handlePriorityChange("Urgente")}
+                                key={p}
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                                onClick={() => handlePriorityChange(p)}
                               >
-                                <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
-                                  Urgente
-                                </Badge>
+                                <PriorityBadge priority={p} />
                               </div>
-                            )}
-                            {priority !== "Importante" && (
-                              <div
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={() => handlePriorityChange("Importante")}
-                              >
-                                <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
-                                  Importante
-                                </Badge>
-                              </div>
-                            )}
-                            {priority !== "Normal" && (
-                              <div
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={() => handlePriorityChange("Normal")}
-                              >
-                                <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />
-                                  Normal
-                                </Badge>
-                              </div>
-                            )}
-                            {priority !== "Baixa" && (
-                              <div
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={() => handlePriorityChange("Baixa")}
-                              >
-                                <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                                  Baixa
-                                </Badge>
-                              </div>
-                            )}
+                            ))}
                           </div>
                         </div>
                       </PopoverContent>
@@ -784,49 +706,17 @@ export function TaskCard({
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                       <div className="w-full">
-                        {/* Options label */}
-                        <div className="px-3 py-1.5 text-xs text-gray-500">
-                          Selecionar prioridade
-                        </div>
-                        
-                        {/* Available priorities */}
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionar prioridade</div>
                         <div className="pb-1">
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handlePriorityChange("Urgente")}
-                          >
-                            <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-red-200" />
-                              Urgente
-                            </Badge>
-                          </div>
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handlePriorityChange("Importante")}
-                          >
-                            <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-orange-200" />
-                              Importante
-                            </Badge>
-                          </div>
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handlePriorityChange("Normal")}
-                          >
-                            <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-yellow-200" />
-                              Normal
-                            </Badge>
-                          </div>
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handlePriorityChange("Baixa")}
-                          >
-                            <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-200" />
-                              Baixa
-                            </Badge>
-                          </div>
+                          {PRIORITY_OPTIONS.map(p => (
+                            <div
+                              key={p}
+                              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                              onClick={() => handlePriorityChange(p)}
+                            >
+                              <PriorityBadge priority={p} />
+                            </div>
+                          ))}
                         </div>
                       </div>
                     </PopoverContent>
@@ -847,86 +737,34 @@ export function TaskCard({
                         }
                       }}
                     >
-                      <Badge 
-                        variant="outline" 
-                        className={cn(
-                          "text-[10px] md:text-[11px] px-2 py-[2px] rounded-full cursor-pointer hover:bg-muted/50 font-normal flex items-center gap-1",
-                          getStatusClasses(status)
-                        )}
+                      <StatusBadge 
+                        status={status}
+                        className="cursor-pointer hover:bg-muted/50"
                         data-testid={`badge-status-${id}`}
-                      >
-                        <span className={cn(
-                          "w-1.5 h-1.5 rounded-full",
-                          status === "To Do" && "bg-[#8E8B86]",
-                          status === "In Progress" && "bg-[rgb(66,129,220)]",
-                          status === "Done" && "bg-green-200"
-                        )} />
-                        {status}
-                      </Badge>
+                      />
                     </div>
                   </PopoverTrigger>
                   <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
                     <div className="w-full">
-                      {/* Selected status section */}
                       <div className="border-b border-[#2a2a2a]">
-                        <div className="px-3 py-1.5 text-xs text-gray-500">
-                          Selecionado
-                        </div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                         <div className="px-3 py-1">
                           <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
-                            <Badge variant="outline" className={cn("text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1", getStatusClasses(status))}>
-                              <span className={cn(
-                                "w-1.5 h-1.5 rounded-full",
-                                status === "To Do" && "bg-[#8E8B86]",
-                                status === "In Progress" && "bg-[rgb(66,129,220)]",
-                                status === "Done" && "bg-green-200"
-                              )} />
-                              {status}
-                            </Badge>
+                            <StatusBadge status={status} />
                           </div>
                         </div>
                       </div>
-                      
-                      {/* Other options label */}
-                      <div className="px-3 py-1.5 text-xs text-gray-500">
-                        Outras opções
-                      </div>
-                      
-                      {/* Available statuses */}
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
                       <div className="pb-1">
-                        {status !== "To Do" && (
+                        {STATUS_OPTIONS.filter(s => s !== status).map(s => (
                           <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handleStatusChange("To Do")}
+                            key={s}
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                            onClick={() => handleStatusChange(s)}
                           >
-                            <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
-                              To Do
-                            </Badge>
+                            <StatusBadge status={s} />
                           </div>
-                        )}
-                        {status !== "In Progress" && (
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handleStatusChange("In Progress")}
-                          >
-                            <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
-                              In Progress
-                            </Badge>
-                          </div>
-                        )}
-                        {status !== "Done" && (
-                          <div
-                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                            onClick={() => handleStatusChange("Done")}
-                          >
-                            <Badge variant="outline" className="bg-green-800 text-white border-green-800 text-[10px] md:text-[11px] px-2 py-[2px] rounded-full font-normal flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-green-200" />
-                              Done
-                            </Badge>
-                          </div>
-                        )}
+                        ))}
                       </div>
                     </div>
                   </PopoverContent>

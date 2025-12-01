@@ -1,5 +1,4 @@
 import { memo } from "react";
-import { Badge } from "@/components/ui/badge";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -25,6 +24,7 @@ import {
   ContextMenuDateEditor,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TaskCardContextMenuProps {
@@ -144,30 +144,15 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <span>Prioridade</span>
         </ContextMenuSubTrigger>
         <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-          <ContextMenuItem onClick={() => onPriorityChange("Urgente")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-red-900 text-white border-red-900 text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-200 mr-1" />
-              Urgente
-            </Badge>
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onPriorityChange("Importante")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-orange-800 text-white border-orange-800 text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-orange-200 mr-1" />
-              Importante
-            </Badge>
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onPriorityChange("Normal")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-yellow-700 text-white border-yellow-700 text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-yellow-200 mr-1" />
-              Normal
-            </Badge>
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onPriorityChange("Baixa")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-blue-800 text-white border-blue-800 text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-blue-200 mr-1" />
-              Baixa
-            </Badge>
-          </ContextMenuItem>
+          {PRIORITY_OPTIONS.map((priority) => (
+            <ContextMenuItem 
+              key={priority}
+              onClick={() => onPriorityChange(priority)} 
+              className="flex items-center gap-2"
+            >
+              <PriorityBadge priority={priority} />
+            </ContextMenuItem>
+          ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
       
@@ -177,24 +162,15 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <span>Status</span>
         </ContextMenuSubTrigger>
         <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-          <ContextMenuItem onClick={() => onStatusChange("To Do")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-[#64635E] text-white border-[#64635E] text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#8E8B86] mr-1" />
-              To Do
-            </Badge>
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onStatusChange("In Progress")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-[rgb(64,97,145)] text-white border-[rgb(64,97,145)] text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)] mr-1" />
-              In Progress
-            </Badge>
-          </ContextMenuItem>
-          <ContextMenuItem onClick={() => onStatusChange("Done")} className="flex items-center gap-2">
-            <Badge variant="outline" className="bg-green-900 text-white border-green-900 text-[10px] px-2 py-[2px] rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-200 mr-1" />
-              Done
-            </Badge>
-          </ContextMenuItem>
+          {STATUS_OPTIONS.map((status) => (
+            <ContextMenuItem 
+              key={status}
+              onClick={() => onStatusChange(status)} 
+              className="flex items-center gap-2"
+            >
+              <StatusBadge status={status} />
+            </ContextMenuItem>
+          ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
       
