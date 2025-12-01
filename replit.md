@@ -172,3 +172,107 @@ Preferred communication style: Simple, everyday language.
 ### Third-Party Services
 - **Google Fonts** - Inter font family (via CDN)
 - **Neon Database** - Serverless PostgreSQL hosting (DATABASE_URL environment variable required)
+
+---
+
+## Coding Patterns & Conventions
+
+### Component Structure Pattern
+All task-related components follow this hierarchy:
+```
+TaskCard.tsx (orchestrator)
+  ├── Uses hooks: useTaskCardEditing, useTaskAssignees, useTaskContextMenu
+  ├── Uses popovers: TaskDatePopover, TaskPriorityPopover, TaskStatusPopover
+  ├── Uses badges: PriorityBadge, StatusBadge (from task-badges.tsx)
+  ├── Uses assignees: AssigneeList, AssigneeBadge (from task-assignees.tsx)
+  └── Uses dialogs: TaskCardDialogs
+```
+
+### Hook-First Architecture
+**Rule**: Extract business logic to hooks, keep components for rendering only.
+
+```typescript
+// Pattern for new hooks
+export function useFeatureName(props: FeatureProps) {
+  // 1. State declarations
+  const [state, setState] = useState(initialValue);
+  
+  // 2. Memoized values
+  const derivedValue = useMemo(() => compute(state), [state]);
+  
+  // 3. Callbacks (always useCallback)
+  const handleAction = useCallback(() => {
+    // action logic
+  }, [dependencies]);
+  
+  // 4. Return object with state and handlers
+  return {
+    state,
+    derivedValue,
+    handleAction,
+  };
+}
+```
+
+### Badge Component Pattern
+All badges use `statusConfig.ts` for consistent styling:
+
+```typescript
+// Adding a new badge type
+import { PRIORITY_CONFIG } from "@/lib/statusConfig";
+
+export const NewBadge = memo(function NewBadge({ value, className }: Props) {
+  const config = CONFIG_MAP[value];
+  return (
+    <Badge className={cn("...", config.bgColor, className)}>
+      <span className={cn("...", config.dotColor)} />
+      {config.label}
+    </Badge>
+  );
+});
+```
+
+### Popover Component Pattern
+All popovers follow this structure:
+
+```typescript
+export const FeaturePopover = memo(function FeaturePopover({
+  id,
+  value,
+  isOpen,
+  onOpenChange,
+  onValueChange,
+  onStopPropagation,
+}: Props) {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStopPropagation();
+  }, [onStopPropagation]);
+
+  return (
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <div onClick={handleClick}>
+          {/* Trigger content */}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-56 p-0" side="bottom" align="start">
+        {/* Popover content */}
+      </PopoverContent>
+    </Popover>
+  );
+});
+```
+
+### Styling Conventions
+- **Dark theme colors**: Use `bg-[#1a1a1a]`, `bg-[#2a2a2a]`, `border-[#2a2a2a]`
+- **Hover states**: Use `hover:bg-gray-700/80` for subtle hover
+- **Text hierarchy**: `text-foreground` (primary), `text-muted-foreground` (secondary), `text-gray-500` (tertiary)
+- **Spacing**: Use Tailwind primitives (px-2, py-0.5, gap-1.5)
+- **Font sizes**: `text-[10px]` (labels), `text-xs` (small), `text-[13px]` (body), `text-sm` (default)
+
+### Memoization Rules
+- **Always memo**: Components rendered in lists (TaskCard, badge items)
+- **Always useCallback**: Event handlers passed as props
+- **Always useMemo**: Computed values, filtered arrays, derived state
+- **Stable references**: Use useRef for values that shouldn't trigger re-renders
