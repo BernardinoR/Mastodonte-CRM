@@ -17,7 +17,7 @@ interface KanbanColumnProps {
   icon?: LucideIcon;
   customIcon?: React.ReactNode;
   onAddTask?: (status: TaskStatus) => void;
-  addButtonBgColor?: string;
+  addButtonTextColor?: string;
   addButtonHoverBgColor?: string;
 }
 
@@ -32,7 +32,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   icon: Icon, 
   customIcon,
   onAddTask,
-  addButtonBgColor,
+  addButtonTextColor,
   addButtonHoverBgColor,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -75,10 +75,10 @@ export const KanbanColumn = memo(function KanbanColumn({
         
         {onAddTask && (
           <button
-            className="w-full flex items-center justify-start text-muted-foreground hover:text-foreground gap-2 h-9 px-3 rounded-md transition-colors"
+            className="w-full flex items-center justify-start gap-2 h-9 px-3 rounded-md transition-colors"
             style={{
-              backgroundColor: addButtonBgColor,
-              ...(addButtonHoverBgColor && { '--hover-bg': addButtonHoverBgColor } as React.CSSProperties),
+              color: addButtonTextColor,
+              backgroundColor: 'transparent',
             }}
             onMouseEnter={(e) => {
               if (addButtonHoverBgColor) {
@@ -86,9 +86,7 @@ export const KanbanColumn = memo(function KanbanColumn({
               }
             }}
             onMouseLeave={(e) => {
-              if (addButtonBgColor) {
-                e.currentTarget.style.backgroundColor = addButtonBgColor;
-              }
+              e.currentTarget.style.backgroundColor = 'transparent';
             }}
             onClick={handleAddClick}
             data-testid={`button-add-task-${id}`}
