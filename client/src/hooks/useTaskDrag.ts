@@ -21,7 +21,7 @@ interface UseTaskDragProps {
   doneTasks: Task[];
   selectedTaskIds: Set<string>;
   setTasksWithHistory: (updater: (prev: Task[]) => Task[]) => void;
-  handleClearSelection: () => void;
+  clearSelection: () => void;
 }
 
 interface UseTaskDragReturn {
@@ -43,7 +43,7 @@ export function useTaskDrag({
   doneTasks,
   selectedTaskIds,
   setTasksWithHistory,
-  handleClearSelection,
+  clearSelection,
 }: UseTaskDragProps): UseTaskDragReturn {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
@@ -84,15 +84,23 @@ export function useTaskDrag({
   }, [doneTasks, crossColumnPlaceholder]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
-    const { active } = event;
-    setActiveTaskId(active.id as string);
-    setCrossColumnPlaceholder(null);
-    projectionRef.current = null;
-  }, []);
+    const draggedId = event.active.id as string;
+    setActiveTaskId(draggedId);
+    
+    const activeTask = tasks.find(t => t.id === draggedId);
+    if (activeTask) {
+      projectionRef.current = {
+        movingIds: selectedTaskIds.has(draggedId) 
+          ? Array.from(selectedTaskIds) 
+          : [draggedId],
+        targetStatus: activeTask.status,
+        insertIndex: activeTask.order,
+      };
+    }
+  }, [selectedTaskIds, tasks]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
-    
     if (!over) {
       setOverColumnId(null);
       setCrossColumnPlaceholder(null);
@@ -100,33 +108,41 @@ export function useTaskDrag({
       return;
     }
     
-    const activeId = active.id as string;
     const overId = over.id as string;
+    const activeId = active.id as string;
+    
+    const isOverPlaceholder = overId.startsWith("__placeholder__");
+    const placeholderColumn = isOverPlaceholder 
+      ? overId.replace("__placeholder__", "") as TaskStatus 
+      : null;
+    
+    const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
+    const overTask = !isOverColumn && !isOverPlaceholder ? tasks.find(t => t.id === overId) : null;
     
     const activeTask = tasks.find(t => t.id === activeId);
-    if (!activeTask) return;
-    
-    const movingIds = selectedTaskIds.has(activeId)
-      ? Array.from(selectedTaskIds)
-      : [activeId];
-    
-    const isOverPlaceholder = overId.startsWith('__placeholder__');
-    const overTask = !isOverPlaceholder ? tasks.find(t => t.id === overId) : null;
     
     let targetStatus: TaskStatus;
-    
-    if (isOverPlaceholder) {
-      const placeholderColumn = overId.replace('__placeholder__', '') as TaskStatus;
+    if (placeholderColumn) {
       targetStatus = placeholderColumn;
-    } else if (overId === "To Do" || overId === "In Progress" || overId === "Done") {
+    } else if (isOverColumn) {
       targetStatus = overId as TaskStatus;
     } else if (overTask) {
       targetStatus = overTask.status;
     } else {
-      targetStatus = activeTask.status;
+      targetStatus = activeTask?.status || "To Do";
     }
     
     setOverColumnId(targetStatus);
+    
+    if (!activeTask) return;
+    
+    const movingIds = selectedTaskIds.has(activeId)
+      ? Array.from(selectedTaskIds)
+          .map(id => tasks.find(t => t.id === id))
+          .filter(Boolean)
+          .sort((a, b) => (a as Task).order - (b as Task).order)
+          .map(t => (t as Task).id)
+      : [activeId];
     
     const activeSortableIndex = active.data?.current?.sortable?.index;
     const overSortableIndex = over.data?.current?.sortable?.index;
@@ -227,48 +243,141 @@ export function useTaskDrag({
     projectionRef.current = null;
     
     if (!over || !projection) {
-      handleClearSelection();
       return;
     }
     
     const activeId = active.id as string;
     const overId = over.id as string;
     
-    if (activeId === overId && projection.movingIds.length === 1) {
-      handleClearSelection();
+    const activeTask = tasks.find(t => t.id === activeId);
+    if (!activeTask) return;
+    
+    const { targetStatus } = projection;
+    
+    let movingIds = projection.movingIds;
+    
+    if (selectedTaskIds.size > movingIds.length && selectedTaskIds.has(activeId)) {
+      const selectedTasks = tasks
+        .filter(t => selectedTaskIds.has(t.id))
+        .sort((a, b) => a.order - b.order);
+      movingIds = selectedTasks.map(t => t.id);
+    }
+    
+    // Check for no-op drops (dropping on self or within selection group)
+    const isSameColumn = activeTask.status === targetStatus;
+    if (isSameColumn && movingIds.includes(overId)) {
       return;
     }
     
-    const { movingIds, targetStatus, insertIndex } = projection;
+    const overSortableIndex = over.data?.current?.sortable?.index;
     
     setTasksWithHistory(prevTasks => {
-      const movingTasks = prevTasks.filter(t => movingIds.includes(t.id));
-      const remainingTasks = prevTasks.filter(t => !movingIds.includes(t.id));
+      let newTasks = [...prevTasks];
+      const sourceStatus = activeTask.status;
       
-      const updatedMovingTasks = movingTasks.map(t => ({
-        ...t,
-        status: targetStatus,
-      }));
+      if (isSameColumn) {
+        
+        const columnTasks = newTasks
+          .filter(t => t.status === sourceStatus)
+          .sort((a, b) => a.order - b.order);
+        
+        const stationaryTasks = columnTasks.filter(t => !movingIds.includes(t.id));
+        const movingTasks = columnTasks.filter(t => movingIds.includes(t.id));
+        
+        const isDroppedOnColumn = ["To Do", "In Progress", "Done"].includes(overId);
+        
+        let insertIndex: number;
+        
+        if (isDroppedOnColumn) {
+          insertIndex = Math.min(projection.insertIndex, stationaryTasks.length);
+        } else {
+          const firstMovingIndex = columnTasks.findIndex(t => movingIds.includes(t.id));
+          const overTaskOriginalIndex = columnTasks.findIndex(t => t.id === overId);
+          const movingDown = firstMovingIndex < overTaskOriginalIndex;
+          const overIndexInStationary = stationaryTasks.findIndex(t => t.id === overId);
+          
+          if (overIndexInStationary !== -1) {
+            if (movingDown) {
+              insertIndex = overIndexInStationary + 1;
+            } else {
+              insertIndex = overIndexInStationary;
+            }
+          } else {
+            return newTasks;
+          }
+        }
+        
+        insertIndex = Math.min(Math.max(0, insertIndex), stationaryTasks.length);
+        
+        const newOrder = [
+          ...stationaryTasks.slice(0, insertIndex),
+          ...movingTasks,
+          ...stationaryTasks.slice(insertIndex),
+        ];
+        
+        newOrder.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+      } else {
+        let insertIndex = projection.insertIndex;
+        if (typeof overSortableIndex === 'number') {
+          insertIndex = overSortableIndex;
+        }
+        
+        const sourceColumnTasks = newTasks
+          .filter(t => t.status === sourceStatus && !movingIds.includes(t.id))
+          .sort((a, b) => a.order - b.order);
+        
+        sourceColumnTasks.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+        
+        const targetColumnTasks = newTasks
+          .filter(t => t.status === targetStatus && !movingIds.includes(t.id))
+          .sort((a, b) => a.order - b.order);
+        
+        const finalInsertIndex = Math.min(insertIndex, targetColumnTasks.length);
+        
+        const beforeInsert = targetColumnTasks.slice(0, finalInsertIndex);
+        const afterInsert = targetColumnTasks.slice(finalInsertIndex);
+        
+        beforeInsert.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+          }
+        });
+        
+        movingIds.forEach((id, idx) => {
+          const taskIndex = newTasks.findIndex(t => t.id === id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = {
+              ...newTasks[taskIndex],
+              status: targetStatus,
+              order: finalInsertIndex + idx,
+            };
+          }
+        });
+        
+        afterInsert.forEach((t, idx) => {
+          const taskIndex = newTasks.findIndex(nt => nt.id === t.id);
+          if (taskIndex !== -1) {
+            newTasks[taskIndex] = { ...newTasks[taskIndex], order: finalInsertIndex + movingIds.length + idx };
+          }
+        });
+      }
       
-      const targetColumnTasks = remainingTasks.filter(t => t.status === targetStatus);
-      const otherTasks = remainingTasks.filter(t => t.status !== targetStatus);
-      
-      const newTargetColumn = [
-        ...targetColumnTasks.slice(0, insertIndex),
-        ...updatedMovingTasks,
-        ...targetColumnTasks.slice(insertIndex),
-      ];
-      
-      const reorderedTargetColumn = newTargetColumn.map((task, idx) => ({
-        ...task,
-        order: idx,
-      }));
-      
-      return [...otherTasks, ...reorderedTargetColumn];
+      return newTasks;
     });
     
-    handleClearSelection();
-  }, [setTasksWithHistory, handleClearSelection]);
+    clearSelection();
+  }, [tasks, selectedTaskIds, setTasksWithHistory, clearSelection]);
 
   return {
     activeTaskId,
