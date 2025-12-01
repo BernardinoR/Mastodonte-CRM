@@ -331,28 +331,26 @@ export function TaskCard({
 
   const shouldHideForDrag = isDragActive && isSelected;
 
-  const handleDelete = () => {
+  const handleDelete = useCallback(() => {
     onDelete(id);
     setShowDeleteConfirm(false);
-  };
+  }, [onDelete, id]);
 
-  const handleAddNote = () => {
+  const handleAddNote = useCallback(() => {
     if (newNote.trim()) {
       onUpdate(id, {
         notes: [...(notes || []), newNote],
       });
       setNewNote("");
     }
-  };
+  }, [newNote, onUpdate, id, notes]);
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Clear any existing timeout first
+  const handleCardClick = useCallback((e: React.MouseEvent) => {
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
     
-    // Handle Shift+click or Ctrl+click for multi-selection
     if ((e.shiftKey || e.ctrlKey || e.metaKey) && onSelect) {
       e.preventDefault();
       e.stopPropagation();
@@ -360,12 +358,10 @@ export function TaskCard({
       return;
     }
     
-    // Don't open modal if in edit mode
     if (isEditing) {
       return;
     }
     
-    // Prevent opening details when clicking on interactive elements
     const target = e.target as HTMLElement;
     const isInteractiveElement = 
       target.closest('button') ||
@@ -374,37 +370,35 @@ export function TaskCard({
       target.closest('[data-radix-collection-item]');
     
     if (!isInteractiveElement && !isJustClosedEdit()) {
-      // Set a timeout to open details modal only if not followed by a double click or edit mode
       clickTimeoutRef.current = setTimeout(() => {
-        // Double check we're still not in edit mode when timeout fires
         if (!isEditing) {
           setShowDetails(true);
         }
         clickTimeoutRef.current = null;
       }, 250);
     }
-  };
+  }, [onSelect, id, isEditing, isJustClosedEdit]);
 
-  const handleDateChange = (date: Date | undefined) => {
+  const handleDateChange = useCallback((date: Date | undefined) => {
     if (date) {
       handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
     }
-  };
+  }, [handleUpdate]);
 
-  const handlePriorityChange = (value: string) => {
+  const handlePriorityChange = useCallback((value: string) => {
     handleUpdate("priority", value === "_none" ? "" : value);
     setActivePopover(null);
-  };
+  }, [handleUpdate]);
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = useCallback((value: string) => {
     handleUpdate("status", value);
     setActivePopover(null);
-  };
+  }, [handleUpdate]);
 
-  const handleClientChange = (value: string) => {
+  const handleClientChange = useCallback((value: string) => {
     handleUpdate("clientName", value === "_none" ? "" : value);
     setActivePopover(null);
-  };
+  }, [handleUpdate]);
 
   // Calculate overdue status for Card border styling
   const today = startOfDay(new Date());
