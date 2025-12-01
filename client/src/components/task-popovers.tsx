@@ -158,7 +158,7 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
                     <div
                       key={p}
                       className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                      onClick={() => handlePrioritySelect(p)}
+                      onClick={(e) => { e.stopPropagation(); handlePrioritySelect(p); }}
                     >
                       <PriorityBadge priority={p} />
                     </div>
@@ -201,7 +201,7 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
                   <div
                     key={p}
                     className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                    onClick={() => handlePrioritySelect(p)}
+                    onClick={(e) => { e.stopPropagation(); handlePrioritySelect(p); }}
                   >
                     <PriorityBadge priority={p} />
                   </div>
@@ -270,7 +270,7 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
                 <div
                   key={s}
                   className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
-                  onClick={() => handleStatusSelect(s)}
+                  onClick={(e) => { e.stopPropagation(); handleStatusSelect(s); }}
                 >
                   <StatusBadge status={s} />
                 </div>
