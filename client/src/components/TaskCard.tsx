@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, memo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,15 @@ import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
+const getInitials = (name: string): string => {
+  return name
+    .split(' ')
+    .map(word => word[0])
+    .join('')
+    .substring(0, 2)
+    .toUpperCase();
+};
+
 interface TaskCardProps {
   id: string;
   title: string;
@@ -102,8 +111,59 @@ interface TaskCardProps {
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
 
+interface AssigneeListProps {
+  assignees: string[];
+  isEditing: boolean;
+  taskId: string;
+}
 
+const AssigneeList = memo(function AssigneeList({ 
+  assignees, 
+  isEditing, 
+  taskId
+}: AssigneeListProps) {
+  if (assignees.length === 0) {
+    return (
+      <span 
+        className="inline-flex px-2 py-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
+        data-testid={`button-add-assignee-${taskId}`}
+      >
+        + Adicionar Responsável
+      </span>
+    );
+  }
 
+  return (
+    <div className="space-y-0.5">
+      {assignees.map((assignee, index) => {
+        const consultant = MOCK_RESPONSIBLES.find(c => c.name === assignee);
+        const grayColor = consultant?.grayColor || "bg-gray-600";
+        return (
+          <div 
+            key={index} 
+            className={cn(
+              "flex items-center gap-2 rounded-full group/edit-assignee",
+              isEditing ? "px-2 py-0.5" : "py-0.5",
+              "hover:bg-gray-700/80"
+            )}
+          >
+            <Avatar className="w-6 h-6 shrink-0">
+              <AvatarFallback className={cn("text-[10px] font-normal text-white", grayColor)}>
+                {getInitials(assignee)}
+              </AvatarFallback>
+            </Avatar>
+            <span 
+              className="text-[13px] font-normal flex-1" 
+              data-testid={index === 0 ? `text-assignee-${taskId}` : undefined}
+            >
+              {assignee}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+});
 
 
 export function TaskCard({
@@ -148,6 +208,7 @@ export function TaskCard({
     handleCloseEditing,
     isJustClosedEdit,
     safeAssignees,
+    stableAssignees,
   } = useTaskCardEditing({
     id,
     title,
@@ -160,9 +221,9 @@ export function TaskCard({
     onUpdate,
   });
   
-  const updateAssigneesInEditedTask = (newAssignees: string[]) => {
+  const updateAssigneesInEditedTask = useCallback((newAssignees: string[]) => {
     setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-  };
+  }, [setEditedTask]);
   
   const {
     newAssigneeName,
@@ -223,15 +284,6 @@ export function TaskCard({
   const getStatusClasses = (s: TaskStatus) => {
     const config = getStatusConfig(s);
     return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-  };
-
-  const getInitials = (name: string): string => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .substring(0, 2)
-      .toUpperCase();
   };
 
   const getAvatarColor = (index: number): string => {
@@ -993,44 +1045,11 @@ export function TaskCard({
                         }
                       }}
                     >
-                      {/* Lista de responsáveis - clicável */}
-                      {editedTask.assignees.length > 0 ? (
-                        <div className="space-y-0.5">
-                          {editedTask.assignees.map((assignee, index) => {
-                            const consultant = MOCK_RESPONSIBLES.find(c => c.name === assignee);
-                            const grayColor = consultant?.grayColor || "bg-gray-600";
-                            return (
-                              <div 
-                                key={index} 
-                                className={cn(
-                                  "flex items-center gap-2 rounded-full group/edit-assignee",
-                                  isEditing ? "px-2 py-0.5" : "py-0.5",
-                                  "hover:bg-gray-700/80"
-                                )}
-                              >
-                                <Avatar className="w-6 h-6 shrink-0">
-                                  <AvatarFallback className={cn("text-[10px] font-normal text-white", grayColor)}>
-                                    {getInitials(assignee)}
-                                  </AvatarFallback>
-                                </Avatar>
-                                <span 
-                                  className="text-[13px] font-normal flex-1" 
-                                  data-testid={index === 0 ? `text-assignee-${id}` : undefined}
-                                >
-                                  {assignee}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <span 
-                          className="inline-flex px-2 py-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
-                          data-testid={`button-add-assignee-${id}`}
-                        >
-                          + Adicionar Responsável
-                        </span>
-                      )}
+                      <AssigneeList
+                        assignees={stableAssignees}
+                        isEditing={isEditing}
+                        taskId={id}
+                      />
                     </div>
                   </PopoverTrigger>
                   <PopoverContent 

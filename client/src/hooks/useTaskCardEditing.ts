@@ -56,6 +56,7 @@ interface UseTaskCardEditingReturn {
   handleCloseEditing: () => void;
   isJustClosedEdit: () => boolean;
   safeAssignees: string[];
+  stableAssignees: string[];
 }
 
 export function useTaskCardEditing({
@@ -258,6 +259,11 @@ export function useTaskCardEditing({
     return globalJustClosedEditRef.current;
   }, []);
 
+  const stableAssignees = useMemo(() => 
+    [...editedTask.assignees], 
+    [editedTask.assignees.join(',')]
+  );
+
   return {
     isEditing,
     setIsEditing,
@@ -275,5 +281,6 @@ export function useTaskCardEditing({
     handleCloseEditing,
     isJustClosedEdit,
     safeAssignees,
+    stableAssignees,
   };
 }
