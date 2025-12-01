@@ -75,6 +75,7 @@ import {
 import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
+import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 const getInitials = (name: string): string => {
@@ -244,6 +245,26 @@ export function TaskCard({
     onBulkSetAssignees,
     updateEditedTask: updateAssigneesInEditedTask,
   });
+
+  const {
+    handleContextPriorityChange,
+    handleContextStatusChange,
+    handleContextDelete,
+    handleContextClientChange,
+    handleContextDateChange,
+    handleReplaceTitleSubmit,
+    handleAppendTitleSubmit,
+  } = useTaskContextMenu({
+    id,
+    title,
+    selectedCount,
+    onUpdate,
+    onDelete,
+    onBulkUpdate,
+    onBulkDelete,
+    onBulkReplaceTitle,
+    onBulkAppendTitle,
+  });
   
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -256,6 +277,25 @@ export function TaskCard({
   const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
   
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
+
+  const onReplaceTitleSubmit = useCallback(() => {
+    if (!newTitleText.trim()) return;
+    handleReplaceTitleSubmit(newTitleText);
+    setNewTitleText("");
+    setShowReplaceTitleDialog(false);
+  }, [handleReplaceTitleSubmit, newTitleText]);
+
+  const onAppendTitleSubmit = useCallback(() => {
+    if (!appendTitleText.trim()) return;
+    handleAppendTitleSubmit(appendTitleText);
+    setAppendTitleText("");
+    setShowAppendTitleDialog(false);
+  }, [handleAppendTitleSubmit, appendTitleText]);
+
+  const onContextDateChange = useCallback((newDate: Date) => {
+    handleContextDateChange(newDate);
+    setShowBulkDatePicker(false);
+  }, [handleContextDateChange]);
 
   const { 
     attributes, 
@@ -392,76 +432,6 @@ export function TaskCard({
     // In read-only mode, use the validated dueDate prop
     isOverdue = isBefore(startOfDay(dueDate), today);
   }
-
-
-  // Context menu handlers
-  const handleContextPriorityChange = (newPriority: TaskPriority) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ priority: newPriority });
-    } else {
-      onUpdate(id, { priority: newPriority });
-    }
-  };
-
-  const handleContextStatusChange = (newStatus: TaskStatus) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ status: newStatus });
-    } else {
-      onUpdate(id, { status: newStatus });
-    }
-  };
-
-  const handleContextDelete = () => {
-    if (selectedCount > 1 && onBulkDelete) {
-      onBulkDelete();
-    } else {
-      onDelete(id);
-    }
-  };
-
-  const handleContextClientChange = (newClient: string) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ clientName: newClient });
-    } else {
-      onUpdate(id, { clientName: newClient });
-    }
-  };
-
-  const handleContextDateChange = (newDate: Date) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ dueDate: newDate });
-    } else {
-      onUpdate(id, { dueDate: newDate });
-    }
-    setShowBulkDatePicker(false);
-  };
-
-  const handleReplaceTitleSubmit = () => {
-    if (!newTitleText.trim()) return;
-    if (selectedCount > 1 && onBulkReplaceTitle) {
-      onBulkReplaceTitle(newTitleText.trim());
-    } else {
-      onUpdate(id, { title: newTitleText.trim() });
-    }
-    setNewTitleText("");
-    setShowReplaceTitleDialog(false);
-  };
-
-  const handleAppendTitleSubmit = () => {
-    if (!appendTitleText.trim()) return;
-    const textToAppend = appendTitleText.trim();
-    // Add space only if: title exists, doesn't end with whitespace, and suffix starts with alphanumeric
-    const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
-    const needsSpace = title.length > 0 && !/\s$/.test(title) && startsWithAlphanumeric;
-    const suffix = needsSpace ? " " + textToAppend : textToAppend;
-    if (selectedCount > 1 && onBulkAppendTitle) {
-      onBulkAppendTitle(textToAppend);
-    } else {
-      onUpdate(id, { title: title + suffix });
-    }
-    setAppendTitleText("");
-    setShowAppendTitleDialog(false);
-  };
 
   return (
     <>
@@ -1346,7 +1316,7 @@ export function TaskCard({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleReplaceTitleSubmit();
+                  onReplaceTitleSubmit();
                 }
               }}
             />
@@ -1354,7 +1324,7 @@ export function TaskCard({
               <Button variant="outline" onClick={() => setShowReplaceTitleDialog(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleReplaceTitleSubmit} disabled={!newTitleText.trim()}>
+              <Button onClick={onReplaceTitleSubmit} disabled={!newTitleText.trim()}>
                 Substituir
               </Button>
             </div>
@@ -1380,7 +1350,7 @@ export function TaskCard({
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   e.preventDefault();
-                  handleAppendTitleSubmit();
+                  onAppendTitleSubmit();
                 }
               }}
             />
@@ -1388,7 +1358,7 @@ export function TaskCard({
               <Button variant="outline" onClick={() => setShowAppendTitleDialog(false)}>
                 Cancelar
               </Button>
-              <Button onClick={handleAppendTitleSubmit} disabled={!appendTitleText.trim()}>
+              <Button onClick={onAppendTitleSubmit} disabled={!appendTitleText.trim()}>
                 Adicionar
               </Button>
             </div>
@@ -1405,7 +1375,7 @@ export function TaskCard({
             <Calendar
               mode="single"
               selected={dueDate}
-              onSelect={(date) => date && handleContextDateChange(date)}
+              onSelect={(date) => date && onContextDateChange(date)}
               locale={ptBR}
               className="rounded-md border border-[#2a2a2a]"
             />
