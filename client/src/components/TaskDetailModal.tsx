@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil } from "lucide-react";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
 import { DateInput } from "@/components/ui/date-input";
@@ -51,6 +51,28 @@ function isTaskOverdue(dueDate: string | Date): boolean {
   const today = startOfDay(new Date());
   const dueDateObj = typeof dueDate === 'string' ? parseLocalDate(dueDate) : dueDate;
   return isBefore(startOfDay(dueDateObj), today);
+}
+
+function getDaysSinceLastUpdate(history?: TaskHistoryEvent[]): string {
+  if (!history || history.length === 0) {
+    return "Sem atualizações";
+  }
+  
+  const sortedHistory = [...history].sort((a, b) => 
+    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+  );
+  
+  const lastUpdate = new Date(sortedHistory[0].timestamp);
+  const today = startOfDay(new Date());
+  const days = differenceInDays(today, startOfDay(lastUpdate));
+  
+  if (days === 0) {
+    return "Atualizado hoje";
+  } else if (days === 1) {
+    return "1 dia desde a última atualização";
+  } else {
+    return `${days} dias desde a última atualização`;
+  }
 }
 
 export function TaskDetailModal({
@@ -228,8 +250,8 @@ export function TaskDetailModal({
                   <Pencil className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />
                 </h2>
               )}
-              <span className="bg-[#333] px-2 py-1 rounded text-sm text-gray-400">
-                #{task.id.slice(-4)}
+              <span className="bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400">
+                {getDaysSinceLastUpdate(task.history)}
               </span>
             </div>
 
