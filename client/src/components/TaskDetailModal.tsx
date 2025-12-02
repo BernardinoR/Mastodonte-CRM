@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil } from "lucide-react";
+import { ClientSelector } from "@/components/task-editors";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
@@ -81,26 +83,24 @@ export function TaskDetailModal({
   onOpenChange,
   onUpdateTask,
 }: TaskDetailModalProps) {
+  const [, navigate] = useLocation();
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
-  const [editingClient, setEditingClient] = useState(false);
   const [titleValue, setTitleValue] = useState(task?.title || "");
-  const [clientValue, setClientValue] = useState(task?.clientName || "");
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+  const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-  const clientInputRef = useRef<HTMLInputElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (task) {
       setDescription(task.description || "");
       setTitleValue(task.title || "");
-      setClientValue(task.clientName || "");
     }
   }, [task]);
 
@@ -110,13 +110,6 @@ export function TaskDetailModal({
       titleInputRef.current.select();
     }
   }, [editingTitle]);
-
-  useEffect(() => {
-    if (editingClient && clientInputRef.current) {
-      clientInputRef.current.focus();
-      clientInputRef.current.select();
-    }
-  }, [editingClient]);
 
   const handleTitleSave = useCallback(() => {
     if (!task) return;
@@ -128,13 +121,18 @@ export function TaskDetailModal({
     setEditingTitle(false);
   }, [titleValue, task, onUpdateTask]);
 
-  const handleClientSave = useCallback(() => {
+  const handleClientSelect = useCallback((client: string) => {
     if (!task) return;
-    if (clientValue !== task.clientName) {
-      onUpdateTask(task.id, { clientName: clientValue.trim() || undefined });
+    onUpdateTask(task.id, { clientName: client === "_none" ? undefined : client });
+    setClientPopoverOpen(false);
+  }, [task, onUpdateTask]);
+
+  const handleClientClick = useCallback(() => {
+    if (task?.clientName) {
+      onOpenChange(false);
+      navigate(`/clients/${encodeURIComponent(task.clientName)}`);
     }
-    setEditingClient(false);
-  }, [clientValue, task, onUpdateTask]);
+  }, [task, navigate, onOpenChange]);
 
   const handleDateChange = useCallback((date: Date | undefined) => {
     if (!task) return;
@@ -284,33 +282,47 @@ export function TaskDetailModal({
               </PopoverContent>
             </Popover>
 
-            {editingClient ? (
-              <Input
-                ref={clientInputRef}
-                value={clientValue}
-                onChange={(e) => setClientValue(e.target.value)}
-                onBlur={handleClientSave}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handleClientSave();
-                  if (e.key === "Escape") {
-                    setClientValue(task.clientName || "");
-                    setEditingClient(false);
-                  }
-                }}
-                placeholder="Nome do cliente..."
-                className="text-2xl font-semibold text-white mb-4 bg-transparent border-0 border-b border-gray-600 rounded-none focus-visible:ring-0 p-0 h-auto"
-                data-testid="input-modal-client"
-              />
-            ) : (
-              <h1 
-                className="text-2xl font-semibold text-white mb-4 leading-tight cursor-pointer hover:text-gray-300 group flex items-center gap-2 w-fit"
-                onClick={() => setEditingClient(true)}
-                data-testid="text-modal-client"
-              >
-                {task.clientName || "Adicionar cliente..."}
-                <Pencil className="w-4 h-4 opacity-0 group-hover:opacity-50" />
-              </h1>
-            )}
+            <div className="flex items-center gap-2 mb-4">
+              {task.clientName ? (
+                <h1 
+                  className="text-2xl font-semibold text-white leading-tight cursor-pointer hover:text-gray-300 hover:underline"
+                  onClick={handleClientClick}
+                  data-testid="text-modal-client"
+                >
+                  {task.clientName}
+                </h1>
+              ) : (
+                <h1 
+                  className="text-2xl font-semibold text-muted-foreground leading-tight"
+                  data-testid="text-modal-client"
+                >
+                  Sem cliente
+                </h1>
+              )}
+              <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    data-testid="button-edit-client"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent 
+                  className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                  side="bottom" 
+                  align="start" 
+                  sideOffset={6}
+                >
+                  <ClientSelector 
+                    selectedClient={task.clientName || null}
+                    onSelect={handleClientSelect}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
             <div className="flex gap-3 mb-6">
               {task.clientEmail && (
