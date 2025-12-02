@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil } from "lucide-react";
+import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X } from "lucide-react";
 import { ClientSelector } from "@/components/task-editors";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -92,6 +92,7 @@ export function TaskDetailModal({
   const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
+  const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -191,6 +192,12 @@ export function TaskDetailModal({
       history: [...currentHistory, newEvent],
     });
     setNewComment("");
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    if (!task.history) return;
+    const updatedHistory = task.history.filter(event => event.id !== eventId);
+    onUpdateTask(task.id, { history: updatedHistory });
   };
 
   const formatEventTime = (date: Date) => {
@@ -525,8 +532,18 @@ export function TaskDetailModal({
                       />
                     )}
                     
-                    <div className="w-[30px] h-[30px] rounded-full bg-[#333] border-2 border-[#1E1F24] z-[1] flex items-center justify-center flex-shrink-0 text-xs">
-                      {getEventIcon(event.type)}
+                    <div 
+                      className="w-[30px] h-[30px] rounded-full bg-[#333] border-2 border-[#1E1F24] z-[1] flex items-center justify-center flex-shrink-0 text-xs cursor-pointer hover:bg-red-900/50 hover:border-red-700 transition-colors"
+                      onMouseEnter={() => setHoveredEventId(event.id)}
+                      onMouseLeave={() => setHoveredEventId(null)}
+                      onClick={() => handleDeleteEvent(event.id)}
+                      data-testid={`button-delete-event-${event.id}`}
+                    >
+                      {hoveredEventId === event.id ? (
+                        <X className="w-3.5 h-3.5 text-red-400" />
+                      ) : (
+                        getEventIcon(event.type)
+                      )}
                     </div>
                     
                     <div className="bg-[#2B2D33] p-3 rounded-lg text-gray-400 text-sm w-full border border-[#363842]">
