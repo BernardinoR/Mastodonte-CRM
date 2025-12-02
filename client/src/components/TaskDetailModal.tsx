@@ -512,27 +512,36 @@ export function TaskDetailModal({
               <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
                 <PopoverTrigger asChild>
                   <div 
-                    className="flex items-center gap-1 px-2 py-1 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer overflow-hidden"
+                    className="flex items-center gap-2 px-2 py-1.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer"
                     data-testid="button-edit-assignees"
                   >
                     {task.assignees.length === 0 ? (
                       <span className="text-gray-500 text-sm">Adicionar responsável...</span>
                     ) : (
                       <>
+                        <div className="flex -space-x-1.5 flex-shrink-0">
+                          {task.assignees.slice(0, 3).map((assignee, idx) => (
+                            <Avatar key={idx} className={cn("w-6 h-6 border-2 border-[#27282F]", getAvatarColor(assignee))}>
+                              <AvatarFallback className="bg-transparent text-white font-medium text-[10px]">
+                                {getInitials(assignee)}
+                              </AvatarFallback>
+                            </Avatar>
+                          ))}
+                        </div>
                         {(() => {
-                          const MAX_DISPLAY = 2;
+                          const MAX_DISPLAY = 3;
                           const displayed = task.assignees.slice(0, MAX_DISPLAY);
                           const remaining = task.assignees.slice(MAX_DISPLAY);
                           
                           return (
-                            <>
+                            <div className="flex items-center min-w-0 flex-1">
                               <span className="text-white text-sm truncate">
                                 {displayed.join(", ")}
                               </span>
                               {remaining.length > 0 && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <span className="text-gray-400 text-sm whitespace-nowrap ml-0.5 hover:text-white">
+                                    <span className="text-gray-400 text-sm whitespace-nowrap ml-1 flex-shrink-0 hover:text-white">
                                       e mais {remaining.length}...
                                     </span>
                                   </TooltipTrigger>
@@ -543,7 +552,7 @@ export function TaskDetailModal({
                                   </TooltipContent>
                                 </Tooltip>
                               )}
-                            </>
+                            </div>
                           );
                         })()}
                       </>
