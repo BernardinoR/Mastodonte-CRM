@@ -131,7 +131,7 @@ export function TaskDetailModal({
         </VisuallyHidden>
         
         <div className="flex h-full">
-          <div className="flex-[1.5] p-8 pl-10 overflow-y-auto flex flex-col">
+          <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 overflow-y-auto flex flex-col">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-extrabold text-white uppercase tracking-wide">
                 {task.title || "Sem título"}
@@ -329,16 +329,6 @@ export function TaskDetailModal({
             </div>
           </div>
         </div>
-
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute top-4 right-4 text-gray-400 hover:text-white"
-          onClick={() => onOpenChange(false)}
-          data-testid="button-close-modal"
-        >
-          <X className="w-5 h-5" />
-        </Button>
       </DialogContent>
     </Dialog>
   );
