@@ -213,7 +213,7 @@ export function TaskDetailModal({
               </Badge>
             </div>
 
-            <div className="flex-grow mb-8">
+            <div className="mb-6">
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-3">
                 Descrição
               </label>
@@ -223,12 +223,12 @@ export function TaskDetailModal({
                 onChange={(e) => setDescription(e.target.value)}
                 onBlur={handleDescriptionBlur}
                 placeholder="Adicione detalhes..."
-                className="w-full min-h-[150px] bg-transparent border-0 text-gray-300 text-base leading-relaxed resize-none focus:text-white focus-visible:ring-0 p-0"
+                className="w-full min-h-[100px] bg-transparent border-0 text-gray-300 text-base leading-relaxed resize-none focus:text-white focus-visible:ring-0 p-0"
                 data-testid="textarea-description"
               />
             </div>
 
-            <div className="mt-auto border-t border-[#363842] pt-4 pb-2">
+            <div className="border-t border-[#363842] pt-4 pb-2">
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
                 Responsáveis
               </label>
