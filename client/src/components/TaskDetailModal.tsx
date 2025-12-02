@@ -96,6 +96,44 @@ export function TaskDetailModal({
     }
   }, [editingClient]);
 
+  const handleTitleSave = useCallback(() => {
+    if (!task) return;
+    if (titleValue.trim() && titleValue !== task.title) {
+      onUpdateTask(task.id, { title: titleValue.trim() });
+    } else {
+      setTitleValue(task.title);
+    }
+    setEditingTitle(false);
+  }, [titleValue, task, onUpdateTask]);
+
+  const handleClientSave = useCallback(() => {
+    if (!task) return;
+    if (clientValue !== task.clientName) {
+      onUpdateTask(task.id, { clientName: clientValue.trim() || undefined });
+    }
+    setEditingClient(false);
+  }, [clientValue, task, onUpdateTask]);
+
+  const handleDateChange = useCallback((date: Date | undefined) => {
+    if (!task) return;
+    if (date) {
+      onUpdateTask(task.id, { dueDate: date });
+      setDatePopoverOpen(false);
+    }
+  }, [task, onUpdateTask]);
+
+  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
+    if (!task) return;
+    onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
+    setPriorityPopoverOpen(false);
+  }, [task, onUpdateTask]);
+
+  const handleStatusChange = useCallback((status: TaskStatus) => {
+    if (!task) return;
+    onUpdateTask(task.id, { status });
+    setStatusPopoverOpen(false);
+  }, [task, onUpdateTask]);
+
   if (!task) return null;
 
   const statusConfig = STATUS_CONFIG[task.status];
@@ -106,39 +144,6 @@ export function TaskDetailModal({
       onUpdateTask(task.id, { description });
     }
   };
-
-  const handleTitleSave = useCallback(() => {
-    if (titleValue.trim() && titleValue !== task.title) {
-      onUpdateTask(task.id, { title: titleValue.trim() });
-    } else {
-      setTitleValue(task.title);
-    }
-    setEditingTitle(false);
-  }, [titleValue, task.title, task.id, onUpdateTask]);
-
-  const handleClientSave = useCallback(() => {
-    if (clientValue !== task.clientName) {
-      onUpdateTask(task.id, { clientName: clientValue.trim() || undefined });
-    }
-    setEditingClient(false);
-  }, [clientValue, task.clientName, task.id, onUpdateTask]);
-
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) {
-      onUpdateTask(task.id, { dueDate: date });
-      setDatePopoverOpen(false);
-    }
-  }, [task.id, onUpdateTask]);
-
-  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
-    setPriorityPopoverOpen(false);
-  }, [task.id, onUpdateTask]);
-
-  const handleStatusChange = useCallback((status: TaskStatus) => {
-    onUpdateTask(task.id, { status });
-    setStatusPopoverOpen(false);
-  }, [task.id, onUpdateTask]);
 
   const handleAddComment = () => {
     if (!newComment.trim()) return;
