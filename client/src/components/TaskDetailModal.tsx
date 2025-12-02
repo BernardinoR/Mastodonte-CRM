@@ -1,14 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Mail, Phone, MessageCircle, Plus, X, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
+import { DateInput } from "@/components/ui/date-input";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
@@ -58,13 +61,40 @@ export function TaskDetailModal({
 }: TaskDetailModalProps) {
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [editingClient, setEditingClient] = useState(false);
+  const [titleValue, setTitleValue] = useState(task?.title || "");
+  const [clientValue, setClientValue] = useState(task?.clientName || "");
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+  
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const clientInputRef = useRef<HTMLInputElement>(null);
+  const datePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (task) {
       setDescription(task.description || "");
+      setTitleValue(task.title || "");
+      setClientValue(task.clientName || "");
     }
   }, [task]);
+
+  useEffect(() => {
+    if (editingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [editingTitle]);
+
+  useEffect(() => {
+    if (editingClient && clientInputRef.current) {
+      clientInputRef.current.focus();
+      clientInputRef.current.select();
+    }
+  }, [editingClient]);
 
   if (!task) return null;
 
@@ -76,6 +106,39 @@ export function TaskDetailModal({
       onUpdateTask(task.id, { description });
     }
   };
+
+  const handleTitleSave = useCallback(() => {
+    if (titleValue.trim() && titleValue !== task.title) {
+      onUpdateTask(task.id, { title: titleValue.trim() });
+    } else {
+      setTitleValue(task.title);
+    }
+    setEditingTitle(false);
+  }, [titleValue, task.title, task.id, onUpdateTask]);
+
+  const handleClientSave = useCallback(() => {
+    if (clientValue !== task.clientName) {
+      onUpdateTask(task.id, { clientName: clientValue.trim() || undefined });
+    }
+    setEditingClient(false);
+  }, [clientValue, task.clientName, task.id, onUpdateTask]);
+
+  const handleDateChange = useCallback((date: Date | undefined) => {
+    if (date) {
+      onUpdateTask(task.id, { dueDate: date });
+      setDatePopoverOpen(false);
+    }
+  }, [task.id, onUpdateTask]);
+
+  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
+    onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
+    setPriorityPopoverOpen(false);
+  }, [task.id, onUpdateTask]);
+
+  const handleStatusChange = useCallback((status: TaskStatus) => {
+    onUpdateTask(task.id, { status });
+    setStatusPopoverOpen(false);
+  }, [task.id, onUpdateTask]);
 
   const handleAddComment = () => {
     if (!newComment.trim()) return;
@@ -134,22 +197,91 @@ export function TaskDetailModal({
         <div className="flex h-full min-h-0">
           <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 flex flex-col overflow-hidden min-h-0">
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-lg font-extrabold text-white uppercase tracking-wide">
-                {task.title || "Sem título"}
-              </h2>
+              {editingTitle ? (
+                <Input
+                  ref={titleInputRef}
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleTitleSave();
+                    if (e.key === "Escape") {
+                      setTitleValue(task.title);
+                      setEditingTitle(false);
+                    }
+                  }}
+                  className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-0 border-b border-gray-600 rounded-none focus-visible:ring-0 p-0 h-auto"
+                  data-testid="input-modal-title"
+                />
+              ) : (
+                <h2 
+                  className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer hover:text-gray-300 group flex items-center gap-2"
+                  onClick={() => setEditingTitle(true)}
+                  data-testid="text-modal-title"
+                >
+                  {task.title || "Sem título"}
+                  <Pencil className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />
+                </h2>
+              )}
               <span className="bg-[#333] px-2 py-1 rounded text-sm text-gray-400">
                 #{task.id.slice(-4)}
               </span>
             </div>
 
-            <div className="flex items-center gap-2 text-white font-semibold mb-3">
-              <Calendar className="w-4 h-4" />
-              <span>{format(new Date(task.dueDate), "dd/MM/yyyy")}</span>
-            </div>
+            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+              <PopoverTrigger asChild>
+                <div 
+                  className="flex items-center gap-2 text-white font-semibold mb-3 cursor-pointer hover:text-gray-300 group w-fit"
+                  data-testid="button-modal-date"
+                >
+                  <CalendarIcon className="w-4 h-4" />
+                  <span>{format(new Date(task.dueDate), "dd/MM/yyyy")}</span>
+                  <Pencil className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />
+                </div>
+              </PopoverTrigger>
+              <PopoverContent 
+                ref={datePopoverRef}
+                className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                side="bottom" 
+                align="start" 
+                sideOffset={6}
+              >
+                <DateInput
+                  value={task.dueDate}
+                  onChange={handleDateChange}
+                  className="font-semibold"
+                  dataTestId="input-modal-date"
+                  hideIcon
+                  commitOnInput={false}
+                />
+              </PopoverContent>
+            </Popover>
 
-            {task.clientName && (
-              <h1 className="text-2xl font-semibold text-white mb-4 leading-tight">
-                {task.clientName}
+            {editingClient ? (
+              <Input
+                ref={clientInputRef}
+                value={clientValue}
+                onChange={(e) => setClientValue(e.target.value)}
+                onBlur={handleClientSave}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleClientSave();
+                  if (e.key === "Escape") {
+                    setClientValue(task.clientName || "");
+                    setEditingClient(false);
+                  }
+                }}
+                placeholder="Nome do cliente..."
+                className="text-2xl font-semibold text-white mb-4 bg-transparent border-0 border-b border-gray-600 rounded-none focus-visible:ring-0 p-0 h-auto"
+                data-testid="input-modal-client"
+              />
+            ) : (
+              <h1 
+                className="text-2xl font-semibold text-white mb-4 leading-tight cursor-pointer hover:text-gray-300 group flex items-center gap-2 w-fit"
+                onClick={() => setEditingClient(true)}
+                data-testid="text-modal-client"
+              >
+                {task.clientName || "Adicionar cliente..."}
+                <Pencil className="w-4 h-4 opacity-0 group-hover:opacity-50" />
               </h1>
             )}
 
@@ -189,29 +321,92 @@ export function TaskDetailModal({
             </div>
 
             <div className="flex gap-3 mb-8">
-              {priorityConfig && (
-                <Badge
-                  className={cn(
-                    "px-4 py-1.5 rounded-full text-sm font-semibold",
-                    priorityConfig.bgColor,
-                    priorityConfig.textColor,
-                    "border-0"
+              <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
+                <PopoverTrigger asChild>
+                  {task.priority ? (
+                    <div className="cursor-pointer" data-testid="button-modal-priority">
+                      <PriorityBadge 
+                        priority={task.priority}
+                        className="px-4 py-1.5 text-sm cursor-pointer"
+                      />
+                    </div>
+                  ) : (
+                    <span 
+                      className="inline-flex px-4 py-1.5 rounded-full cursor-pointer text-sm text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
+                      data-testid="button-modal-priority"
+                    >
+                      + Prioridade
+                    </span>
                   )}
-                >
-                  <span className={cn("w-2 h-2 rounded-full mr-2", priorityConfig.dotColor)} />
-                  {task.priority}
-                </Badge>
-              )}
-              <Badge
-                className={cn(
-                  "px-4 py-1.5 rounded-full text-sm font-semibold",
-                  statusConfig.bgColor,
-                  statusConfig.textColor,
-                  "border-0"
-                )}
-              >
-                {statusConfig.label}
-              </Badge>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                  <div className="w-full">
+                    {task.priority && (
+                      <div className="border-b border-[#2a2a2a]">
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                        <div className="px-3 py-1">
+                          <div 
+                            className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
+                            onClick={() => handlePriorityChange("_none")}
+                          >
+                            <PriorityBadge priority={task.priority} />
+                            <span className="text-xs text-gray-500 ml-auto">Clique para remover</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    <div className="px-3 py-1.5 text-xs text-gray-500">
+                      {task.priority ? "Outras opções" : "Selecionar prioridade"}
+                    </div>
+                    <div className="pb-1">
+                      {PRIORITY_OPTIONS.filter(p => p !== task.priority).map(p => (
+                        <div
+                          key={p}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                          onClick={() => handlePriorityChange(p)}
+                        >
+                          <PriorityBadge priority={p} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div className="cursor-pointer" data-testid="button-modal-status">
+                    <StatusBadge 
+                      status={task.status}
+                      className="px-4 py-1.5 text-sm cursor-pointer"
+                    />
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                  <div className="w-full">
+                    <div className="border-b border-[#2a2a2a]">
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                      <div className="px-3 py-1">
+                        <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
+                          <StatusBadge status={task.status} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                    <div className="pb-1">
+                      {STATUS_OPTIONS.filter(s => s !== task.status).map(s => (
+                        <div
+                          key={s}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                          onClick={() => handleStatusChange(s)}
+                        >
+                          <StatusBadge status={s} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="flex-grow">
