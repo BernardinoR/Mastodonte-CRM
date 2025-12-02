@@ -282,29 +282,29 @@ export function TaskDetailModal({
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-2 mb-4">
+            <div className="flex items-center gap-1 mb-4 group">
               {task.clientName ? (
-                <h1 
-                  className="text-2xl font-semibold text-white leading-tight cursor-pointer hover:text-gray-300 hover:underline"
+                <span 
+                  className="text-2xl font-semibold text-white leading-tight cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
                   onClick={handleClientClick}
                   data-testid="text-modal-client"
                 >
                   {task.clientName}
-                </h1>
+                </span>
               ) : (
-                <h1 
-                  className="text-2xl font-semibold text-muted-foreground leading-tight"
+                <span 
+                  className="text-2xl font-semibold text-muted-foreground leading-tight px-2 py-0.5 -ml-2"
                   data-testid="text-modal-client"
                 >
                   Sem cliente
-                </h1>
+                </span>
               )}
               <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
                 <PopoverTrigger asChild>
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
                     data-testid="button-edit-client"
                   >
                     <Pencil className="w-4 h-4" />
