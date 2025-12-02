@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Calendar, Mail, Phone, MessageCircle, Plus, X, MessageSquare, RefreshCw, User, Sparkles, FileText } from "lucide-react";
+import { Calendar, Mail, Phone, MessageCircle, Plus, X, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image } from "lucide-react";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
@@ -228,19 +228,19 @@ export function TaskDetailModal({
               />
             </div>
 
-            <div className="border-t border-[#363842] pt-5">
-              <label className="block text-[#64666E] text-xs font-bold uppercase mb-3">
+            <div className="mt-auto border-t border-[#363842] pt-4 pb-2">
+              <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
                 Responsáveis
               </label>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {task.assignees.map((assignee, index) => (
                   <div key={index} className="flex items-center gap-3">
-                    <Avatar className={cn("w-9 h-9", getAvatarColor(assignee))}>
-                      <AvatarFallback className="bg-transparent text-white font-bold text-sm">
+                    <Avatar className={cn("w-8 h-8", getAvatarColor(assignee))}>
+                      <AvatarFallback className="bg-transparent text-white font-bold text-xs">
                         {getInitials(assignee)}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="text-white font-medium">{assignee}</span>
+                    <span className="text-white font-medium text-sm">{assignee}</span>
                   </div>
                 ))}
               </div>
@@ -288,16 +288,33 @@ export function TaskDetailModal({
             </div>
 
             <div className="p-4 bg-[#1E1F24] border-t border-[#363842]">
-              <div className="bg-[#151619] border border-[#363842] rounded-lg p-2">
+              <div className="bg-[#151619] border border-[#363842] rounded-lg p-3">
                 <Textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Adicione um comentário..."
-                  className="bg-transparent border-0 text-white resize-none min-h-[40px] focus-visible:ring-0"
+                  placeholder="Escreva uma nota..."
+                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 p-0 text-sm"
                   data-testid="textarea-new-comment"
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <div />
+                  <div className="flex items-center gap-2">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-7 h-7 text-gray-500 hover:text-gray-300"
+                      data-testid="button-attach-file"
+                    >
+                      <Paperclip className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="w-7 h-7 text-gray-500 hover:text-gray-300"
+                      data-testid="button-attach-image"
+                    >
+                      <Image className="w-4 h-4" />
+                    </Button>
+                  </div>
                   <Button
                     size="sm"
                     onClick={handleAddComment}
@@ -305,7 +322,6 @@ export function TaskDetailModal({
                     className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"
                     data-testid="button-add-comment"
                   >
-                    <Plus className="w-3 h-3 mr-1" />
                     Adicionar
                   </Button>
                 </div>
