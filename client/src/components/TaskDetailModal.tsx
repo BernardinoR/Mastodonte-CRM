@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Calendar, Mail, Phone, MessageCircle, Plus, X, MessageSquare, RefreshCw, User, Sparkles, FileText } from "lucide-react";
-import { format } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseLocalDate } from "@/lib/date-utils";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
@@ -43,15 +44,10 @@ function getAvatarColor(name: string): string {
   return colors[index];
 }
 
-function getPriorityBorderColor(priority?: TaskPriority): string {
-  if (!priority) return "border-l-gray-500";
-  const colors: Record<TaskPriority, string> = {
-    "Urgente": "border-l-red-500",
-    "Importante": "border-l-orange-500",
-    "Normal": "border-l-yellow-500",
-    "Baixa": "border-l-blue-500",
-  };
-  return colors[priority];
+function isTaskOverdue(dueDate: string | Date): boolean {
+  const today = startOfDay(new Date());
+  const dueDateObj = typeof dueDate === 'string' ? parseLocalDate(dueDate) : dueDate;
+  return isBefore(startOfDay(dueDateObj), today);
 }
 
 export function TaskDetailModal({
@@ -126,7 +122,7 @@ export function TaskDetailModal({
           "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
           "bg-[#252730] border-[#363842]",
           "border-l-[6px]",
-          getPriorityBorderColor(task.priority)
+          isTaskOverdue(task.dueDate) ? "border-l-red-700" : "border-l-transparent"
         )}
       >
         <VisuallyHidden>
