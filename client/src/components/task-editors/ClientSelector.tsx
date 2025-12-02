@@ -53,7 +53,10 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
         Selecione mais
       </div>
       
-      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+      <div 
+        className="max-h-52 overflow-y-auto"
+        onWheel={(e) => e.stopPropagation()}
+      >
         {filteredClients.map((client, index) => (
           <div
             key={client}
@@ -177,7 +180,10 @@ export function ContextMenuClientEditor({ currentClient, onSelect, isBulk = fals
         {isBulk ? 'Definir cliente para todos' : (localClient ? 'Alterar para' : 'Selecionar cliente')}
       </div>
       
-      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+      <div 
+        className="max-h-52 overflow-y-auto"
+        onWheel={(e) => e.stopPropagation()}
+      >
         {filteredClients.map((client, index) => {
           const isCurrentClient = client === localClient;
           return (
