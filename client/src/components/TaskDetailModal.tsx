@@ -238,7 +238,7 @@ export function TaskDetailModal({
                         setEditingTitle(false);
                       }
                     }}
-                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-0 border-b border-gray-500 rounded-none focus-visible:ring-0 px-2 py-0.5 -ml-2 h-auto w-full"
+                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none px-2 py-0.5 -ml-2 h-auto w-full"
                     data-testid="input-modal-title"
                   />
                 ) : (
