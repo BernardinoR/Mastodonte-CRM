@@ -210,9 +210,11 @@ export function TaskDetailModal({
         className={cn(
           "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
           "bg-[#252730] border-[#363842]",
-          "border-l-[6px]",
-          isTaskOverdue(task.dueDate) ? "border-l-red-700" : "border-l-transparent"
+          "border-l-[6px]"
         )}
+        style={{
+          borderLeftColor: isTaskOverdue(task.dueDate) ? "rgb(185, 28, 28)" : "rgb(66, 129, 220)"
+        }}
       >
         <VisuallyHidden>
           <DialogTitle>{task.title}</DialogTitle>
