@@ -226,8 +226,9 @@ export function TaskDetailModal({
             <div className="flex items-center justify-between mb-5">
               <div className="flex-1 max-w-[50%]">
                 {editingTitle ? (
-                  <Input
+                  <input
                     ref={titleInputRef}
+                    type="text"
                     value={titleValue}
                     onChange={(e) => setTitleValue(e.target.value)}
                     onBlur={handleTitleSave}
@@ -238,7 +239,8 @@ export function TaskDetailModal({
                         setEditingTitle(false);
                       }
                     }}
-                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none px-2 py-0.5 -ml-2 h-auto w-full"
+                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none px-2 py-0.5 -ml-2 w-full"
+                    style={{ fontSize: '1.125rem', lineHeight: '1.75rem' }}
                     data-testid="input-modal-title"
                   />
                 ) : (
