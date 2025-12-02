@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X } from "lucide-react";
-import { ClientSelector } from "@/components/task-editors";
+import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
@@ -92,6 +93,7 @@ export function TaskDetailModal({
   const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
+  const [assigneesPopoverOpen, setAssigneesPopoverOpen] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -163,6 +165,18 @@ export function TaskDetailModal({
     if (!task) return;
     onUpdateTask(task.id, { status });
     setStatusPopoverOpen(false);
+  }, [task, onUpdateTask]);
+
+  const handleAddAssignee = useCallback((assignee: string) => {
+    if (!task) return;
+    if (!task.assignees.includes(assignee)) {
+      onUpdateTask(task.id, { assignees: [...task.assignees, assignee] });
+    }
+  }, [task, onUpdateTask]);
+
+  const handleRemoveAssignee = useCallback((assignee: string) => {
+    if (!task) return;
+    onUpdateTask(task.id, { assignees: task.assignees.filter(a => a !== assignee) });
   }, [task, onUpdateTask]);
 
   if (!task) return null;
@@ -495,18 +509,55 @@ export function TaskDetailModal({
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
                 Responsáveis
               </label>
-              <div className="space-y-2">
-                {task.assignees.map((assignee, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <Avatar className={cn("w-8 h-8", getAvatarColor(assignee))}>
-                      <AvatarFallback className="bg-transparent text-white font-bold text-xs">
-                        {getInitials(assignee)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-white font-medium text-sm">{assignee}</span>
+              <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div 
+                    className="flex items-center gap-1 px-2 py-1 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer overflow-hidden"
+                    data-testid="button-edit-assignees"
+                  >
+                    {task.assignees.length === 0 ? (
+                      <span className="text-gray-500 text-sm">Adicionar responsável...</span>
+                    ) : (
+                      <>
+                        {(() => {
+                          const MAX_DISPLAY = 2;
+                          const displayed = task.assignees.slice(0, MAX_DISPLAY);
+                          const remaining = task.assignees.slice(MAX_DISPLAY);
+                          
+                          return (
+                            <>
+                              <span className="text-white text-sm truncate">
+                                {displayed.join(", ")}
+                              </span>
+                              {remaining.length > 0 && (
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="text-gray-400 text-sm whitespace-nowrap ml-0.5 hover:text-white">
+                                      e mais {remaining.length}...
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="bg-[#2a2a2a] border-[#363842] text-white">
+                                    <div className="text-sm">
+                                      {remaining.join(", ")}
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </>
+                    )}
                   </div>
-                ))}
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0" side="top" align="start" sideOffset={6}>
+                  <AssigneeSelector
+                    selectedAssignees={task.assignees}
+                    onSelect={handleAddAssignee}
+                    onRemove={handleRemoveAssignee}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
           </div>
 
