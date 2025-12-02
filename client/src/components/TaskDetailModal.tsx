@@ -247,15 +247,15 @@ export function TaskDetailModal({
             </div>
           </div>
 
-          <div className="flex-1 bg-[#1E1F24] border-l border-[#363842] flex flex-col">
-            <div className="p-5 border-b border-[#363842] flex justify-between items-center">
+          <div className="flex-1 bg-[#1E1F24] border-l border-[#363842] flex flex-col min-h-0 overflow-hidden">
+            <div className="p-5 border-b border-[#363842] flex justify-between items-center flex-shrink-0">
               <span className="text-white font-bold">Histórico</span>
               <span className="text-sm text-[#64666E]">
                 {(task.history?.length || 0)} atualizações
               </span>
             </div>
 
-            <div className="flex-grow overflow-y-auto p-5 space-y-5">
+            <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
               {(!task.history || task.history.length === 0) ? (
                 <div className="text-center text-gray-500 py-8">
                   <p className="text-sm">Nenhuma atualização ainda</p>
@@ -287,7 +287,7 @@ export function TaskDetailModal({
               )}
             </div>
 
-            <div className="p-4 bg-[#1E1F24] border-t border-[#363842]">
+            <div className="p-4 bg-[#1E1F24] border-t border-[#363842] flex-shrink-0">
               <div className="bg-[#151619] border border-[#363842] rounded-lg p-3">
                 <Textarea
                   value={newComment}
