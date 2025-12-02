@@ -9,6 +9,7 @@ interface PriorityBadgeProps {
   className?: string;
   showDot?: boolean;
   size?: "sm" | "md";
+  dotSize?: "sm" | "md" | "lg";
   "data-testid"?: string;
 }
 
@@ -17,9 +18,16 @@ export const PriorityBadge = memo(function PriorityBadge({
   className,
   showDot = true,
   size = "sm",
+  dotSize = "sm",
   "data-testid": dataTestId,
 }: PriorityBadgeProps) {
   const config = getPriorityConfig(priority);
+  
+  const dotSizeClasses = {
+    sm: "w-1.5 h-1.5",
+    md: "w-2 h-2",
+    lg: "w-2.5 h-2.5",
+  };
   
   return (
     <Badge 
@@ -36,7 +44,7 @@ export const PriorityBadge = memo(function PriorityBadge({
       data-testid={dataTestId}
     >
       {showDot && (
-        <span className={cn("w-1.5 h-1.5 rounded-full", config.dotColor)} />
+        <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />
       )}
       {priority}
     </Badge>
@@ -48,6 +56,7 @@ interface StatusBadgeProps {
   className?: string;
   showDot?: boolean;
   size?: "sm" | "md";
+  dotSize?: "sm" | "md" | "lg";
   "data-testid"?: string;
 }
 
@@ -56,9 +65,16 @@ export const StatusBadge = memo(function StatusBadge({
   className,
   showDot = true,
   size = "sm",
+  dotSize = "sm",
   "data-testid": dataTestId,
 }: StatusBadgeProps) {
   const config = getStatusConfig(status);
+  
+  const dotSizeClasses = {
+    sm: "w-1.5 h-1.5",
+    md: "w-2 h-2",
+    lg: "w-2.5 h-2.5",
+  };
   
   return (
     <Badge 
@@ -75,7 +91,7 @@ export const StatusBadge = memo(function StatusBadge({
       data-testid={dataTestId}
     >
       {showDot && (
-        <span className={cn("w-1.5 h-1.5 rounded-full", config.dotColor)} />
+        <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />
       )}
       {status}
     </Badge>
