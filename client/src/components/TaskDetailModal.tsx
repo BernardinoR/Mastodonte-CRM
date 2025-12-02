@@ -213,7 +213,7 @@ export function TaskDetailModal({
               </Badge>
             </div>
 
-            <div className="mb-6">
+            <div className="flex-grow">
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-3">
                 Descrição
               </label>
@@ -228,7 +228,7 @@ export function TaskDetailModal({
               />
             </div>
 
-            <div className="border-t border-[#363842] pt-4 pb-2">
+            <div className="mt-auto border-t border-[#363842] pt-4 pb-4">
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
                 Responsáveis
               </label>
