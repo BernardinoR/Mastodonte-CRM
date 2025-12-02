@@ -1,16 +1,27 @@
 export type TaskStatus = "To Do" | "In Progress" | "Done";
 export type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 
+export interface TaskHistoryEvent {
+  id: string;
+  type: "comment" | "status_change" | "assignee_change" | "created";
+  content: string;
+  author: string;
+  timestamp: Date;
+}
+
 export interface Task {
   id: string;
   title: string;
   clientName?: string;
+  clientEmail?: string;
+  clientPhone?: string;
   priority?: TaskPriority;
   status: TaskStatus;
   assignees: string[];
   dueDate: Date;
   description?: string;
   notes?: string[];
+  history?: TaskHistoryEvent[];
   order: number;
 }
 

@@ -1,4 +1,4 @@
-import type { Task, TaskStatus, TaskPriority } from "@/types/task";
+import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@/types/task";
 
 export const MOCK_CLIENTS = [
   "Fernanda Carolina De Faria",
@@ -60,11 +60,44 @@ export const INITIAL_TASKS: Task[] = [
     id: "5",
     title: "REALOCAR MARCOS",
     clientName: "Marcia Mozzato Ciampi De Andrade",
+    clientEmail: "marcia.mozzato@email.com",
+    clientPhone: "+5511999887766",
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira"],
     dueDate: new Date('2025-01-20'),
+    description: "Cliente solicitou realocação urgente dos ativos de renda fixa. Verificar disponibilidade de lastro em debêntures incentivadas e enviar opções até o final do dia.\n\nObs: Cliente prefere contato após as 14h.",
     order: 0,
+    history: [
+      {
+        id: "h1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-15T10:30:00'),
+      },
+      {
+        id: "h2",
+        type: "comment",
+        content: "Entrei em contato com a cliente, ela confirmou interesse em debêntures incentivadas com prazo de 5 anos.",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-16T14:45:00'),
+      },
+      {
+        id: "h3",
+        type: "status_change",
+        content: "Status alterado de 'A Fazer' para 'Em Progresso'",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-17T09:00:00'),
+      },
+      {
+        id: "h4",
+        type: "comment",
+        content: "Aguardando retorno da mesa de operações sobre disponibilidade de lastro.",
+        author: "Pedro Oliveira",
+        timestamp: new Date('2025-01-18T11:20:00'),
+      },
+    ],
   },
   {
     id: "6",

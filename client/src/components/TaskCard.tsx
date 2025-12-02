@@ -80,6 +80,7 @@ interface TaskCardProps {
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
   onFinishEditing?: (taskId: string) => void;
+  onOpenDetail?: (taskId: string) => void;
   onBulkUpdate?: (updates: any) => void;
   onBulkDelete?: () => void;
   onBulkAppendTitle?: (suffix: string) => void;
@@ -107,6 +108,7 @@ export function TaskCard({
   onUpdate,
   onDelete,
   onFinishEditing,
+  onOpenDetail,
   onBulkUpdate,
   onBulkDelete,
   onBulkAppendTitle,
@@ -283,12 +285,16 @@ export function TaskCard({
     if (!isInteractiveElement && !isJustClosedEdit()) {
       clickTimeoutRef.current = setTimeout(() => {
         if (!isEditing) {
-          setShowDetails(true);
+          if (onOpenDetail) {
+            onOpenDetail(id);
+          } else {
+            setShowDetails(true);
+          }
         }
         clickTimeoutRef.current = null;
       }, 250);
     }
-  }, [onSelect, id, isEditing, isJustClosedEdit]);
+  }, [onSelect, id, isEditing, isJustClosedEdit, onOpenDetail]);
 
   const handleDateChange = useCallback((date: Date | undefined) => {
     if (date) {

@@ -5,6 +5,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, CheckCircle2 } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
+import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { 
   DndContext, 
   PointerSensor, 
@@ -82,6 +83,7 @@ function SortablePlaceholder({ id, count }: { id: string; count: number }) {
 export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   
   // Use the task history hook for undo functionality (Ctrl+Z)
   const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
@@ -243,6 +245,14 @@ export default function Dashboard() {
     );
   }, [selectedTaskIds, setTasksWithHistory]);
 
+  // Open task detail modal
+  const handleOpenDetail = useCallback((taskId: string) => {
+    setDetailTaskId(taskId);
+  }, []);
+
+  // Get the task being viewed in detail
+  const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId) : null;
+
   // Quick add task callback
   const handleAddNewTask = useCallback((task: Task) => {
     setTasksWithHistory(prevTasks => [...prevTasks, task]);
@@ -291,6 +301,7 @@ export default function Dashboard() {
           onUpdate={handleUpdateTaskWithClearEdit}
           onDelete={handleDeleteTask}
           onFinishEditing={handleFinishEditing}
+          onOpenDetail={handleOpenDetail}
           onBulkUpdate={handleBulkUpdate}
           onBulkDelete={handleBulkDelete}
           onBulkAppendTitle={handleBulkAppendTitle}
@@ -324,6 +335,7 @@ export default function Dashboard() {
           onUpdate={handleUpdateTaskWithClearEdit}
           onDelete={handleDeleteTask}
           onFinishEditing={handleFinishEditing}
+          onOpenDetail={handleOpenDetail}
           onBulkUpdate={handleBulkUpdate}
           onBulkDelete={handleBulkDelete}
           onBulkAppendTitle={handleBulkAppendTitle}
@@ -496,6 +508,13 @@ export default function Dashboard() {
         open={newTaskOpen}
         onOpenChange={setNewTaskOpen}
         onSubmit={(data) => console.log('New task:', data)}
+      />
+
+      <TaskDetailModal
+        task={detailTask || null}
+        open={detailTaskId !== null}
+        onOpenChange={(open) => !open && setDetailTaskId(null)}
+        onUpdateTask={handleUpdateTask}
       />
     </div>
   );
