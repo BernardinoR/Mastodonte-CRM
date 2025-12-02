@@ -332,7 +332,7 @@ export function TaskDetailModal({
                     <div className="cursor-pointer" data-testid="button-modal-priority">
                       <PriorityBadge 
                         priority={task.priority}
-                        className="px-4 py-1.5 text-base gap-1.5 cursor-pointer"
+                        className="!px-3 !py-1 !text-sm !gap-0.5 cursor-pointer"
                       />
                     </div>
                   ) : (
@@ -383,7 +383,7 @@ export function TaskDetailModal({
                   <div className="cursor-pointer" data-testid="button-modal-status">
                     <StatusBadge 
                       status={task.status}
-                      className="px-4 py-1.5 text-base gap-1.5 cursor-pointer"
+                      className="!px-3 !py-1 !text-sm !gap-0.5 cursor-pointer"
                     />
                   </div>
                 </PopoverTrigger>
