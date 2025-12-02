@@ -240,12 +240,11 @@ export function TaskDetailModal({
                 />
               ) : (
                 <h2 
-                  className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer hover:text-gray-300 group flex items-center gap-2"
+                  className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
                   onClick={() => setEditingTitle(true)}
                   data-testid="text-modal-title"
                 >
                   {task.title || "Sem título"}
-                  <Pencil className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />
                 </h2>
               )}
               <span className="bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400">
@@ -256,12 +255,11 @@ export function TaskDetailModal({
             <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
               <PopoverTrigger asChild>
                 <div 
-                  className="flex items-center gap-2 text-white font-semibold mb-3 cursor-pointer hover:text-gray-300 group w-fit"
+                  className="flex items-center gap-2 text-white font-semibold mb-3 cursor-pointer w-fit px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
                   data-testid="button-modal-date"
                 >
                   <CalendarIcon className="w-4 h-4" />
                   <span>{format(new Date(task.dueDate), "dd/MM/yyyy")}</span>
-                  <Pencil className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50" />
                 </div>
               </PopoverTrigger>
               <PopoverContent 
