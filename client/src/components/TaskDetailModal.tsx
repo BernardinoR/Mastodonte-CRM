@@ -512,17 +512,17 @@ export function TaskDetailModal({
               <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
                 <PopoverTrigger asChild>
                   <div 
-                    className="flex items-center gap-2 px-2 py-1.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2.5 px-2 py-1.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer"
                     data-testid="button-edit-assignees"
                   >
                     {task.assignees.length === 0 ? (
-                      <span className="text-gray-500 text-sm">Adicionar responsável...</span>
+                      <span className="text-gray-500 text-base">Adicionar responsável...</span>
                     ) : (
                       <>
-                        <div className="flex -space-x-1.5 flex-shrink-0">
+                        <div className="flex -space-x-2 flex-shrink-0">
                           {task.assignees.slice(0, 3).map((assignee, idx) => (
-                            <Avatar key={idx} className={cn("w-6 h-6 border-2 border-[#27282F]", getAvatarColor(assignee))}>
-                              <AvatarFallback className="bg-transparent text-white font-medium text-[10px]">
+                            <Avatar key={idx} className={cn("w-8 h-8 border-2 border-[#27282F]", getAvatarColor(assignee))}>
+                              <AvatarFallback className="bg-transparent text-white font-medium text-xs">
                                 {getInitials(assignee)}
                               </AvatarFallback>
                             </Avatar>
@@ -534,14 +534,14 @@ export function TaskDetailModal({
                           const remaining = task.assignees.slice(MAX_DISPLAY);
                           
                           return (
-                            <div className="flex items-center min-w-0 flex-1">
-                              <span className="text-white text-sm truncate">
+                            <div className="flex items-center">
+                              <span className="text-white text-base">
                                 {displayed.join(", ")}
                               </span>
                               {remaining.length > 0 && (
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <span className="text-gray-400 text-sm whitespace-nowrap ml-1 flex-shrink-0 hover:text-white">
+                                    <span className="text-gray-400 text-base whitespace-nowrap ml-1 hover:text-white">
                                       e mais {remaining.length}...
                                     </span>
                                   </TooltipTrigger>
