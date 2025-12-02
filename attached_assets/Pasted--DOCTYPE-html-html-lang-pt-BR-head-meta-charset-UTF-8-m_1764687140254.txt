@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Modal Expandido</title>
+    <style>
+        :root {
+            /* Cores extraídas/adaptadas do seu print */
+            --bg-body: #0F1012;
+            --bg-card: #252730; /* Cor de fundo do card */
+            --bg-timeline: #1E1F24; /* Cor um pouco mais escura para a timeline */
+            
+            --text-white: #FFFFFF;
+            --text-gray: #9CA0AC;
+            --text-muted: #64666E;
+            
+            --accent-red: #C62828; /* Urgente */
+            --accent-red-bg: rgba(198, 40, 40, 0.2);
+            
+            --accent-blue: #5E81F4; /* In Progress */
+            --accent-blue-bg: rgba(94, 129, 244, 0.2);
+            
+            --border-color: #363842;
+            --radius: 16px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-body);
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Container Principal do Modal */
+        .modal-container {
+            width: 90%;
+            max-width: 1200px;
+            height: 85vh;
+            background-color: var(--bg-card);
+            border-radius: var(--radius);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            display: flex;
+            overflow: hidden; /* Garante que nada saia das bordas arredondadas */
+            position: relative;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Borda lateral vermelha (Identidade do Card) */
+        .modal-container::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; bottom: 0;
+            width: 6px;
+            background-color: var(--accent-red);
+            z-index: 10;
+        }
+
+        /* --- LADO ESQUERDO: O Card Expandido --- */
+        .card-section {
+            flex: 1.5; /* Ocupa 60% da largura */
+            padding: 30px 40px 30px 45px; /* Padding maior na esquerda por causa da borda vermelha */
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto; /* Scroll se a descrição for gigante */
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--text-white);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .task-id {
+            background: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: var(--text-gray);
+        }
+
+        /* Data e Cliente */
+        .date-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-white);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .client-name {
+            font-size: 1.5rem;
+            color: var(--text-white);
+            margin: 0 0 15px 0;
+            font-weight: 600;
+            line-height: 1.2;
+        }
+
+        /* Barra de Ações Rápidas (Contato) */
+        .quick-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .action-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border-color);
+            color: var(--text-gray);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        .action-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-white); border-color: var(--text-gray); }
+
+        /* Tags */
+        .tags-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        .tag {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+        }
+        .tag.urgent { background-color: var(--accent-red-bg); color: #FF8A80; }
+        .tag.urgent::before { content:'●'; font-size: 0.8rem; }
+        
+        .tag.progress { background-color: var(--accent-blue-bg); color: #8CABFF; }
+
+        /* Descrição (Estilo Clean) */
+        .description-area {
+            flex-grow: 1;
+            margin-bottom: 30px;
+        }
+        .label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        .desc-input {
+            width: 100%;
+            min-height: 150px;
+            background: transparent;
+            border: none;
+            color: var(--text-gray);
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: none;
+            font-family: inherit;
+        }
+        .desc-input:focus { outline: none; color: var(--text-white); }
+
+        /* Responsáveis (Igual ao print) */
+        .responsible-section {
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .avatar {
+            width: 36px; height: 36px;
+            background-color: #A0A0A5;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #252730; font-weight: bold; font-size: 0.9rem;
+        }
+        .user-name { color: var(--text-white); font-weight: 500; }
+
+
+        /* --- LADO DIREITO: Timeline --- */
+        .timeline-section {
+            flex: 1; /* Ocupa 40% da largura */
+            background-color: var(--bg-timeline);
+            border-left: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .timeline-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-white);
+            font-weight: 700;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* Área de Scroll da Timeline */
+        .timeline-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Estilo dos Nodes */
+        .node {
+            display: flex;
+            gap: 12px;
+            position: relative;
+        }
+        /* Linha conectora */
+        .node:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            left: 14px; /* Centro do avatar (30px/2) - 1px */
+            top: 30px;
+            bottom: -20px;
+            width: 2px;
+            background-color: var(--border-color);
+            z-index: 0;
+        }
+
+        .node-icon {
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid var(--bg-timeline); /* Borda para separar da linha */
+            z-index: 1;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem; color: var(--text-gray);
+            flex-shrink: 0;
+        }
+        
+        .node-body {
+            background: #2B2D33;
+            padding: 12px;
+            border-radius: 8px;
+            color: var(--text-gray);
+            font-size: 0.9rem;
+            width: 100%;
+            border: 1px solid var(--border-color);
+        }
+        .node-meta {
+            display: flex; justify-content: space-between;
+            font-size: 0.75rem; color: var(--text-muted); margin-bottom: 6px;
+        }
+        .node-user { font-weight: bold; color: var(--text-white); }
+
+        /* Área de Input Fixa */
+        .timeline-input-area {
+            padding: 15px;
+            background-color: var(--bg-timeline);
+            border-top: 1px solid var(--border-color);
+        }
+        .input-wrapper {
+            background: #151619;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+        }
+        .new-node-text {
+            background: transparent; border: none; color: white;
+            resize: none; font-family: inherit; font-size: 0.9rem;
+            min-height: 40px;
+        }
+        .new-node-text:focus { outline: none; }
+        
+        .input-actions {
+            display: flex; justify-content: space-between; align-items: center; margin-top: 5px;
+        }
+        .btn-add {
+            background: var(--accent-blue);
+            color: white; border: none; padding: 6px 14px; border-radius: 4px; cursor: pointer; font-weight: 600; font-size: 0.8rem;
+        }
+        .btn-add:hover { background: #4b6cdb; }
+
+        /* Scrollbar customizada */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #444; border-radius: 3px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="modal-container">
+        
+        <!-- LADO ESQUERDO: O Card Original Expandido -->
+        <div class="card-section">
+            
+            <!-- Header: Título e ID -->
+            <div class="header-row">
+                <h2 class="card-title">REALOCAR MARCOS</h2>
+                <span class="task-id">#5</span>
+            </div>
+
+            <!-- Data -->
+            <div class="date-row">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                <span>19/01/2025</span>
+            </div>
+
+            <!-- Nome do Cliente -->
+            <h1 class="client-name">Marcia Mozzato Ciampi De Andrade</h1>
+
+            <!-- Ações de Contato (Solicitado para ficar em cima) -->
+            <div class="quick-actions">
+                <a href="mailto:marcia@email.com" class="action-btn">
+                    📧 Enviar Email
+                </a>
+                <a href="tel:+551199999999" class="action-btn">
+                    📞 Ligar
+                </a>
+                <a href="#" class="action-btn">
+                    💬 WhatsApp
+                </a>
+            </div>
+
+            <!-- Tags -->
+            <div class="tags-row">
+                <div class="tag urgent">Urgente</div>
+                <div class="tag progress">In Progress</div>
+            </div>
+
+            <!-- Descrição -->
+            <div class="description-area">
+                <span class="label">Descrição</span>
+                <textarea class="desc-input" placeholder="Adicione detalhes...">Cliente solicitou realocação urgente dos ativos de renda fixa. Verificar disponibilidade de lastro em debêntures incentivadas e enviar opções até o final do dia.
+
+Obs: Cliente prefere contato após as 14h.</textarea>
+            </div>
+
+            <!-- Responsáveis (Rodapé do Card) -->
+            <div class="responsible-section">
+                <span class="label">Responsáveis</span>
+                <div class="user-row">
+                    <div class="avatar">RB</div>
+                    <span class="user-name">Rafael Bernardino Silveira</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- LADO DIREITO: Timeline -->
+        <div class="timeline-section">
+            <div class="timeline-header">
+                <span>Histórico</span>
+                <span style="font-size:0.8rem; color:var(--text-muted)">4 atualizações</span>
+            </div>
+
+            <div class="timeline-content">
+                
+                <!-- Node 1 -->
+                <div class="node">
+                    <div class="node-icon">RB</div>
+                    <div class="node-body">
+                        <div class="node-meta">
+                            <span class="node-user">Rafael Bernardino</span>
+                            <span>19/01 - 09:00</span>
+                        </div>
+                        Card criado.
+                    </div>
+                </div>
+
+                <!-- Node 2 -->
+                <div class="node">
+                    <div class="node-icon">📞</div>
+                    <div class="node-body">
+                        <div class="node-meta">
+                            <span class="node-user">Registro de Ligação</span>
+                            <span>19/01 - 10:15</span>
+                        </div>
+                        Tentei contato, sem sucesso. Deixei recado na caixa postal.
+                    </div>
+                </div>
+
+                <!-- Node 3 -->
+                <div class="node">
+                    <div class="node-icon">📧</div>
+                    <div class="node-body">
+                        <div class="node-meta">
+                            <span class="node-user">Sistema</span>
+                            <span>19/01 - 10:20</span>
+                        </div>
+                        Email automático de sugestão de carteira enviado.
+                    </div>
+                </div>
+
+                <!-- Node 4 -->
+                <div class="node">
+                    <div class="node-icon">RB</div>
+                    <div class="node-body">
+                        <div class="node-meta">
+                            <span class="node-user">Rafael Bernardino</span>
+                            <span>Hoje - 14:30</span>
+                        </div>
+                        Cliente retornou. Pediu para segurar a operação até amanhã pois vai transferir mais recursos.
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Input Fixo -->
+            <div class="timeline-input-area">
+                <div class="input-wrapper">
+                    <textarea class="new-node-text" placeholder="Escreva uma nota..."></textarea>
+                    <div class="input-actions">
+                        <div style="color:var(--text-muted); cursor:pointer;">📎 📷</div>
+                        <button class="btn-add">Adicionar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>
