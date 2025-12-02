@@ -131,7 +131,7 @@ export function TaskDetailModal({
         </VisuallyHidden>
         
         <div className="flex h-full">
-          <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 overflow-y-auto flex flex-col">
+          <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-lg font-extrabold text-white uppercase tracking-wide">
                 {task.title || "Sem título"}
