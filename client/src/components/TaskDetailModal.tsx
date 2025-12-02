@@ -224,31 +224,33 @@ export function TaskDetailModal({
         <div className="flex h-full min-h-0">
           <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 flex flex-col overflow-hidden min-h-0">
             <div className="flex items-center justify-between mb-5">
-              {editingTitle ? (
-                <Input
-                  ref={titleInputRef}
-                  value={titleValue}
-                  onChange={(e) => setTitleValue(e.target.value)}
-                  onBlur={handleTitleSave}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleTitleSave();
-                    if (e.key === "Escape") {
-                      setTitleValue(task.title);
-                      setEditingTitle(false);
-                    }
-                  }}
-                  className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-0 border-b border-gray-600 rounded-none focus-visible:ring-0 p-0 h-auto"
-                  data-testid="input-modal-title"
-                />
-              ) : (
-                <h2 
-                  className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
-                  onClick={() => setEditingTitle(true)}
-                  data-testid="text-modal-title"
-                >
-                  {task.title || "Sem título"}
-                </h2>
-              )}
+              <div className="flex-1 max-w-[50%]">
+                {editingTitle ? (
+                  <Input
+                    ref={titleInputRef}
+                    value={titleValue}
+                    onChange={(e) => setTitleValue(e.target.value)}
+                    onBlur={handleTitleSave}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleTitleSave();
+                      if (e.key === "Escape") {
+                        setTitleValue(task.title);
+                        setEditingTitle(false);
+                      }
+                    }}
+                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-0 border-b border-gray-500 rounded-none focus-visible:ring-0 px-2 py-0.5 -ml-2 h-auto w-full"
+                    data-testid="input-modal-title"
+                  />
+                ) : (
+                  <h2 
+                    className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
+                    onClick={() => setEditingTitle(true)}
+                    data-testid="text-modal-title"
+                  >
+                    {task.title || "Sem título"}
+                  </h2>
+                )}
+              </div>
               <span className="bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400">
                 {getDaysSinceLastUpdate(task.history)}
               </span>
