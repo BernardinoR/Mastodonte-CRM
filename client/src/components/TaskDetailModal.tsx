@@ -118,6 +118,7 @@ export function TaskDetailModal({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
+        hideCloseButton
         className={cn(
           "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
           "bg-[#252730] border-[#363842]",
