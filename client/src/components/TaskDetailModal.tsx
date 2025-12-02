@@ -94,7 +94,7 @@ export function TaskDetailModal({
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const titleInputRef = useRef<HTMLInputElement>(null);
+  const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -108,8 +108,18 @@ export function TaskDetailModal({
     if (editingTitle && titleInputRef.current) {
       titleInputRef.current.focus();
       titleInputRef.current.select();
+      titleInputRef.current.style.height = 'auto';
+      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + 'px';
     }
   }, [editingTitle]);
+
+  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTitleValue(e.target.value);
+    if (titleInputRef.current) {
+      titleInputRef.current.style.height = 'auto';
+      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + 'px';
+    }
+  }, []);
 
   const handleTitleSave = useCallback(() => {
     if (!task) return;
@@ -226,20 +236,23 @@ export function TaskDetailModal({
             <div className="flex items-center justify-between mb-5">
               <div className="flex-1 max-w-[50%]">
                 {editingTitle ? (
-                  <input
+                  <textarea
                     ref={titleInputRef}
-                    type="text"
                     value={titleValue}
-                    onChange={(e) => setTitleValue(e.target.value)}
+                    onChange={handleTitleChange}
                     onBlur={handleTitleSave}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleTitleSave();
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTitleSave();
+                      }
                       if (e.key === "Escape") {
                         setTitleValue(task.title);
                         setEditingTitle(false);
                       }
                     }}
-                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none px-2 py-0.5 -ml-2 w-full"
+                    rows={1}
+                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none resize-none overflow-hidden px-2 py-0.5 -ml-2 w-full"
                     style={{ fontSize: '1.125rem', lineHeight: '1.75rem' }}
                     data-testid="input-modal-title"
                   />
