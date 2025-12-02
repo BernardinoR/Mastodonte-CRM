@@ -36,7 +36,7 @@ export const STATUS_CONFIG: Record<TaskStatus, StatusConfig> = {
     bgColor: "bg-[rgb(64,97,145)]",
     borderColor: "border-[rgb(64,97,145)]",
     textColor: "text-white",
-    dotColor: "bg-[rgb(64,97,145)]",
+    dotColor: "bg-[rgb(66,129,220)]",
     columnBorderColor: "border-t-[rgb(64,97,145)]",
     cardBgRgb: "rgba(64, 97, 145, 0.08)",
   },
