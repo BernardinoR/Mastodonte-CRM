@@ -1,6 +1,6 @@
 import { useState, useRef, useMemo, useCallback } from 'react';
 import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
-import { Task, TaskStatus, TaskHistoryEvent, STATUS_LABELS } from '@/types/task';
+import { Task, TaskStatus, TaskHistoryEvent } from '@/types/task';
 
 interface CrossColumnPlaceholder {
   targetStatus: TaskStatus;
@@ -358,13 +358,11 @@ export function useTaskDrag({
           const taskIndex = newTasks.findIndex(t => t.id === id);
           if (taskIndex !== -1) {
             const task = newTasks[taskIndex];
-            const fromLabel = STATUS_LABELS[sourceStatus];
-            const toLabel = STATUS_LABELS[targetStatus];
             
             const statusChangeEvent: TaskHistoryEvent = {
               id: `h-${task.id}-status-${Date.now()}`,
               type: "status_change",
-              content: `Status alterado de '${fromLabel}' para '${toLabel}'`,
+              content: `Status alterado de '${sourceStatus}' para '${targetStatus}'`,
               author: task.assignees[0] || "Sistema",
               timestamp: new Date(),
             };
