@@ -100,6 +100,7 @@ export function TaskDetailModal({
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (task) {
@@ -215,6 +216,20 @@ export function TaskDetailModal({
     });
     setNewComment("");
     setNoteType("note");
+  };
+
+  const handleSetNoteType = (type: "note" | "email" | "call" | "whatsapp") => {
+    setNoteType(type);
+    setTimeout(() => {
+      commentInputRef.current?.focus();
+    }, 0);
+  };
+
+  const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleAddComment();
+    }
   };
 
   const handleDeleteEvent = (eventId: string) => {
@@ -638,15 +653,17 @@ export function TaskDetailModal({
             <div className="p-4 bg-[#1E1F24] border-t border-[#363842] flex-shrink-0">
               <div className="bg-[#151619] border border-[#363842] rounded-lg p-3">
                 <Textarea
+                  ref={commentInputRef}
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
+                  onKeyDown={handleCommentKeyDown}
                   placeholder={
                     noteType === "email" ? "Resumo do email..." :
                     noteType === "call" ? "Resumo da ligação..." :
                     noteType === "whatsapp" ? "Resumo do WhatsApp..." :
                     "Escreva uma nota..."
                   }
-                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 p-0 text-sm"
+                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 focus:outline-none p-0 text-sm"
                   data-testid="textarea-new-comment"
                 />
                 <div className="flex justify-between items-center mt-2">
@@ -671,7 +688,7 @@ export function TaskDetailModal({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setNoteType("note")}
+                      onClick={() => handleSetNoteType("note")}
                       className={cn(
                         "w-7 h-7",
                         noteType === "note" ? "text-gray-200 bg-gray-500/20" : "text-gray-500 hover:text-gray-300"
@@ -683,7 +700,7 @@ export function TaskDetailModal({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setNoteType("email")}
+                      onClick={() => handleSetNoteType("email")}
                       className={cn(
                         "w-7 h-7",
                         noteType === "email" ? "text-blue-400 bg-blue-500/20" : "text-gray-500 hover:text-gray-300"
@@ -695,7 +712,7 @@ export function TaskDetailModal({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setNoteType("call")}
+                      onClick={() => handleSetNoteType("call")}
                       className={cn(
                         "w-7 h-7",
                         noteType === "call" ? "text-red-400 bg-red-500/20" : "text-gray-500 hover:text-red-400"
@@ -707,7 +724,7 @@ export function TaskDetailModal({
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => setNoteType("whatsapp")}
+                      onClick={() => handleSetNoteType("whatsapp")}
                       className={cn(
                         "w-7 h-7",
                         noteType === "whatsapp" ? "text-emerald-400 bg-emerald-500/20" : "text-gray-500 hover:text-gray-300"
