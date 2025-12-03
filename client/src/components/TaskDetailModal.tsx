@@ -95,6 +95,7 @@ export function TaskDetailModal({
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   const [assigneesPopoverOpen, setAssigneesPopoverOpen] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
+  const [noteType, setNoteType] = useState<"note" | "email" | "call" | "whatsapp">("note");
   
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
@@ -193,9 +194,16 @@ export function TaskDetailModal({
   const handleAddComment = () => {
     if (!newComment.trim()) return;
 
+    const eventTypeMap = {
+      note: "comment",
+      email: "email",
+      call: "call",
+      whatsapp: "whatsapp",
+    } as const;
+
     const newEvent: TaskHistoryEvent = {
       id: `event-${Date.now()}`,
-      type: "comment",
+      type: eventTypeMap[noteType] as TaskHistoryEvent["type"],
       content: newComment.trim(),
       author: "Você",
       timestamp: new Date(),
@@ -206,6 +214,7 @@ export function TaskDetailModal({
       history: [...currentHistory, newEvent],
     });
     setNewComment("");
+    setNoteType("note");
   };
 
   const handleDeleteEvent = (eventId: string) => {
@@ -223,6 +232,12 @@ export function TaskDetailModal({
     switch (type) {
       case "comment":
         return <MessageSquare className={iconClass} />;
+      case "email":
+        return <Mail className="w-3.5 h-3.5 text-blue-400" />;
+      case "call":
+        return <Phone className="w-3.5 h-3.5 text-green-400" />;
+      case "whatsapp":
+        return <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />;
       case "status_change":
         return <RefreshCw className={iconClass} />;
       case "assignee_change":
@@ -625,12 +640,17 @@ export function TaskDetailModal({
                 <Textarea
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Escreva uma nota..."
+                  placeholder={
+                    noteType === "email" ? "Resumo do email..." :
+                    noteType === "call" ? "Resumo da ligação..." :
+                    noteType === "whatsapp" ? "Resumo do WhatsApp..." :
+                    "Escreva uma nota..."
+                  }
                   className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 p-0 text-sm"
                   data-testid="textarea-new-comment"
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     <Button
                       size="icon"
                       variant="ghost"
@@ -646,6 +666,43 @@ export function TaskDetailModal({
                       data-testid="button-attach-image"
                     >
                       <Image className="w-4 h-4" />
+                    </Button>
+                    <div className="w-px h-4 bg-[#363842] mx-1" />
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setNoteType("email")}
+                      className={cn(
+                        "w-7 h-7",
+                        noteType === "email" ? "text-blue-400 bg-blue-500/20" : "text-gray-500 hover:text-gray-300"
+                      )}
+                      data-testid="button-note-email"
+                    >
+                      <Mail className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setNoteType("call")}
+                      className={cn(
+                        "w-7 h-7",
+                        noteType === "call" ? "text-green-400 bg-green-500/20" : "text-gray-500 hover:text-gray-300"
+                      )}
+                      data-testid="button-note-call"
+                    >
+                      <Phone className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setNoteType("whatsapp")}
+                      className={cn(
+                        "w-7 h-7",
+                        noteType === "whatsapp" ? "text-emerald-400 bg-emerald-500/20" : "text-gray-500 hover:text-gray-300"
+                      )}
+                      data-testid="button-note-whatsapp"
+                    >
+                      <MessageCircle className="w-4 h-4" />
                     </Button>
                   </div>
                   <Button

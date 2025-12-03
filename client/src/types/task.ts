@@ -3,7 +3,7 @@ export type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
 
 export interface TaskHistoryEvent {
   id: string;
-  type: "comment" | "status_change" | "assignee_change" | "created";
+  type: "comment" | "email" | "call" | "whatsapp" | "status_change" | "assignee_change" | "created";
   content: string;
   author: string;
   timestamp: Date;
