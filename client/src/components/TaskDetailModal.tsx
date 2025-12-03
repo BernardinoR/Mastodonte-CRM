@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X } from "lucide-react";
+import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X, SquarePen } from "lucide-react";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
@@ -231,7 +231,7 @@ export function TaskDetailModal({
     const iconClass = "w-3.5 h-3.5 text-gray-400";
     switch (type) {
       case "comment":
-        return <MessageSquare className={iconClass} />;
+        return <SquarePen className={iconClass} />;
       case "email":
         return <Mail className="w-3.5 h-3.5 text-blue-400" />;
       case "call":
@@ -678,7 +678,7 @@ export function TaskDetailModal({
                       )}
                       data-testid="button-note-note"
                     >
-                      <FileText className="w-4 h-4" />
+                      <SquarePen className="w-4 h-4" />
                     </Button>
                     <Button
                       size="icon"
