@@ -413,16 +413,17 @@ export function TaskDetailModal({
                     <Phone className="w-4 h-4" />
                     Ligar
                   </a>
-                  <a
-                    href={`https://wa.me/${task.clientPhone.replace(/\D/g, "")}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => {
+                      const phone = task.clientPhone!.replace(/\D/g, "");
+                      window.location.href = `whatsapp://send?phone=${phone}`;
+                    }}
                     className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 bg-white/5 border border-[#363842] hover:bg-white/10 hover:text-white transition-colors"
                     data-testid="button-whatsapp-client"
                   >
                     <MessageCircle className="w-4 h-4" />
                     WhatsApp
-                  </a>
+                  </button>
                 </>
               )}
             </div>
