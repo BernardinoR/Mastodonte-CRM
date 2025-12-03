@@ -27,6 +27,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira"],
     dueDate: new Date('2025-11-19'),
     order: 0,
+    history: [
+      {
+        id: "h1-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-11-10T09:00:00'),
+      },
+    ],
   },
   {
     id: "2",
@@ -37,6 +46,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
     dueDate: new Date('2025-11-15'),
     order: 1,
+    history: [
+      {
+        id: "h2-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-11-08T14:30:00'),
+      },
+    ],
   },
   {
     id: "3",
@@ -45,6 +63,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira"],
     dueDate: new Date('2025-11-16'),
     order: 2,
+    history: [
+      {
+        id: "h3-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-11-12T11:00:00'),
+      },
+    ],
   },
   {
     id: "4",
@@ -55,6 +82,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira", "João Silva", "Ana Costa"],
     dueDate: new Date('2025-11-20'),
     order: 3,
+    history: [
+      {
+        id: "h4-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-11-05T16:00:00'),
+      },
+    ],
   },
   {
     id: "5",
@@ -108,6 +144,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira", "Pedro Oliveira"],
     dueDate: new Date('2025-01-20'),
     order: 1,
+    history: [
+      {
+        id: "h6-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-14T08:30:00'),
+      },
+    ],
   },
   {
     id: "7",
@@ -118,6 +163,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira"],
     dueDate: new Date('2025-01-20'),
     order: 2,
+    history: [
+      {
+        id: "h7-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-13T10:00:00'),
+      },
+    ],
   },
   {
     id: "8",
@@ -128,6 +182,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira"],
     dueDate: new Date('2025-01-20'),
     order: 3,
+    history: [
+      {
+        id: "h8-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-12T15:00:00'),
+      },
+    ],
   },
   {
     id: "9",
@@ -138,6 +201,15 @@ export const INITIAL_TASKS: Task[] = [
     assignees: ["Rafael Bernardino Silveira", "Carla Mendes"],
     dueDate: new Date('2025-01-21'),
     order: 4,
+    history: [
+      {
+        id: "h9-1",
+        type: "created",
+        content: "Tarefa criada",
+        author: "Rafael Bernardino Silveira",
+        timestamp: new Date('2025-01-11T09:30:00'),
+      },
+    ],
   },
 ];
 
