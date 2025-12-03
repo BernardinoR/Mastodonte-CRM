@@ -141,13 +141,22 @@ export const INITIAL_TASKS: Task[] = [
   },
 ];
 
-export const createNewTask = (partial: Partial<Task>, existingTasks: Task[]): Task => {
+export const createNewTask = (partial: Partial<Task>, existingTasks: Task[], author: string = "Sistema"): Task => {
   const maxId = existingTasks.reduce((max, t) => Math.max(max, parseInt(t.id)), 0);
   const statusTasks = existingTasks.filter(t => t.status === (partial.status || "To Do"));
   const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
+  const newTaskId = String(maxId + 1);
+  
+  const createdEvent: TaskHistoryEvent = {
+    id: `h-${newTaskId}-created`,
+    type: "created",
+    content: "Tarefa criada",
+    author,
+    timestamp: new Date(),
+  };
   
   return {
-    id: String(maxId + 1),
+    id: newTaskId,
     title: partial.title || "Nova tarefa",
     clientName: partial.clientName,
     priority: partial.priority,
@@ -156,6 +165,7 @@ export const createNewTask = (partial: Partial<Task>, existingTasks: Task[]): Ta
     dueDate: partial.dueDate || new Date(),
     description: partial.description,
     notes: partial.notes || [],
+    history: [createdEvent, ...(partial.history || [])],
     order: maxOrder + 1,
   };
 };
