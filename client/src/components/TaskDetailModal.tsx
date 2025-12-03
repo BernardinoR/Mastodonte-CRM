@@ -235,7 +235,7 @@ export function TaskDetailModal({
       case "email":
         return <Mail className="w-3.5 h-3.5 text-blue-400" />;
       case "call":
-        return <Phone className="w-3.5 h-3.5 text-green-400" />;
+        return <Phone className="w-3.5 h-3.5 text-red-400" />;
       case "whatsapp":
         return <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />;
       case "status_change":
@@ -671,6 +671,18 @@ export function TaskDetailModal({
                     <Button
                       size="icon"
                       variant="ghost"
+                      onClick={() => setNoteType("note")}
+                      className={cn(
+                        "w-7 h-7",
+                        noteType === "note" ? "text-gray-200 bg-gray-500/20" : "text-gray-500 hover:text-gray-300"
+                      )}
+                      data-testid="button-note-note"
+                    >
+                      <FileText className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
                       onClick={() => setNoteType("email")}
                       className={cn(
                         "w-7 h-7",
@@ -686,7 +698,7 @@ export function TaskDetailModal({
                       onClick={() => setNoteType("call")}
                       className={cn(
                         "w-7 h-7",
-                        noteType === "call" ? "text-green-400 bg-green-500/20" : "text-gray-500 hover:text-gray-300"
+                        noteType === "call" ? "text-red-400 bg-red-500/20" : "text-gray-500 hover:text-red-400"
                       )}
                       data-testid="button-note-call"
                     >
