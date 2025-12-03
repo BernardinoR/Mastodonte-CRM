@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Task, TaskStatus } from "@/types/task";
+import type { Task, TaskStatus, TaskHistoryEvent } from "@/types/task";
 import { MOCK_USERS } from "@/lib/mock-users";
 
 interface UseQuickAddTaskProps {
@@ -40,6 +40,14 @@ export function useQuickAddTask({
     
     const defaultAssignee = MOCK_USERS[0]?.name || "";
     
+    const createdEvent: TaskHistoryEvent = {
+      id: `h-${newId}-created`,
+      type: "created",
+      content: "Tarefa criada",
+      author: defaultAssignee || "Sistema",
+      timestamp: new Date(),
+    };
+    
     const newTask: Task = {
       id: newId,
       title: "",
@@ -48,6 +56,7 @@ export function useQuickAddTask({
       dueDate: new Date(),
       order: maxOrder + 1,
       notes: [],
+      history: [createdEvent],
     };
     
     onAddTask(newTask);
@@ -63,6 +72,14 @@ export function useQuickAddTask({
     
     const defaultAssignee = MOCK_USERS[0]?.name || "";
     
+    const createdEvent: TaskHistoryEvent = {
+      id: `h-${newId}-created`,
+      type: "created",
+      content: "Tarefa criada",
+      author: defaultAssignee || "Sistema",
+      timestamp: new Date(),
+    };
+    
     const newTask: Task = {
       id: newId,
       title: "",
@@ -71,6 +88,7 @@ export function useQuickAddTask({
       dueDate: new Date(),
       order: minOrder - 1,
       notes: [],
+      history: [createdEvent],
     };
     
     onAddTask(newTask);
