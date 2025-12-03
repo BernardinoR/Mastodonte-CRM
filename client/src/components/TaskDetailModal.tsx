@@ -663,7 +663,7 @@ export function TaskDetailModal({
                     noteType === "whatsapp" ? "Resumo do WhatsApp..." :
                     "Escreva uma nota..."
                   }
-                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 focus:outline-none p-0 text-sm"
+                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:outline-none !ring-0 !ring-offset-0 p-0 text-sm"
                   data-testid="textarea-new-comment"
                 />
                 <div className="flex justify-between items-center mt-2">
