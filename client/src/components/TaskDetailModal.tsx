@@ -519,10 +519,10 @@ export function TaskDetailModal({
                       <span className="text-gray-500 text-sm">Adicionar responsável...</span>
                     ) : (
                       <>
-                        <div className="flex -space-x-1.5 flex-shrink-0">
+                        <div className="flex -space-x-2 flex-shrink-0">
                           {task.assignees.slice(0, 3).map((assignee, idx) => (
-                            <Avatar key={idx} className={cn("w-6 h-6 border-[1.5px] border-[#27282F]", getAvatarColor(assignee))}>
-                              <AvatarFallback className="bg-transparent text-white font-medium text-[10px]">
+                            <Avatar key={idx} className={cn("w-7 h-7 border-2 border-[#27282F]", getAvatarColor(assignee))}>
+                              <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
                                 {getInitials(assignee)}
                               </AvatarFallback>
                             </Avatar>
