@@ -16,7 +16,7 @@ import { parseLocalDate } from "@/lib/date-utils";
 import { DateInput } from "@/components/ui/date-input";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
-import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
+import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
 
 interface TaskDetailModalProps {
@@ -270,7 +270,7 @@ export function TaskDetailModal({
         hideCloseButton
         className={cn(
           "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
-          "bg-[#252730] border-[#363842]",
+          UI_CLASSES.card,
           "border-l-[6px]"
         )}
         style={{

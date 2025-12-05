@@ -1,5 +1,40 @@
 import { TaskStatus, TaskPriority } from "@/types/task";
 
+// Cores centralizadas da UI
+export const UI_COLORS = {
+  // Backgrounds
+  popoverBg: "#1a1a1a",
+  panelBg: "#1E1F24",
+  cardBg: "#252730",
+  elementBg: "#333",
+  hoverBg: "#2a2a2a",
+  
+  // Borders
+  border: "#2a2a2a",
+  borderLight: "#363842",
+  
+  // Text
+  textMuted: "#64666E",
+  textLight: "#9B9A97",
+  
+  // Contact buttons
+  contactBtnBg: "white/5",
+  contactBtnBorder: "#363842",
+} as const;
+
+// Classes Tailwind pré-definidas para reutilização
+export const UI_CLASSES = {
+  popover: "bg-[#1a1a1a] border-[#2a2a2a]",
+  panel: "bg-[#1E1F24]",
+  card: "bg-[#252730] border-[#363842]",
+  hoverItem: "hover:bg-[#2a2a2a]",
+  selectedItem: "bg-[#2a2a2a]",
+  border: "border-[#2a2a2a]",
+  borderLight: "border-[#363842]",
+  labelText: "text-[#64666E]",
+  contactBtn: "bg-white/5 border border-[#363842] hover:bg-white/10",
+} as const;
+
 export interface StatusConfig {
   label: string;
   labelPt: string;
