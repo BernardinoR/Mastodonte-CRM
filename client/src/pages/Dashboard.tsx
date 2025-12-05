@@ -510,12 +510,14 @@ export default function Dashboard() {
         onSubmit={(data) => console.log('New task:', data)}
       />
 
-      <TaskDetailModal
-        task={detailTask || null}
-        open={detailTaskId !== null}
-        onOpenChange={(open) => !open && setDetailTaskId(null)}
-        onUpdateTask={handleUpdateTask}
-      />
+      {detailTaskId !== null && detailTask && (
+        <TaskDetailModal
+          task={detailTask}
+          open={true}
+          onOpenChange={(open) => !open && setDetailTaskId(null)}
+          onUpdateTask={handleUpdateTask}
+        />
+      )}
     </div>
   );
 }
