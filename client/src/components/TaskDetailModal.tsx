@@ -138,7 +138,24 @@ export function TaskDetailModal({
 
   const handleStatusChange = useCallback((status: TaskStatus) => {
     if (!task) return;
-    onUpdateTask(task.id, { status });
+    if (status === task.status) {
+      setStatusPopoverOpen(false);
+      return;
+    }
+    
+    // Criar evento de histórico para mudança de status
+    const statusChangeEvent: TaskHistoryEvent = {
+      id: `h-${task.id}-status-${Date.now()}`,
+      type: "status_change",
+      content: `Status alterado de '${task.status}' para '${status}'`,
+      author: task.assignees[0] || "Sistema",
+      timestamp: new Date(),
+    };
+    
+    onUpdateTask(task.id, { 
+      status,
+      history: [...(task.history || []), statusChangeEvent],
+    });
     setStatusPopoverOpen(false);
   }, [task, onUpdateTask]);
 
