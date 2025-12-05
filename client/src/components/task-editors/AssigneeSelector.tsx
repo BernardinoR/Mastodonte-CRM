@@ -70,7 +70,13 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
         {selectedConsultants.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
       
-      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+      <div 
+        className="max-h-52 overflow-y-auto scrollbar-thin"
+        onWheel={(e) => {
+          e.stopPropagation();
+          e.currentTarget.scrollTop += e.deltaY;
+        }}
+      >
         {availableConsultants.map((consultant) => (
           <div
             key={consultant.id}
@@ -225,7 +231,13 @@ export function ContextMenuAssigneeEditor({
         <div className="px-3 py-1.5 text-xs text-gray-500">
           Substituir todos por
         </div>
-        <div className="max-h-52 overflow-y-auto scrollbar-thin">
+        <div 
+          className="max-h-52 overflow-y-auto scrollbar-thin"
+          onWheel={(e) => {
+            e.stopPropagation();
+            e.currentTarget.scrollTop += e.deltaY;
+          }}
+        >
           {filteredForSetSingle.map((consultant) => (
             <div
               key={consultant.id}
@@ -317,7 +329,13 @@ export function ContextMenuAssigneeEditor({
         {localAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
       
-      <div className="max-h-52 overflow-y-auto scrollbar-thin">
+      <div 
+        className="max-h-52 overflow-y-auto scrollbar-thin"
+        onWheel={(e) => {
+          e.stopPropagation();
+          e.currentTarget.scrollTop += e.deltaY;
+        }}
+      >
         {availableConsultants.map((consultant) => (
           <div
             key={consultant.id}
