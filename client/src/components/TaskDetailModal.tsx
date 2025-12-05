@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X, SquarePen } from "lucide-react";
-import { TaskContactButtons } from "@/components/task-detail";
+import { TaskContactButtons, TaskDescription } from "@/components/task-detail";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
@@ -489,22 +489,11 @@ export function TaskDetailModal({
               </Popover>
             </div>
 
-            <div className="flex-[0.6] min-h-0 flex flex-col">
-              <label className="block text-[#64666E] text-xs font-bold uppercase mb-3 flex-shrink-0">
-                Descrição
-              </label>
-              <div className="flex-1 min-h-0 -ml-2 -mr-2">
-                <Textarea
-                  ref={descriptionRef}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  onBlur={handleDescriptionBlur}
-                  placeholder="Adicione detalhes..."
-                  className="w-full h-full bg-transparent !border-none !outline-none text-gray-300 text-base leading-relaxed resize-none focus:text-white !ring-0 focus:!ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 px-2 py-1 rounded-md hover:bg-gray-700/80 focus:bg-transparent focus:hover:bg-transparent transition-colors cursor-pointer"
-                  data-testid="textarea-description"
-                />
-              </div>
-            </div>
+            <TaskDescription
+              description={description}
+              onChange={setDescription}
+              onSave={handleDescriptionBlur}
+            />
 
             <div className="mt-auto border-t border-[#363842] pt-4 pb-4">
               <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
