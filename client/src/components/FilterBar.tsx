@@ -198,8 +198,8 @@ export function FilterBar({
         <span>Tabela</span>
       </button>
 
-      {/* Divider */}
-      <div className="w-px h-5 bg-[#333]" />
+      {/* Spacer - pushes everything after to the right */}
+      <div className="flex-1" />
 
       {/* Search - Expandable with animation */}
       <div 
@@ -465,9 +465,6 @@ export function FilterBar({
           </div>
         </PopoverContent>
       </Popover>
-
-      {/* Spacer */}
-      <div className="flex-1" />
 
       {/* Reset Button */}
       {hasActiveFilters && (
