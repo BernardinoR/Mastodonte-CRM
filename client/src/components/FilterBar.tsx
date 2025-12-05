@@ -660,9 +660,9 @@ export function FilterBar({
                 onOpenChange={(open) => handleOpenFilterPopover(filter.id, open)}
               >
                 <PopoverTrigger asChild>
-                  <button
+                  <div
                     className={cn(
-                      "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                      "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors cursor-pointer",
                       hasValue()
                         ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
                         : "bg-[#1a1a1a] text-gray-300 border border-[#333]"
@@ -672,17 +672,17 @@ export function FilterBar({
                     <Icon className="w-4 h-4" />
                     <span className="max-w-[150px] truncate">{getFilterLabel()}</span>
                     <ChevronDown className="w-3.5 h-3.5 shrink-0" />
-                    <button
+                    <span
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveFilter(filter.id);
                       }}
-                      className="ml-1 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors"
+                      className="ml-1 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
                       data-testid={`button-remove-filter-${filter.id}`}
                     >
                       <X className="w-3 h-3" />
-                    </button>
-                  </button>
+                    </span>
+                  </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-1" align="start">
                   {filter.type === "date" && (
