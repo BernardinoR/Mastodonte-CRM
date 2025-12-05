@@ -152,9 +152,7 @@ export function useTaskDrag({
     let insertIndex: number;
     
     if (isSameColumn) {
-      if (typeof activeSortableIndex === 'number' && typeof overSortableIndex === 'number') {
-        insertIndex = overSortableIndex;
-      } else if (overTask) {
+      if (overTask) {
         let targetColumnTasks: Task[];
         if (targetStatus === "To Do") {
           targetColumnTasks = todoTasks;
@@ -163,8 +161,26 @@ export function useTaskDrag({
         } else {
           targetColumnTasks = doneTasks;
         }
-        insertIndex = targetColumnTasks.findIndex(t => t.id === overTask.id);
-        if (insertIndex === -1) insertIndex = targetColumnTasks.length;
+        
+        const baseIndex = typeof overSortableIndex === 'number' 
+          ? overSortableIndex 
+          : targetColumnTasks.findIndex(t => t.id === overTask.id);
+        
+        if (baseIndex !== -1) {
+          const overRect = over.rect;
+          const cursorY = event.activatorEvent instanceof MouseEvent 
+            ? (event.activatorEvent as MouseEvent).clientY + (event.delta?.y || 0)
+            : null;
+          
+          if (overRect && cursorY !== null) {
+            const midpoint = overRect.top + overRect.height / 2;
+            insertIndex = cursorY > midpoint ? baseIndex + 1 : baseIndex;
+          } else {
+            insertIndex = baseIndex;
+          }
+        } else {
+          insertIndex = targetColumnTasks.length;
+        }
       } else {
         let targetColumnTasks: Task[];
         if (targetStatus === "To Do") {
