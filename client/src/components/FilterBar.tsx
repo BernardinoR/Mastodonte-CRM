@@ -81,13 +81,13 @@ interface FilterBarProps {
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
   priority: "Prioridade",
-  dueDate: "Data e Hora",
+  dueDate: "Data",
   title: "Título",
   status: "Status",
 };
 
 const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calendar }> = {
-  date: { label: "Data e Hora", icon: Calendar },
+  date: { label: "Data", icon: Calendar },
   status: { label: "Status", icon: CheckSquare },
   priority: { label: "Prioridade", icon: Flag },
   task: { label: "Tarefa", icon: FileText },
@@ -358,7 +358,7 @@ export function FilterBar({
         data-testid="button-view-board"
       >
         <LayoutGrid className="w-4 h-4" />
-        <span>Quadro</span>
+        <span>Kanban</span>
       </button>
       
       <button
@@ -372,7 +372,7 @@ export function FilterBar({
         data-testid="button-view-table"
       >
         <List className="w-4 h-4" />
-        <span>Tabela</span>
+        <span>Lista</span>
       </button>
 
       {/* Spacer - pushes everything after to the right */}
