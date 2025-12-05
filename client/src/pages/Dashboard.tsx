@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
@@ -30,36 +30,7 @@ import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
 
-// Custom collision detection: prioritize card detection, fallback to column for cross-column drops
-const customCollisionDetection: CollisionDetection = (args) => {
-  const columnIds = ["To Do", "In Progress", "Done"];
-  
-  // First, detect cards using closestCenter (best for gaps between items)
-  const centerCollisions = closestCenter(args);
-  
-  // Filter to get only card collisions (exclude column IDs)
-  const cardCollisions = centerCollisions.filter(
-    collision => !columnIds.includes(collision.id as string)
-  );
-  
-  // If we found a card collision, return it - this enables sorting animation
-  if (cardCollisions.length > 0) {
-    return cardCollisions;
-  }
-  
-  // No card found - check if pointer is within a column (for cross-column drops to empty areas)
-  const pointerCollisions = pointerWithin(args);
-  const columnCollisions = pointerCollisions.filter(
-    collision => columnIds.includes(collision.id as string)
-  );
-  
-  if (columnCollisions.length > 0) {
-    return columnCollisions;
-  }
-  
-  // Final fallback: return all center collisions
-  return centerCollisions;
-};
+const COLUMN_IDS = ["To Do", "In Progress", "Done"] as const;
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
@@ -144,6 +115,53 @@ export default function Dashboard() {
     setTasksWithHistory,
     clearSelection,
   });
+
+  // Custom collision detection: returns card if cursor is in same column, returns column otherwise
+  const customCollisionDetection: CollisionDetection = useMemo(() => {
+    // Build a map of task ID -> column status for quick lookup
+    const taskColumnMap = new Map<string, string>();
+    todoTaskIds.forEach(id => taskColumnMap.set(id, "To Do"));
+    inProgressTaskIds.forEach(id => taskColumnMap.set(id, "In Progress"));
+    doneTaskIds.forEach(id => taskColumnMap.set(id, "Done"));
+    
+    return (args) => {
+      // Step 1: Detect which column the pointer is currently within
+      const pointerCollisions = pointerWithin(args);
+      const columnCollision = pointerCollisions.find(
+        c => COLUMN_IDS.includes(c.id as typeof COLUMN_IDS[number])
+      );
+      const pointerColumn = columnCollision?.id as string | undefined;
+      
+      // Step 2: Find the closest card using closestCenter
+      const centerCollisions = closestCenter(args);
+      const cardCollision = centerCollisions.find(
+        c => !COLUMN_IDS.includes(c.id as typeof COLUMN_IDS[number])
+      );
+      
+      if (cardCollision) {
+        // Get which column this card belongs to
+        const cardColumn = taskColumnMap.get(cardCollision.id as string);
+        
+        // If pointer is in the same column as the card, return the card (for sorting animation)
+        if (pointerColumn && cardColumn === pointerColumn) {
+          return [cardCollision];
+        }
+        
+        // Pointer is in a different column - return the column for cross-column drop
+        if (pointerColumn) {
+          return [{ id: pointerColumn, data: columnCollision?.data }];
+        }
+      }
+      
+      // No card found but pointer is in a column - return column (for empty column drops)
+      if (columnCollision) {
+        return [columnCollision];
+      }
+      
+      // Final fallback
+      return centerCollisions;
+    };
+  }, [todoTaskIds, inProgressTaskIds, doneTaskIds]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
