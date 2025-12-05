@@ -395,7 +395,9 @@ export function TaskDetailModal({
             <div className="flex gap-3 mb-6">
               {task.clientEmail && (
                 <a
-                  href={`mailto:${task.clientEmail}`}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(task.clientEmail)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 bg-white/5 border border-[#363842] hover:bg-white/10 hover:text-white transition-colors"
                   data-testid="button-email-client"
                 >
