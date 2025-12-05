@@ -520,7 +520,7 @@ export const TaskAssigneesPopover = memo(function TaskAssigneesPopover({
                     className={cn(
                       isModal ? "w-7 h-7" : "w-6 h-6",
                       UI_CLASSES.avatarBorder,
-                      getAvatarColor(assignee)
+                      getAvatarColor(idx)
                     )}
                   >
                     <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">

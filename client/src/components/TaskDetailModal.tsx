@@ -1,19 +1,15 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Pencil } from "lucide-react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory } from "@/components/task-detail";
-import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
 import { DateInput } from "@/components/ui/date-input";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popovers";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
@@ -23,30 +19,6 @@ interface TaskDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
-}
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
-}
-
-function getAvatarColor(name: string): string {
-  const colors = [
-    "bg-zinc-600",
-    "bg-zinc-700",
-    "bg-slate-600",
-    "bg-slate-700",
-    "bg-neutral-600",
-    "bg-neutral-700",
-    "bg-stone-600",
-    "bg-gray-600",
-  ];
-  const index = name.charCodeAt(0) % colors.length;
-  return colors[index];
 }
 
 function isTaskOverdue(dueDate: string | Date): boolean {
@@ -311,46 +283,16 @@ export function TaskDetailModal({
               </PopoverContent>
             </Popover>
 
-            <div className="flex items-center gap-1 mb-4 group">
-              {task.clientName ? (
-                <span 
-                  className="text-2xl font-semibold text-white leading-tight cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
-                  onClick={handleClientClick}
-                  data-testid="text-modal-client"
-                >
-                  {task.clientName}
-                </span>
-              ) : (
-                <span 
-                  className="text-2xl font-semibold text-muted-foreground leading-tight px-2 py-0.5 -ml-2"
-                  data-testid="text-modal-client"
-                >
-                  Sem cliente
-                </span>
-              )}
-              <Popover open={clientPopoverOpen} onOpenChange={setClientPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                    data-testid="button-edit-client"
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent 
-                  className={cn("w-80 p-0", UI_CLASSES.popover)}
-                  side="bottom" 
-                  align="start" 
-                  sideOffset={6}
-                >
-                  <ClientSelector 
-                    selectedClient={task.clientName || null}
-                    onSelect={handleClientSelect}
-                  />
-                </PopoverContent>
-              </Popover>
+            <div className="mb-4">
+              <TaskClientPopover
+                id={task.id}
+                clientName={task.clientName || null}
+                isOpen={clientPopoverOpen}
+                onOpenChange={setClientPopoverOpen}
+                onClientChange={handleClientSelect}
+                onNavigate={handleClientClick}
+                variant="modal"
+              />
             </div>
 
             <TaskContactButtons 
@@ -459,64 +401,15 @@ export function TaskDetailModal({
               <label className={cn("block text-xs font-bold uppercase mb-2", UI_CLASSES.labelText)}>
                 Responsáveis
               </label>
-              <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div 
-                    className="inline-flex items-center gap-2 px-2 py-1 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors cursor-pointer"
-                    data-testid="button-edit-assignees"
-                  >
-                    {task.assignees.length === 0 ? (
-                      <span className="text-gray-500 text-sm">Adicionar responsável...</span>
-                    ) : (
-                      <>
-                        <div className="flex -space-x-2 flex-shrink-0">
-                          {task.assignees.slice(0, 3).map((assignee, idx) => (
-                            <Avatar key={idx} className={cn("w-7 h-7", UI_CLASSES.avatarBorder, getAvatarColor(assignee))}>
-                              <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
-                                {getInitials(assignee)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ))}
-                        </div>
-                        {(() => {
-                          const MAX_DISPLAY = 3;
-                          const displayed = task.assignees.slice(0, MAX_DISPLAY);
-                          const remaining = task.assignees.slice(MAX_DISPLAY);
-                          
-                          return (
-                            <div className="flex items-center">
-                              <span className="text-gray-300 text-sm">
-                                {displayed.join(", ")}
-                              </span>
-                              {remaining.length > 0 && (
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <span className="text-gray-400 text-sm whitespace-nowrap ml-1 hover:text-white">
-                                      e mais {remaining.length}...
-                                    </span>
-                                  </TooltipTrigger>
-                                  <TooltipContent side="top" className={cn("text-white", UI_CLASSES.selectedItem, UI_CLASSES.borderLight)}>
-                                    <div className="text-sm">
-                                      {remaining.join(", ")}
-                                    </div>
-                                  </TooltipContent>
-                                </Tooltip>
-                              )}
-                            </div>
-                          );
-                        })()}
-                      </>
-                    )}
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-64 p-0" side="top" align="start" sideOffset={6}>
-                  <AssigneeSelector
-                    selectedAssignees={task.assignees}
-                    onSelect={handleAddAssignee}
-                    onRemove={handleRemoveAssignee}
-                  />
-                </PopoverContent>
-              </Popover>
+              <TaskAssigneesPopover
+                id={task.id}
+                assignees={task.assignees}
+                isOpen={assigneesPopoverOpen}
+                onOpenChange={setAssigneesPopoverOpen}
+                onAddAssignee={handleAddAssignee}
+                onRemoveAssignee={handleRemoveAssignee}
+                variant="modal"
+              />
             </div>
           </div>
 
