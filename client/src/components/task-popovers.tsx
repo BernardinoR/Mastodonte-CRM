@@ -71,7 +71,7 @@ export const TaskDatePopover = memo(function TaskDatePopover({
       </PopoverTrigger>
       <PopoverContent 
         ref={popoverRef}
-        className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+        className={cn("w-auto p-0", UI_CLASSES.popover)}
         side="bottom" 
         align="start" 
         sideOffset={6} 
@@ -142,13 +142,13 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
                 />
               </div>
             </PopoverTrigger>
-            <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+            <PopoverContent className={cn("w-56 p-0", UI_CLASSES.popover)} side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
               <div className="w-full">
-                <div className="border-b border-[#2a2a2a]">
+                <div className={cn("border-b", UI_CLASSES.border)}>
                   <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                   <div className="px-3 py-1">
                     <div 
-                      className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
+                      className={cn("flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group", UI_CLASSES.selectedItem)}
                       onClick={(e) => { e.stopPropagation(); handlePrioritySelect("_none"); }}
                     >
                       <PriorityBadge priority={priority} />
@@ -161,7 +161,7 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
                   {PRIORITY_OPTIONS.filter(p => p !== priority).map(p => (
                     <div
                       key={p}
-                      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                      className={UI_CLASSES.dropdownItem}
                       onClick={(e) => { e.stopPropagation(); handlePrioritySelect(p); }}
                     >
                       <PriorityBadge priority={p} />
@@ -197,14 +197,14 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
               + Adicionar Prioridade
             </span>
           </PopoverTrigger>
-          <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
+          <PopoverContent className={cn("w-56 p-0", UI_CLASSES.popover)} side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
             <div className="w-full">
               <div className="px-3 py-1.5 text-xs text-gray-500">Selecionar prioridade</div>
               <div className="pb-1">
                 {PRIORITY_OPTIONS.map(p => (
                   <div
                     key={p}
-                    className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                    className={UI_CLASSES.dropdownItem}
                     onClick={(e) => { e.stopPropagation(); handlePrioritySelect(p); }}
                   >
                     <PriorityBadge priority={p} />
