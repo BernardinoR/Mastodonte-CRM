@@ -12,6 +12,7 @@ export const UI_COLORS = {
   // Borders
   border: "#2a2a2a",
   borderLight: "#363842",
+  avatarBorder: "#27282F",
   
   // Text
   textMuted: "#64666E",
@@ -20,6 +21,10 @@ export const UI_COLORS = {
   // Contact buttons
   contactBtnBg: "white/5",
   contactBtnBorder: "#363842",
+  
+  // Task card borders (RGB for inline styles)
+  taskBorderBlue: "rgb(66, 129, 220)",
+  taskBorderRed: "rgb(185, 28, 28)",
 } as const;
 
 // Classes Tailwind pré-definidas para reutilização
@@ -38,6 +43,11 @@ export const UI_CLASSES = {
   historyTimeline: "bg-[#363842]",
   historyIcon: "bg-[#333] border-2 border-[#1E1F24]",
   commentInput: "bg-[#151619] border border-[#363842]",
+  // Modal specific
+  clientBadge: "bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400",
+  avatarBorder: "border-2 border-[#27282F]",
+  dropdownItem: "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
+  dropdownItemSelected: "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md",
 } as const;
 
 export interface StatusConfig {

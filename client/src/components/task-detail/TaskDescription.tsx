@@ -1,5 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
 import { Textarea } from "@/components/ui/textarea";
+import { UI_CLASSES } from "@/lib/statusConfig";
+import { cn } from "@/lib/utils";
 
 interface TaskDescriptionProps {
   description: string;
@@ -23,7 +25,7 @@ export function TaskDescription({ description, onChange, onSave }: TaskDescripti
 
   return (
     <div className="flex-[0.6] min-h-0 flex flex-col">
-      <label className="block text-[#64666E] text-xs font-bold uppercase mb-3 flex-shrink-0">
+      <label className={cn("block text-xs font-bold uppercase mb-3 flex-shrink-0", UI_CLASSES.labelText)}>
         Descrição
       </label>
       <div className="flex-1 min-h-0 -ml-2 -mr-2">

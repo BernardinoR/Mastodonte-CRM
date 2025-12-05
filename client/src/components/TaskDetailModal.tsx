@@ -15,7 +15,7 @@ import { parseLocalDate } from "@/lib/date-utils";
 import { DateInput } from "@/components/ui/date-input";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
-import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
+import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
 
 interface TaskDetailModalProps {
@@ -235,7 +235,7 @@ export function TaskDetailModal({
           "border-l-[6px]"
         )}
         style={{
-          borderLeftColor: isTaskOverdue(task.dueDate) ? "rgb(185, 28, 28)" : "rgb(66, 129, 220)"
+          borderLeftColor: isTaskOverdue(task.dueDate) ? UI_COLORS.taskBorderRed : UI_COLORS.taskBorderBlue
         }}
       >
         <VisuallyHidden>
@@ -278,7 +278,7 @@ export function TaskDetailModal({
                   </h2>
                 )}
               </div>
-              <span className="bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400">
+              <span className={UI_CLASSES.clientBadge}>
                 {getDaysSinceLastUpdate(task.history)}
               </span>
             </div>
@@ -295,7 +295,7 @@ export function TaskDetailModal({
               </PopoverTrigger>
               <PopoverContent 
                 ref={datePopoverRef}
-                className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                className={cn("w-auto p-0", UI_CLASSES.popover)}
                 side="bottom" 
                 align="start" 
                 sideOffset={6}
@@ -340,7 +340,7 @@ export function TaskDetailModal({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent 
-                  className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                  className={cn("w-80 p-0", UI_CLASSES.popover)}
                   side="bottom" 
                   align="start" 
                   sideOffset={6}
@@ -381,11 +381,11 @@ export function TaskDetailModal({
                 <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
                   <div className="w-full">
                     {task.priority && (
-                      <div className="border-b border-[#2a2a2a]">
+                      <div className={cn("border-b", UI_CLASSES.border)}>
                         <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                         <div className="px-3 py-1">
                           <div 
-                            className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
+                            className={UI_CLASSES.dropdownItemSelected}
                             onClick={() => handlePriorityChange("_none")}
                           >
                             <PriorityBadge priority={task.priority} />
@@ -401,7 +401,7 @@ export function TaskDetailModal({
                       {PRIORITY_OPTIONS.filter(p => p !== task.priority).map(p => (
                         <div
                           key={p}
-                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                          className={UI_CLASSES.dropdownItem}
                           onClick={() => handlePriorityChange(p)}
                         >
                           <PriorityBadge priority={p} />
@@ -424,10 +424,10 @@ export function TaskDetailModal({
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
                   <div className="w-full">
-                    <div className="border-b border-[#2a2a2a]">
+                    <div className={cn("border-b", UI_CLASSES.border)}>
                       <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                       <div className="px-3 py-1">
-                        <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
+                        <div className={cn("flex items-center gap-2 px-2 py-1.5 rounded-md", UI_CLASSES.selectedItem)}>
                           <StatusBadge status={task.status} />
                         </div>
                       </div>
@@ -437,7 +437,7 @@ export function TaskDetailModal({
                       {STATUS_OPTIONS.filter(s => s !== task.status).map(s => (
                         <div
                           key={s}
-                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                          className={UI_CLASSES.dropdownItem}
                           onClick={() => handleStatusChange(s)}
                         >
                           <StatusBadge status={s} />
@@ -455,8 +455,8 @@ export function TaskDetailModal({
               onSave={handleDescriptionBlur}
             />
 
-            <div className="mt-auto border-t border-[#363842] pt-4 pb-4">
-              <label className="block text-[#64666E] text-xs font-bold uppercase mb-2">
+            <div className={cn("mt-auto pt-4 pb-4 border-t", UI_CLASSES.borderLight)}>
+              <label className={cn("block text-xs font-bold uppercase mb-2", UI_CLASSES.labelText)}>
                 Responsáveis
               </label>
               <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
@@ -471,7 +471,7 @@ export function TaskDetailModal({
                       <>
                         <div className="flex -space-x-2 flex-shrink-0">
                           {task.assignees.slice(0, 3).map((assignee, idx) => (
-                            <Avatar key={idx} className={cn("w-7 h-7 border-2 border-[#27282F]", getAvatarColor(assignee))}>
+                            <Avatar key={idx} className={cn("w-7 h-7", UI_CLASSES.avatarBorder, getAvatarColor(assignee))}>
                               <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
                                 {getInitials(assignee)}
                               </AvatarFallback>
@@ -495,7 +495,7 @@ export function TaskDetailModal({
                                       e mais {remaining.length}...
                                     </span>
                                   </TooltipTrigger>
-                                  <TooltipContent side="top" className="bg-[#2a2a2a] border-[#363842] text-white">
+                                  <TooltipContent side="top" className={cn("text-white", UI_CLASSES.selectedItem, UI_CLASSES.borderLight)}>
                                     <div className="text-sm">
                                       {remaining.join(", ")}
                                     </div>
