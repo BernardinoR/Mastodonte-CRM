@@ -349,16 +349,13 @@ export const TaskClientPopover = memo(function TaskClientPopover({
       {clientName ? (
         <div className={cn(
           "inline-flex items-center gap-1",
-          isEditing ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
+          isEditing && !isModal ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
         )}>
-          {isEditing ? (
+          {isEditing && !isModal ? (
             <Popover open={isOpen} onOpenChange={onOpenChange}>
               <PopoverTrigger asChild>
                 <span 
-                  className={cn(
-                    "inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground",
-                    isModal ? "text-2xl font-semibold text-white leading-tight -ml-2" : "text-[13px]"
-                  )}
+                  className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
                   onClick={handleClick}
                   data-testid={`text-client-${id}`}
                 >
@@ -379,6 +376,14 @@ export const TaskClientPopover = memo(function TaskClientPopover({
                 />
               </PopoverContent>
             </Popover>
+          ) : isModal ? (
+            <span 
+              className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-2xl font-semibold text-white leading-tight -ml-2"
+              onClick={handleNavigate}
+              data-testid={`text-client-${id}`}
+            >
+              {clientName}
+            </span>
           ) : (
             <span 
               className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
