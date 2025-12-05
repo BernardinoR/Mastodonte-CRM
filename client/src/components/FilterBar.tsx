@@ -91,8 +91,8 @@ const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calen
   status: { label: "Status", icon: CheckSquare },
   priority: { label: "Prioridade", icon: Flag },
   task: { label: "Tarefa", icon: FileText },
-  assignee: { label: "Responsável", icon: User },
-  client: { label: "Cliente", icon: Briefcase },
+  assignee: { label: "Responsável", icon: Briefcase },
+  client: { label: "Cliente", icon: User },
 };
 
 const DATE_FILTER_OPTIONS = [
