@@ -66,12 +66,17 @@ export default function Dashboard() {
   
   // Use the task filters hook for search, assignee, and priority filtering
   const {
-    searchQuery,
-    setSearchQuery,
-    assigneeFilter,
-    setAssigneeFilter,
+    viewMode,
+    setViewMode,
+    sorts,
+    setSorts,
+    statusFilter,
+    setStatusFilter,
     priorityFilter,
     setPriorityFilter,
+    dateFilter,
+    setDateFilter,
+    resetFilters,
     todoTasks,
     inProgressTasks,
     doneTasks,
@@ -396,23 +401,27 @@ export default function Dashboard() {
         clearSelection();
       }
     }}>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-semibold">Tarefas</h1>
-        <Button onClick={() => setNewTaskOpen(true)} data-testid="button-newtask">
-          <Plus className="w-4 h-4 mr-2" />
-          Nova Tarefa
-        </Button>
-      </div>
-
       <FilterBar
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-        assigneeFilter={assigneeFilter}
-        onAssigneeChange={setAssigneeFilter}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
+        sorts={sorts}
+        onSortsChange={setSorts}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
         priorityFilter={priorityFilter}
-        onPriorityChange={setPriorityFilter}
+        onPriorityFilterChange={setPriorityFilter}
+        dateFilter={dateFilter}
+        onDateFilterChange={setDateFilter}
+        onReset={resetFilters}
+        onNewTask={() => setNewTaskOpen(true)}
       />
 
+      {viewMode === "table" ? (
+        <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="text-gray-400 text-lg mb-2">Visualização em tabela</div>
+          <div className="text-gray-500 text-sm">Em breve disponível</div>
+        </div>
+      ) : (
       <DndContext 
         sensors={sensors} 
         collisionDetection={customCollisionDetection}
@@ -526,6 +535,7 @@ export default function Dashboard() {
           )}
         </DragOverlay>
       </DndContext>
+      )}
 
       <NewTaskDialog
         open={newTaskOpen}
