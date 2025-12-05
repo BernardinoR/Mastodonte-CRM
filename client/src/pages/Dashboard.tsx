@@ -34,7 +34,7 @@ const COLUMN_IDS = ["To Do", "In Progress", "Done"] as const;
 
 // Sortable placeholder component for cross-column drops
 // Defined outside of Dashboard to avoid recreating on every render
-function SortablePlaceholder({ id, count }: { id: string; count: number }) {
+function SortablePlaceholder({ id }: { id: string }) {
   const { 
     setNodeRef, 
     transform, 
@@ -44,19 +44,15 @@ function SortablePlaceholder({ id, count }: { id: string; count: number }) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
-    height: count > 1 ? `${count * 5 + 2}rem` : '5rem',
+    height: '5rem', // Fixed height to avoid visual jumps
   };
   
   return (
     <div 
       ref={setNodeRef}
       style={style}
-      className="rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-500/5 flex items-center justify-center pointer-events-none"
-    >
-      <span className="text-blue-400/60 text-sm font-medium">
-        {count > 1 ? `${count} tarefas` : ''}
-      </span>
-    </div>
+      className="rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-500/5 pointer-events-none"
+    />
   );
 }
 
@@ -340,14 +336,14 @@ export default function Dashboard() {
       ));
     }
 
-    const { insertIndex, count } = crossColumnPlaceholder;
+    const { insertIndex } = crossColumnPlaceholder;
     const placeholderId = `__placeholder__${columnStatus}`;
     const elements: JSX.Element[] = [];
     
     columnTasks.forEach((task, index) => {
       // Insert placeholder before this task if at the right index
       if (index === insertIndex) {
-        elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} count={count} />);
+        elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
       }
       
       elements.push(
@@ -376,7 +372,7 @@ export default function Dashboard() {
     
     // Insert at end if insertIndex is at or beyond the end
     if (insertIndex >= columnTasks.length) {
-      elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} count={count} />);
+      elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
     }
     
     return elements;

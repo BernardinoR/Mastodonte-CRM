@@ -136,13 +136,8 @@ export function useTaskDrag({
     
     if (!activeTask) return;
     
-    const movingIds = selectedTaskIds.has(activeId)
-      ? Array.from(selectedTaskIds)
-          .map(id => tasks.find(t => t.id === id))
-          .filter(Boolean)
-          .sort((a, b) => (a as Task).order - (b as Task).order)
-          .map(t => (t as Task).id)
-      : [activeId];
+    // Reuse movingIds from dragStart instead of recalculating on every mouse move
+    const movingIds = projectionRef.current?.movingIds || [activeId];
     
     const activeSortableIndex = active.data?.current?.sortable?.index;
     const overSortableIndex = over.data?.current?.sortable?.index;
