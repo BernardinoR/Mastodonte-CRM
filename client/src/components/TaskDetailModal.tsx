@@ -3,12 +3,10 @@ import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X, SquarePen } from "lucide-react";
-import { TaskContactButtons, TaskDescription } from "@/components/task-detail";
+import { Calendar as CalendarIcon, Pencil } from "lucide-react";
+import { TaskContactButtons, TaskDescription, TaskHistory } from "@/components/task-detail";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
@@ -98,10 +96,8 @@ export function TaskDetailModal({
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [noteType, setNoteType] = useState<"note" | "email" | "call" | "whatsapp">("note");
   
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
-  const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     if (task) {
@@ -221,48 +217,12 @@ export function TaskDetailModal({
 
   const handleSetNoteType = (type: "note" | "email" | "call" | "whatsapp") => {
     setNoteType(type);
-    setTimeout(() => {
-      commentInputRef.current?.focus();
-    }, 0);
-  };
-
-  const handleCommentKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleAddComment();
-    }
   };
 
   const handleDeleteEvent = (eventId: string) => {
     if (!task.history) return;
     const updatedHistory = task.history.filter(event => event.id !== eventId);
     onUpdateTask(task.id, { history: updatedHistory });
-  };
-
-  const formatEventTime = (date: Date) => {
-    return format(new Date(date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
-  };
-
-  const getEventIcon = (type: TaskHistoryEvent["type"]) => {
-    const iconClass = "w-3.5 h-3.5 text-gray-400";
-    switch (type) {
-      case "comment":
-        return <SquarePen className={iconClass} />;
-      case "email":
-        return <Mail className="w-3.5 h-3.5 text-blue-400" />;
-      case "call":
-        return <Phone className="w-3.5 h-3.5 text-red-400" />;
-      case "whatsapp":
-        return <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />;
-      case "status_change":
-        return <RefreshCw className={iconClass} />;
-      case "assignee_change":
-        return <User className={iconClass} />;
-      case "created":
-        return <Sparkles className={iconClass} />;
-      default:
-        return <FileText className={iconClass} />;
-    }
   };
 
   return (
@@ -560,153 +520,17 @@ export function TaskDetailModal({
             </div>
           </div>
 
-          <div className="flex-1 bg-[#1E1F24] border-l border-[#363842] flex flex-col min-h-0 overflow-hidden">
-            <div className="p-5 border-b border-[#363842] flex justify-between items-center flex-shrink-0">
-              <span className="text-white font-bold">Histórico</span>
-              <span className="text-sm text-[#64666E]">
-                {(task.history?.length || 0)} atualizações
-              </span>
-            </div>
-
-            <div className="flex-1 min-h-0 overflow-y-auto p-5 space-y-5">
-              {(!task.history || task.history.length === 0) ? (
-                <div className="text-center text-gray-500 py-8">
-                  <p className="text-sm">Nenhuma atualização ainda</p>
-                  <p className="text-xs mt-1">Adicione um comentário abaixo</p>
-                </div>
-              ) : (
-                task.history.map((event, index) => (
-                  <div key={event.id} className="flex gap-3 relative">
-                    {index < (task.history?.length || 0) - 1 && (
-                      <div 
-                        className="absolute left-[14px] top-[30px] bottom-[-20px] w-0.5 bg-[#363842]"
-                        style={{ zIndex: 0 }}
-                      />
-                    )}
-                    
-                    <div 
-                      className="w-[30px] h-[30px] rounded-full bg-[#333] border-2 border-[#1E1F24] z-[1] flex items-center justify-center flex-shrink-0 text-xs cursor-pointer hover:bg-red-900/50 hover:border-red-700 transition-colors"
-                      onMouseEnter={() => setHoveredEventId(event.id)}
-                      onMouseLeave={() => setHoveredEventId(null)}
-                      onClick={() => handleDeleteEvent(event.id)}
-                      data-testid={`button-delete-event-${event.id}`}
-                    >
-                      {hoveredEventId === event.id ? (
-                        <X className="w-3.5 h-3.5 text-red-400" />
-                      ) : (
-                        getEventIcon(event.type)
-                      )}
-                    </div>
-                    
-                    <div className="bg-[#2B2D33] p-3 rounded-lg text-gray-400 text-sm w-full border border-[#363842]">
-                      <div className="flex justify-between text-xs text-[#64666E] mb-1.5">
-                        <span className="font-bold text-white">{event.author}</span>
-                        <span>{formatEventTime(event.timestamp)}</span>
-                      </div>
-                      <p className="leading-relaxed">{event.content}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-
-            <div className="p-4 bg-[#1E1F24] border-t border-[#363842] flex-shrink-0">
-              <div className="bg-[#151619] border border-[#363842] rounded-lg p-3">
-                <Textarea
-                  ref={commentInputRef}
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  onKeyDown={handleCommentKeyDown}
-                  placeholder={
-                    noteType === "email" ? "Resumo do email..." :
-                    noteType === "call" ? "Resumo da ligação..." :
-                    noteType === "whatsapp" ? "Resumo do WhatsApp..." :
-                    "Escreva uma nota..."
-                  }
-                  className="bg-transparent border-0 text-white resize-none min-h-[32px] focus-visible:ring-0 focus-visible:ring-offset-0 focus:ring-0 focus:outline-none !ring-0 !ring-offset-0 p-0 text-sm"
-                  data-testid="textarea-new-comment"
-                />
-                <div className="flex justify-between items-center mt-2">
-                  <div className="flex items-center gap-1">
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="w-7 h-7 text-gray-500 hover:text-gray-300"
-                      data-testid="button-attach-file"
-                    >
-                      <Paperclip className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="w-7 h-7 text-gray-500 hover:text-gray-300"
-                      data-testid="button-attach-image"
-                    >
-                      <Image className="w-4 h-4" />
-                    </Button>
-                    <div className="w-px h-4 bg-[#363842] mx-1" />
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleSetNoteType("note")}
-                      className={cn(
-                        "w-7 h-7",
-                        noteType === "note" ? "text-gray-200 bg-gray-500/20" : "text-gray-500 hover:text-gray-300"
-                      )}
-                      data-testid="button-note-note"
-                    >
-                      <SquarePen className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleSetNoteType("email")}
-                      className={cn(
-                        "w-7 h-7",
-                        noteType === "email" ? "text-blue-400 bg-blue-500/20" : "text-gray-500 hover:text-gray-300"
-                      )}
-                      data-testid="button-note-email"
-                    >
-                      <Mail className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleSetNoteType("call")}
-                      className={cn(
-                        "w-7 h-7",
-                        noteType === "call" ? "text-red-400 bg-red-500/20" : "text-gray-500 hover:text-red-400"
-                      )}
-                      data-testid="button-note-call"
-                    >
-                      <Phone className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handleSetNoteType("whatsapp")}
-                      className={cn(
-                        "w-7 h-7",
-                        noteType === "whatsapp" ? "text-emerald-400 bg-emerald-500/20" : "text-gray-500 hover:text-gray-300"
-                      )}
-                      data-testid="button-note-whatsapp"
-                    >
-                      <MessageCircle className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <Button
-                    size="sm"
-                    onClick={handleAddComment}
-                    disabled={!newComment.trim()}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs"
-                    data-testid="button-add-comment"
-                  >
-                    Adicionar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
+          <TaskHistory
+            history={task.history || []}
+            newComment={newComment}
+            noteType={noteType}
+            hoveredEventId={hoveredEventId}
+            onNewCommentChange={setNewComment}
+            onNoteTypeChange={handleSetNoteType}
+            onAddComment={handleAddComment}
+            onDeleteEvent={handleDeleteEvent}
+            onEventHover={setHoveredEventId}
+          />
         </div>
       </DialogContent>
     </Dialog>

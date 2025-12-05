@@ -71,13 +71,18 @@ Preferred communication style: Simple, everyday language.
         /task-badges.tsx    - PriorityBadge, StatusBadge (86 lines)
         /task-assignees.tsx - AssigneeList, AssigneeBadge, AssigneeAvatarStack (161 lines)
       /task-editors        - Extracted task editing components (ClientSelector, AssigneeSelector)
+      /task-detail         - TaskDetailModal subcomponents
+        /TaskContactButtons.tsx - Email, Phone, WhatsApp contact actions (50 lines)
+        /TaskDescription.tsx    - Auto-resizing description textarea (40 lines)
+        /TaskHistory.tsx        - History timeline with note types (230 lines)
       /task-popovers.tsx   - TaskDatePopover, TaskPriorityPopover, TaskStatusPopover (284 lines)
       /task-context-menu.tsx - Right-click context menu with bulk operations (203 lines)
       /task-card-dialogs.tsx - Modal dialogs for task operations
       /TaskCard.tsx        - Main task card component (719 lines, down from 1416)
+      /TaskDetailModal.tsx - Task detail modal (538 lines, down from 760)
     /pages       - Route-level page components
     /lib         - Utilities and configurations
-      /statusConfig.ts  - Centralized status/priority colors and configurations
+      /statusConfig.ts  - Centralized colors (UI_COLORS, UI_CLASSES) + status/priority configs
       /mock-data.ts     - Initial task data and mock data generators
     /hooks       - Custom React hooks (hook-first architecture)
       /useTaskCardEditing.ts  - Task card editing state and handlers

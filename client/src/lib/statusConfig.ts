@@ -33,6 +33,11 @@ export const UI_CLASSES = {
   borderLight: "border-[#363842]",
   labelText: "text-[#64666E]",
   contactBtn: "bg-white/5 border border-[#363842] hover:bg-white/10",
+  historyPanel: "bg-[#1E1F24] border-l border-[#363842]",
+  historyEvent: "bg-[#2B2D33] border border-[#363842]",
+  historyTimeline: "bg-[#363842]",
+  historyIcon: "bg-[#333] border-2 border-[#1E1F24]",
+  commentInput: "bg-[#151619] border border-[#363842]",
 } as const;
 
 export interface StatusConfig {
