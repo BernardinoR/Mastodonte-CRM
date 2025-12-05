@@ -30,25 +30,35 @@ import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
 
-// Custom collision detection that prioritizes column detection for cross-column drops
+// Custom collision detection: prioritize card detection, fallback to column for cross-column drops
 const customCollisionDetection: CollisionDetection = (args) => {
-  // First, check for collisions with droppable columns using pointerWithin
-  const pointerCollisions = pointerWithin(args);
-  
-  // Filter to only include column droppables (To Do, In Progress, Done)
   const columnIds = ["To Do", "In Progress", "Done"];
+  
+  // First, detect cards using closestCenter (best for gaps between items)
+  const centerCollisions = closestCenter(args);
+  
+  // Filter to get only card collisions (exclude column IDs)
+  const cardCollisions = centerCollisions.filter(
+    collision => !columnIds.includes(collision.id as string)
+  );
+  
+  // If we found a card collision, return it - this enables sorting animation
+  if (cardCollisions.length > 0) {
+    return cardCollisions;
+  }
+  
+  // No card found - check if pointer is within a column (for cross-column drops to empty areas)
+  const pointerCollisions = pointerWithin(args);
   const columnCollisions = pointerCollisions.filter(
     collision => columnIds.includes(collision.id as string)
   );
   
-  // If pointer is within a column, prioritize that
   if (columnCollisions.length > 0) {
     return columnCollisions;
   }
   
-  // Fall back to closestCenter for card-to-card sorting within columns
-  // closestCenter works better than rectIntersection for detecting drops between cards
-  return closestCenter(args);
+  // Final fallback: return all center collisions
+  return centerCollisions;
 };
 
 // Sortable placeholder component for cross-column drops
