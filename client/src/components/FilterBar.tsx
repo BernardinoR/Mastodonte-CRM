@@ -469,14 +469,14 @@ export function FilterBar({
       )}
 
       {/* New Task Button */}
-      <Button
+      <button
         onClick={onNewTask}
-        size="sm"
-        className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 h-8 rounded-md"
+        className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] transition-colors"
         data-testid="button-new-task"
       >
-        Nova
-      </Button>
+        <Plus className="w-4 h-4" />
+        <span>Nova Tarefa</span>
+      </button>
     </div>
   );
 }
