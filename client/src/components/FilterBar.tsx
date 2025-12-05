@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { 
@@ -16,11 +15,29 @@ import {
   Trash2,
   Search,
   Filter,
-  ChevronUp
+  ChevronUp,
+  GripVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
 import type { TaskStatus, TaskPriority } from "@/types/task";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 type ViewMode = "board" | "table";
 
@@ -70,6 +87,106 @@ const DATE_FILTER_OPTIONS = [
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
 const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Normal", "none"];
 
+interface SortableItemProps {
+  sort: SortOption;
+  onDirectionChange: (field: SortField, direction: SortDirection) => void;
+  onRemove: (field: SortField) => void;
+}
+
+function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) {
+  const [directionOpen, setDirectionOpen] = useState(false);
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sort.field });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 bg-[#1a1a1a] rounded-md border border-[#333] h-9 px-2"
+      data-testid={`sort-item-${sort.field}`}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 cursor-grab active:cursor-grabbing"
+        data-testid={`drag-handle-${sort.field}`}
+      >
+        <GripVertical className="w-4 h-4" />
+      </button>
+
+      <span className="text-sm text-gray-300 min-w-[80px]">
+        {SORT_FIELD_LABELS[sort.field]}
+      </span>
+
+      <Popover open={directionOpen} onOpenChange={setDirectionOpen}>
+        <PopoverTrigger asChild>
+          <button
+            className="flex items-center gap-1 px-2 h-7 text-sm text-gray-400 hover:text-gray-200 bg-[#2a2a2a] rounded border border-[#404040] transition-colors"
+            data-testid={`button-direction-${sort.field}`}
+          >
+            <span>{sort.direction === "asc" ? "Crescente" : "Decrescente"}</span>
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-36 p-1" align="start">
+          <button
+            onClick={() => {
+              onDirectionChange(sort.field, "asc");
+              setDirectionOpen(false);
+            }}
+            className={cn(
+              "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
+              sort.direction === "asc" 
+                ? "bg-blue-500/20 text-blue-400" 
+                : "text-gray-300 hover:bg-[#2a2a2a]"
+            )}
+            data-testid={`option-direction-asc-${sort.field}`}
+          >
+            <ChevronUp className="w-3.5 h-3.5" />
+            Crescente
+          </button>
+          <button
+            onClick={() => {
+              onDirectionChange(sort.field, "desc");
+              setDirectionOpen(false);
+            }}
+            className={cn(
+              "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
+              sort.direction === "desc" 
+                ? "bg-blue-500/20 text-blue-400" 
+                : "text-gray-300 hover:bg-[#2a2a2a]"
+            )}
+            data-testid={`option-direction-desc-${sort.field}`}
+          >
+            <ChevronDown className="w-3.5 h-3.5" />
+            Decrescente
+          </button>
+        </PopoverContent>
+      </Popover>
+
+      <button
+        onClick={() => onRemove(sort.field)}
+        className="flex items-center justify-center w-6 h-6 text-gray-500 hover:text-red-400 transition-colors"
+        data-testid={`button-remove-sort-${sort.field}`}
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    </div>
+  );
+}
+
 export function FilterBar({
   viewMode,
   onViewModeChange,
@@ -86,12 +203,22 @@ export function FilterBar({
   onReset,
   onNewTask,
 }: FilterBarProps) {
-  const [sortBarExpanded, setSortBarExpanded] = useState(false);
+  const [sortPopoverOpen, setSortPopoverOpen] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [directionPopoverOpen, setDirectionPopoverOpen] = useState<SortField | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     if (searchExpanded && searchInputRef.current) {
@@ -107,14 +234,6 @@ export function FilterBar({
 
   const handleRemoveSort = useCallback((field: SortField) => {
     onSortsChange(sorts.filter(s => s.field !== field));
-  }, [sorts, onSortsChange]);
-
-  const handleToggleSortDirection = useCallback((field: SortField) => {
-    onSortsChange(sorts.map(s => 
-      s.field === field 
-        ? { ...s, direction: s.direction === "asc" ? "desc" : "asc" }
-        : s
-    ));
   }, [sorts, onSortsChange]);
 
   const handleClearAllSorts = useCallback(() => {
@@ -169,18 +288,19 @@ export function FilterBar({
     setSearchExpanded(false);
   }, [onSearchQueryChange]);
 
-  const handleToggleSortBar = useCallback(() => {
-    if (!sortBarExpanded && sorts.length === 0) {
-      onSortsChange([{ field: "priority", direction: "asc" }]);
-    }
-    setSortBarExpanded(!sortBarExpanded);
-  }, [sortBarExpanded, sorts.length, onSortsChange]);
-
   const handleSetSortDirection = useCallback((field: SortField, direction: SortDirection) => {
     onSortsChange(sorts.map(s => 
       s.field === field ? { ...s, direction } : s
     ));
-    setDirectionPopoverOpen(null);
+  }, [sorts, onSortsChange]);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = sorts.findIndex(s => s.field === active.id);
+      const newIndex = sorts.findIndex(s => s.field === over.id);
+      onSortsChange(arrayMove(sorts, oldIndex, newIndex));
+    }
   }, [sorts, onSortsChange]);
 
   return (
@@ -272,19 +392,117 @@ export function FilterBar({
         </div>
       </div>
 
-        {/* Sort Icon - Toggle SortBar */}
-        <button
-          onClick={handleToggleSortBar}
-          className={cn(
-            "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
-            sortBarExpanded || sorts.length > 0
-              ? "bg-blue-500/20 text-blue-400"
-              : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-          )}
-          data-testid="button-sort"
-        >
-          <ArrowUpDown className="w-4 h-4" />
-        </button>
+        {/* Sort Popover */}
+        <Popover open={sortPopoverOpen} onOpenChange={setSortPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
+                sorts.length > 0
+                  ? "bg-blue-500/20 text-blue-400"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+              )}
+              data-testid="button-sort"
+            >
+              <ArrowUpDown className="w-4 h-4" />
+              {sorts.length > 0 && (
+                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-medium flex items-center justify-center">
+                  {sorts.length}
+                </span>
+              )}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-80 p-0" 
+            align="start"
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2a2a]">
+              <span className="text-sm font-medium text-gray-300">Ordenação</span>
+              {sorts.length > 0 && (
+                <span className="text-xs text-gray-500">{sorts.length} ordenações</span>
+              )}
+            </div>
+
+            {/* Sort List with Drag and Drop */}
+            <div className="p-2">
+              {sorts.length === 0 ? (
+                <div className="text-sm text-gray-500 text-center py-4">
+                  Nenhuma ordenação aplicada
+                </div>
+              ) : (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleDragEnd}
+                >
+                  <SortableContext
+                    items={sorts.map(s => s.field)}
+                    strategy={verticalListSortingStrategy}
+                  >
+                    <div className="flex flex-col gap-2">
+                      {sorts.map((sort) => (
+                        <SortableItem
+                          key={sort.field}
+                          sort={sort}
+                          onDirectionChange={handleSetSortDirection}
+                          onRemove={handleRemoveSort}
+                        />
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="border-t border-[#2a2a2a] p-2 flex flex-col gap-1">
+              {/* Add Sort */}
+              {availableSortFields.length > 0 && (
+                <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#2a2a2a] rounded transition-colors"
+                      data-testid="button-add-sort"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Adicionar ordenação
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-48 p-1" align="start" side="right">
+                    {availableSortFields.map((field) => (
+                      <button
+                        key={field}
+                        onClick={() => {
+                          handleAddSort(field);
+                          setAddSortPopoverOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
+                        data-testid={`button-add-sort-${field}`}
+                      >
+                        {SORT_FIELD_LABELS[field]}
+                      </button>
+                    ))}
+                  </PopoverContent>
+                </Popover>
+              )}
+
+              {/* Clear All Sorts */}
+              {sorts.length > 0 && (
+                <button
+                  onClick={() => {
+                    handleClearAllSorts();
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-red-400 hover:bg-[#2a2a2a] rounded transition-colors"
+                  data-testid="button-clear-sorts"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Excluir ordenação
+                </button>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
 
       {/* Filter Icon (aggregated: Date, Status, Priority) */}
       <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
@@ -427,122 +645,6 @@ export function FilterBar({
         </button>
       </div>
 
-      {/* Sort Bar - Expandable row below FilterBar */}
-      {sortBarExpanded && (
-        <div className="flex items-center gap-3 px-1">
-          {/* Active Sort Chips */}
-          {sorts.map((sort) => (
-            <div 
-              key={sort.field}
-              className="flex items-center gap-1 bg-[#2a2a2a] rounded-md border border-[#404040] h-8"
-              data-testid={`sort-chip-${sort.field}`}
-            >
-              {/* Field label */}
-              <span className="pl-3 pr-1 text-sm text-gray-300">
-                {SORT_FIELD_LABELS[sort.field]}
-              </span>
-              
-              {/* Direction dropdown */}
-              <Popover 
-                open={directionPopoverOpen === sort.field} 
-                onOpenChange={(open) => setDirectionPopoverOpen(open ? sort.field : null)}
-              >
-                <PopoverTrigger asChild>
-                  <button
-                    className="flex items-center gap-1 px-2 h-8 text-sm text-gray-400 hover:text-gray-200 transition-colors"
-                    data-testid={`button-direction-${sort.field}`}
-                  >
-                    <span>{sort.direction === "asc" ? "Crescente" : "Decrescente"}</span>
-                    <ChevronDown className="w-3.5 h-3.5" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent className="w-36 p-1" align="start">
-                  <button
-                    onClick={() => handleSetSortDirection(sort.field, "asc")}
-                    className={cn(
-                      "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
-                      sort.direction === "asc" 
-                        ? "bg-blue-500/20 text-blue-400" 
-                        : "text-gray-300 hover:bg-[#2a2a2a]"
-                    )}
-                    data-testid={`option-direction-asc-${sort.field}`}
-                  >
-                    <ChevronUp className="w-3.5 h-3.5" />
-                    Crescente
-                  </button>
-                  <button
-                    onClick={() => handleSetSortDirection(sort.field, "desc")}
-                    className={cn(
-                      "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
-                      sort.direction === "desc" 
-                        ? "bg-blue-500/20 text-blue-400" 
-                        : "text-gray-300 hover:bg-[#2a2a2a]"
-                    )}
-                    data-testid={`option-direction-desc-${sort.field}`}
-                  >
-                    <ChevronDown className="w-3.5 h-3.5" />
-                    Decrescente
-                  </button>
-                </PopoverContent>
-              </Popover>
-
-              {/* Remove button */}
-              <button
-                onClick={() => handleRemoveSort(sort.field)}
-                className="flex items-center justify-center w-8 h-8 text-gray-500 hover:text-red-400 transition-colors"
-                data-testid={`button-remove-sort-${sort.field}`}
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          ))}
-
-          {/* Add Sort Button */}
-          {availableSortFields.length > 0 && (
-            <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-500 hover:text-gray-300 transition-colors"
-                  data-testid="button-add-sort"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Adicionar ordenação</span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-48 p-1" align="start">
-                {availableSortFields.map((field) => (
-                  <button
-                    key={field}
-                    onClick={() => {
-                      handleAddSort(field);
-                      setAddSortPopoverOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
-                    data-testid={`button-add-sort-${field}`}
-                  >
-                    {SORT_FIELD_LABELS[field]}
-                  </button>
-                ))}
-              </PopoverContent>
-            </Popover>
-          )}
-
-          {/* Delete All Sorts */}
-          {sorts.length > 0 && (
-            <button
-              onClick={() => {
-                handleClearAllSorts();
-                setSortBarExpanded(false);
-              }}
-              className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-500 hover:text-red-400 transition-colors"
-              data-testid="button-clear-sorts"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Excluir ordenação</span>
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
