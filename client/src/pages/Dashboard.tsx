@@ -13,10 +13,8 @@ import {
   useSensors, 
   DragOverlay,
   pointerWithin,
-  rectIntersection,
+  closestCenter,
   CollisionDetection,
-  DroppableContainer,
-  getFirstCollision,
 } from "@dnd-kit/core";
 import { 
   SortableContext, 
@@ -48,8 +46,9 @@ const customCollisionDetection: CollisionDetection = (args) => {
     return columnCollisions;
   }
   
-  // Fall back to rectIntersection for card-to-card sorting within columns
-  return rectIntersection(args);
+  // Fall back to closestCenter for card-to-card sorting within columns
+  // closestCenter works better than rectIntersection for detecting drops between cards
+  return closestCenter(args);
 };
 
 // Sortable placeholder component for cross-column drops
