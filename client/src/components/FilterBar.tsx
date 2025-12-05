@@ -1,6 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { 
   LayoutGrid, 
@@ -11,7 +10,6 @@ import {
   Plus,
   Calendar,
   CheckSquare,
-  Check,
   Flag,
   Trash2,
   Search,
@@ -23,9 +21,9 @@ import {
   FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
-import type { TaskStatus, TaskPriority } from "@/types/task";
+import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority } from "@/types/task";
 import type { FilterType, ActiveFilter } from "@/hooks/useTaskFilters";
+import { FilterPopoverContent, DATE_FILTER_OPTIONS } from "@/components/filter-bar/FilterPopoverContent";
 import {
   DndContext,
   closestCenter,
@@ -96,19 +94,6 @@ const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calen
   client: { label: "Cliente", icon: User },
 };
 
-const DATE_FILTER_OPTIONS = [
-  { value: "all", label: "Todas as datas" },
-  { value: "today", label: "Hoje" },
-  { value: "week", label: "Esta semana" },
-  { value: "2weeks", label: "Últimas 2 semanas" },
-  { value: "month", label: "Este mês" },
-  { value: "8weeks", label: "Últimos(as) 8 semanas" },
-  { value: "overdue", label: "Atrasadas" },
-  { value: "no-date", label: "Sem data" },
-];
-
-const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
-const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Normal", "none"];
 
 interface SortableItemProps {
   sort: SortOption;
@@ -237,8 +222,6 @@ export function FilterBar({
   const [addFilterPopoverOpen, setAddFilterPopoverOpen] = useState(false);
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
-  const [clientFilterSearch, setClientFilterSearch] = useState("");
-  const [assigneeFilterSearch, setAssigneeFilterSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
@@ -271,6 +254,19 @@ export function FilterBar({
       searchInputRef.current.focus();
     }
   }, [searchExpanded]);
+
+  useEffect(() => {
+    const filterIds = new Set((activeFilters || []).map(f => f.id));
+    setOpenFilterPopovers(prev => {
+      const cleaned: Record<string, boolean> = {};
+      for (const id of Object.keys(prev)) {
+        if (filterIds.has(id)) {
+          cleaned[id] = prev[id];
+        }
+      }
+      return cleaned;
+    });
+  }, [activeFilters]);
 
   const handleAddSort = useCallback((field: SortField) => {
     if (!sorts.find(s => s.field === field)) {
@@ -615,11 +611,11 @@ export function FilterBar({
                   return DATE_FILTER_OPTIONS.find(o => o.value === dateValue)?.label || config.label;
                 case "status":
                   const statusValues = filter.value as TaskStatus[];
-                  if (statusValues.length === ALL_STATUSES.length) return config.label;
+                  if (statusValues.length === STATUS_OPTIONS.length) return config.label;
                   return statusValues.join(", ");
                 case "priority":
                   const priorityValues = filter.value as (TaskPriority | "none")[];
-                  if (priorityValues.length === ALL_PRIORITIES.length) return config.label;
+                  if (priorityValues.length === PRIORITY_OPTIONS.length + 1) return config.label;
                   return priorityValues.map(p => p === "none" ? "Sem" : p).join(", ");
                 case "task":
                   return (filter.value as string) || config.label;
@@ -641,9 +637,9 @@ export function FilterBar({
                 case "date":
                   return (filter.value as string) !== "all";
                 case "status":
-                  return (filter.value as string[]).length < ALL_STATUSES.length;
+                  return (filter.value as string[]).length < STATUS_OPTIONS.length;
                 case "priority":
-                  return (filter.value as string[]).length < ALL_PRIORITIES.length;
+                  return (filter.value as string[]).length < PRIORITY_OPTIONS.length + 1;
                 case "task":
                   return !!(filter.value as string);
                 case "assignee":
@@ -692,259 +688,12 @@ export function FilterBar({
                   )} 
                   align="start"
                 >
-                  {filter.type === "date" && (
-                    <>
-                      {DATE_FILTER_OPTIONS.map((option) => (
-                        <button
-                          key={option.value}
-                          onClick={() => {
-                            onUpdateFilter(filter.id, option.value);
-                            handleOpenFilterPopover(filter.id, false);
-                          }}
-                          className={cn(
-                            "w-full flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors",
-                            (filter.value as string) === option.value
-                              ? "bg-purple-500/20 text-purple-300"
-                              : "text-gray-300 hover:bg-[#2a2a2a]"
-                          )}
-                          data-testid={`option-filter-date-${option.value}`}
-                        >
-                          {option.label}
-                        </button>
-                      ))}
-                    </>
-                  )}
-                  {filter.type === "status" && (
-                    <>
-                      {ALL_STATUSES.map((status) => {
-                        const statusConfig = STATUS_CONFIG[status];
-                        const currentValues = filter.value as TaskStatus[];
-                        return (
-                          <div
-                            key={status}
-                            onClick={() => {
-                              const newValues = currentValues.includes(status)
-                                ? currentValues.filter(s => s !== status)
-                                : [...currentValues, status];
-                              onUpdateFilter(filter.id, newValues);
-                            }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                            data-testid={`option-filter-status-${status.toLowerCase().replace(' ', '-')}`}
-                          >
-                            <Checkbox 
-                              checked={currentValues.includes(status)}
-                              className="h-4 w-4 pointer-events-none"
-                            />
-                            <div className={cn("w-2 h-2 rounded-full", statusConfig.dotColor)} />
-                            <span>{status}</span>
-                          </div>
-                        );
-                      })}
-                    </>
-                  )}
-                  {filter.type === "priority" && (
-                    <>
-                      {ALL_PRIORITIES.map((priority) => {
-                        const priorityConfig = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
-                        const label = priority === "none" ? "Sem prioridade" : priority;
-                        const currentValues = filter.value as (TaskPriority | "none")[];
-                        return (
-                          <div
-                            key={priority}
-                            onClick={() => {
-                              const newValues = currentValues.includes(priority)
-                                ? currentValues.filter(p => p !== priority)
-                                : [...currentValues, priority];
-                              onUpdateFilter(filter.id, newValues);
-                            }}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                            data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
-                          >
-                            <Checkbox 
-                              checked={currentValues.includes(priority)}
-                              className="h-4 w-4 pointer-events-none"
-                            />
-                            {priorityConfig && (
-                              <div className={cn("w-2 h-2 rounded-full", priorityConfig.dotColor)} />
-                            )}
-                            <span>{label}</span>
-                          </div>
-                        );
-                      })}
-                    </>
-                  )}
-                  {filter.type === "task" && (
-                    <div className="p-2">
-                      <Input
-                        type="text"
-                        placeholder="Buscar por nome da tarefa..."
-                        value={filter.value as string}
-                        onChange={(e) => onUpdateFilter(filter.id, e.target.value)}
-                        className="h-8 bg-[#1a1a1a] border-[#333] text-gray-200 placeholder:text-gray-500"
-                        data-testid="input-filter-task"
-                      />
-                    </div>
-                  )}
-                  {filter.type === "assignee" && (() => {
-                    const currentValues = filter.value as string[];
-                    const selectedAssignees = availableAssignees.filter(a => currentValues.includes(a));
-                    const unselectedAssignees = availableAssignees.filter(a => 
-                      !currentValues.includes(a) && 
-                      a.toLowerCase().includes(assigneeFilterSearch.toLowerCase())
-                    );
-                    
-                    return (
-                      <div className="w-full">
-                        <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
-                          <Input
-                            value={assigneeFilterSearch}
-                            onChange={(e) => setAssigneeFilterSearch(e.target.value)}
-                            placeholder="Buscar responsável..."
-                            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
-                            onClick={(e) => e.stopPropagation()}
-                            data-testid="input-filter-assignee-search"
-                          />
-                        </div>
-                        
-                        {selectedAssignees.length > 0 && (
-                          <div className="border-b border-[#2a2a2a]">
-                            <div className="px-3 py-1.5 text-xs text-gray-500">
-                              Responsável selecionado
-                            </div>
-                            <div className="px-3 py-1">
-                              {selectedAssignees.map((assignee) => (
-                                <div 
-                                  key={assignee}
-                                  className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newValues = currentValues.filter(a => a !== assignee);
-                                    onUpdateFilter(filter.id, newValues);
-                                  }}
-                                  data-testid={`option-filter-assignee-selected-${assignee}`}
-                                >
-                                  <Check className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm text-foreground">{assignee}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="px-3 py-1.5 text-xs text-gray-500">
-                          Selecione mais
-                        </div>
-                        
-                        <div 
-                          className="max-h-52 overflow-y-auto"
-                          onWheel={(e) => e.stopPropagation()}
-                        >
-                          {unselectedAssignees.length === 0 ? (
-                            <div className="px-3 py-4 text-sm text-gray-500 text-center">
-                              Nenhum responsável encontrado
-                            </div>
-                          ) : (
-                            unselectedAssignees.map((assignee, index) => (
-                              <div
-                                key={assignee}
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const newValues = [...currentValues, assignee];
-                                  onUpdateFilter(filter.id, newValues);
-                                }}
-                                data-testid={`option-filter-assignee-${index}`}
-                              >
-                                <User className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm text-foreground flex-1">{assignee}</span>
-                                <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
-                  {filter.type === "client" && (() => {
-                    const currentValues = filter.value as string[];
-                    const selectedClients = availableClients.filter(c => currentValues.includes(c));
-                    const unselectedClients = availableClients.filter(c => 
-                      !currentValues.includes(c) && 
-                      c.toLowerCase().includes(clientFilterSearch.toLowerCase())
-                    );
-                    
-                    return (
-                      <div className="w-full">
-                        <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
-                          <Input
-                            value={clientFilterSearch}
-                            onChange={(e) => setClientFilterSearch(e.target.value)}
-                            placeholder="Vincule ou crie uma página..."
-                            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
-                            onClick={(e) => e.stopPropagation()}
-                            data-testid="input-filter-client-search"
-                          />
-                        </div>
-                        
-                        {selectedClients.length > 0 && (
-                          <div className="border-b border-[#2a2a2a]">
-                            <div className="px-3 py-1.5 text-xs text-gray-500">
-                              Cliente selecionado
-                            </div>
-                            <div className="px-3 py-1">
-                              {selectedClients.map((client) => (
-                                <div 
-                                  key={client}
-                                  className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    const newValues = currentValues.filter(c => c !== client);
-                                    onUpdateFilter(filter.id, newValues);
-                                  }}
-                                  data-testid={`option-filter-client-selected-${client}`}
-                                >
-                                  <Check className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm text-foreground">{client}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        <div className="px-3 py-1.5 text-xs text-gray-500">
-                          Selecione mais
-                        </div>
-                        
-                        <div 
-                          className="max-h-52 overflow-y-auto"
-                          onWheel={(e) => e.stopPropagation()}
-                        >
-                          {unselectedClients.length === 0 ? (
-                            <div className="px-3 py-4 text-sm text-gray-500 text-center">
-                              Nenhum cliente encontrado
-                            </div>
-                          ) : (
-                            unselectedClients.map((client, index) => (
-                              <div
-                                key={client}
-                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const newValues = [...currentValues, client];
-                                  onUpdateFilter(filter.id, newValues);
-                                }}
-                                data-testid={`option-filter-client-${index}`}
-                              >
-                                <User className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm text-foreground flex-1">{client}</span>
-                                <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })()}
+                  <FilterPopoverContent
+                    filter={filter}
+                    onUpdateFilter={onUpdateFilter}
+                    availableAssignees={availableAssignees}
+                    availableClients={availableClients}
+                  />
                 </PopoverContent>
               </Popover>
             );
