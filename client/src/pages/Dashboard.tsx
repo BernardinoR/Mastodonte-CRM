@@ -70,6 +70,12 @@ export default function Dashboard() {
     setViewMode,
     sorts,
     setSorts,
+    activeFilters,
+    addFilter,
+    updateFilter,
+    removeFilter,
+    availableAssignees,
+    availableClients,
     statusFilter,
     setStatusFilter,
     priorityFilter,
@@ -413,6 +419,12 @@ export default function Dashboard() {
         onViewModeChange={setViewMode}
         sorts={sorts}
         onSortsChange={setSorts}
+        activeFilters={activeFilters}
+        onAddFilter={addFilter}
+        onUpdateFilter={updateFilter}
+        onRemoveFilter={removeFilter}
+        availableAssignees={availableAssignees}
+        availableClients={availableClients}
         statusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
         priorityFilter={priorityFilter}

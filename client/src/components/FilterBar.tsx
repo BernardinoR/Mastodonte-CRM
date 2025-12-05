@@ -16,11 +16,15 @@ import {
   Search,
   Filter,
   ChevronUp,
-  GripVertical
+  GripVertical,
+  User,
+  Briefcase,
+  FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
 import type { TaskStatus, TaskPriority } from "@/types/task";
+import type { FilterType, ActiveFilter } from "@/hooks/useTaskFilters";
 import {
   DndContext,
   closestCenter,
@@ -54,6 +58,15 @@ interface FilterBarProps {
   onViewModeChange: (mode: ViewMode) => void;
   sorts: SortOption[];
   onSortsChange: (sorts: SortOption[]) => void;
+  // Dynamic filters
+  activeFilters: ActiveFilter[];
+  onAddFilter: (type: FilterType) => void;
+  onUpdateFilter: (id: string, value: string | string[]) => void;
+  onRemoveFilter: (id: string) => void;
+  // Available options
+  availableAssignees: string[];
+  availableClients: string[];
+  // Legacy filters (for compatibility)
   statusFilter: TaskStatus[];
   onStatusFilterChange: (statuses: TaskStatus[]) => void;
   priorityFilter: (TaskPriority | "none")[];
@@ -71,6 +84,15 @@ const SORT_FIELD_LABELS: Record<SortField, string> = {
   dueDate: "Data e Hora",
   title: "Título",
   status: "Status",
+};
+
+const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calendar }> = {
+  date: { label: "Data e Hora", icon: Calendar },
+  status: { label: "Status", icon: CheckSquare },
+  priority: { label: "Prioridade", icon: Flag },
+  task: { label: "Tarefa", icon: FileText },
+  assignee: { label: "Responsável", icon: User },
+  client: { label: "Cliente", icon: Briefcase },
 };
 
 const DATE_FILTER_OPTIONS = [
@@ -192,6 +214,12 @@ export function FilterBar({
   onViewModeChange,
   sorts,
   onSortsChange,
+  activeFilters,
+  onAddFilter,
+  onUpdateFilter,
+  onRemoveFilter,
+  availableAssignees,
+  availableClients,
   statusFilter,
   onStatusFilterChange,
   priorityFilter,
@@ -205,15 +233,24 @@ export function FilterBar({
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
-  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
-  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
+  const [addFilterPopoverOpen, setAddFilterPopoverOpen] = useState(false);
+  const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
   }, []);
+
+  const handleOpenFilterPopover = useCallback((id: string, open: boolean) => {
+    setOpenFilterPopovers(prev => ({ ...prev, [id]: open }));
+  }, []);
+
+  const availableFilterTypes = useMemo(() => {
+    const filters = activeFilters || [];
+    const usedTypes = new Set(filters.map(f => f.type));
+    return (Object.keys(FILTER_TYPE_CONFIG) as FilterType[]).filter(t => !usedTypes.has(t));
+  }, [activeFilters]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -268,20 +305,16 @@ export function FilterBar({
   }, [sorts]);
 
   const hasActiveFilters = useMemo(() => {
-    return statusFilter.length < ALL_STATUSES.length ||
-           priorityFilter.length < ALL_PRIORITIES.length ||
-           dateFilter !== "all" ||
+    const filters = activeFilters || [];
+    return filters.length > 0 ||
            sorts.length > 0 ||
            searchQuery.length > 0;
-  }, [statusFilter, priorityFilter, dateFilter, sorts, searchQuery]);
+  }, [activeFilters, sorts, searchQuery]);
 
   const activeFilterCount = useMemo(() => {
-    let count = 0;
-    if (statusFilter.length < ALL_STATUSES.length) count++;
-    if (priorityFilter.length < ALL_PRIORITIES.length) count++;
-    if (dateFilter !== "all") count++;
-    return count;
-  }, [statusFilter, priorityFilter, dateFilter]);
+    const filters = activeFilters || [];
+    return filters.length;
+  }, [activeFilters]);
 
   const handleSearchBlur = useCallback(() => {
     if (!searchQuery) {
@@ -566,145 +599,289 @@ export function FilterBar({
           {/* Vertical Divider between Sort and Filters */}
           <div className="h-6 w-px bg-[#333]" />
 
-          {/* Date Filter Badge */}
-          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
-                  dateFilter !== "all"
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
-                )}
-                data-testid="button-date-filter"
-              >
-                <Calendar className="w-4 h-4" />
-                <span>
-                  {dateFilter !== "all" 
-                    ? `Data e Hora: ${DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.label}`
-                    : "Data e Hora"
-                  }
-                </span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-56 p-1" align="start">
-              {DATE_FILTER_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    onDateFilterChange(option.value);
-                    setDatePopoverOpen(false);
-                  }}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors",
-                    dateFilter === option.value
-                      ? "bg-amber-500/20 text-amber-300"
-                      : "text-gray-300 hover:bg-[#2a2a2a]"
-                  )}
-                  data-testid={`option-date-${option.value}`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </PopoverContent>
-          </Popover>
+          {/* Dynamic Filter Badges */}
+          {(activeFilters || []).map((filter) => {
+            const config = FILTER_TYPE_CONFIG[filter.type];
+            const Icon = config.icon;
+            
+            const getFilterLabel = () => {
+              switch (filter.type) {
+                case "date":
+                  const dateValue = filter.value as string;
+                  if (dateValue === "all") return config.label;
+                  return DATE_FILTER_OPTIONS.find(o => o.value === dateValue)?.label || config.label;
+                case "status":
+                  const statusValues = filter.value as TaskStatus[];
+                  if (statusValues.length === ALL_STATUSES.length) return config.label;
+                  return statusValues.join(", ");
+                case "priority":
+                  const priorityValues = filter.value as (TaskPriority | "none")[];
+                  if (priorityValues.length === ALL_PRIORITIES.length) return config.label;
+                  return priorityValues.map(p => p === "none" ? "Sem" : p).join(", ");
+                case "task":
+                  return (filter.value as string) || config.label;
+                case "assignee":
+                  const assigneeValues = filter.value as string[];
+                  if (assigneeValues.length === 0) return config.label;
+                  return assigneeValues.join(", ");
+                case "client":
+                  const clientValues = filter.value as string[];
+                  if (clientValues.length === 0) return config.label;
+                  return clientValues.join(", ");
+                default:
+                  return config.label;
+              }
+            };
+            
+            const hasValue = () => {
+              switch (filter.type) {
+                case "date":
+                  return (filter.value as string) !== "all";
+                case "status":
+                  return (filter.value as string[]).length < ALL_STATUSES.length;
+                case "priority":
+                  return (filter.value as string[]).length < ALL_PRIORITIES.length;
+                case "task":
+                  return !!(filter.value as string);
+                case "assignee":
+                case "client":
+                  return (filter.value as string[]).length > 0;
+                default:
+                  return false;
+              }
+            };
 
-          {/* Status Filter Badge */}
-          <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
-                  statusFilter.length < ALL_STATUSES.length
-                    ? "bg-green-500/20 text-green-300 border border-green-500/30"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
-                )}
-                data-testid="button-status-filter"
+            return (
+              <Popover 
+                key={filter.id} 
+                open={openFilterPopovers[filter.id] || false} 
+                onOpenChange={(open) => handleOpenFilterPopover(filter.id, open)}
               >
-                <CheckSquare className="w-4 h-4" />
-                <span>
-                  {statusFilter.length < ALL_STATUSES.length 
-                    ? `Status: ${statusFilter.join(", ")}`
-                    : "Status"
-                  }
-                </span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-1" align="start">
-              {ALL_STATUSES.map((status) => {
-                const config = STATUS_CONFIG[status];
-                return (
-                  <div
-                    key={status}
-                    onClick={() => handleToggleStatus(status)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                    data-testid={`option-status-${status.toLowerCase().replace(' ', '-')}`}
-                  >
-                    <Checkbox 
-                      checked={statusFilter.includes(status)}
-                      className="h-4 w-4 pointer-events-none"
-                    />
-                    <div 
-                      className={cn("w-2 h-2 rounded-full", config.dotColor)}
-                    />
-                    <span>{status}</span>
-                  </div>
-                );
-              })}
-            </PopoverContent>
-          </Popover>
-
-          {/* Priority Filter Badge */}
-          <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
-            <PopoverTrigger asChild>
-              <button
-                className={cn(
-                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
-                  priorityFilter.length < ALL_PRIORITIES.length
-                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
-                )}
-                data-testid="button-priority-filter"
-              >
-                <Flag className="w-4 h-4" />
-                <span>
-                  {priorityFilter.length < ALL_PRIORITIES.length 
-                    ? `Prioridade: ${priorityFilter.map(p => p === "none" ? "Sem" : p).join(", ")}`
-                    : "Prioridade"
-                  }
-                </span>
-                <ChevronDown className="w-3.5 h-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-1" align="start">
-              {ALL_PRIORITIES.map((priority) => {
-                const config = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
-                const label = priority === "none" ? "Sem prioridade" : priority;
-                const testId = priority === "none" ? "none" : priority.toLowerCase();
-                return (
-                  <div
-                    key={priority}
-                    data-testid={`option-priority-${testId}`}
-                    onClick={() => handleTogglePriority(priority)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                  >
-                    <Checkbox 
-                      checked={priorityFilter.includes(priority)}
-                      className="h-4 w-4 pointer-events-none"
-                    />
-                    {config && (
-                      <div 
-                        className={cn("w-2 h-2 rounded-full", config.dotColor)}
-                      />
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                      hasValue()
+                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
+                        : "bg-[#1a1a1a] text-gray-300 border border-[#333]"
                     )}
-                    <span>{label}</span>
-                  </div>
-                );
-              })}
-            </PopoverContent>
-          </Popover>
+                    data-testid={`button-filter-${filter.type}-${filter.id}`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    <span className="max-w-[150px] truncate">{getFilterLabel()}</span>
+                    <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onRemoveFilter(filter.id);
+                      }}
+                      className="ml-1 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors"
+                      data-testid={`button-remove-filter-${filter.id}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-1" align="start">
+                  {filter.type === "date" && (
+                    <>
+                      {DATE_FILTER_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            onUpdateFilter(filter.id, option.value);
+                            handleOpenFilterPopover(filter.id, false);
+                          }}
+                          className={cn(
+                            "w-full flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors",
+                            (filter.value as string) === option.value
+                              ? "bg-purple-500/20 text-purple-300"
+                              : "text-gray-300 hover:bg-[#2a2a2a]"
+                          )}
+                          data-testid={`option-filter-date-${option.value}`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </>
+                  )}
+                  {filter.type === "status" && (
+                    <>
+                      {ALL_STATUSES.map((status) => {
+                        const statusConfig = STATUS_CONFIG[status];
+                        const currentValues = filter.value as TaskStatus[];
+                        return (
+                          <div
+                            key={status}
+                            onClick={() => {
+                              const newValues = currentValues.includes(status)
+                                ? currentValues.filter(s => s !== status)
+                                : [...currentValues, status];
+                              onUpdateFilter(filter.id, newValues);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                            data-testid={`option-filter-status-${status.toLowerCase().replace(' ', '-')}`}
+                          >
+                            <Checkbox 
+                              checked={currentValues.includes(status)}
+                              className="h-4 w-4 pointer-events-none"
+                            />
+                            <div className={cn("w-2 h-2 rounded-full", statusConfig.dotColor)} />
+                            <span>{status}</span>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                  {filter.type === "priority" && (
+                    <>
+                      {ALL_PRIORITIES.map((priority) => {
+                        const priorityConfig = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
+                        const label = priority === "none" ? "Sem prioridade" : priority;
+                        const currentValues = filter.value as (TaskPriority | "none")[];
+                        return (
+                          <div
+                            key={priority}
+                            onClick={() => {
+                              const newValues = currentValues.includes(priority)
+                                ? currentValues.filter(p => p !== priority)
+                                : [...currentValues, priority];
+                              onUpdateFilter(filter.id, newValues);
+                            }}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                            data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
+                          >
+                            <Checkbox 
+                              checked={currentValues.includes(priority)}
+                              className="h-4 w-4 pointer-events-none"
+                            />
+                            {priorityConfig && (
+                              <div className={cn("w-2 h-2 rounded-full", priorityConfig.dotColor)} />
+                            )}
+                            <span>{label}</span>
+                          </div>
+                        );
+                      })}
+                    </>
+                  )}
+                  {filter.type === "task" && (
+                    <div className="p-2">
+                      <Input
+                        type="text"
+                        placeholder="Buscar por nome da tarefa..."
+                        value={filter.value as string}
+                        onChange={(e) => onUpdateFilter(filter.id, e.target.value)}
+                        className="h-8 bg-[#1a1a1a] border-[#333] text-gray-200 placeholder:text-gray-500"
+                        data-testid="input-filter-task"
+                      />
+                    </div>
+                  )}
+                  {filter.type === "assignee" && (
+                    <>
+                      {availableAssignees.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          Nenhum responsável encontrado
+                        </div>
+                      ) : (
+                        availableAssignees.map((assignee) => {
+                          const currentValues = filter.value as string[];
+                          return (
+                            <div
+                              key={assignee}
+                              onClick={() => {
+                                const newValues = currentValues.includes(assignee)
+                                  ? currentValues.filter(a => a !== assignee)
+                                  : [...currentValues, assignee];
+                                onUpdateFilter(filter.id, newValues);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                              data-testid={`option-filter-assignee-${assignee}`}
+                            >
+                              <Checkbox 
+                                checked={currentValues.includes(assignee)}
+                                className="h-4 w-4 pointer-events-none"
+                              />
+                              <User className="w-3.5 h-3.5 text-gray-500" />
+                              <span>{assignee}</span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+                  {filter.type === "client" && (
+                    <>
+                      {availableClients.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">
+                          Nenhum cliente encontrado
+                        </div>
+                      ) : (
+                        availableClients.map((client) => {
+                          const currentValues = filter.value as string[];
+                          return (
+                            <div
+                              key={client}
+                              onClick={() => {
+                                const newValues = currentValues.includes(client)
+                                  ? currentValues.filter(c => c !== client)
+                                  : [...currentValues, client];
+                                onUpdateFilter(filter.id, newValues);
+                              }}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                              data-testid={`option-filter-client-${client}`}
+                            >
+                              <Checkbox 
+                                checked={currentValues.includes(client)}
+                                className="h-4 w-4 pointer-events-none"
+                              />
+                              <Briefcase className="w-3.5 h-3.5 text-gray-500" />
+                              <span>{client}</span>
+                            </div>
+                          );
+                        })
+                      )}
+                    </>
+                  )}
+                </PopoverContent>
+              </Popover>
+            );
+          })}
+
+          {/* Add Filter Button */}
+          {availableFilterTypes.length > 0 && (
+            <Popover open={addFilterPopoverOpen} onOpenChange={setAddFilterPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
+                  data-testid="button-add-filter"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Filtrar</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-1" align="start">
+                {availableFilterTypes.map((type) => {
+                  const config = FILTER_TYPE_CONFIG[type];
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={type}
+                      onClick={() => {
+                        onAddFilter(type);
+                        setAddFilterPopoverOpen(false);
+                        setFilterBarExpanded(true);
+                      }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
+                      data-testid={`button-add-filter-${type}`}
+                    >
+                      <Icon className="w-4 h-4 text-gray-500" />
+                      <span>{config.label}</span>
+                    </button>
+                  );
+                })}
+              </PopoverContent>
+            </Popover>
+          )}
         </div>
       )}
     </div>

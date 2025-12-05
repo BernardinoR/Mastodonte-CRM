@@ -11,6 +11,15 @@ interface SortOption {
   direction: SortDirection;
 }
 
+// Dynamic filter types
+export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | "client";
+
+export interface ActiveFilter {
+  id: string;
+  type: FilterType;
+  value: string | string[];
+}
+
 interface UseTaskFiltersReturn {
   // View mode
   viewMode: "board" | "table";
@@ -20,13 +29,23 @@ interface UseTaskFiltersReturn {
   sorts: SortOption[];
   setSorts: (sorts: SortOption[]) => void;
   
-  // Filters
+  // Dynamic filters
+  activeFilters: ActiveFilter[];
+  addFilter: (type: FilterType) => void;
+  updateFilter: (id: string, value: string | string[]) => void;
+  removeFilter: (id: string) => void;
+  
+  // Legacy filters (for compatibility)
   statusFilter: TaskStatus[];
   setStatusFilter: (statuses: TaskStatus[]) => void;
   priorityFilter: (TaskPriority | "none")[];
   setPriorityFilter: (priorities: (TaskPriority | "none")[]) => void;
   dateFilter: string;
   setDateFilter: (filter: string) => void;
+  
+  // Available options for filters
+  availableAssignees: string[];
+  availableClients: string[];
   
   // Reset
   resetFilters: () => void;
@@ -66,15 +85,75 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
   const [priorityFilter, setPriorityFilter] = useState<(TaskPriority | "none")[]>(ALL_PRIORITIES);
   const [dateFilter, setDateFilter] = useState("all");
   
+  // Dynamic filters
+  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
+  
   // Legacy filters (kept for compatibility)
   const [searchQuery, setSearchQuery] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("all");
+
+  // Extract available assignees and clients from tasks
+  const availableAssignees = useMemo(() => {
+    const assignees = new Set<string>();
+    tasks.forEach(task => {
+      task.assignees.forEach(a => assignees.add(a));
+    });
+    return Array.from(assignees).sort();
+  }, [tasks]);
+
+  const availableClients = useMemo(() => {
+    const clients = new Set<string>();
+    tasks.forEach(task => {
+      if (task.clientName) clients.add(task.clientName);
+    });
+    return Array.from(clients).sort();
+  }, [tasks]);
+
+  // Dynamic filter management
+  const addFilter = useCallback((type: FilterType) => {
+    const id = `${type}-${Date.now()}`;
+    let defaultValue: string | string[] = "";
+    
+    switch (type) {
+      case "date":
+        defaultValue = "all";
+        break;
+      case "status":
+        defaultValue = [...ALL_STATUSES];
+        break;
+      case "priority":
+        defaultValue = [...ALL_PRIORITIES];
+        break;
+      case "task":
+        defaultValue = "";
+        break;
+      case "assignee":
+        defaultValue = [];
+        break;
+      case "client":
+        defaultValue = [];
+        break;
+    }
+    
+    setActiveFilters(prev => [...prev, { id, type, value: defaultValue }]);
+  }, []);
+
+  const updateFilter = useCallback((id: string, value: string | string[]) => {
+    setActiveFilters(prev => 
+      prev.map(f => f.id === id ? { ...f, value } : f)
+    );
+  }, []);
+
+  const removeFilter = useCallback((id: string) => {
+    setActiveFilters(prev => prev.filter(f => f.id !== id));
+  }, []);
 
   const resetFilters = useCallback(() => {
     setSorts([]);
     setStatusFilter(ALL_STATUSES);
     setPriorityFilter(ALL_PRIORITIES);
     setDateFilter("all");
+    setActiveFilters([]);
     setSearchQuery("");
     setAssigneeFilter("all");
   }, []);
@@ -87,18 +166,94 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     const eightWeeksAgo = subWeeks(today, 8);
 
     let result = tasks.filter((task) => {
-      // Status filter
-      if (!statusFilter.includes(task.status)) {
+      // Apply dynamic filters
+      for (const filter of activeFilters) {
+        switch (filter.type) {
+          case "date": {
+            const dateValue = filter.value as string;
+            if (dateValue !== "all") {
+              const taskDate = task.dueDate ? 
+                (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
+                : null;
+              
+              switch (dateValue) {
+                case "today":
+                  if (!taskDate || !isSameDay(taskDate, today)) return false;
+                  break;
+                case "week":
+                  if (!taskDate || isBefore(taskDate, weekStart)) return false;
+                  break;
+                case "2weeks":
+                  if (!taskDate || isBefore(taskDate, twoWeeksAgo)) return false;
+                  break;
+                case "month":
+                  if (!taskDate || isBefore(taskDate, monthStart)) return false;
+                  break;
+                case "8weeks":
+                  if (!taskDate || isBefore(taskDate, eightWeeksAgo)) return false;
+                  break;
+                case "overdue":
+                  if (!taskDate || !isBefore(taskDate, today)) return false;
+                  break;
+                case "no-date":
+                  if (taskDate) return false;
+                  break;
+              }
+            }
+            break;
+          }
+          case "status": {
+            const statusValues = filter.value as TaskStatus[];
+            if (statusValues.length > 0 && statusValues.length < ALL_STATUSES.length) {
+              if (!statusValues.includes(task.status)) return false;
+            }
+            break;
+          }
+          case "priority": {
+            const priorityValues = filter.value as (TaskPriority | "none")[];
+            if (priorityValues.length > 0 && priorityValues.length < ALL_PRIORITIES.length) {
+              const taskPriority = task.priority || "none";
+              if (!priorityValues.includes(taskPriority as TaskPriority | "none")) return false;
+            }
+            break;
+          }
+          case "task": {
+            const taskSearch = (filter.value as string).toLowerCase();
+            if (taskSearch) {
+              if (!task.title.toLowerCase().includes(taskSearch)) return false;
+            }
+            break;
+          }
+          case "assignee": {
+            const assigneeValues = filter.value as string[];
+            if (assigneeValues.length > 0) {
+              const hasMatch = task.assignees.some(a => assigneeValues.includes(a));
+              if (!hasMatch) return false;
+            }
+            break;
+          }
+          case "client": {
+            const clientValues = filter.value as string[];
+            if (clientValues.length > 0) {
+              if (!task.clientName || !clientValues.includes(task.clientName)) return false;
+            }
+            break;
+          }
+        }
+      }
+      
+      // Legacy status filter (for compatibility)
+      if (statusFilter.length < ALL_STATUSES.length && !statusFilter.includes(task.status)) {
         return false;
       }
       
-      // Priority filter
+      // Legacy priority filter (for compatibility)
       const taskPriority = task.priority || "none";
-      if (!priorityFilter.includes(taskPriority as TaskPriority | "none")) {
+      if (priorityFilter.length < ALL_PRIORITIES.length && !priorityFilter.includes(taskPriority as TaskPriority | "none")) {
         return false;
       }
       
-      // Date filter
+      // Legacy date filter (for compatibility)
       if (dateFilter !== "all") {
         const taskDate = task.dueDate ? 
           (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
@@ -181,7 +336,7 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     }
 
     return result;
-  }, [tasks, statusFilter, priorityFilter, dateFilter, searchQuery, assigneeFilter, sorts]);
+  }, [tasks, statusFilter, priorityFilter, dateFilter, searchQuery, assigneeFilter, sorts, activeFilters]);
 
   const todoTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "To Do");
@@ -213,12 +368,22 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     setViewMode,
     sorts,
     setSorts,
+    // Dynamic filters
+    activeFilters,
+    addFilter,
+    updateFilter,
+    removeFilter,
+    // Legacy filters (for compatibility)
     statusFilter,
     setStatusFilter,
     priorityFilter,
     setPriorityFilter,
     dateFilter,
     setDateFilter,
+    // Available options
+    availableAssignees,
+    availableClients,
+    // Reset
     resetFilters,
     filteredTasks,
     todoTasks,
