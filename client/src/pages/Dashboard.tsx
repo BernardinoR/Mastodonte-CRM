@@ -76,6 +76,8 @@ export default function Dashboard() {
     setPriorityFilter,
     dateFilter,
     setDateFilter,
+    searchQuery,
+    setSearchQuery,
     resetFilters,
     todoTasks,
     inProgressTasks,
@@ -293,6 +295,11 @@ export default function Dashboard() {
     onSetEditingTaskId: setEditingTaskId,
   });
 
+  // Handle new task from FilterBar - creates inline task at top of To Do column
+  const handleNewTaskFromFilterBar = useCallback(() => {
+    handleQuickAddTop("To Do");
+  }, [handleQuickAddTop]);
+
   // Update task without clearing edit mode - edit mode is controlled by explicit finish action
   const handleUpdateTaskWithClearEdit = useCallback((taskId: string, updates: Partial<Task>) => {
     handleUpdateTask(taskId, updates);
@@ -412,8 +419,10 @@ export default function Dashboard() {
         onPriorityFilterChange={setPriorityFilter}
         dateFilter={dateFilter}
         onDateFilterChange={setDateFilter}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
         onReset={resetFilters}
-        onNewTask={() => setNewTaskOpen(true)}
+        onNewTask={handleNewTaskFromFilterBar}
       />
 
       {viewMode === "table" ? (
