@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarIcon, Mail, Phone, MessageCircle, MessageSquare, RefreshCw, User, Sparkles, FileText, Paperclip, Image, Pencil, X, SquarePen } from "lucide-react";
+import { TaskContactButtons } from "@/components/task-detail";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
@@ -392,43 +393,10 @@ export function TaskDetailModal({
               </Popover>
             </div>
 
-            <div className="flex gap-3 mb-6">
-              {task.clientEmail && (
-                <a
-                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(task.clientEmail)}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 bg-white/5 border border-[#363842] hover:bg-white/10 hover:text-white transition-colors"
-                  data-testid="button-email-client"
-                >
-                  <Mail className="w-4 h-4" />
-                  Enviar Email
-                </a>
-              )}
-              {task.clientPhone && (
-                <>
-                  <a
-                    href={`tel:${task.clientPhone}`}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 bg-white/5 border border-[#363842] hover:bg-white/10 hover:text-white transition-colors"
-                    data-testid="button-call-client"
-                  >
-                    <Phone className="w-4 h-4" />
-                    Ligar
-                  </a>
-                  <button
-                    onClick={() => {
-                      const phone = task.clientPhone!.replace(/\D/g, "");
-                      window.location.href = `whatsapp://send?phone=${phone}`;
-                    }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 bg-white/5 border border-[#363842] hover:bg-white/10 hover:text-white transition-colors"
-                    data-testid="button-whatsapp-client"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                    WhatsApp
-                  </button>
-                </>
-              )}
-            </div>
+            <TaskContactButtons 
+              clientEmail={task.clientEmail} 
+              clientPhone={task.clientPhone} 
+            />
 
             <div className="flex gap-3 mb-8">
               <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
