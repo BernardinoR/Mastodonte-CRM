@@ -201,45 +201,57 @@ export function FilterBar({
       {/* Divider */}
       <div className="w-px h-5 bg-[#333]" />
 
-      {/* Search - Expandable */}
-      <div className="relative flex items-center">
-        {searchExpanded ? (
-          <div className="flex items-center gap-1.5 bg-[#1a1a1a] border border-[#333] rounded-full px-3 h-8">
-            <Search className="w-4 h-4 text-gray-500 shrink-0" />
-            <Input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchQueryChange(e.target.value)}
-              onBlur={handleSearchBlur}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") {
-                  handleClearSearch();
-                }
-              }}
-              placeholder="Buscar..."
-              className="h-7 w-40 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
-              data-testid="input-search"
-            />
-            {searchQuery && (
-              <button
-                onClick={handleClearSearch}
-                className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
-                data-testid="button-clear-search"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        ) : (
-          <button
-            onClick={() => setSearchExpanded(true)}
-            className="flex items-center justify-center w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a] transition-colors"
-            data-testid="button-search"
-          >
-            <Search className="w-4 h-4" />
-          </button>
+      {/* Search - Expandable with animation */}
+      <div 
+        className={cn(
+          "relative flex items-center h-8 rounded-full overflow-hidden transition-all duration-300 ease-out",
+          searchExpanded 
+            ? "w-52 bg-[#1a1a1a] border border-[#333] px-3" 
+            : "w-8"
         )}
+      >
+        <button
+          onClick={() => !searchExpanded && setSearchExpanded(true)}
+          className={cn(
+            "flex items-center justify-center shrink-0 transition-colors",
+            searchExpanded 
+              ? "w-4 h-4 text-gray-500 cursor-default" 
+              : "w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+          )}
+          data-testid="button-search"
+        >
+          <Search className="w-4 h-4" />
+        </button>
+        
+        <div className={cn(
+          "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
+          searchExpanded ? "w-full opacity-100 ml-1.5" : "w-0 opacity-0"
+        )}>
+          <Input
+            ref={searchInputRef}
+            type="text"
+            value={searchQuery}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
+            onBlur={handleSearchBlur}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                handleClearSearch();
+              }
+            }}
+            placeholder="Buscar..."
+            className="h-7 flex-1 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
+            data-testid="input-search"
+          />
+          {searchQuery && (
+            <button
+              onClick={handleClearSearch}
+              className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
+              data-testid="button-clear-search"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Sort Icon */}
