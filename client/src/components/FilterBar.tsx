@@ -203,14 +203,16 @@ export function FilterBar({
   onReset,
   onNewTask,
 }: FilterBarProps) {
-  const [sortBarExpanded, setSortBarExpanded] = useState(false);
+  const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
-  const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const handleToggleSortBar = useCallback(() => {
-    setSortBarExpanded(prev => !prev);
+  const handleToggleFilterBar = useCallback(() => {
+    setFilterBarExpanded(prev => !prev);
   }, []);
 
   const sensors = useSensors(
@@ -398,10 +400,10 @@ export function FilterBar({
 
         {/* Sort Toggle Button */}
         <button
-          onClick={handleToggleSortBar}
+          onClick={handleToggleFilterBar}
           className={cn(
             "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
-            sortBarExpanded || sorts.length > 0
+            filterBarExpanded || sorts.length > 0
               ? "bg-blue-500/20 text-blue-400"
               : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
           )}
@@ -415,124 +417,24 @@ export function FilterBar({
           )}
         </button>
 
-      {/* Filter Icon (aggregated: Date, Status, Priority) */}
-      <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
-              activeFilterCount > 0
-                ? "bg-purple-500/20 text-purple-400"
-                : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-            )}
-            data-testid="button-filter"
-          >
-            <Filter className="w-4 h-4" />
-            {activeFilterCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] font-medium flex items-center justify-center">
-                {activeFilterCount}
-              </span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-72 p-0 max-h-[400px] overflow-y-auto" 
-          align="start"
-          onWheel={(e) => {
-            e.stopPropagation();
-            e.currentTarget.scrollTop += e.deltaY;
-          }}
+        {/* Filter Toggle Button */}
+        <button
+          onClick={handleToggleFilterBar}
+          className={cn(
+            "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
+            filterBarExpanded || activeFilterCount > 0
+              ? "bg-purple-500/20 text-purple-400"
+              : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+          )}
+          data-testid="button-filter"
         >
-          {/* Date Filter Section */}
-          <div className="border-b border-[#2a2a2a]">
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 uppercase tracking-wide">
-              <Calendar className="w-3.5 h-3.5" />
-              Data e Hora
-            </div>
-            <div className="pb-2">
-              {DATE_FILTER_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => onDateFilterChange(option.value)}
-                  className={cn(
-                    "w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors",
-                    dateFilter === option.value
-                      ? "bg-purple-500/20 text-purple-400"
-                      : "text-gray-300 hover:bg-[#2a2a2a]"
-                  )}
-                  data-testid={`option-date-${option.value}`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Status Filter Section */}
-          <div className="border-b border-[#2a2a2a]">
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 uppercase tracking-wide">
-              <CheckSquare className="w-3.5 h-3.5" />
-              Status
-            </div>
-            <div className="pb-2">
-              {ALL_STATUSES.map((status) => {
-                const config = STATUS_CONFIG[status];
-                return (
-                  <div
-                    key={status}
-                    onClick={() => handleToggleStatus(status)}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
-                    data-testid={`option-status-${status.toLowerCase().replace(' ', '-')}`}
-                  >
-                    <Checkbox 
-                      checked={statusFilter.includes(status)}
-                      className="h-4 w-4 pointer-events-none"
-                    />
-                    <div 
-                      className={cn("w-2 h-2 rounded-full", config.dotColor)}
-                    />
-                    <span>{status}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Priority Filter Section */}
-          <div>
-            <div className="flex items-center gap-2 px-3 py-2 text-xs text-gray-500 uppercase tracking-wide">
-              <Flag className="w-3.5 h-3.5" />
-              Prioridade
-            </div>
-            <div className="pb-2">
-              {ALL_PRIORITIES.map((priority) => {
-                const config = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
-                const label = priority === "none" ? "Sem prioridade" : priority;
-                const testId = priority === "none" ? "none" : priority.toLowerCase();
-                return (
-                  <div
-                    key={priority}
-                    data-testid={`option-priority-${testId}`}
-                    onClick={() => handleTogglePriority(priority)}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
-                  >
-                    <Checkbox 
-                      checked={priorityFilter.includes(priority)}
-                      className="h-4 w-4 pointer-events-none"
-                    />
-                    {config && (
-                      <div 
-                        className={cn("w-2 h-2 rounded-full", config.dotColor)}
-                      />
-                    )}
-                    <span>{label}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </PopoverContent>
-      </Popover>
+          <Filter className="w-4 h-4" />
+          {activeFilterCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] font-medium flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+        </button>
 
         {/* Reset Button */}
         {hasActiveFilters && (
@@ -556,11 +458,11 @@ export function FilterBar({
         </button>
       </div>
 
-      {/* Sort Bar - Expands below when sort button is clicked */}
-      {sortBarExpanded && (
+      {/* Filter Bar - Expands below when sort or filter button is clicked */}
+      {filterBarExpanded && (
         <div 
-          className="flex items-center gap-2 px-1 py-2 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]"
-          data-testid="sort-bar"
+          className="flex items-center gap-2 px-2 py-2 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]"
+          data-testid="filter-bar"
         >
           {/* Sort Button with Full Sort Management Popover */}
           <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
@@ -658,6 +560,149 @@ export function FilterBar({
                   </button>
                 </div>
               )}
+            </PopoverContent>
+          </Popover>
+
+          {/* Vertical Divider between Sort and Filters */}
+          <div className="h-6 w-px bg-[#333]" />
+
+          {/* Date Filter Badge */}
+          <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                  dateFilter !== "all"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/30"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                )}
+                data-testid="button-date-filter"
+              >
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {dateFilter !== "all" 
+                    ? `Data e Hora: ${DATE_FILTER_OPTIONS.find(o => o.value === dateFilter)?.label}`
+                    : "Data e Hora"
+                  }
+                </span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-56 p-1" align="start">
+              {DATE_FILTER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    onDateFilterChange(option.value);
+                    setDatePopoverOpen(false);
+                  }}
+                  className={cn(
+                    "w-full flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors",
+                    dateFilter === option.value
+                      ? "bg-amber-500/20 text-amber-300"
+                      : "text-gray-300 hover:bg-[#2a2a2a]"
+                  )}
+                  data-testid={`option-date-${option.value}`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </PopoverContent>
+          </Popover>
+
+          {/* Status Filter Badge */}
+          <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                  statusFilter.length < ALL_STATUSES.length
+                    ? "bg-green-500/20 text-green-300 border border-green-500/30"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                )}
+                data-testid="button-status-filter"
+              >
+                <CheckSquare className="w-4 h-4" />
+                <span>
+                  {statusFilter.length < ALL_STATUSES.length 
+                    ? `Status: ${statusFilter.join(", ")}`
+                    : "Status"
+                  }
+                </span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1" align="start">
+              {ALL_STATUSES.map((status) => {
+                const config = STATUS_CONFIG[status];
+                return (
+                  <div
+                    key={status}
+                    onClick={() => handleToggleStatus(status)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                    data-testid={`option-status-${status.toLowerCase().replace(' ', '-')}`}
+                  >
+                    <Checkbox 
+                      checked={statusFilter.includes(status)}
+                      className="h-4 w-4 pointer-events-none"
+                    />
+                    <div 
+                      className={cn("w-2 h-2 rounded-full", config.dotColor)}
+                    />
+                    <span>{status}</span>
+                  </div>
+                );
+              })}
+            </PopoverContent>
+          </Popover>
+
+          {/* Priority Filter Badge */}
+          <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className={cn(
+                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                  priorityFilter.length < ALL_PRIORITIES.length
+                    ? "bg-red-500/20 text-red-300 border border-red-500/30"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                )}
+                data-testid="button-priority-filter"
+              >
+                <Flag className="w-4 h-4" />
+                <span>
+                  {priorityFilter.length < ALL_PRIORITIES.length 
+                    ? `Prioridade: ${priorityFilter.map(p => p === "none" ? "Sem" : p).join(", ")}`
+                    : "Prioridade"
+                  }
+                </span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-48 p-1" align="start">
+              {ALL_PRIORITIES.map((priority) => {
+                const config = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
+                const label = priority === "none" ? "Sem prioridade" : priority;
+                const testId = priority === "none" ? "none" : priority.toLowerCase();
+                return (
+                  <div
+                    key={priority}
+                    data-testid={`option-priority-${testId}`}
+                    onClick={() => handleTogglePriority(priority)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
+                  >
+                    <Checkbox 
+                      checked={priorityFilter.includes(priority)}
+                      className="h-4 w-4 pointer-events-none"
+                    />
+                    {config && (
+                      <div 
+                        className={cn("w-2 h-2 rounded-full", config.dotColor)}
+                      />
+                    )}
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
             </PopoverContent>
           </Popover>
         </div>
