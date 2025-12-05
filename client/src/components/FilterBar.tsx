@@ -238,6 +238,7 @@ export function FilterBar({
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [clientFilterSearch, setClientFilterSearch] = useState("");
+  const [assigneeFilterSearch, setAssigneeFilterSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
@@ -687,7 +688,7 @@ export function FilterBar({
                 <PopoverContent 
                   className={cn(
                     "p-1",
-                    filter.type === "client" ? "w-64 p-0" : "w-56"
+                    (filter.type === "client" || filter.type === "assignee") ? "w-64 p-0" : "w-56"
                   )} 
                   align="start"
                 >
@@ -784,39 +785,86 @@ export function FilterBar({
                       />
                     </div>
                   )}
-                  {filter.type === "assignee" && (
-                    <>
-                      {availableAssignees.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-500">
-                          Nenhum responsável encontrado
+                  {filter.type === "assignee" && (() => {
+                    const currentValues = filter.value as string[];
+                    const selectedAssignees = availableAssignees.filter(a => currentValues.includes(a));
+                    const unselectedAssignees = availableAssignees.filter(a => 
+                      !currentValues.includes(a) && 
+                      a.toLowerCase().includes(assigneeFilterSearch.toLowerCase())
+                    );
+                    
+                    return (
+                      <div className="w-full">
+                        <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+                          <Input
+                            value={assigneeFilterSearch}
+                            onChange={(e) => setAssigneeFilterSearch(e.target.value)}
+                            placeholder="Buscar responsável..."
+                            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+                            onClick={(e) => e.stopPropagation()}
+                            data-testid="input-filter-assignee-search"
+                          />
                         </div>
-                      ) : (
-                        availableAssignees.map((assignee) => {
-                          const currentValues = filter.value as string[];
-                          return (
-                            <div
-                              key={assignee}
-                              onClick={() => {
-                                const newValues = currentValues.includes(assignee)
-                                  ? currentValues.filter(a => a !== assignee)
-                                  : [...currentValues, assignee];
-                                onUpdateFilter(filter.id, newValues);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                              data-testid={`option-filter-assignee-${assignee}`}
-                            >
-                              <Checkbox 
-                                checked={currentValues.includes(assignee)}
-                                className="h-4 w-4 pointer-events-none"
-                              />
-                              <User className="w-3.5 h-3.5 text-gray-500" />
-                              <span>{assignee}</span>
+                        
+                        {selectedAssignees.length > 0 && (
+                          <div className="border-b border-[#2a2a2a]">
+                            <div className="px-3 py-1.5 text-xs text-gray-500">
+                              Responsável selecionado
                             </div>
-                          );
-                        })
-                      )}
-                    </>
-                  )}
+                            <div className="px-3 py-1">
+                              {selectedAssignees.map((assignee) => (
+                                <div 
+                                  key={assignee}
+                                  className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newValues = currentValues.filter(a => a !== assignee);
+                                    onUpdateFilter(filter.id, newValues);
+                                  }}
+                                  data-testid={`option-filter-assignee-selected-${assignee}`}
+                                >
+                                  <Check className="w-4 h-4 text-gray-400" />
+                                  <span className="text-sm text-foreground">{assignee}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="px-3 py-1.5 text-xs text-gray-500">
+                          Selecione mais
+                        </div>
+                        
+                        <div 
+                          className="max-h-52 overflow-y-auto"
+                          onWheel={(e) => e.stopPropagation()}
+                        >
+                          {unselectedAssignees.length === 0 ? (
+                            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                              Nenhum responsável encontrado
+                            </div>
+                          ) : (
+                            unselectedAssignees.map((assignee, index) => (
+                              <div
+                                key={assignee}
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newValues = [...currentValues, assignee];
+                                  onUpdateFilter(filter.id, newValues);
+                                }}
+                                data-testid={`option-filter-assignee-${index}`}
+                              >
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm text-foreground flex-1">{assignee}</span>
+                                <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {filter.type === "client" && (() => {
                     const currentValues = filter.value as string[];
                     const selectedClients = availableClients.filter(c => currentValues.includes(c));
