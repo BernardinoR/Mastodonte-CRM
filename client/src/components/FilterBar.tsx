@@ -86,9 +86,11 @@ export function FilterBar({
   onReset,
   onNewTask,
 }: FilterBarProps) {
-  const [sortPopoverOpen, setSortPopoverOpen] = useState(false);
+  const [sortBarExpanded, setSortBarExpanded] = useState(false);
+  const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
   const [filterPopoverOpen, setFilterPopoverOpen] = useState(false);
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [directionPopoverOpen, setDirectionPopoverOpen] = useState<SortField | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -167,10 +169,26 @@ export function FilterBar({
     setSearchExpanded(false);
   }, [onSearchQueryChange]);
 
+  const handleToggleSortBar = useCallback(() => {
+    if (!sortBarExpanded && sorts.length === 0) {
+      onSortsChange([{ field: "priority", direction: "asc" }]);
+    }
+    setSortBarExpanded(!sortBarExpanded);
+  }, [sortBarExpanded, sorts.length, onSortsChange]);
+
+  const handleSetSortDirection = useCallback((field: SortField, direction: SortDirection) => {
+    onSortsChange(sorts.map(s => 
+      s.field === field ? { ...s, direction } : s
+    ));
+    setDirectionPopoverOpen(null);
+  }, [sorts, onSortsChange]);
+
   return (
-    <div className="flex items-center gap-3 mb-4">
-      {/* View Mode Badges */}
-      <button
+    <div className="flex flex-col gap-2 mb-4">
+      {/* Main Filter Bar */}
+      <div className="flex items-center gap-3">
+        {/* View Mode Badges */}
+        <button
         onClick={() => onViewModeChange("board")}
         className={cn(
           "flex items-center gap-1.5 px-3 h-8 rounded-full text-sm font-medium transition-colors",
@@ -254,98 +272,19 @@ export function FilterBar({
         </div>
       </div>
 
-      {/* Sort Icon */}
-      <Popover open={sortPopoverOpen} onOpenChange={setSortPopoverOpen}>
-        <PopoverTrigger asChild>
-          <button
-            className={cn(
-              "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
-              sorts.length > 0
-                ? "bg-blue-500/20 text-blue-400"
-                : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-            )}
-            data-testid="button-sort"
-          >
-            <ArrowUpDown className="w-4 h-4" />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent 
-          className="w-64 p-0" 
-          align="start"
-          onWheel={(e) => {
-            e.stopPropagation();
-            e.currentTarget.scrollTop += e.deltaY;
-          }}
+        {/* Sort Icon - Toggle SortBar */}
+        <button
+          onClick={handleToggleSortBar}
+          className={cn(
+            "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+            sortBarExpanded || sorts.length > 0
+              ? "bg-blue-500/20 text-blue-400"
+              : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+          )}
+          data-testid="button-sort"
         >
-          {/* Active sorts */}
-          {sorts.length > 0 && (
-            <div className="border-b border-[#2a2a2a]">
-              {sorts.map((sort) => (
-                <div 
-                  key={sort.field}
-                  className="flex items-center gap-2 px-3 py-2 group"
-                  data-testid={`sort-item-${sort.field}`}
-                >
-                  <button
-                    onClick={() => handleToggleSortDirection(sort.field)}
-                    className="flex items-center gap-2 flex-1 text-sm hover:text-white transition-colors"
-                    data-testid={`button-toggle-sort-${sort.field}`}
-                  >
-                    {sort.direction === "asc" ? (
-                      <ChevronUp className="w-3.5 h-3.5 text-gray-500" />
-                    ) : (
-                      <ChevronDown className="w-3.5 h-3.5 text-gray-500" />
-                    )}
-                    <span className="text-gray-300">{SORT_FIELD_LABELS[sort.field]}</span>
-                    <span className="text-gray-500 text-xs">
-                      {sort.direction === "asc" ? "Crescente" : "Decrescente"}
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => handleRemoveSort(sort.field)}
-                    className="p-1 text-gray-500 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                    data-testid={`button-remove-sort-${sort.field}`}
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Add new sort */}
-          {availableSortFields.length > 0 && (
-            <div className="py-1">
-              <div className="px-3 py-1.5 text-xs text-gray-500">Adicionar ordenação</div>
-              {availableSortFields.map((field) => (
-                <button
-                  key={field}
-                  onClick={() => handleAddSort(field)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors"
-                  data-testid={`button-add-sort-${field}`}
-                >
-                  <Plus className="w-3.5 h-3.5 text-gray-500" />
-                  <span>{SORT_FIELD_LABELS[field]}</span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Clear all sorts */}
-          {sorts.length > 0 && (
-            <div className="border-t border-[#2a2a2a]">
-              <button
-                onClick={handleClearAllSorts}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-400 hover:bg-[#2a2a2a] transition-colors"
-                data-testid="button-clear-sorts"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                <span>Excluir ordenação</span>
-              </button>
-            </div>
-          )}
-        </PopoverContent>
-      </Popover>
+          <ArrowUpDown className="w-4 h-4" />
+        </button>
 
       {/* Filter Icon (aggregated: Date, Status, Priority) */}
       <Popover open={filterPopoverOpen} onOpenChange={setFilterPopoverOpen}>
@@ -410,21 +349,21 @@ export function FilterBar({
               {ALL_STATUSES.map((status) => {
                 const config = STATUS_CONFIG[status];
                 return (
-                  <button
+                  <div
                     key={status}
                     onClick={() => handleToggleStatus(status)}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
                     data-testid={`option-status-${status.toLowerCase().replace(' ', '-')}`}
                   >
                     <Checkbox 
                       checked={statusFilter.includes(status)}
-                      className="h-4 w-4"
+                      className="h-4 w-4 pointer-events-none"
                     />
                     <div 
                       className={cn("w-2 h-2 rounded-full", config.dotColor)}
                     />
                     <span>{status}</span>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -442,15 +381,15 @@ export function FilterBar({
                 const label = priority === "none" ? "Sem prioridade" : priority;
                 const testId = priority === "none" ? "none" : priority.toLowerCase();
                 return (
-                  <button
+                  <div
                     key={priority}
                     data-testid={`option-priority-${testId}`}
                     onClick={() => handleTogglePriority(priority)}
-                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-gray-300 hover:bg-[#2a2a2a] transition-colors cursor-pointer"
                   >
                     <Checkbox 
                       checked={priorityFilter.includes(priority)}
-                      className="h-4 w-4"
+                      className="h-4 w-4 pointer-events-none"
                     />
                     {config && (
                       <div 
@@ -458,7 +397,7 @@ export function FilterBar({
                       />
                     )}
                     <span>{label}</span>
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -466,26 +405,144 @@ export function FilterBar({
         </PopoverContent>
       </Popover>
 
-      {/* Reset Button */}
-      {hasActiveFilters && (
-        <button
-          onClick={onReset}
-          className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
-          data-testid="button-reset-filters"
-        >
-          Redefinir
-        </button>
-      )}
+        {/* Reset Button */}
+        {hasActiveFilters && (
+          <button
+            onClick={onReset}
+            className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+            data-testid="button-reset-filters"
+          >
+            Redefinir
+          </button>
+        )}
 
-      {/* New Task Button */}
-      <button
-        onClick={onNewTask}
-        className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] transition-colors"
-        data-testid="button-new-task"
-      >
-        <Plus className="w-4 h-4" />
-        <span>Nova Tarefa</span>
-      </button>
+        {/* New Task Button */}
+        <button
+          onClick={onNewTask}
+          className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] transition-colors"
+          data-testid="button-new-task"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Nova Tarefa</span>
+        </button>
+      </div>
+
+      {/* Sort Bar - Expandable row below FilterBar */}
+      {sortBarExpanded && (
+        <div className="flex items-center gap-3 px-1">
+          {/* Active Sort Chips */}
+          {sorts.map((sort) => (
+            <div 
+              key={sort.field}
+              className="flex items-center gap-1 bg-[#2a2a2a] rounded-md border border-[#404040] h-8"
+              data-testid={`sort-chip-${sort.field}`}
+            >
+              {/* Field label */}
+              <span className="pl-3 pr-1 text-sm text-gray-300">
+                {SORT_FIELD_LABELS[sort.field]}
+              </span>
+              
+              {/* Direction dropdown */}
+              <Popover 
+                open={directionPopoverOpen === sort.field} 
+                onOpenChange={(open) => setDirectionPopoverOpen(open ? sort.field : null)}
+              >
+                <PopoverTrigger asChild>
+                  <button
+                    className="flex items-center gap-1 px-2 h-8 text-sm text-gray-400 hover:text-gray-200 transition-colors"
+                    data-testid={`button-direction-${sort.field}`}
+                  >
+                    <span>{sort.direction === "asc" ? "Crescente" : "Decrescente"}</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-36 p-1" align="start">
+                  <button
+                    onClick={() => handleSetSortDirection(sort.field, "asc")}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
+                      sort.direction === "asc" 
+                        ? "bg-blue-500/20 text-blue-400" 
+                        : "text-gray-300 hover:bg-[#2a2a2a]"
+                    )}
+                    data-testid={`option-direction-asc-${sort.field}`}
+                  >
+                    <ChevronUp className="w-3.5 h-3.5" />
+                    Crescente
+                  </button>
+                  <button
+                    onClick={() => handleSetSortDirection(sort.field, "desc")}
+                    className={cn(
+                      "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
+                      sort.direction === "desc" 
+                        ? "bg-blue-500/20 text-blue-400" 
+                        : "text-gray-300 hover:bg-[#2a2a2a]"
+                    )}
+                    data-testid={`option-direction-desc-${sort.field}`}
+                  >
+                    <ChevronDown className="w-3.5 h-3.5" />
+                    Decrescente
+                  </button>
+                </PopoverContent>
+              </Popover>
+
+              {/* Remove button */}
+              <button
+                onClick={() => handleRemoveSort(sort.field)}
+                className="flex items-center justify-center w-8 h-8 text-gray-500 hover:text-red-400 transition-colors"
+                data-testid={`button-remove-sort-${sort.field}`}
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+
+          {/* Add Sort Button */}
+          {availableSortFields.length > 0 && (
+            <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-500 hover:text-gray-300 transition-colors"
+                  data-testid="button-add-sort"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Adicionar ordenação</span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-48 p-1" align="start">
+                {availableSortFields.map((field) => (
+                  <button
+                    key={field}
+                    onClick={() => {
+                      handleAddSort(field);
+                      setAddSortPopoverOpen(false);
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
+                    data-testid={`button-add-sort-${field}`}
+                  >
+                    {SORT_FIELD_LABELS[field]}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Delete All Sorts */}
+          {sorts.length > 0 && (
+            <button
+              onClick={() => {
+                handleClearAllSorts();
+                setSortBarExpanded(false);
+              }}
+              className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-500 hover:text-red-400 transition-colors"
+              data-testid="button-clear-sorts"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>Excluir ordenação</span>
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
