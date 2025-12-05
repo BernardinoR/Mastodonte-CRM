@@ -35,7 +35,7 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   useSortable,
-  horizontalListSortingStrategy,
+  verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -562,80 +562,90 @@ export function FilterBar({
           className="flex items-center gap-2 px-1 py-2 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]"
           data-testid="sort-bar"
         >
-          {/* Active Sorts with Drag and Drop */}
-          {sorts.length > 0 && (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={sorts.map(s => s.field)}
-                strategy={horizontalListSortingStrategy}
+          {/* Add Sort Button with Full Sort Management Popover */}
+          <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button
+                className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
+                data-testid="button-add-sort"
               >
-                <div className="flex items-center gap-2">
-                  {sorts.map((sort) => (
-                    <SortableItem
-                      key={sort.field}
-                      sort={sort}
-                      onDirectionChange={handleSetSortDirection}
-                      onRemove={handleRemoveSort}
-                    />
-                  ))}
-                </div>
-              </SortableContext>
-            </DndContext>
-          )}
+                <Plus className="w-4 h-4" />
+                Adicionar ordenação
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80 p-0" align="start">
+              {/* Header */}
+              <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2a2a]">
+                <span className="text-sm font-medium text-gray-300">Ordenação</span>
+                {sorts.length > 0 && (
+                  <span className="text-xs text-gray-500">{sorts.length} ordenações</span>
+                )}
+              </div>
 
-          {/* Add Sort Button with Popover */}
-          {availableSortFields.length > 0 && (
-            <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
-                  data-testid="button-add-sort"
-                >
-                  <Plus className="w-4 h-4" />
-                  Adicionar ordenação
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 p-0" align="start">
-                {/* Header */}
-                <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2a2a]">
-                  <span className="text-sm font-medium text-gray-300">Ordenar por</span>
-                </div>
-                
-                {/* Available Sort Fields */}
-                <div className="p-1">
+              {/* Sort List with Drag and Drop */}
+              <div className="p-2">
+                {sorts.length === 0 ? (
+                  <div className="text-sm text-gray-500 text-center py-4">
+                    Nenhuma ordenação aplicada
+                  </div>
+                ) : (
+                  <DndContext
+                    sensors={sensors}
+                    collisionDetection={closestCenter}
+                    onDragEnd={handleDragEnd}
+                  >
+                    <SortableContext
+                      items={sorts.map(s => s.field)}
+                      strategy={verticalListSortingStrategy}
+                    >
+                      <div className="flex flex-col gap-2">
+                        {sorts.map((sort) => (
+                          <SortableItem
+                            key={sort.field}
+                            sort={sort}
+                            onDirectionChange={handleSetSortDirection}
+                            onRemove={handleRemoveSort}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                )}
+              </div>
+
+              {/* Add More Sorts */}
+              {availableSortFields.length > 0 && (
+                <div className="border-t border-[#2a2a2a] p-1">
+                  <div className="px-2 py-1.5 text-xs text-gray-500 uppercase">Ordenar por</div>
                   {availableSortFields.map((field) => (
                     <button
                       key={field}
-                      onClick={() => {
-                        handleAddSort(field);
-                        setAddSortPopoverOpen(false);
-                      }}
+                      onClick={() => handleAddSort(field)}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
                       data-testid={`button-add-sort-${field}`}
                     >
+                      <Plus className="w-3.5 h-3.5 text-gray-500" />
                       {SORT_FIELD_LABELS[field]}
                     </button>
                   ))}
                 </div>
-              </PopoverContent>
-            </Popover>
-          )}
+              )}
 
-          {/* Clear All Sorts */}
-          {sorts.length > 0 && (
-            <button
-              onClick={handleClearAllSorts}
-              className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-500 hover:text-red-400 hover:bg-[#1a1a1a] rounded-md transition-colors ml-auto"
-              data-testid="button-clear-sorts"
-            >
-              <Trash2 className="w-4 h-4" />
-              Excluir ordenação
-            </button>
-          )}
+              {/* Clear All Sorts */}
+              {sorts.length > 0 && (
+                <div className="border-t border-[#2a2a2a] p-2">
+                  <button
+                    onClick={handleClearAllSorts}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-red-400 hover:bg-[#2a2a2a] rounded transition-colors"
+                    data-testid="button-clear-sorts"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Excluir ordenação
+                  </button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
         </div>
       )}
     </div>
