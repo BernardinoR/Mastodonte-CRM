@@ -562,15 +562,29 @@ export function FilterBar({
           className="flex items-center gap-2 px-1 py-2 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]"
           data-testid="sort-bar"
         >
-          {/* Add Sort Button with Full Sort Management Popover */}
+          {/* Sort Button with Full Sort Management Popover */}
           <Popover open={addSortPopoverOpen} onOpenChange={setAddSortPopoverOpen}>
             <PopoverTrigger asChild>
               <button
-                className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
+                className={cn(
+                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                  sorts.length > 0
+                    ? "bg-[#1a1a1a] text-gray-200 border border-[#333]"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                )}
                 data-testid="button-add-sort"
               >
-                <Plus className="w-4 h-4" />
-                Adicionar ordenação
+                {sorts.length > 0 ? (
+                  <>
+                    <ArrowUpDown className="w-4 h-4" />
+                    <span>{sorts.length} {sorts.length === 1 ? "ordenação" : "ordenações"}</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Adicionar ordenação</span>
+                  </>
+                )}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-80 p-0" align="start">
