@@ -328,7 +328,7 @@ export function TaskDetailModal({
                         <div className="px-3 py-1">
                           <div 
                             className={UI_CLASSES.dropdownItemSelected}
-                            onClick={() => handlePriorityChange("_none")}
+                            onClick={(e) => { e.stopPropagation(); handlePriorityChange("_none"); }}
                           >
                             <PriorityBadge priority={task.priority} />
                             <span className="text-xs text-gray-500 ml-auto">Clique para remover</span>
@@ -344,7 +344,7 @@ export function TaskDetailModal({
                         <div
                           key={p}
                           className={UI_CLASSES.dropdownItem}
-                          onClick={() => handlePriorityChange(p)}
+                          onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
                         >
                           <PriorityBadge priority={p} />
                         </div>
@@ -380,7 +380,7 @@ export function TaskDetailModal({
                         <div
                           key={s}
                           className={UI_CLASSES.dropdownItem}
-                          onClick={() => handleStatusChange(s)}
+                          onClick={(e) => { e.stopPropagation(); handleStatusChange(s); }}
                         >
                           <StatusBadge status={s} />
                         </div>
