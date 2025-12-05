@@ -684,7 +684,13 @@ export function FilterBar({
                     </span>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent className="w-56 p-1" align="start">
+                <PopoverContent 
+                  className={cn(
+                    "p-1",
+                    filter.type === "client" ? "w-64 p-0" : "w-56"
+                  )} 
+                  align="start"
+                >
                   {filter.type === "date" && (
                     <>
                       {DATE_FILTER_OPTIONS.map((option) => (
@@ -820,7 +826,7 @@ export function FilterBar({
                     );
                     
                     return (
-                      <div className="w-64">
+                      <div className="w-full">
                         <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
                           <Input
                             value={clientFilterSearch}
