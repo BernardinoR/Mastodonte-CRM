@@ -11,6 +11,7 @@ import {
   Plus,
   Calendar,
   CheckSquare,
+  Check,
   Flag,
   Trash2,
   Search,
@@ -236,6 +237,7 @@ export function FilterBar({
   const [addFilterPopoverOpen, setAddFilterPopoverOpen] = useState(false);
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [clientFilterSearch, setClientFilterSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
@@ -809,39 +811,86 @@ export function FilterBar({
                       )}
                     </>
                   )}
-                  {filter.type === "client" && (
-                    <>
-                      {availableClients.length === 0 ? (
-                        <div className="px-3 py-2 text-sm text-gray-500">
-                          Nenhum cliente encontrado
+                  {filter.type === "client" && (() => {
+                    const currentValues = filter.value as string[];
+                    const selectedClients = availableClients.filter(c => currentValues.includes(c));
+                    const unselectedClients = availableClients.filter(c => 
+                      !currentValues.includes(c) && 
+                      c.toLowerCase().includes(clientFilterSearch.toLowerCase())
+                    );
+                    
+                    return (
+                      <div className="w-64">
+                        <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+                          <Input
+                            value={clientFilterSearch}
+                            onChange={(e) => setClientFilterSearch(e.target.value)}
+                            placeholder="Vincule ou crie uma página..."
+                            className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+                            onClick={(e) => e.stopPropagation()}
+                            data-testid="input-filter-client-search"
+                          />
                         </div>
-                      ) : (
-                        availableClients.map((client) => {
-                          const currentValues = filter.value as string[];
-                          return (
-                            <div
-                              key={client}
-                              onClick={() => {
-                                const newValues = currentValues.includes(client)
-                                  ? currentValues.filter(c => c !== client)
-                                  : [...currentValues, client];
-                                onUpdateFilter(filter.id, newValues);
-                              }}
-                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-                              data-testid={`option-filter-client-${client}`}
-                            >
-                              <Checkbox 
-                                checked={currentValues.includes(client)}
-                                className="h-4 w-4 pointer-events-none"
-                              />
-                              <Briefcase className="w-3.5 h-3.5 text-gray-500" />
-                              <span>{client}</span>
+                        
+                        {selectedClients.length > 0 && (
+                          <div className="border-b border-[#2a2a2a]">
+                            <div className="px-3 py-1.5 text-xs text-gray-500">
+                              Cliente selecionado
                             </div>
-                          );
-                        })
-                      )}
-                    </>
-                  )}
+                            <div className="px-3 py-1">
+                              {selectedClients.map((client) => (
+                                <div 
+                                  key={client}
+                                  className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    const newValues = currentValues.filter(c => c !== client);
+                                    onUpdateFilter(filter.id, newValues);
+                                  }}
+                                  data-testid={`option-filter-client-selected-${client}`}
+                                >
+                                  <Check className="w-4 h-4 text-gray-400" />
+                                  <span className="text-sm text-foreground">{client}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <div className="px-3 py-1.5 text-xs text-gray-500">
+                          Selecione mais
+                        </div>
+                        
+                        <div 
+                          className="max-h-52 overflow-y-auto"
+                          onWheel={(e) => e.stopPropagation()}
+                        >
+                          {unselectedClients.length === 0 ? (
+                            <div className="px-3 py-4 text-sm text-gray-500 text-center">
+                              Nenhum cliente encontrado
+                            </div>
+                          ) : (
+                            unselectedClients.map((client, index) => (
+                              <div
+                                key={client}
+                                className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const newValues = [...currentValues, client];
+                                  onUpdateFilter(filter.id, newValues);
+                                }}
+                                data-testid={`option-filter-client-${index}`}
+                              >
+                                <User className="w-4 h-4 text-gray-500" />
+                                <span className="text-sm text-foreground flex-1">{client}</span>
+                                <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </PopoverContent>
               </Popover>
             );
