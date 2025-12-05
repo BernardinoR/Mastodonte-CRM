@@ -1,17 +1,21 @@
 import { memo, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { DateInput } from "@/components/ui/date-input";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, X } from "lucide-react";
+import { Calendar as CalendarIcon, X, Pencil, User } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
 import { cn } from "@/lib/utils";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
+import { UI_CLASSES } from "@/lib/statusConfig";
+import { getAvatarColor, getInitials } from "@/components/ui/task-assignees";
 import type { TaskPriority, TaskStatus } from "@/types/task";
 
 interface TaskDatePopoverProps {
@@ -256,10 +260,10 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
         </PopoverTrigger>
         <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6} avoidCollisions={true} collisionPadding={8}>
           <div className="w-full">
-            <div className="border-b border-[#2a2a2a]">
+            <div className={cn("border-b", UI_CLASSES.border)}>
               <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
               <div className="px-3 py-1">
-                <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
+                <div className={cn("flex items-center gap-2 px-2 py-1.5 rounded-md", UI_CLASSES.selectedItem)}>
                   <StatusBadge status={status} />
                 </div>
               </div>
@@ -269,7 +273,7 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
               {STATUS_OPTIONS.filter(s => s !== status).map(s => (
                 <div
                   key={s}
-                  className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                  className={UI_CLASSES.dropdownItem}
                   onClick={(e) => { e.stopPropagation(); handleStatusSelect(s); }}
                 >
                   <StatusBadge status={s} />
@@ -280,5 +284,279 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
         </PopoverContent>
       </Popover>
     </div>
+  );
+});
+
+// ============================================
+// TaskClientPopover - Shared client selector
+// ============================================
+
+interface TaskClientPopoverProps {
+  id: string;
+  clientName: string | null;
+  isEditing?: boolean;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onClientChange: (client: string) => void;
+  onStopPropagation?: () => void;
+  onNavigate?: (clientName: string) => void;
+  variant?: "card" | "modal";
+}
+
+export const TaskClientPopover = memo(function TaskClientPopover({
+  id,
+  clientName,
+  isEditing = true,
+  isOpen,
+  onOpenChange,
+  onClientChange,
+  onStopPropagation,
+  onNavigate,
+  variant = "card",
+}: TaskClientPopoverProps) {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStopPropagation?.();
+  }, [onStopPropagation]);
+
+  const handleClientSelect = useCallback((client: string) => {
+    onClientChange(client);
+    onOpenChange(false);
+  }, [onClientChange, onOpenChange]);
+
+  const handleNavigate = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStopPropagation?.();
+    if (clientName && onNavigate) {
+      onNavigate(clientName);
+    }
+  }, [clientName, onNavigate, onStopPropagation]);
+
+  const handleClearClient = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClientChange("_none");
+  }, [onClientChange]);
+
+  const isModal = variant === "modal";
+
+  if (!clientName && !isEditing) return null;
+
+  return (
+    <div className={cn(
+      "flex items-center gap-1 group",
+      !isModal && isEditing && "-mx-2"
+    )}>
+      {clientName ? (
+        <div className={cn(
+          "inline-flex items-center gap-1",
+          isEditing ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
+        )}>
+          {isEditing ? (
+            <Popover open={isOpen} onOpenChange={onOpenChange}>
+              <PopoverTrigger asChild>
+                <span 
+                  className={cn(
+                    "inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground",
+                    isModal ? "text-2xl font-semibold text-white leading-tight -ml-2" : "text-[13px]"
+                  )}
+                  onClick={handleClick}
+                  data-testid={`text-client-${id}`}
+                >
+                  {clientName}
+                </span>
+              </PopoverTrigger>
+              <PopoverContent 
+                className={cn("w-80 p-0", UI_CLASSES.popover)}
+                side="bottom" 
+                align="start" 
+                sideOffset={6} 
+                avoidCollisions={true} 
+                collisionPadding={8}
+              >
+                <ClientSelector 
+                  selectedClient={clientName}
+                  onSelect={handleClientSelect}
+                />
+              </PopoverContent>
+            </Popover>
+          ) : (
+            <span 
+              className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+              onClick={handleNavigate}
+              data-testid={`text-client-${id}`}
+            >
+              {clientName}
+            </span>
+          )}
+          {isEditing && !isModal && (
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-client:inline-flex"
+              onClick={handleClearClient}
+              data-testid={`button-clear-client-${id}`}
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          )}
+          {isModal && (
+            <Popover open={isOpen} onOpenChange={onOpenChange}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                  data-testid="button-edit-client"
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className={cn("w-80 p-0", UI_CLASSES.popover)}
+                side="bottom" 
+                align="start" 
+                sideOffset={6}
+              >
+                <ClientSelector 
+                  selectedClient={clientName}
+                  onSelect={handleClientSelect}
+                />
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+      ) : isEditing ? (
+        <Popover open={isOpen} onOpenChange={onOpenChange}>
+          <PopoverTrigger asChild>
+            <span 
+              className={cn(
+                "inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80",
+                isModal ? "text-2xl font-semibold leading-tight -ml-2" : ""
+              )}
+              onClick={handleClick}
+              data-testid={`text-client-${id}`}
+            >
+              {isModal ? "Sem cliente" : "+ Adicionar Cliente"}
+            </span>
+          </PopoverTrigger>
+          <PopoverContent 
+            className={cn("w-80 p-0", UI_CLASSES.popover)}
+            side="bottom" 
+            align="start" 
+            sideOffset={6} 
+            avoidCollisions={true} 
+            collisionPadding={8}
+          >
+            <ClientSelector 
+              selectedClient={null}
+              onSelect={handleClientSelect}
+            />
+          </PopoverContent>
+        </Popover>
+      ) : null}
+    </div>
+  );
+});
+
+// ============================================
+// TaskAssigneesPopover - Shared assignees selector
+// ============================================
+
+interface TaskAssigneesPopoverProps {
+  id: string;
+  assignees: string[];
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  onAddAssignee: (assignee: string) => void;
+  onRemoveAssignee: (assignee: string) => void;
+  onStopPropagation?: () => void;
+  variant?: "card" | "modal";
+  maxDisplay?: number;
+}
+
+export const TaskAssigneesPopover = memo(function TaskAssigneesPopover({
+  id,
+  assignees,
+  isOpen,
+  onOpenChange,
+  onAddAssignee,
+  onRemoveAssignee,
+  onStopPropagation,
+  variant = "card",
+  maxDisplay = 3,
+}: TaskAssigneesPopoverProps) {
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onStopPropagation?.();
+  }, [onStopPropagation]);
+
+  const isModal = variant === "modal";
+  const displayed = assignees.slice(0, maxDisplay);
+  const remaining = assignees.slice(maxDisplay);
+
+  return (
+    <Popover open={isOpen} onOpenChange={onOpenChange}>
+      <PopoverTrigger asChild>
+        <div 
+          className={cn(
+            "inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors",
+            isModal 
+              ? "px-2 py-1 -ml-2 hover:bg-gray-700/80" 
+              : "hover:bg-gray-700/80 px-1 py-0.5"
+          )}
+          onClick={handleClick}
+          data-testid={`button-edit-assignees-${id}`}
+        >
+          {assignees.length === 0 ? (
+            <span className="text-gray-500 text-sm">
+              {isModal ? "Adicionar responsável..." : "+ Responsável"}
+            </span>
+          ) : (
+            <>
+              <div className="flex -space-x-2 flex-shrink-0">
+                {displayed.map((assignee, idx) => (
+                  <Avatar 
+                    key={idx} 
+                    className={cn(
+                      isModal ? "w-7 h-7" : "w-6 h-6",
+                      UI_CLASSES.avatarBorder,
+                      getAvatarColor(assignee)
+                    )}
+                  >
+                    <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
+                      {getInitials(assignee)}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+              </div>
+              {isModal && (
+                <div className="flex items-center">
+                  <span className="text-gray-300 text-sm">
+                    {displayed.join(", ")}
+                  </span>
+                  {remaining.length > 0 && (
+                    <span className="text-gray-400 text-sm whitespace-nowrap ml-1">
+                      e mais {remaining.length}...
+                    </span>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        className="w-64 p-0" 
+        side={isModal ? "top" : "bottom"} 
+        align="start" 
+        sideOffset={6}
+      >
+        <AssigneeSelector
+          selectedAssignees={assignees}
+          onSelect={onAddAssignee}
+          onRemove={onRemoveAssignee}
+        />
+      </PopoverContent>
+    </Popover>
   );
 });
