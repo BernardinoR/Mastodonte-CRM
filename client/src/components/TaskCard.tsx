@@ -39,7 +39,6 @@ import {
   Trash2,
   Check,
   Plus,
-  X,
   Search,
   User,
 } from "lucide-react";
@@ -50,15 +49,12 @@ import { parseLocalDate } from "@/lib/date-utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
-import { 
-  ClientSelector, 
-  AssigneeSelector
-} from "@/components/task-editors";
+import { AssigneeSelector } from "@/components/task-editors";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
-import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover } from "@/components/task-popovers";
+import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
@@ -451,115 +447,17 @@ export function TaskCard({
               </div>
               
               {/* Linha 3: Cliente - Only show if has client or in edit mode */}
-              {clientName ? (
-                <div className={cn("flex items-center text-[10px] md:text-xs font-semibold text-foreground", isEditing && "-mx-2")}>
-                  <div className={cn(
-                    "inline-flex items-center gap-1",
-                    isEditing ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
-                  )}>
-                    {isEditing ? (
-                      <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                        <PopoverTrigger asChild>
-                          <span 
-                            className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                            onClick={(e: React.MouseEvent) => {
-                              e.stopPropagation();
-                              if (clickTimeoutRef.current) {
-                                clearTimeout(clickTimeoutRef.current);
-                                clickTimeoutRef.current = null;
-                              }
-                            }}
-                            data-testid={`text-client-${id}`}
-                          >
-                            {clientName}
-                          </span>
-                        </PopoverTrigger>
-                        <PopoverContent 
-                          className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                          side="bottom" 
-                          align="start" 
-                          sideOffset={6} 
-                          avoidCollisions={true} 
-                          collisionPadding={8}
-                        >
-                          <ClientSelector 
-                            selectedClient={clientName || null}
-                            onSelect={(client) => {
-                              handleClientChange(client);
-                              setActivePopover(null);
-                            }}
-                          />
-                        </PopoverContent>
-                      </Popover>
-                    ) : (
-                      <span 
-                        className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                          navigate(`/clients/${encodeURIComponent(clientName)}`);
-                        }}
-                        data-testid={`text-client-${id}`}
-                      >
-                        {clientName}
-                      </span>
-                    )}
-                    {isEditing && (
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-client:inline-flex"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleClientChange("_none");
-                        }}
-                        data-testid={`button-clear-client-${id}`}
-                      >
-                        <X className="w-3 h-3" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ) : isEditing ? (
-                <div className={cn("flex items-center gap-1.5 text-xs md:text-sm", isEditing && "-mx-2")}>
-                  <Popover open={activePopover === "client"} onOpenChange={(open) => setActivePopover(open ? "client" : null)}>
-                    <PopoverTrigger asChild>
-                      <span 
-                        className="inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation();
-                          if (clickTimeoutRef.current) {
-                            clearTimeout(clickTimeoutRef.current);
-                            clickTimeoutRef.current = null;
-                          }
-                        }}
-                        data-testid={`text-client-${id}`}
-                      >
-                        + Adicionar Cliente
-                      </span>
-                    </PopoverTrigger>
-                    <PopoverContent 
-                      className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                      side="bottom" 
-                      align="start" 
-                      sideOffset={6} 
-                      avoidCollisions={true} 
-                      collisionPadding={8}
-                    >
-                      <ClientSelector 
-                        selectedClient={null}
-                        onSelect={(client) => {
-                          handleClientChange(client);
-                          setActivePopover(null);
-                        }}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              ) : null}
+              <TaskClientPopover
+                id={id}
+                clientName={clientName || null}
+                isEditing={isEditing}
+                isOpen={activePopover === "client"}
+                onOpenChange={(open) => setActivePopover(open ? "client" : null)}
+                onClientChange={handleClientChange}
+                onStopPropagation={cancelClickTimeout}
+                onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
+                variant="card"
+              />
               
               {/* Linha 4: Prioridade */}
               <TaskPriorityPopover
