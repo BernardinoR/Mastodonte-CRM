@@ -128,8 +128,12 @@ export function TaskDetailModal({
 
   const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
     if (!task) return;
-    onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
+    // Fechar o popover primeiro para evitar conflito com re-render do trigger
     setPriorityPopoverOpen(false);
+    // Pequeno delay para o popover fechar completamente antes de atualizar o estado
+    setTimeout(() => {
+      onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
+    }, 50);
   }, [task, onUpdateTask]);
 
   const handleStatusChange = useCallback((status: TaskStatus) => {
