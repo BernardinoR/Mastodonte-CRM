@@ -173,6 +173,9 @@ export function useTaskDrag({
         insertIndex: activeTask.order,
       };
       
+      // Initialize lastColumnRef so first cross-column move is debounced
+      lastColumnRef.current = activeTask.status;
+      
       pendingIndicatorRef.current = null;
       lastCommittedIndicatorRef.current = null;
     }
