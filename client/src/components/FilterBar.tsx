@@ -231,6 +231,7 @@ export function FilterBar({
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const isClosingFilterPopoverRef = useRef(false);
+  const addFilterTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
@@ -732,6 +733,7 @@ export function FilterBar({
             <Popover open={addFilterPopoverOpen} onOpenChange={handleAddFilterPopoverChange}>
               <PopoverTrigger asChild>
                 <button
+                  ref={addFilterTriggerRef}
                   className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
                   data-testid="button-add-filter"
                 >
@@ -758,6 +760,8 @@ export function FilterBar({
                         e.stopPropagation();
                         e.preventDefault();
                         isClosingFilterPopoverRef.current = true;
+                        // Blur the trigger to prevent focus-restore from reopening the popover
+                        addFilterTriggerRef.current?.blur();
                         onAddFilter(type);
                         setAddFilterPopoverOpen(false);
                         setFilterBarExpanded(true);
