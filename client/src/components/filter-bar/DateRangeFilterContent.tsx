@@ -289,6 +289,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
         <div className="pt-1">
           <div className="px-3 py-1.5 text-xs text-gray-500">Ou selecione um intervalo</div>
+          <div className="flex justify-center">
           <Calendar
             mode="range"
             selected={dateRange}
@@ -301,6 +302,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
               day_range_middle: "bg-blue-500/30 text-white rounded-none",
             }}
           />
+          </div>
           
           {displayText && (
             <div className="px-3 pb-2 text-xs text-gray-400">
