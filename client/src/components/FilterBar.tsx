@@ -746,6 +746,7 @@ export function FilterBar({
                 sideOffset={8}
                 collisionPadding={16}
                 avoidCollisions={true}
+                onCloseAutoFocus={(e) => e.preventDefault()}
               >
                 {availableFilterTypes.map((type) => {
                   const config = FILTER_TYPE_CONFIG[type];
