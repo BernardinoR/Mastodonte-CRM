@@ -60,6 +60,7 @@ export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const [activePresetId, setActivePresetId] = useState<string | null>(null);
   
   // Use the task history hook for undo functionality (Ctrl+Z)
   const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
@@ -419,6 +420,9 @@ export default function Dashboard() {
         availableClients={availableClients}
         onReset={resetFilters}
         onNewTask={handleNewTaskFromFilterBar}
+        tasks={tasks}
+        activePresetId={activePresetId}
+        onActivePresetChange={setActivePresetId}
       />
 
       {viewMode === "table" ? (

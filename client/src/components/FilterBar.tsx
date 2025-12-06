@@ -69,6 +69,9 @@ interface FilterBarProps {
   availableClients: string[];
   onReset: () => void;
   onNewTask: () => void;
+  tasks: Array<{ dueDate: Date; status: string }>;
+  activePresetId: string | null;
+  onActivePresetChange: (presetId: string | null) => void;
 }
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
@@ -90,16 +93,19 @@ const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calen
 interface FilterPreset {
   id: string;
   label: string;
+  shortLabel: string;
   description: string;
   icon: typeof Calendar;
   sorts: SortOption[];
   getDateFilter: () => DateFilterValue;
+  matchTask: (task: { dueDate: Date; status: string }) => boolean;
 }
 
 const FILTER_PRESETS: FilterPreset[] = [
   {
     id: "work",
     label: "Work",
+    shortLabel: "W",
     description: "3 meses atrás até hoje",
     icon: BriefcaseIcon,
     sorts: [
@@ -111,10 +117,18 @@ const FILTER_PRESETS: FilterPreset[] = [
       startDate: addMonths(startOfDay(new Date()), -3),
       endDate: startOfDay(new Date()),
     }),
+    matchTask: (task) => {
+      const today = startOfDay(new Date());
+      const threeMonthsAgo = addMonths(today, -3);
+      const taskDate = task.dueDate ? startOfDay(new Date(task.dueDate)) : null;
+      if (!taskDate) return false;
+      return taskDate >= threeMonthsAgo && taskDate <= today;
+    },
   },
   {
     id: "overdue",
     label: "Atrasadas",
+    shortLabel: "A",
     description: "Tarefas vencidas",
     icon: Clock,
     sorts: [
@@ -125,10 +139,17 @@ const FILTER_PRESETS: FilterPreset[] = [
       type: "preset",
       preset: "overdue",
     }),
+    matchTask: (task) => {
+      const today = startOfDay(new Date());
+      const taskDate = task.dueDate ? startOfDay(new Date(task.dueDate)) : null;
+      if (!taskDate) return false;
+      return taskDate < today && task.status !== "Done";
+    },
   },
   {
     id: "future",
     label: "Tarefas Futuras",
+    shortLabel: "F",
     description: "Amanhã até 2 semanas",
     icon: CalendarRange,
     sorts: [
@@ -140,6 +161,14 @@ const FILTER_PRESETS: FilterPreset[] = [
       startDate: addDays(startOfDay(new Date()), 1),
       endDate: addWeeks(startOfDay(new Date()), 2),
     }),
+    matchTask: (task) => {
+      const today = startOfDay(new Date());
+      const tomorrow = addDays(today, 1);
+      const twoWeeksAhead = addWeeks(today, 2);
+      const taskDate = task.dueDate ? startOfDay(new Date(task.dueDate)) : null;
+      if (!taskDate) return false;
+      return taskDate >= tomorrow && taskDate <= twoWeeksAhead;
+    },
   },
 ];
 
@@ -263,6 +292,9 @@ export function FilterBar({
   availableClients,
   onReset,
   onNewTask,
+  tasks,
+  activePresetId,
+  onActivePresetChange,
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
@@ -272,6 +304,21 @@ export function FilterBar({
   const [addFilterPopoverKey, setAddFilterPopoverKey] = useState(0);
   const [presetsPopoverOpen, setPresetsPopoverOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Calculate task counts for each preset - fallback to empty array if tasks undefined
+  const presetCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    const taskList = tasks || [];
+    for (const preset of FILTER_PRESETS) {
+      counts[preset.id] = taskList.filter(task => preset.matchTask(task)).length;
+    }
+    return counts;
+  }, [tasks]);
+
+  // Get active preset info
+  const activePreset = useMemo(() => {
+    return FILTER_PRESETS.find(p => p.id === activePresetId) || null;
+  }, [activePresetId]);
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
@@ -406,10 +453,16 @@ export function FilterBar({
     onSortsChange(preset.sorts);
     // Apply date filter with freshly computed value (avoids stale dates)
     onAddFilter("date", preset.getDateFilter());
-    // Close popover and expand filter bar to show the applied filters
+    // Set active preset
+    onActivePresetChange(preset.id);
+    // Close popover (don't expand filter bar when preset is active)
     setPresetsPopoverOpen(false);
-    setFilterBarExpanded(true);
-  }, [onReset, onSortsChange, onAddFilter]);
+  }, [onReset, onSortsChange, onAddFilter, onActivePresetChange]);
+
+  const handleResetWithPreset = useCallback(() => {
+    onReset();
+    onActivePresetChange(null);
+  }, [onReset, onActivePresetChange]);
 
   return (
     <div className="flex flex-col gap-2 mb-4">
@@ -506,13 +559,19 @@ export function FilterBar({
             <button
               className={cn(
                 "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
-                presetsPopoverOpen
+                activePreset
                   ? "bg-amber-500/20 text-amber-400"
-                  : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+                  : presetsPopoverOpen
+                    ? "bg-amber-500/20 text-amber-400"
+                    : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
               )}
               data-testid="button-presets"
             >
-              <SlidersHorizontal className="w-4 h-4" />
+              {activePreset ? (
+                <span className="text-sm font-bold">{activePreset.shortLabel}</span>
+              ) : (
+                <SlidersHorizontal className="w-4 h-4" />
+              )}
             </button>
           </PopoverTrigger>
           <PopoverContent 
@@ -529,20 +588,39 @@ export function FilterBar({
               </div>
               {FILTER_PRESETS.map((preset) => {
                 const PresetIcon = preset.icon;
+                const isActive = activePresetId === preset.id;
+                const count = presetCounts[preset.id] || 0;
                 return (
                   <button
                     key={preset.id}
                     onClick={() => handleApplyPreset(preset)}
-                    className="flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-[#252525] transition-colors group"
+                    className={cn(
+                      "flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors group",
+                      isActive
+                        ? "bg-amber-500/10 border border-amber-500/30"
+                        : "hover:bg-[#252525]"
+                    )}
                     data-testid={`preset-${preset.id}`}
                   >
-                    <div className="flex items-center justify-center w-8 h-8 rounded-md bg-[#252525] group-hover:bg-[#2a2a2a]">
+                    <div className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-md",
+                      isActive ? "bg-amber-500/20" : "bg-[#252525] group-hover:bg-[#2a2a2a]"
+                    )}>
                       <PresetIcon className="w-4 h-4 text-amber-400" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="text-sm font-medium text-gray-200">{preset.label}</span>
+                    <div className="flex flex-col flex-1">
+                      <span className={cn(
+                        "text-sm font-medium",
+                        isActive ? "text-amber-300" : "text-gray-200"
+                      )}>{preset.label}</span>
                       <span className="text-xs text-gray-500">{preset.description}</span>
                     </div>
+                    <span className={cn(
+                      "text-xs font-medium px-1.5 py-0.5 rounded",
+                      isActive ? "bg-amber-500/20 text-amber-400" : "bg-[#252525] text-gray-400"
+                    )}>
+                      {count}
+                    </span>
                   </button>
                 );
               })}
@@ -550,48 +628,48 @@ export function FilterBar({
           </PopoverContent>
         </Popover>
 
-        {/* Sort Toggle Button */}
+        {/* Sort Toggle Button - hide badges when preset is active */}
         <button
           onClick={handleToggleFilterBar}
           className={cn(
             "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
-            filterBarExpanded || sorts.length > 0
+            !activePreset && (filterBarExpanded || sorts.length > 0)
               ? "bg-blue-500/20 text-blue-400"
               : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
           )}
           data-testid="button-sort"
         >
           <ArrowUpDown className="w-4 h-4" />
-          {sorts.length > 0 && (
+          {!activePreset && sorts.length > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-medium flex items-center justify-center">
               {sorts.length}
             </span>
           )}
         </button>
 
-        {/* Filter Toggle Button */}
+        {/* Filter Toggle Button - hide badges when preset is active */}
         <button
           onClick={handleToggleFilterBar}
           className={cn(
             "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
-            filterBarExpanded || activeFilterCount > 0
+            !activePreset && (filterBarExpanded || activeFilterCount > 0)
               ? "bg-purple-500/20 text-purple-400"
               : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
           )}
           data-testid="button-filter"
         >
           <Filter className="w-4 h-4" />
-          {activeFilterCount > 0 && (
+          {!activePreset && activeFilterCount > 0 && (
             <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] font-medium flex items-center justify-center">
               {activeFilterCount}
             </span>
           )}
         </button>
 
-        {/* Reset Button */}
-        {hasActiveFilters && (
+        {/* Reset Button - also shows when preset is active */}
+        {(hasActiveFilters || activePreset) && (
           <button
-            onClick={onReset}
+            onClick={handleResetWithPreset}
             className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
             data-testid="button-reset-filters"
           >
