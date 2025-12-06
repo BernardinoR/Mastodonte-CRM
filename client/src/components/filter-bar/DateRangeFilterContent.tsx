@@ -303,13 +303,13 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
             }}
           />
           </div>
-          
-          {displayText && (
-            <div className="px-3 pb-2 text-xs text-gray-400">
-              {displayText}
-            </div>
-          )}
         </div>
+        
+        {displayText && (
+          <div className="px-3 py-2 text-sm text-gray-300 border-t border-[#333]">
+            {displayText}
+          </div>
+        )}
         
         <div className="px-3 py-2 text-[10px] text-gray-500 border-t border-[#333]">
           Clique fora para confirmar
