@@ -753,7 +753,9 @@ export function FilterBar({
                   return (
                     <button
                       key={type}
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
                         isClosingFilterPopoverRef.current = true;
                         onAddFilter(type);
                         setAddFilterPopoverOpen(false);
