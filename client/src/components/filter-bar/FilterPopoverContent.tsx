@@ -1,8 +1,11 @@
-import { memo, useCallback } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
-import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
+import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
+import { StatusBadge } from "@/components/ui/task-badges";
+import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { 
   STATUS_OPTIONS, 
   PRIORITY_OPTIONS, 
@@ -72,30 +75,62 @@ const StatusFilterContent = memo(function StatusFilterContent({
   selectedValues: string[];
   onToggle: (status: TaskStatus) => void;
 }) {
+  const selectedStatuses = useMemo(() => 
+    STATUS_OPTIONS.filter(s => selectedValues.includes(s)),
+    [selectedValues]
+  );
+  
+  const unselectedStatuses = useMemo(() => 
+    STATUS_OPTIONS.filter(s => !selectedValues.includes(s)),
+    [selectedValues]
+  );
+
   return (
-    <>
-      {STATUS_OPTIONS.map((status) => {
-        const statusConfig = STATUS_CONFIG[status];
-        const label = STATUS_LABELS[status];
-        return (
-          <div
-            key={status}
-            onClick={() => onToggle(status)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-            data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
-          >
-            <Checkbox 
-              checked={selectedValues.includes(status)}
-              className="h-4 w-4 pointer-events-none"
-            />
-            {statusConfig && (
-              <div className={`w-2 h-2 rounded-full ${statusConfig.dotColor}`} />
-            )}
-            <span>{label}</span>
+    <div className="w-full">
+      {selectedStatuses.length > 0 && (
+        <>
+          <div className={cn("border-b", UI_CLASSES.border)}>
+            <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+            <div className="px-2 pb-2 space-y-1">
+              {selectedStatuses.map((status) => (
+                <div
+                  key={status}
+                  onClick={() => onToggle(status)}
+                  className={cn(
+                    "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
+                    UI_CLASSES.selectedItem
+                  )}
+                  data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
+                >
+                  <StatusBadge status={status} label={STATUS_LABELS[status]} size="sm" dotSize="md" />
+                  <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                </div>
+              ))}
+            </div>
           </div>
-        );
-      })}
-    </>
+        </>
+      )}
+      
+      {unselectedStatuses.length > 0 && (
+        <>
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {selectedStatuses.length > 0 ? "Selecione mais" : "Selecionar status"}
+          </div>
+          <div className="px-1 pb-1">
+            {unselectedStatuses.map((status) => (
+              <div
+                key={status}
+                onClick={() => onToggle(status)}
+                className={UI_CLASSES.dropdownItem}
+                data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
+              >
+                <StatusBadge status={status} label={STATUS_LABELS[status]} size="sm" dotSize="md" />
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 });
 

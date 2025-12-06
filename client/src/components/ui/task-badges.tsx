@@ -53,6 +53,7 @@ export const PriorityBadge = memo(function PriorityBadge({
 
 interface StatusBadgeProps {
   status: TaskStatus;
+  label?: string;
   className?: string;
   showDot?: boolean;
   size?: "sm" | "md";
@@ -62,6 +63,7 @@ interface StatusBadgeProps {
 
 export const StatusBadge = memo(function StatusBadge({
   status,
+  label,
   className,
   showDot = true,
   size = "sm",
@@ -93,7 +95,7 @@ export const StatusBadge = memo(function StatusBadge({
       {showDot && (
         <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />
       )}
-      {status}
+      {label ?? status}
     </Badge>
   );
 });
