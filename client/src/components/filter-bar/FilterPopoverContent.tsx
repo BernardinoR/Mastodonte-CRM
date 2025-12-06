@@ -3,7 +3,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
-import { StatusBadge } from "@/components/ui/task-badges";
+import { StatusBadge, PriorityBadge } from "@/components/ui/task-badges";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
@@ -141,37 +141,73 @@ const PriorityFilterContent = memo(function PriorityFilterContent({
   selectedValues: string[];
   onToggle: (priority: TaskPriority | "none") => void;
 }) {
-  const priorityOptions: Array<{ value: TaskPriority | "none"; label: string }> = [
-    { value: "none", label: "Sem prioridade" },
-    ...PRIORITY_OPTIONS.map(p => ({
-      value: p,
-      label: PRIORITY_LABELS[p]
-    }))
-  ];
+  const allPriorities: (TaskPriority | "none")[] = ["none", ...PRIORITY_OPTIONS];
+  
+  const selectedPriorities = useMemo(() => 
+    allPriorities.filter(p => selectedValues.includes(p)),
+    [selectedValues]
+  );
+  
+  const unselectedPriorities = useMemo(() => 
+    allPriorities.filter(p => !selectedValues.includes(p)),
+    [selectedValues]
+  );
+
+  const renderPriorityItem = (priority: TaskPriority | "none") => {
+    if (priority === "none") {
+      return (
+        <span className="text-sm text-gray-400 px-2 py-0.5">Sem prioridade</span>
+      );
+    }
+    return <PriorityBadge priority={priority} size="sm" dotSize="md" />;
+  };
 
   return (
-    <>
-      {priorityOptions.map(({ value: priority, label }) => {
-        const priorityConfig = priority !== "none" ? PRIORITY_CONFIG[priority] : null;
-        return (
-          <div
-            key={priority}
-            onClick={() => onToggle(priority)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors cursor-pointer"
-            data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
-          >
-            <Checkbox 
-              checked={selectedValues.includes(priority)}
-              className="h-4 w-4 pointer-events-none"
-            />
-            {priorityConfig && (
-              <div className={`w-2 h-2 rounded-full ${priorityConfig.dotColor}`} />
-            )}
-            <span>{label}</span>
+    <div className="w-full">
+      {selectedPriorities.length > 0 && (
+        <>
+          <div className={cn("border-b", UI_CLASSES.border)}>
+            <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+            <div className="px-2 pb-2 space-y-1">
+              {selectedPriorities.map((priority) => (
+                <div
+                  key={priority}
+                  onClick={() => onToggle(priority)}
+                  className={cn(
+                    "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
+                    UI_CLASSES.selectedItem
+                  )}
+                  data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
+                >
+                  {renderPriorityItem(priority)}
+                  <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                </div>
+              ))}
+            </div>
           </div>
-        );
-      })}
-    </>
+        </>
+      )}
+      
+      {unselectedPriorities.length > 0 && (
+        <>
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {selectedPriorities.length > 0 ? "Selecione mais" : "Selecionar prioridade"}
+          </div>
+          <div className="px-1 pb-1">
+            {unselectedPriorities.map((priority) => (
+              <div
+                key={priority}
+                onClick={() => onToggle(priority)}
+                className={UI_CLASSES.dropdownItem}
+                data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
+              >
+                {renderPriorityItem(priority)}
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 });
 
