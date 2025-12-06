@@ -1,29 +1,21 @@
-import { memo, useState, useCallback, useMemo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
 import { 
-  addWeeks, 
-  addMonths, 
-  subWeeks, 
-  subMonths, 
   startOfDay, 
   endOfDay,
   format,
-  isValid
+  isValid,
+  isBefore
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
 
 export interface DateFilterValue {
-  type: "all" | "preset" | "relative" | "range";
+  type: "all" | "preset" | "range";
   preset?: string;
-  relativeDirection?: "past" | "future";
-  relativeAmount?: number;
-  relativeUnit?: "weeks" | "months";
   startDate?: Date;
   endDate?: Date;
 }
@@ -40,20 +32,25 @@ const PRESET_OPTIONS = [
   { value: "no-date", label: "Sem data" },
 ] as const;
 
+function getPresetDateRange(preset: string): { from?: Date; to?: Date } | undefined {
+  const today = startOfDay(new Date());
+  
+  switch (preset) {
+    case "today":
+      return { from: today, to: endOfDay(new Date()) };
+    case "overdue":
+      return { from: new Date(2020, 0, 1), to: startOfDay(new Date(Date.now() - 86400000)) };
+    case "no-date":
+    case "all":
+    default:
+      return undefined;
+  }
+}
+
 export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   value,
   onChange,
 }: DateRangeFilterContentProps) {
-  const [relativeDirection, setRelativeDirection] = useState<"past" | "future">(
-    value.relativeDirection || "past"
-  );
-  const [relativeAmount, setRelativeAmount] = useState<number>(
-    value.relativeAmount || 8
-  );
-  const [relativeUnit, setRelativeUnit] = useState<"weeks" | "months">(
-    value.relativeUnit || "weeks"
-  );
-
   const dateRange = useMemo<DateRange | undefined>(() => {
     if (value.type === "range" && value.startDate) {
       return {
@@ -61,51 +58,34 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
         to: value.endDate,
       };
     }
+    if (value.type === "preset" && value.preset) {
+      return getPresetDateRange(value.preset);
+    }
     return undefined;
   }, [value]);
 
-  const handlePresetSelect = useCallback((preset: string) => {
+  const currentPresetValue = useMemo(() => {
+    if (value.type === "all") return "all";
+    if (value.type === "preset" && value.preset) return value.preset;
+    return undefined;
+  }, [value]);
+
+  const handlePresetChange = useCallback((preset: string) => {
     if (preset === "all") {
       onChange({ type: "all" });
     } else {
-      onChange({ type: "preset", preset });
+      const range = getPresetDateRange(preset);
+      onChange({ 
+        type: "preset", 
+        preset,
+        startDate: range?.from,
+        endDate: range?.to,
+      });
     }
   }, [onChange]);
 
-  const handleRelativeChange = useCallback(() => {
-    const today = startOfDay(new Date());
-    let startDate: Date;
-    let endDate: Date;
-
-    if (relativeDirection === "past") {
-      endDate = endOfDay(new Date());
-      if (relativeUnit === "weeks") {
-        startDate = subWeeks(today, relativeAmount);
-      } else {
-        startDate = subMonths(today, relativeAmount);
-      }
-    } else {
-      startDate = today;
-      if (relativeUnit === "weeks") {
-        endDate = endOfDay(addWeeks(today, relativeAmount));
-      } else {
-        endDate = endOfDay(addMonths(today, relativeAmount));
-      }
-    }
-
-    onChange({
-      type: "relative",
-      relativeDirection,
-      relativeAmount,
-      relativeUnit,
-      startDate,
-      endDate,
-    });
-  }, [onChange, relativeDirection, relativeAmount, relativeUnit]);
-
   const handleCalendarSelect = useCallback((range: DateRange | undefined) => {
-    if (!range) {
-      onChange({ type: "all" });
+    if (!range || !range.from) {
       return;
     }
 
@@ -116,86 +96,50 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     });
   }, [onChange]);
 
-  const isPresetActive = (preset: string) => {
-    if (preset === "all" && value.type === "all") return true;
-    return value.type === "preset" && value.preset === preset;
+  const getDisplayText = () => {
+    if (value.type === "range" && value.startDate) {
+      const start = format(value.startDate, "dd MMM yyyy", { locale: ptBR });
+      if (value.endDate) {
+        return `${start} - ${format(value.endDate, "dd MMM yyyy", { locale: ptBR })}`;
+      }
+      return start;
+    }
+    return null;
   };
+
+  const displayText = getDisplayText();
 
   return (
     <div className="w-[280px]">
-      <div className={cn("border-b pb-2", UI_CLASSES.border)}>
-        <div className="px-3 py-1.5 text-xs text-gray-500">Seletor relativo</div>
-        <div className="px-3 flex items-center gap-2">
-          <Select 
-            value={relativeDirection} 
-            onValueChange={(v) => setRelativeDirection(v as "past" | "future")}
+      <div className={cn("px-3 py-3 border-b", UI_CLASSES.border)}>
+        <div className="text-xs text-gray-500 mb-2">Filtrar por data</div>
+        <Select 
+          value={currentPresetValue} 
+          onValueChange={handlePresetChange}
+        >
+          <SelectTrigger 
+            className="w-full bg-[#1a1a1a] border-[#333] text-gray-200"
+            data-testid="select-date-preset"
           >
-            <SelectTrigger className="h-8 w-[100px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className={UI_CLASSES.popover}>
-              <SelectItem value="past" className="text-gray-200">Últimos(as)</SelectItem>
-              <SelectItem value="future" className="text-gray-200">Próximos(as)</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Input
-            type="number"
-            min={1}
-            max={52}
-            value={relativeAmount}
-            onChange={(e) => setRelativeAmount(Math.max(1, parseInt(e.target.value) || 1))}
-            className="h-8 w-[50px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm text-center"
-            data-testid="input-date-relative-amount"
-          />
-          
-          <Select 
-            value={relativeUnit} 
-            onValueChange={(v) => setRelativeUnit(v as "weeks" | "months")}
-          >
-            <SelectTrigger className="h-8 flex-1 bg-[#1a1a1a] border-[#333] text-gray-200 text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className={UI_CLASSES.popover}>
-              <SelectItem value="weeks" className="text-gray-200">semanas</SelectItem>
-              <SelectItem value="months" className="text-gray-200">meses</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        
-        <div className="px-3 pt-2">
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={handleRelativeChange}
-            className="w-full h-7 text-xs"
-            data-testid="button-apply-relative-date"
-          >
-            Aplicar
-          </Button>
-        </div>
-      </div>
-
-      <div className={cn("border-b py-1", UI_CLASSES.border)}>
-        {PRESET_OPTIONS.map((option) => (
-          <button
-            key={option.value}
-            onClick={() => handlePresetSelect(option.value)}
-            className={cn(
-              "w-full flex items-center gap-2 px-3 py-1.5 text-sm transition-colors cursor-pointer",
-              isPresetActive(option.value)
-                ? "bg-[#2a2a2a] text-white"
-                : "text-gray-300 hover:bg-[#2a2a2a]"
-            )}
-            data-testid={`option-filter-date-${option.value}`}
-          >
-            {option.label}
-          </button>
-        ))}
+            <SelectValue placeholder="Selecione..." />
+          </SelectTrigger>
+          <SelectContent className={UI_CLASSES.popover}>
+            {PRESET_OPTIONS.map((option) => (
+              <SelectItem 
+                key={option.value} 
+                value={option.value} 
+                className="text-gray-200"
+                data-testid={`option-filter-date-${option.value}`}
+              >
+                {option.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="pt-1">
-        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionar intervalo</div>
+        <div className="px-3 py-1.5 text-xs text-gray-500">Ou selecione um intervalo</div>
         <Calendar
           mode="range"
           selected={dateRange}
@@ -209,22 +153,15 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
           }}
         />
         
-        {value.type === "range" && value.startDate && (
+        {displayText && (
           <div className="px-3 pb-2 text-xs text-gray-400">
-            {format(value.startDate, "dd MMM yyyy", { locale: ptBR })}
-            {value.endDate && ` - ${format(value.endDate, "dd MMM yyyy", { locale: ptBR })}`}
-          </div>
-        )}
-        
-        {value.type === "relative" && value.startDate && value.endDate && (
-          <div className="px-3 pb-2 text-xs text-gray-400">
-            {format(value.startDate, "dd MMM yyyy", { locale: ptBR })} - {format(value.endDate, "dd MMM yyyy", { locale: ptBR })}
+            {displayText}
           </div>
         )}
       </div>
       
       <div className="px-3 py-2 text-[10px] text-gray-500 border-t border-[#333]">
-        O filtro será atualizado com a data atual
+        Clique fora para confirmar
       </div>
     </div>
   );
@@ -236,16 +173,6 @@ export function formatDateFilterLabel(value: DateFilterValue | undefined | null)
   if (value.type === "preset") {
     const preset = PRESET_OPTIONS.find(p => p.value === value.preset);
     return preset?.label || "Data";
-  }
-  
-  if (value.type === "relative") {
-    const amount = value.relativeAmount && !isNaN(value.relativeAmount) ? value.relativeAmount : 0;
-    if (amount > 0 && value.relativeUnit) {
-      const direction = value.relativeDirection === "past" ? "Últimos" : "Próximos";
-      const unit = value.relativeUnit === "weeks" ? "sem" : "meses";
-      return `${direction} ${amount} ${unit}`;
-    }
-    return "Data";
   }
   
   if (value.type === "range" && value.startDate && isValid(value.startDate)) {
