@@ -230,6 +230,7 @@ export function FilterBar({
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const prevFilterIdsRef = useRef<Set<string>>(new Set());
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
@@ -262,17 +263,43 @@ export function FilterBar({
     }
   }, [searchExpanded]);
 
+  // Detect newly added filters and open their popovers automatically
   useEffect(() => {
-    const filterIds = new Set((activeFilters || []).map(f => f.id));
+    const currentFilterIds = new Set((activeFilters || []).map(f => f.id));
+    const prevFilterIds = prevFilterIdsRef.current;
+    
+    // Find new filter IDs (in current but not in previous)
+    const newFilterIds: string[] = [];
+    currentFilterIds.forEach(id => {
+      if (!prevFilterIds.has(id)) {
+        newFilterIds.push(id);
+      }
+    });
+    
+    // Open popover for newly added filters
+    if (newFilterIds.length > 0) {
+      setOpenFilterPopovers(prev => {
+        const updated = { ...prev };
+        newFilterIds.forEach(id => {
+          updated[id] = true;
+        });
+        return updated;
+      });
+    }
+    
+    // Clean up removed filter IDs
     setOpenFilterPopovers(prev => {
       const cleaned: Record<string, boolean> = {};
       for (const id of Object.keys(prev)) {
-        if (filterIds.has(id)) {
+        if (currentFilterIds.has(id)) {
           cleaned[id] = prev[id];
         }
       }
       return cleaned;
     });
+    
+    // Update ref for next comparison
+    prevFilterIdsRef.current = currentFilterIds;
   }, [activeFilters]);
 
   const handleAddSort = useCallback((field: SortField) => {
