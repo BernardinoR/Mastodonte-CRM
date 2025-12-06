@@ -95,6 +95,8 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   const dragAnchorDateRef = useRef<Date | null>(null);
   const calendarContainerRef = useRef<HTMLDivElement>(null);
   const ignoreNextClickRef = useRef(false);
+  const mouseDownDateRef = useRef<Date | null>(null);
+  const hasDraggedRef = useRef(false);
 
   // Helper to extract date from a calendar day button element
   const getDateFromDayElement = useCallback((element: HTMLElement): Date | null => {
@@ -220,21 +222,52 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
   // Drag-to-adjust: handle mousedown on calendar container
   const handleCalendarMouseDown = useCallback((e: React.MouseEvent) => {
-    // Only allow drag when we have a complete range
-    if (value.type !== "range" || !value.startDate || !value.endDate) return;
+    // Reset drag tracking
+    hasDraggedRef.current = false;
+    mouseDownDateRef.current = null;
     
     const target = e.target as HTMLElement;
     const dayDate = getDateFromDayElement(target);
+    
+    // Debug logging
+    console.log("MouseDown - dayDate:", dayDate, "target:", target.tagName, "ariaLabel:", target.closest("button")?.getAttribute("aria-label"));
+    
     if (!dayDate) return;
+    
+    // Store the mousedown date for later comparison
+    mouseDownDateRef.current = dayDate;
+
+    // Only allow drag when we have a complete range
+    if (value.type !== "range" || !value.startDate || !value.endDate) {
+      console.log("MouseDown - No complete range, skipping drag setup");
+      return;
+    }
+
+    // Normalize dates for comparison (remove time component)
+    const normalizedDayDate = startOfDay(dayDate);
+    const normalizedStartDate = startOfDay(value.startDate);
+    const normalizedEndDate = startOfDay(value.endDate);
+
+    console.log("MouseDown - Comparing:", {
+      normalizedDayDate: normalizedDayDate.toISOString(),
+      normalizedStartDate: normalizedStartDate.toISOString(),
+      normalizedEndDate: normalizedEndDate.toISOString(),
+      isStart: isSameDay(normalizedDayDate, normalizedStartDate),
+      isEnd: isSameDay(normalizedDayDate, normalizedEndDate)
+    });
 
     // Check if clicking on start or end handle
-    if (isSameDay(dayDate, value.startDate)) {
+    if (isSameDay(normalizedDayDate, normalizedStartDate)) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log("MouseDown - Starting drag from START handle");
       setDraggingHandle("start");
       dragAnchorDateRef.current = value.endDate;
       setDragPreviewRange({ from: value.startDate, to: value.endDate });
-    } else if (isSameDay(dayDate, value.endDate)) {
+    } else if (isSameDay(normalizedDayDate, normalizedEndDate)) {
       e.preventDefault();
+      e.stopPropagation();
+      console.log("MouseDown - Starting drag from END handle");
       setDraggingHandle("end");
       dragAnchorDateRef.current = value.startDate;
       setDragPreviewRange({ from: value.startDate, to: value.endDate });
@@ -248,6 +281,11 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     const target = e.target as HTMLElement;
     const dayDate = getDateFromDayElement(target);
     if (!dayDate) return;
+
+    // Mark that we've moved to a different date (actual drag occurred)
+    if (mouseDownDateRef.current && !isSameDay(dayDate, mouseDownDateRef.current)) {
+      hasDraggedRef.current = true;
+    }
 
     const anchorDate = dragAnchorDateRef.current;
     let newFrom: Date;
@@ -270,20 +308,24 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
   // Drag-to-adjust: handle mouseup to confirm selection
   const handleCalendarMouseUp = useCallback(() => {
-    if (draggingHandle === "none" || !dragPreviewRange?.from) return;
-
-    // Apply the dragged range
-    onChange({
-      type: "range",
-      startDate: startOfDay(dragPreviewRange.from),
-      endDate: dragPreviewRange.to ? endOfDay(dragPreviewRange.to) : endOfDay(dragPreviewRange.from),
-    });
+    if (draggingHandle === "none") return;
+    
+    // Only apply if we actually dragged to a different date
+    if (hasDraggedRef.current && dragPreviewRange?.from) {
+      onChange({
+        type: "range",
+        startDate: startOfDay(dragPreviewRange.from),
+        endDate: dragPreviewRange.to ? endOfDay(dragPreviewRange.to) : endOfDay(dragPreviewRange.from),
+      });
+      ignoreNextClickRef.current = true;
+    }
 
     // Reset drag state
     setDraggingHandle("none");
     setDragPreviewRange(undefined);
     dragAnchorDateRef.current = null;
-    ignoreNextClickRef.current = true;
+    mouseDownDateRef.current = null;
+    hasDraggedRef.current = false;
   }, [draggingHandle, dragPreviewRange, onChange]);
 
   // Drag-to-adjust: handle mouse leave to cancel drag
@@ -293,6 +335,8 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       setDraggingHandle("none");
       setDragPreviewRange(undefined);
       dragAnchorDateRef.current = null;
+      mouseDownDateRef.current = null;
+      hasDraggedRef.current = false;
     }
   }, [draggingHandle]);
 
@@ -301,6 +345,11 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     // Ignore clicks that are part of a drag operation
     if (ignoreNextClickRef.current) {
       ignoreNextClickRef.current = false;
+      return;
+    }
+    
+    // If we're currently in drag mode, ignore the click
+    if (draggingHandle !== "none") {
       return;
     }
 
@@ -334,7 +383,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       setSelectionPhase("start");
       setPendingStartDate(null);
     }
-  }, [selectionPhase, pendingStartDate, value.startDate, onChange]);
+  }, [draggingHandle, selectionPhase, pendingStartDate, value.startDate, onChange]);
 
   const getDisplayText = () => {
     if (value.type === "range" && value.startDate) {
@@ -455,9 +504,9 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
           <div 
             ref={calendarContainerRef}
             className={cn("flex justify-center", draggingHandle !== "none" && "select-none")}
-            onMouseDown={handleCalendarMouseDown}
-            onMouseMove={handleCalendarMouseMove}
-            onMouseUp={handleCalendarMouseUp}
+            onMouseDownCapture={handleCalendarMouseDown}
+            onMouseMoveCapture={handleCalendarMouseMove}
+            onMouseUpCapture={handleCalendarMouseUp}
             onMouseLeave={handleCalendarMouseLeave}
           >
             <Calendar
