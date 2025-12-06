@@ -148,7 +148,14 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
             <ChevronDown className="w-3 h-3" />
           </button>
         </PopoverTrigger>
-        <PopoverContent className="w-36 p-1" align="start">
+        <PopoverContent 
+          className="w-36 p-1" 
+          side="bottom"
+          align="start"
+          sideOffset={8}
+          collisionPadding={16}
+          avoidCollisions={true}
+        >
           <button
             onClick={() => {
               onDirectionChange(sort.field, "asc");
@@ -521,7 +528,14 @@ export function FilterBar({
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent className="w-80 p-0" align="start">
+            <PopoverContent 
+              className="w-80 p-0" 
+              side="bottom"
+              align="start"
+              sideOffset={8}
+              collisionPadding={16}
+              avoidCollisions={true}
+            >
               {/* Header */}
               <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2a2a]">
                 <span className="text-sm font-medium text-gray-300">Ordenação</span>
@@ -684,9 +698,14 @@ export function FilterBar({
                 <PopoverContent 
                   className={cn(
                     "p-1",
-                    (filter.type === "client" || filter.type === "assignee") ? "w-64 p-0" : "w-56"
+                    (filter.type === "client" || filter.type === "assignee") ? "w-64 p-0" : 
+                    filter.type === "date" ? "w-auto p-0" : "w-56"
                   )} 
+                  side="bottom"
                   align="start"
+                  sideOffset={8}
+                  collisionPadding={16}
+                  avoidCollisions={true}
                 >
                   <FilterPopoverContent
                     filter={filter}
@@ -711,7 +730,14 @@ export function FilterBar({
                   <span>Filtrar</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-48 p-1" align="start">
+              <PopoverContent 
+                className="w-48 p-1" 
+                side="bottom"
+                align="start"
+                sideOffset={8}
+                collisionPadding={16}
+                avoidCollisions={true}
+              >
                 {availableFilterTypes.map((type) => {
                   const config = FILTER_TYPE_CONFIG[type];
                   const Icon = config.icon;
