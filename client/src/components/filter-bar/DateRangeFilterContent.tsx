@@ -283,7 +283,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
             className="w-full mt-2"
             data-testid="button-apply-relative"
           >
-            {isRelativeActive ? "Atualizar" : "Aplicar"}
+            {isRelativeActive ? "Selecionado" : "Aplicar"}
           </Button>
         </div>
 
