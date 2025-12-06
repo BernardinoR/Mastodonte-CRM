@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { memo, useState, useCallback, useMemo, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -15,9 +15,7 @@ import {
   addMonths,
   subWeeks,
   subMonths,
-  isBefore,
-  isSameDay,
-  parse
+  isBefore
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -89,39 +87,6 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   const [selectionPhase, setSelectionPhase] = useState<"start" | "end">("start");
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(null);
 
-  // Drag-to-adjust state
-  const [draggingHandle, setDraggingHandle] = useState<"none" | "start" | "end">("none");
-  const [dragPreviewRange, setDragPreviewRange] = useState<DateRange | undefined>(undefined);
-  const dragAnchorDateRef = useRef<Date | null>(null);
-  const calendarContainerRef = useRef<HTMLDivElement>(null);
-  const ignoreNextClickRef = useRef(false);
-  const mouseDownDateRef = useRef<Date | null>(null);
-  const hasDraggedRef = useRef(false);
-
-  // Helper to extract date from a calendar day button element
-  const getDateFromDayElement = useCallback((element: HTMLElement): Date | null => {
-    // Find the closest button element that might be a day button
-    const button = element.closest("button") as HTMLButtonElement | null;
-    if (!button) return null;
-    
-    // react-day-picker sets aria-label with the full date in Portuguese locale
-    // Format: "sexta-feira, 6 de dezembro de 2024"
-    const ariaLabel = button.getAttribute("aria-label");
-    if (!ariaLabel) return null;
-    
-    // Use date-fns parse with Portuguese locale for proper accent handling
-    try {
-      const parsedDate = parse(ariaLabel, "EEEE, d 'de' MMMM 'de' yyyy", new Date(), { locale: ptBR });
-      if (isValid(parsedDate)) {
-        return parsedDate;
-      }
-    } catch {
-      // Fall through to return null
-    }
-    
-    return null;
-  }, []);
-
   // Reset selection phase when value changes externally (preset, relative, etc.)
   useEffect(() => {
     if (value.type !== "range" || (value.type === "range" && value.endDate)) {
@@ -139,10 +104,6 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   }, [value.type, value.relativeDirection, value.relativeAmount, value.relativeUnit]);
 
   const dateRange = useMemo<DateRange | undefined>(() => {
-    // Use drag preview range during drag operation
-    if (draggingHandle !== "none" && dragPreviewRange) {
-      return dragPreviewRange;
-    }
     if (value.type === "range" && value.startDate) {
       return { from: value.startDate, to: value.endDate };
     }
@@ -153,7 +114,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       return { from: value.startDate, to: value.endDate };
     }
     return undefined;
-  }, [value, draggingHandle, dragPreviewRange]);
+  }, [value]);
 
   const currentPresetValue = useMemo(() => {
     if (value.type === "all") return "all";
@@ -220,141 +181,9 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     });
   }, [onChange, relativeDirection, relativeAmount]);
 
-  // Drag-to-adjust: handle mousedown on calendar container
-  const handleCalendarMouseDown = useCallback((e: React.MouseEvent) => {
-    // Reset drag tracking
-    hasDraggedRef.current = false;
-    mouseDownDateRef.current = null;
-    
-    const target = e.target as HTMLElement;
-    const dayDate = getDateFromDayElement(target);
-    
-    // Debug logging
-    console.log("MouseDown - dayDate:", dayDate, "target:", target.tagName, "ariaLabel:", target.closest("button")?.getAttribute("aria-label"));
-    
-    if (!dayDate) return;
-    
-    // Store the mousedown date for later comparison
-    mouseDownDateRef.current = dayDate;
-
-    // Only allow drag when we have a complete range
-    if (value.type !== "range" || !value.startDate || !value.endDate) {
-      console.log("MouseDown - No complete range, skipping drag setup");
-      return;
-    }
-
-    // Normalize dates for comparison (remove time component)
-    const normalizedDayDate = startOfDay(dayDate);
-    const normalizedStartDate = startOfDay(value.startDate);
-    const normalizedEndDate = startOfDay(value.endDate);
-
-    console.log("MouseDown - Comparing:", {
-      normalizedDayDate: normalizedDayDate.toISOString(),
-      normalizedStartDate: normalizedStartDate.toISOString(),
-      normalizedEndDate: normalizedEndDate.toISOString(),
-      isStart: isSameDay(normalizedDayDate, normalizedStartDate),
-      isEnd: isSameDay(normalizedDayDate, normalizedEndDate)
-    });
-
-    // Check if clicking on start or end handle
-    if (isSameDay(normalizedDayDate, normalizedStartDate)) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log("MouseDown - Starting drag from START handle");
-      setDraggingHandle("start");
-      dragAnchorDateRef.current = value.endDate;
-      setDragPreviewRange({ from: value.startDate, to: value.endDate });
-    } else if (isSameDay(normalizedDayDate, normalizedEndDate)) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log("MouseDown - Starting drag from END handle");
-      setDraggingHandle("end");
-      dragAnchorDateRef.current = value.startDate;
-      setDragPreviewRange({ from: value.startDate, to: value.endDate });
-    }
-  }, [value, getDateFromDayElement]);
-
-  // Drag-to-adjust: handle mousemove on calendar container
-  const handleCalendarMouseMove = useCallback((e: React.MouseEvent) => {
-    if (draggingHandle === "none" || !dragAnchorDateRef.current) return;
-
-    const target = e.target as HTMLElement;
-    const dayDate = getDateFromDayElement(target);
-    if (!dayDate) return;
-
-    // Mark that we've moved to a different date (actual drag occurred)
-    if (mouseDownDateRef.current && !isSameDay(dayDate, mouseDownDateRef.current)) {
-      hasDraggedRef.current = true;
-    }
-
-    const anchorDate = dragAnchorDateRef.current;
-    let newFrom: Date;
-    let newTo: Date;
-
-    // Normalize so from <= to
-    if (isBefore(dayDate, anchorDate)) {
-      newFrom = dayDate;
-      newTo = anchorDate;
-    } else if (isSameDay(dayDate, anchorDate)) {
-      newFrom = dayDate;
-      newTo = dayDate;
-    } else {
-      newFrom = anchorDate;
-      newTo = dayDate;
-    }
-
-    setDragPreviewRange({ from: newFrom, to: newTo });
-  }, [draggingHandle, getDateFromDayElement]);
-
-  // Drag-to-adjust: handle mouseup to confirm selection
-  const handleCalendarMouseUp = useCallback(() => {
-    if (draggingHandle === "none") return;
-    
-    // Only apply if we actually dragged to a different date
-    if (hasDraggedRef.current && dragPreviewRange?.from) {
-      onChange({
-        type: "range",
-        startDate: startOfDay(dragPreviewRange.from),
-        endDate: dragPreviewRange.to ? endOfDay(dragPreviewRange.to) : endOfDay(dragPreviewRange.from),
-      });
-      ignoreNextClickRef.current = true;
-    }
-
-    // Reset drag state
-    setDraggingHandle("none");
-    setDragPreviewRange(undefined);
-    dragAnchorDateRef.current = null;
-    mouseDownDateRef.current = null;
-    hasDraggedRef.current = false;
-  }, [draggingHandle, dragPreviewRange, onChange]);
-
-  // Drag-to-adjust: handle mouse leave to cancel drag
-  const handleCalendarMouseLeave = useCallback(() => {
-    if (draggingHandle !== "none") {
-      // Cancel drag, revert to original range
-      setDraggingHandle("none");
-      setDragPreviewRange(undefined);
-      dragAnchorDateRef.current = null;
-      mouseDownDateRef.current = null;
-      hasDraggedRef.current = false;
-    }
-  }, [draggingHandle]);
-
   // Custom day click handler for two-click selection
   const handleDayClick = useCallback((day: Date) => {
-    // Ignore clicks that are part of a drag operation
-    if (ignoreNextClickRef.current) {
-      ignoreNextClickRef.current = false;
-      return;
-    }
-    
-    // If we're currently in drag mode, ignore the click
-    if (draggingHandle !== "none") {
-      return;
-    }
-
     if (selectionPhase === "start") {
-      // First click: set start date locally and in value, clear end date
       const newStartDate = startOfDay(day);
       setPendingStartDate(newStartDate);
       onChange({
@@ -364,12 +193,10 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       });
       setSelectionPhase("end");
     } else {
-      // Second click: use local pendingStartDate to avoid stale props issue
       const startDate = pendingStartDate || value.startDate || day;
       let newStart = startDate;
       let newEnd = day;
       
-      // Ensure start is before end
       if (isBefore(day, startDate)) {
         newStart = day;
         newEnd = startDate;
@@ -383,7 +210,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       setSelectionPhase("start");
       setPendingStartDate(null);
     }
-  }, [draggingHandle, selectionPhase, pendingStartDate, value.startDate, onChange]);
+  }, [selectionPhase, pendingStartDate, value.startDate, onChange]);
 
   const getDisplayText = () => {
     if (value.type === "range" && value.startDate) {
@@ -495,20 +322,11 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
         <div className="pt-1">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            {draggingHandle !== "none" 
-              ? "Arraste para ajustar o intervalo"
-              : selectionPhase === "start" 
-                ? "Clique para selecionar a data inicial" 
-                : "Clique para selecionar a data final"}
+            {selectionPhase === "start" 
+              ? "Clique para selecionar a data inicial" 
+              : "Clique para selecionar a data final"}
           </div>
-          <div 
-            ref={calendarContainerRef}
-            className={cn("flex justify-center", draggingHandle !== "none" && "select-none")}
-            onMouseDownCapture={handleCalendarMouseDown}
-            onMouseMoveCapture={handleCalendarMouseMove}
-            onMouseUpCapture={handleCalendarMouseUp}
-            onMouseLeave={handleCalendarMouseLeave}
-          >
+          <div className="flex justify-center">
             <Calendar
               mode="range"
               selected={dateRange}
@@ -516,8 +334,8 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
               locale={ptBR}
               className="p-2"
               classNames={{
-                day_range_start: "bg-blue-500 text-white rounded-l-full rounded-r-none cursor-ew-resize",
-                day_range_end: "bg-blue-500 text-white rounded-r-full rounded-l-none cursor-ew-resize",
+                day_range_start: "bg-blue-500 text-white rounded-l-full rounded-r-none",
+                day_range_end: "bg-blue-500 text-white rounded-r-full rounded-l-none",
                 day_range_middle: "bg-blue-500/30 text-white rounded-none",
               }}
             />
