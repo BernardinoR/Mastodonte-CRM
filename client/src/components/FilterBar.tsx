@@ -18,8 +18,13 @@ import {
   GripVertical,
   User,
   Briefcase,
-  FileText
+  FileText,
+  SlidersHorizontal,
+  Briefcase as BriefcaseIcon,
+  Clock,
+  CalendarRange
 } from "lucide-react";
+import { addDays, addWeeks, addMonths, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "@/types/task";
 import { FilterPopoverContent, formatDateFilterLabel } from "@/components/filter-bar/FilterPopoverContent";
@@ -57,7 +62,7 @@ interface FilterBarProps {
   sorts: SortOption[];
   onSortsChange: (sorts: SortOption[]) => void;
   activeFilters: TypedActiveFilter[];
-  onAddFilter: (type: FilterType) => void;
+  onAddFilter: <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => void;
   onUpdateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   onRemoveFilter: (id: string) => void;
   availableAssignees: string[];
@@ -82,6 +87,61 @@ const FILTER_TYPE_CONFIG: Record<FilterType, { label: string; icon: typeof Calen
   client: { label: "Cliente", icon: User },
 };
 
+interface FilterPreset {
+  id: string;
+  label: string;
+  description: string;
+  icon: typeof Calendar;
+  sorts: SortOption[];
+  getDateFilter: () => DateFilterValue;
+}
+
+const FILTER_PRESETS: FilterPreset[] = [
+  {
+    id: "work",
+    label: "Work",
+    description: "3 meses atrás até hoje",
+    icon: BriefcaseIcon,
+    sorts: [
+      { field: "priority", direction: "asc" },
+      { field: "dueDate", direction: "asc" },
+    ],
+    getDateFilter: () => ({
+      type: "range",
+      startDate: addMonths(startOfDay(new Date()), -3),
+      endDate: startOfDay(new Date()),
+    }),
+  },
+  {
+    id: "overdue",
+    label: "Atrasadas",
+    description: "Tarefas vencidas",
+    icon: Clock,
+    sorts: [
+      { field: "priority", direction: "asc" },
+      { field: "dueDate", direction: "asc" },
+    ],
+    getDateFilter: () => ({
+      type: "preset",
+      preset: "overdue",
+    }),
+  },
+  {
+    id: "future",
+    label: "Tarefas Futuras",
+    description: "Amanhã até 2 semanas",
+    icon: CalendarRange,
+    sorts: [
+      { field: "priority", direction: "asc" },
+      { field: "dueDate", direction: "asc" },
+    ],
+    getDateFilter: () => ({
+      type: "range",
+      startDate: addDays(startOfDay(new Date()), 1),
+      endDate: addWeeks(startOfDay(new Date()), 2),
+    }),
+  },
+];
 
 interface SortableItemProps {
   sort: SortOption;
@@ -210,6 +270,7 @@ export function FilterBar({
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [addFilterPopoverKey, setAddFilterPopoverKey] = useState(0);
+  const [presetsPopoverOpen, setPresetsPopoverOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
@@ -338,6 +399,18 @@ export function FilterBar({
     }
   }, [sorts, onSortsChange]);
 
+  const handleApplyPreset = useCallback((preset: FilterPreset) => {
+    // Clear existing filters and apply preset
+    onReset();
+    // Apply sorts
+    onSortsChange(preset.sorts);
+    // Apply date filter with freshly computed value (avoids stale dates)
+    onAddFilter("date", preset.getDateFilter());
+    // Close popover and expand filter bar to show the applied filters
+    setPresetsPopoverOpen(false);
+    setFilterBarExpanded(true);
+  }, [onReset, onSortsChange, onAddFilter]);
+
   return (
     <div className="flex flex-col gap-2 mb-4">
       {/* Main Filter Bar */}
@@ -426,6 +499,56 @@ export function FilterBar({
           )}
         </div>
       </div>
+
+        {/* Presets Popover */}
+        <Popover open={presetsPopoverOpen} onOpenChange={setPresetsPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+                presetsPopoverOpen
+                  ? "bg-amber-500/20 text-amber-400"
+                  : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+              )}
+              data-testid="button-presets"
+            >
+              <SlidersHorizontal className="w-4 h-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-64 p-2 bg-[#1a1a1a] border border-[#333]"
+            side="bottom"
+            align="end"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+          >
+            <div className="flex flex-col gap-1">
+              <div className="px-2 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Visualizações Rápidas
+              </div>
+              {FILTER_PRESETS.map((preset) => {
+                const PresetIcon = preset.icon;
+                return (
+                  <button
+                    key={preset.id}
+                    onClick={() => handleApplyPreset(preset)}
+                    className="flex items-center gap-3 px-2 py-2 rounded-md text-left hover:bg-[#252525] transition-colors group"
+                    data-testid={`preset-${preset.id}`}
+                  >
+                    <div className="flex items-center justify-center w-8 h-8 rounded-md bg-[#252525] group-hover:bg-[#2a2a2a]">
+                      <PresetIcon className="w-4 h-4 text-amber-400" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-200">{preset.label}</span>
+                      <span className="text-xs text-gray-500">{preset.description}</span>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
 
         {/* Sort Toggle Button */}
         <button

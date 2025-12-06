@@ -35,7 +35,7 @@ interface UseTaskFiltersReturn {
   setSorts: (sorts: SortOption[]) => void;
   
   activeFilters: TypedActiveFilter[];
-  addFilter: (type: FilterType) => void;
+  addFilter: <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => void;
   updateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   removeFilter: (id: string) => void;
   
@@ -88,8 +88,8 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     return Array.from(clients).sort();
   }, [tasks]);
 
-  const addFilter = useCallback((type: FilterType) => {
-    const newFilter = createTypedFilter(type);
+  const addFilter = useCallback(<T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => {
+    const newFilter = createTypedFilter(type, initialValue);
     setActiveFilters(prev => [...prev, newFilter]);
   }, []);
 
