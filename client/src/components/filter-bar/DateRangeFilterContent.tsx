@@ -255,7 +255,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
               onChange={handleAmountChange}
               onBlur={applyRelativeFilter}
               onKeyDown={(e) => e.key === "Enter" && applyRelativeFilter()}
-              className="h-8 w-[50px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm text-center"
+              className="h-8 w-[50px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               data-testid="input-relative-amount"
             />
             
