@@ -3,7 +3,7 @@ import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
 import { Button } from "@/components/ui/button";
-import { Plus, Circle, CheckCircle2 } from "lucide-react";
+import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { 
@@ -56,11 +56,20 @@ function SortablePlaceholder({ id }: { id: string }) {
   );
 }
 
+const TASKS_PER_PAGE = 25;
+
 export default function Dashboard() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  
+  // Pagination state per column - tracks how many tasks are visible
+  const [visibleCounts, setVisibleCounts] = useState<Record<TaskStatus, number>>({
+    "To Do": TASKS_PER_PAGE,
+    "In Progress": TASKS_PER_PAGE,
+    "Done": TASKS_PER_PAGE,
+  });
   
   // Use the task history hook for undo functionality (Ctrl+Z)
   const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
@@ -117,6 +126,20 @@ export default function Dashboard() {
     setTasksWithHistory,
     clearSelection,
   });
+
+  // Visible task IDs for SortableContext (limited by pagination)
+  const visibleTodoTaskIds = useMemo(() => 
+    todoTaskIds.slice(0, visibleCounts["To Do"]), 
+    [todoTaskIds, visibleCounts]
+  );
+  const visibleInProgressTaskIds = useMemo(() => 
+    inProgressTaskIds.slice(0, visibleCounts["In Progress"]), 
+    [inProgressTaskIds, visibleCounts]
+  );
+  const visibleDoneTaskIds = useMemo(() => 
+    doneTaskIds.slice(0, visibleCounts["Done"]), 
+    [doneTaskIds, visibleCounts]
+  );
 
   // Custom collision detection: returns card if cursor is in same column, returns column otherwise
   const customCollisionDetection: CollisionDetection = useMemo(() => {
@@ -311,6 +334,14 @@ export default function Dashboard() {
     }
   }, [editingTaskId]);
 
+  // Load more tasks for a column
+  const handleLoadMore = useCallback((status: TaskStatus) => {
+    setVisibleCounts(prev => ({
+      ...prev,
+      [status]: prev[status] + TASKS_PER_PAGE,
+    }));
+  }, []);
+
   // Get count of selected tasks for DragOverlay
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
@@ -321,69 +352,75 @@ export default function Dashboard() {
     columnStatus: TaskStatus
   ) => {
     const showPlaceholder = crossColumnPlaceholder?.targetStatus === columnStatus;
+    const visibleCount = visibleCounts[columnStatus];
+    const visibleTasks = columnTasks.slice(0, visibleCount);
+    const hiddenCount = columnTasks.length - visibleTasks.length;
+    const hasMore = hiddenCount > 0;
+    
+    const renderTaskCard = (task: Task) => (
+      <TaskCard
+        key={task.id}
+        {...task}
+        isSelected={selectedTaskIds.has(task.id)}
+        selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
+        isDragActive={activeTaskId !== null}
+        initialEditMode={editingTaskId === task.id}
+        onSelect={handleSelectTask}
+        onUpdate={handleUpdateTaskWithClearEdit}
+        onDelete={handleDeleteTask}
+        onFinishEditing={handleFinishEditing}
+        onOpenDetail={handleOpenDetail}
+        onBulkUpdate={handleBulkUpdate}
+        onBulkDelete={handleBulkDelete}
+        onBulkAppendTitle={handleBulkAppendTitle}
+        onBulkReplaceTitle={handleBulkReplaceTitle}
+        onBulkAddAssignee={handleBulkAddAssignee}
+        onBulkSetAssignees={handleBulkSetAssignees}
+        onBulkRemoveAssignee={handleBulkRemoveAssignee}
+      />
+    );
+    
+    const loadMoreButton = hasMore ? (
+      <button
+        key="load-more"
+        onClick={() => handleLoadMore(columnStatus)}
+        className="flex items-center justify-center gap-2 w-full py-2.5 mt-2 rounded-lg border border-dashed border-[#404040] text-gray-400 text-sm hover:border-[#505050] hover:text-gray-300 hover:bg-[#1a1a1a] transition-colors"
+        data-testid={`button-load-more-${columnStatus.toLowerCase().replace(' ', '-')}`}
+      >
+        <ChevronDown className="w-4 h-4" />
+        <span>Carregar mais ({hiddenCount})</span>
+      </button>
+    ) : null;
     
     if (!showPlaceholder) {
-      return columnTasks.map(task => (
-        <TaskCard
-          key={task.id}
-          {...task}
-          isSelected={selectedTaskIds.has(task.id)}
-          selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-          isDragActive={activeTaskId !== null}
-          initialEditMode={editingTaskId === task.id}
-          onSelect={handleSelectTask}
-          onUpdate={handleUpdateTaskWithClearEdit}
-          onDelete={handleDeleteTask}
-          onFinishEditing={handleFinishEditing}
-          onOpenDetail={handleOpenDetail}
-          onBulkUpdate={handleBulkUpdate}
-          onBulkDelete={handleBulkDelete}
-          onBulkAppendTitle={handleBulkAppendTitle}
-          onBulkReplaceTitle={handleBulkReplaceTitle}
-          onBulkAddAssignee={handleBulkAddAssignee}
-          onBulkSetAssignees={handleBulkSetAssignees}
-          onBulkRemoveAssignee={handleBulkRemoveAssignee}
-        />
-      ));
+      return (
+        <>
+          {visibleTasks.map(renderTaskCard)}
+          {loadMoreButton}
+        </>
+      );
     }
 
     const { insertIndex } = crossColumnPlaceholder;
     const placeholderId = `__placeholder__${columnStatus}`;
     const elements: JSX.Element[] = [];
     
-    columnTasks.forEach((task, index) => {
+    visibleTasks.forEach((task, index) => {
       // Insert placeholder before this task if at the right index
       if (index === insertIndex) {
         elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
       }
-      
-      elements.push(
-        <TaskCard
-          key={task.id}
-          {...task}
-          isSelected={selectedTaskIds.has(task.id)}
-          selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
-          isDragActive={activeTaskId !== null}
-          initialEditMode={editingTaskId === task.id}
-          onSelect={handleSelectTask}
-          onUpdate={handleUpdateTaskWithClearEdit}
-          onDelete={handleDeleteTask}
-          onFinishEditing={handleFinishEditing}
-          onOpenDetail={handleOpenDetail}
-          onBulkUpdate={handleBulkUpdate}
-          onBulkDelete={handleBulkDelete}
-          onBulkAppendTitle={handleBulkAppendTitle}
-          onBulkReplaceTitle={handleBulkReplaceTitle}
-          onBulkAddAssignee={handleBulkAddAssignee}
-          onBulkSetAssignees={handleBulkSetAssignees}
-          onBulkRemoveAssignee={handleBulkRemoveAssignee}
-        />
-      );
+      elements.push(renderTaskCard(task));
     });
     
-    // Insert at end if insertIndex is at or beyond the end
-    if (insertIndex >= columnTasks.length) {
+    // Insert at end if insertIndex is at or beyond the visible tasks
+    if (insertIndex >= visibleTasks.length) {
       elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
+    }
+    
+    // Add load more button at the end
+    if (loadMoreButton) {
+      elements.push(loadMoreButton);
     }
     
     return elements;
@@ -457,7 +494,7 @@ export default function Dashboard() {
               </div>
             }
           >
-            <SortableContext items={todoTaskIds} strategy={verticalListSortingStrategy}>
+            <SortableContext items={visibleTodoTaskIds} strategy={verticalListSortingStrategy}>
               {renderTasksWithPlaceholder(todoTasks, "To Do")}
             </SortableContext>
           </KanbanColumn>
@@ -480,7 +517,7 @@ export default function Dashboard() {
               </div>
             }
           >
-            <SortableContext items={inProgressTaskIds} strategy={verticalListSortingStrategy}>
+            <SortableContext items={visibleInProgressTaskIds} strategy={verticalListSortingStrategy}>
               {renderTasksWithPlaceholder(inProgressTasks, "In Progress")}
             </SortableContext>
           </KanbanColumn>
@@ -503,7 +540,7 @@ export default function Dashboard() {
               </div>
             }
           >
-            <SortableContext items={doneTaskIds} strategy={verticalListSortingStrategy}>
+            <SortableContext items={visibleDoneTaskIds} strategy={verticalListSortingStrategy}>
               {renderTasksWithPlaceholder(doneTasks, "Done")}
             </SortableContext>
           </KanbanColumn>
