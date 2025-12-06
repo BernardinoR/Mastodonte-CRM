@@ -47,7 +47,7 @@ export const SortableTaskCard = memo(function SortableTaskCard({
         ...sortableStyle,
         opacity: shouldHideForDrag ? 0 : 1,
         pointerEvents: shouldHideForDrag ? 'none' : 'auto',
-        contain: 'layout style paint',
+        contain: 'layout style',
         willChange: transform ? 'transform' : 'auto',
       }}
       data-task-card
