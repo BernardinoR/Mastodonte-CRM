@@ -83,7 +83,6 @@ export default function Dashboard() {
   // Use the task drag hook for drag-and-drop functionality
   const {
     activeTaskId,
-    overColumnId,
     dropIndicator,
     todoTaskIds,
     inProgressTaskIds,

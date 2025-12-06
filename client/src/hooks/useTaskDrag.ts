@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, useCallback } from 'react';
+import { useState, useRef, useMemo, useCallback, useEffect } from 'react';
 import { DragStartEvent, DragOverEvent, DragEndEvent } from '@dnd-kit/core';
 import { Task, TaskStatus, TaskHistoryEvent } from '@/types/task';
 
@@ -8,7 +8,6 @@ interface DragProjection {
   insertIndex: number;
 }
 
-// Drop indicator position for cross-column drops
 export interface DropIndicator {
   targetStatus: TaskStatus;
   insertIndex: number;
@@ -27,7 +26,6 @@ interface UseTaskDragProps {
 
 interface UseTaskDragReturn {
   activeTaskId: string | null;
-  overColumnId: string | null;
   dropIndicator: DropIndicator | null;
   todoTaskIds: string[];
   inProgressTaskIds: string[];
@@ -47,22 +45,17 @@ export function useTaskDrag({
   clearSelection,
 }: UseTaskDragProps): UseTaskDragReturn {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [overColumnId, setOverColumnId] = useState<string | null>(null);
-  // Minimal state for drop indicator - only updates when position actually changes
   const [dropIndicator, setDropIndicator] = useState<DropIndicator | null>(null);
   
-  // Projection ref for drag end calculations
   const projectionRef = useRef<DragProjection | null>(null);
   
-  // Refs to track previous values and avoid unnecessary state updates
-  const prevOverColumnIdRef = useRef<string | null>(null);
-  const prevIndicatorRef = useRef<DropIndicator | null>(null);
+  const pendingIndicatorRef = useRef<DropIndicator | null>(null);
+  const rafIdRef = useRef<number | null>(null);
+  const lastCommittedIndicatorRef = useRef<DropIndicator | null>(null);
   
-  // Performance optimization: Map for O(1) task lookups instead of O(n) find()
   const taskByIdRef = useRef<Map<string, Task>>(new Map());
   const movingIdSetRef = useRef<Set<string>>(new Set());
   
-  // Cache column task arrays at drag start to avoid recalculating during drag
   const columnCacheRef = useRef<{
     todo: Task[];
     inProgress: Task[];
@@ -72,33 +65,73 @@ export function useTaskDrag({
     doneFiltered: Task[];
   } | null>(null);
   
-  // Update taskById map when tasks change
   useMemo(() => {
     const newMap = new Map<string, Task>();
     tasks.forEach(t => newMap.set(t.id, t));
     taskByIdRef.current = newMap;
   }, [tasks]);
 
-  // Simple task ID lists - NO placeholder insertion (pure, stable)
   const todoTaskIds = useMemo(() => todoTasks.map(t => t.id), [todoTasks]);
   const inProgressTaskIds = useMemo(() => inProgressTasks.map(t => t.id), [inProgressTasks]);
   const doneTaskIds = useMemo(() => doneTasks.map(t => t.id), [doneTasks]);
+
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+      }
+    };
+  }, []);
+
+  const flushIndicator = useCallback(() => {
+    const pending = pendingIndicatorRef.current;
+    const last = lastCommittedIndicatorRef.current;
+    
+    if (pending === null && last === null) {
+      rafIdRef.current = null;
+      return;
+    }
+    
+    if (pending === null) {
+      if (last !== null) {
+        setDropIndicator(null);
+        lastCommittedIndicatorRef.current = null;
+      }
+    } else {
+      if (
+        !last ||
+        last.targetStatus !== pending.targetStatus ||
+        last.insertIndex !== pending.insertIndex ||
+        last.count !== pending.count
+      ) {
+        setDropIndicator(pending);
+        lastCommittedIndicatorRef.current = pending;
+      }
+    }
+    
+    rafIdRef.current = null;
+  }, []);
+
+  const scheduleIndicatorUpdate = useCallback((indicator: DropIndicator | null) => {
+    pendingIndicatorRef.current = indicator;
+    
+    if (rafIdRef.current === null) {
+      rafIdRef.current = requestAnimationFrame(flushIndicator);
+    }
+  }, [flushIndicator]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     const draggedId = event.active.id as string;
     setActiveTaskId(draggedId);
     
-    // Use O(1) lookup instead of O(n) find
     const activeTask = taskByIdRef.current.get(draggedId);
     if (activeTask) {
       const movingIds = selectedTaskIds.has(draggedId) 
         ? Array.from(selectedTaskIds) 
         : [draggedId];
       
-      // Update movingIdSet for O(1) includes checks during drag
       movingIdSetRef.current = new Set(movingIds);
       
-      // Cache column arrays at drag start - avoids recalculating during drag
       const movingSet = movingIdSetRef.current;
       columnCacheRef.current = {
         todo: todoTasks,
@@ -115,23 +148,15 @@ export function useTaskDrag({
         insertIndex: activeTask.order,
       };
       
-      // Reset indicator refs
-      prevIndicatorRef.current = null;
+      pendingIndicatorRef.current = null;
+      lastCommittedIndicatorRef.current = null;
     }
   }, [selectedTaskIds, todoTasks, inProgressTasks, doneTasks]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) {
-      // Only update if values actually changed
-      if (prevOverColumnIdRef.current !== null) {
-        setOverColumnId(null);
-        prevOverColumnIdRef.current = null;
-      }
-      if (prevIndicatorRef.current !== null) {
-        setDropIndicator(null);
-        prevIndicatorRef.current = null;
-      }
+      scheduleIndicatorUpdate(null);
       projectionRef.current = null;
       return;
     }
@@ -140,9 +165,7 @@ export function useTaskDrag({
     const activeId = active.id as string;
     
     const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
-    // Use O(1) Map lookup instead of O(n) find
     const overTask = !isOverColumn ? taskByIdRef.current.get(overId) : undefined;
-    
     const activeTask = taskByIdRef.current.get(activeId);
     
     let targetStatus: TaskStatus;
@@ -154,20 +177,11 @@ export function useTaskDrag({
       targetStatus = activeTask?.status || "To Do";
     }
     
-    // Only update overColumnId if it changed
-    if (prevOverColumnIdRef.current !== targetStatus) {
-      setOverColumnId(targetStatus);
-      prevOverColumnIdRef.current = targetStatus;
-    }
-    
     if (!activeTask) return;
     
-    // Reuse movingIds from dragStart instead of recalculating on every mouse move
     const movingIds = projectionRef.current?.movingIds || [activeId];
-    
     const isSameColumn = activeTask.status === targetStatus;
     
-    // Use cached filtered arrays instead of filtering on every mouse move
     const cache = columnCacheRef.current;
     let targetColumnFiltered: Task[];
     if (cache) {
@@ -179,7 +193,6 @@ export function useTaskDrag({
         targetColumnFiltered = cache.doneFiltered;
       }
     } else {
-      // Fallback if cache not available
       const movingSet = movingIdSetRef.current;
       if (targetStatus === "To Do") {
         targetColumnFiltered = todoTasks.filter(t => !movingSet.has(t.id));
@@ -193,7 +206,6 @@ export function useTaskDrag({
     let insertIndex: number;
     
     if (overTask) {
-      // Find index in filtered array
       const overIndexInFiltered = targetColumnFiltered.findIndex(t => t.id === overTask.id);
       if (overIndexInFiltered !== -1) {
         const overRect = over.rect;
@@ -211,51 +223,37 @@ export function useTaskDrag({
         insertIndex = targetColumnFiltered.length;
       }
     } else {
-      // Dropping on column itself - insert at end
       insertIndex = targetColumnFiltered.length;
     }
     
-    // Clamp to valid range
     insertIndex = Math.min(Math.max(0, insertIndex), targetColumnFiltered.length);
     
-    // Update projection ref (no state change!)
     projectionRef.current = { movingIds, targetStatus, insertIndex };
     
-    // Update drop indicator state ONLY if position actually changed
     if (!isSameColumn) {
-      const prev = prevIndicatorRef.current;
-      const newCount = movingIds.length;
-      
-      // Only update state if values actually changed
-      if (
-        !prev ||
-        prev.targetStatus !== targetStatus ||
-        prev.insertIndex !== insertIndex ||
-        prev.count !== newCount
-      ) {
-        const newIndicator = { targetStatus, insertIndex, count: newCount };
-        setDropIndicator(newIndicator);
-        prevIndicatorRef.current = newIndicator;
-      }
+      scheduleIndicatorUpdate({ 
+        targetStatus, 
+        insertIndex, 
+        count: movingIds.length 
+      });
     } else {
-      // Same column - clear indicator if it was set
-      if (prevIndicatorRef.current !== null) {
-        setDropIndicator(null);
-        prevIndicatorRef.current = null;
-      }
+      scheduleIndicatorUpdate(null);
     }
-  }, [todoTasks, inProgressTasks, doneTasks]);
+  }, [todoTasks, inProgressTasks, doneTasks, scheduleIndicatorUpdate]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+      rafIdRef.current = null;
+    }
+    
     setActiveTaskId(null);
-    setOverColumnId(null);
     setDropIndicator(null);
     
-    // Reset refs
-    prevOverColumnIdRef.current = null;
-    prevIndicatorRef.current = null;
+    pendingIndicatorRef.current = null;
+    lastCommittedIndicatorRef.current = null;
     columnCacheRef.current = null;
     
     const projection = projectionRef.current;
@@ -282,7 +280,6 @@ export function useTaskDrag({
       movingIds = selectedTasks.map(t => t.id);
     }
     
-    // Check for no-op drops (dropping on self or within selection group)
     const isSameColumn = activeTask.status === targetStatus;
     if (isSameColumn && movingIds.includes(overId)) {
       return;
@@ -411,7 +408,6 @@ export function useTaskDrag({
 
   return {
     activeTaskId,
-    overColumnId,
     dropIndicator,
     todoTaskIds,
     inProgressTaskIds,
