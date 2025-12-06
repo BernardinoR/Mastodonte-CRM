@@ -53,6 +53,17 @@ export function useTaskDrag({
   // Refs to track previous values and avoid unnecessary re-renders
   const prevOverColumnIdRef = useRef<string | null>(null);
   const prevPlaceholderRef = useRef<CrossColumnPlaceholder | null>(null);
+  
+  // Performance optimization: Map for O(1) task lookups instead of O(n) find()
+  const taskByIdRef = useRef<Map<string, Task>>(new Map());
+  const movingIdSetRef = useRef<Set<string>>(new Set());
+  
+  // Update taskById map when tasks change
+  useMemo(() => {
+    const newMap = new Map<string, Task>();
+    tasks.forEach(t => newMap.set(t.id, t));
+    taskByIdRef.current = newMap;
+  }, [tasks]);
 
   const todoTaskIds = useMemo(() => {
     const baseIds = todoTasks.map(t => t.id);
@@ -91,17 +102,23 @@ export function useTaskDrag({
     const draggedId = event.active.id as string;
     setActiveTaskId(draggedId);
     
-    const activeTask = tasks.find(t => t.id === draggedId);
+    // Use O(1) lookup instead of O(n) find
+    const activeTask = taskByIdRef.current.get(draggedId);
     if (activeTask) {
+      const movingIds = selectedTaskIds.has(draggedId) 
+        ? Array.from(selectedTaskIds) 
+        : [draggedId];
+      
+      // Update movingIdSet for O(1) includes checks during drag
+      movingIdSetRef.current = new Set(movingIds);
+      
       projectionRef.current = {
-        movingIds: selectedTaskIds.has(draggedId) 
-          ? Array.from(selectedTaskIds) 
-          : [draggedId],
+        movingIds,
         targetStatus: activeTask.status,
         insertIndex: activeTask.order,
       };
     }
-  }, [selectedTaskIds, tasks]);
+  }, [selectedTaskIds]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
@@ -128,9 +145,10 @@ export function useTaskDrag({
       : null;
     
     const isOverColumn = ["To Do", "In Progress", "Done"].includes(overId);
-    const overTask = !isOverColumn && !isOverPlaceholder ? tasks.find(t => t.id === overId) : null;
+    // Use O(1) Map lookup instead of O(n) find
+    const overTask = !isOverColumn && !isOverPlaceholder ? taskByIdRef.current.get(overId) : undefined;
     
-    const activeTask = tasks.find(t => t.id === activeId);
+    const activeTask = taskByIdRef.current.get(activeId);
     
     let targetStatus: TaskStatus;
     if (placeholderColumn) {
@@ -250,11 +268,13 @@ export function useTaskDrag({
         if (currentPlaceholder?.targetStatus === targetStatus) {
           insertIndex = currentPlaceholder.insertIndex;
         } else {
-          insertIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
+          // Use O(1) Set lookup instead of O(n) includes
+          insertIndex = targetColumnTasks.filter(t => !movingIdSetRef.current.has(t.id)).length;
         }
       }
       
-      const maxIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
+      // Use O(1) Set lookup instead of O(n) includes
+      const maxIndex = targetColumnTasks.filter(t => !movingIdSetRef.current.has(t.id)).length;
       insertIndex = Math.min(insertIndex, maxIndex);
       
       // Only update if placeholder values actually changed
@@ -273,7 +293,7 @@ export function useTaskDrag({
     }
     
     projectionRef.current = { movingIds, targetStatus, insertIndex };
-  }, [tasks, todoTasks, inProgressTasks, doneTasks]);
+  }, [todoTasks, inProgressTasks, doneTasks]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;

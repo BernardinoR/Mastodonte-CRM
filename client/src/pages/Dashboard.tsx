@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { TaskCard } from "@/components/TaskCard";
 import { FilterBar } from "@/components/FilterBar";
@@ -141,15 +141,21 @@ export default function Dashboard() {
     [doneTaskIds, visibleCounts]
   );
 
+  // Task column map ref - only updates when actual tasks change (not placeholders)
+  const taskColumnMapRef = useRef<Map<string, string>>(new Map());
+  useMemo(() => {
+    const newMap = new Map<string, string>();
+    todoTasks.forEach(t => newMap.set(t.id, "To Do"));
+    inProgressTasks.forEach(t => newMap.set(t.id, "In Progress"));
+    doneTasks.forEach(t => newMap.set(t.id, "Done"));
+    taskColumnMapRef.current = newMap;
+  }, [todoTasks, inProgressTasks, doneTasks]);
+  
   // Custom collision detection: returns card if cursor is in same column, returns column otherwise
   const customCollisionDetection: CollisionDetection = useMemo(() => {
-    // Build a map of task ID -> column status for quick lookup
-    const taskColumnMap = new Map<string, string>();
-    todoTaskIds.forEach(id => taskColumnMap.set(id, "To Do"));
-    inProgressTaskIds.forEach(id => taskColumnMap.set(id, "In Progress"));
-    doneTaskIds.forEach(id => taskColumnMap.set(id, "Done"));
-    
     return (args) => {
+      // Read from ref for O(1) lookup without rebuilding
+      const taskColumnMap = taskColumnMapRef.current;
       // Step 1: Detect which column the pointer is currently within
       const pointerCollisions = pointerWithin(args);
       const columnCollision = pointerCollisions.find(
@@ -186,7 +192,7 @@ export default function Dashboard() {
       // Final fallback
       return centerCollisions;
     };
-  }, [todoTaskIds, inProgressTaskIds, doneTaskIds]);
+  }, []); // No deps needed - reads from ref which is always current
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -198,7 +204,7 @@ export default function Dashboard() {
 
   const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
 
-  const handleUpdateTask = (taskId: string, updates: Partial<Task>) => {
+  const handleUpdateTask = useCallback((taskId: string, updates: Partial<Task>) => {
     setTasksWithHistory(prevTasks =>
       prevTasks.map(task =>
         task.id === taskId
@@ -206,11 +212,11 @@ export default function Dashboard() {
           : task
       )
     );
-  };
+  }, [setTasksWithHistory]);
 
-  const handleDeleteTask = (taskId: string) => {
+  const handleDeleteTask = useCallback((taskId: string) => {
     setTasksWithHistory(prevTasks => prevTasks.filter(task => task.id !== taskId));
-  };
+  }, [setTasksWithHistory]);
 
 
   // Bulk update for selected tasks (used by context menu)

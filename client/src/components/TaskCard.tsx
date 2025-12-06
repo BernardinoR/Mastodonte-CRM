@@ -86,7 +86,7 @@ interface TaskCardProps {
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
 
-export function TaskCard({
+export const TaskCard = memo(function TaskCard({
   id,
   title,
   clientName,
@@ -630,4 +630,4 @@ export function TaskCard({
       />
     </>
   );
-}
+});
