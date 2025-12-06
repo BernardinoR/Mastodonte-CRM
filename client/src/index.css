@@ -332,4 +332,16 @@
   *::-webkit-scrollbar-thumb:hover {
     background-color: #6b7280;
   }
+
+  /* Drop indicator animation for drag and drop */
+  @keyframes dropIndicatorExpand {
+    0% {
+      opacity: 0;
+      transform: scaleX(0.3);
+    }
+    100% {
+      opacity: 1;
+      transform: scaleX(1);
+    }
+  }
 }

@@ -325,9 +325,37 @@ export default function Dashboard() {
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
 
-  // CSS-based drop indicator line component
+  // Custom spring-like drop animation for smooth card landing
+  const customDropAnimation = useMemo(() => ({
+    sideEffects: ({ active, dragOverlay }: { active: { node: HTMLElement }; dragOverlay: { node: HTMLElement } }) => {
+      active.node.style.opacity = '0';
+      dragOverlay.node.animate(
+        [
+          { transform: dragOverlay.node.style.transform, opacity: 1 },
+          { transform: 'translate3d(0, 0, 0) scale(1)', opacity: 1 },
+        ],
+        {
+          duration: 250,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)', // Spring-like easing
+        }
+      );
+      return () => {
+        active.node.style.opacity = '';
+      };
+    },
+    duration: 250,
+    easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+  }), []);
+
+  // CSS-based drop indicator line component with smooth animation
   const DropIndicatorLine = () => (
-    <div className="h-1 bg-blue-500 rounded-full my-1 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+    <div 
+      className="bg-blue-500 rounded-full my-1 shadow-[0_0_8px_rgba(59,130,246,0.5)] animate-in fade-in slide-in-from-top-1 duration-150"
+      style={{
+        height: '4px',
+        animation: 'dropIndicatorExpand 150ms ease-out forwards',
+      }}
+    />
   );
 
   // Helper to render tasks with CSS drop indicator for cross-column drag
@@ -530,7 +558,7 @@ export default function Dashboard() {
           </KanbanColumn>
         </div>
         
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={customDropAnimation}>
           {activeTask && (
             <DragPreview
               {...activeTask}
