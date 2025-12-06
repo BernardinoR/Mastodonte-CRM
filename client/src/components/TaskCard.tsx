@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo, memo, useCallback } from "react";
+import { useState, useRef, useMemo, memo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -46,7 +46,6 @@ import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
-import { useSortable } from "@dnd-kit/sortable";
 import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { AssigneeSelector } from "@/components/task-editors";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
@@ -57,7 +56,7 @@ import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopo
 import { TaskCardContextMenu } from "@/components/task-context-menu";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
-interface TaskCardProps {
+export interface TaskCardProps {
   id: string;
   title: string;
   clientName?: string;
@@ -83,6 +82,7 @@ interface TaskCardProps {
   onBulkAddAssignee?: (assignee: string) => void;
   onBulkSetAssignees?: (assignees: string[]) => void;
   onBulkRemoveAssignee?: (assignee: string) => void;
+  onEditStateChange?: (isEditing: boolean) => void;
 }
 
 // Custom comparison function for React.memo - prevents re-renders during drag
@@ -144,6 +144,7 @@ export const TaskCard = memo(function TaskCard({
   onBulkAddAssignee,
   onBulkSetAssignees,
   onBulkRemoveAssignee,
+  onEditStateChange,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   
@@ -234,6 +235,12 @@ export const TaskCard = memo(function TaskCard({
   
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
 
+  // Notify parent when editing state changes (for disabling drag during edit)
+  useEffect(() => {
+    const isCurrentlyEditing = isEditing || activePopover !== null;
+    onEditStateChange?.(isCurrentlyEditing);
+  }, [isEditing, activePopover, onEditStateChange]);
+
   const onReplaceTitleSubmit = useCallback(() => {
     if (!newTitleText.trim()) return;
     handleReplaceTitleSubmit(newTitleText);
@@ -252,30 +259,6 @@ export const TaskCard = memo(function TaskCard({
     handleContextDateChange(newDate);
     setShowBulkDatePicker(false);
   }, [handleContextDateChange]);
-
-  const { 
-    attributes, 
-    listeners, 
-    setNodeRef, 
-    transform, 
-    transition,
-    isDragging 
-  } = useSortable({
-    id: id,
-    disabled: isEditing || activePopover !== null,
-  });
-  
-  // Use translate3d for GPU acceleration (60fps performance)
-  const sortableStyle = useMemo(() => ({
-    transform: transform 
-      ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)` 
-      : undefined,
-    transition,
-  }), [transform, transition]);
-
-  // Hide the original card when it's being dragged (DragOverlay shows the visual copy)
-  // Also hide when it's part of a multi-select being dragged
-  const shouldHideForDrag = isDragging || (isDragActive && isSelected);
 
   const handleDelete = useCallback(() => {
     onDelete(id);
@@ -388,17 +371,7 @@ export const TaskCard = memo(function TaskCard({
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
-          <div
-            ref={setNodeRef}
-            style={{
-              ...sortableStyle,
-              opacity: shouldHideForDrag ? 0 : (isDragging ? 0.5 : 1),
-              pointerEvents: shouldHideForDrag ? 'none' : 'auto',
-            }}
-            data-task-card
-            {...(!isEditing ? { ...attributes, ...listeners } : {})}
-          >
-            <Card
+          <Card
               ref={cardRef}
               className={cn(
                 "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
@@ -560,7 +533,6 @@ export const TaskCard = memo(function TaskCard({
               </div>
           </CardContent>
             </Card>
-          </div>
         </ContextMenuTrigger>
         <TaskCardContextMenu
           selectedCount={selectedCount}
