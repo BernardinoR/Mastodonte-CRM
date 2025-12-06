@@ -230,6 +230,7 @@ export function FilterBar({
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const isClosingFilterPopoverRef = useRef(false);
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
@@ -237,6 +238,13 @@ export function FilterBar({
 
   const handleOpenFilterPopover = useCallback((id: string, open: boolean) => {
     setOpenFilterPopovers(prev => ({ ...prev, [id]: open }));
+  }, []);
+
+  const handleAddFilterPopoverChange = useCallback((open: boolean) => {
+    if (isClosingFilterPopoverRef.current && open) {
+      return;
+    }
+    setAddFilterPopoverOpen(open);
   }, []);
 
   const availableFilterTypes = useMemo(() => {
@@ -721,7 +729,7 @@ export function FilterBar({
 
           {/* Add Filter Button */}
           {availableFilterTypes.length > 0 && (
-            <Popover open={addFilterPopoverOpen} onOpenChange={setAddFilterPopoverOpen}>
+            <Popover open={addFilterPopoverOpen} onOpenChange={handleAddFilterPopoverChange}>
               <PopoverTrigger asChild>
                 <button
                   className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
@@ -746,9 +754,13 @@ export function FilterBar({
                     <button
                       key={type}
                       onClick={() => {
+                        isClosingFilterPopoverRef.current = true;
                         onAddFilter(type);
                         setAddFilterPopoverOpen(false);
                         setFilterBarExpanded(true);
+                        setTimeout(() => {
+                          isClosingFilterPopoverRef.current = false;
+                        }, 100);
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
                       data-testid={`button-add-filter-${type}`}
