@@ -52,6 +52,8 @@ export function useTaskDrag({
   const pendingIndicatorRef = useRef<DropIndicator | null>(null);
   const rafIdRef = useRef<number | null>(null);
   const lastCommittedIndicatorRef = useRef<DropIndicator | null>(null);
+  const columnChangeDebounceRef = useRef<number | null>(null);
+  const lastColumnRef = useRef<TaskStatus | null>(null);
   
   const taskByIdRef = useRef<Map<string, Task>>(new Map());
   const movingIdSetRef = useRef<Set<string>>(new Set());
@@ -79,6 +81,9 @@ export function useTaskDrag({
     return () => {
       if (rafIdRef.current !== null) {
         cancelAnimationFrame(rafIdRef.current);
+      }
+      if (columnChangeDebounceRef.current !== null) {
+        clearTimeout(columnChangeDebounceRef.current);
       }
     };
   }, []);
@@ -112,7 +117,27 @@ export function useTaskDrag({
     rafIdRef.current = null;
   }, []);
 
-  const scheduleIndicatorUpdate = useCallback((indicator: DropIndicator | null) => {
+  const scheduleIndicatorUpdate = useCallback((indicator: DropIndicator | null, isColumnChange: boolean = false) => {
+    // If this is a column change, debounce to avoid rapid updates that hurt FPS
+    if (isColumnChange && indicator) {
+      // Clear any pending column change debounce
+      if (columnChangeDebounceRef.current !== null) {
+        clearTimeout(columnChangeDebounceRef.current);
+      }
+      
+      // Debounce column changes by 50ms to smooth out rapid transitions
+      columnChangeDebounceRef.current = window.setTimeout(() => {
+        pendingIndicatorRef.current = indicator;
+        lastColumnRef.current = indicator.targetStatus;
+        
+        if (rafIdRef.current === null) {
+          rafIdRef.current = requestAnimationFrame(flushIndicator);
+        }
+        columnChangeDebounceRef.current = null;
+      }, 50);
+      return;
+    }
+    
     pendingIndicatorRef.current = indicator;
     
     if (rafIdRef.current === null) {
@@ -231,13 +256,22 @@ export function useTaskDrag({
     projectionRef.current = { movingIds, targetStatus, insertIndex };
     
     if (!isSameColumn) {
+      // Check if this is a column change from the last committed column
+      const isColumnChange = lastColumnRef.current !== null && lastColumnRef.current !== targetStatus;
+      
       scheduleIndicatorUpdate({ 
         targetStatus, 
         insertIndex, 
         count: movingIds.length 
-      });
+      }, isColumnChange);
+      
+      // Update last column if not debouncing
+      if (!isColumnChange) {
+        lastColumnRef.current = targetStatus;
+      }
     } else {
       scheduleIndicatorUpdate(null);
+      lastColumnRef.current = null;
     }
   }, [todoTasks, inProgressTasks, doneTasks, scheduleIndicatorUpdate]);
 
@@ -249,11 +283,17 @@ export function useTaskDrag({
       rafIdRef.current = null;
     }
     
+    if (columnChangeDebounceRef.current !== null) {
+      clearTimeout(columnChangeDebounceRef.current);
+      columnChangeDebounceRef.current = null;
+    }
+    
     setActiveTaskId(null);
     setDropIndicator(null);
     
     pendingIndicatorRef.current = null;
     lastCommittedIndicatorRef.current = null;
+    lastColumnRef.current = null;
     columnCacheRef.current = null;
     
     const projection = projectionRef.current;
