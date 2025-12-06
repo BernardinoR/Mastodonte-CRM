@@ -64,12 +64,14 @@ interface UseTaskFiltersReturn {
 }
 
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
-const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Normal", "none"];
+const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Importante", "Normal", "Baixa", "none"];
 
 const PRIORITY_ORDER: Record<string, number> = {
   "Urgente": 1,
-  "Normal": 2,
-  "undefined": 3,
+  "Importante": 2,
+  "Normal": 3,
+  "Baixa": 4,
+  "undefined": 5,
 };
 
 const STATUS_ORDER: Record<string, number> = {
