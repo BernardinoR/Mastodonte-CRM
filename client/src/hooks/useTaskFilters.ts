@@ -195,7 +195,7 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
                   if (taskDate) return false;
                   break;
               }
-            } else if (dateFilterValue.type === "range") {
+            } else if (dateFilterValue.type === "relative" || dateFilterValue.type === "range") {
               if (dateFilterValue.startDate && dateFilterValue.endDate) {
                 const startDate = startOfDay(dateFilterValue.startDate);
                 const endDate = endOfDay(dateFilterValue.endDate);
