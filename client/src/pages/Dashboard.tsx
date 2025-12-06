@@ -530,9 +530,9 @@ export default function Dashboard() {
           </KanbanColumn>
         </div>
         
-        <DragOverlay>
+        <DragOverlay dropAnimation={null}>
           {activeTask && (
-            <div className="opacity-95 rotate-2 scale-105 relative">
+            <div className="opacity-95 rotate-2 scale-105 relative" style={{ willChange: 'transform' }}>
               {selectedCount > 1 && (
                 <>
                   <div className="absolute inset-0 transform translate-x-3 translate-y-3 rounded-lg bg-[#1a1a1a] border border-[#404040] opacity-40" />

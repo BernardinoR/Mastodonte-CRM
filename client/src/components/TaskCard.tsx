@@ -47,7 +47,6 @@ import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
 import { useSortable } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { AssigneeSelector } from "@/components/task-editors";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
@@ -85,6 +84,39 @@ interface TaskCardProps {
   onBulkSetAssignees?: (assignees: string[]) => void;
   onBulkRemoveAssignee?: (assignee: string) => void;
 }
+
+// Custom comparison function for React.memo - prevents re-renders during drag
+const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
+  // Always re-render if these core values change
+  if (prev.id !== next.id) return false;
+  if (prev.title !== next.title) return false;
+  if (prev.clientName !== next.clientName) return false;
+  if (prev.priority !== next.priority) return false;
+  if (prev.status !== next.status) return false;
+  if (prev.dueDate?.getTime() !== next.dueDate?.getTime()) return false;
+  if (prev.description !== next.description) return false;
+  if (prev.isSelected !== next.isSelected) return false;
+  if (prev.selectedCount !== next.selectedCount) return false;
+  if (prev.isDragActive !== next.isDragActive) return false;
+  if (prev.initialEditMode !== next.initialEditMode) return false;
+  
+  // Deep compare assignees array
+  if (prev.assignees.length !== next.assignees.length) return false;
+  for (let i = 0; i < prev.assignees.length; i++) {
+    if (prev.assignees[i] !== next.assignees[i]) return false;
+  }
+  
+  // Deep compare notes array
+  const prevNotes = prev.notes || [];
+  const nextNotes = next.notes || [];
+  if (prevNotes.length !== nextNotes.length) return false;
+  for (let i = 0; i < prevNotes.length; i++) {
+    if (prevNotes[i] !== nextNotes[i]) return false;
+  }
+  
+  // Callbacks are stable (via useCallback in parent), so we don't compare them
+  return true;
+};
 
 export const TaskCard = memo(function TaskCard({
   id,
@@ -233,12 +265,17 @@ export const TaskCard = memo(function TaskCard({
     disabled: isEditing || activePopover !== null,
   });
   
-  const sortableStyle = {
-    transform: CSS.Transform.toString(transform),
+  // Use translate3d for GPU acceleration (60fps performance)
+  const sortableStyle = useMemo(() => ({
+    transform: transform 
+      ? `translate3d(${Math.round(transform.x)}px, ${Math.round(transform.y)}px, 0)` 
+      : undefined,
     transition,
-  };
+  }), [transform, transition]);
 
-  const shouldHideForDrag = isDragActive && isSelected;
+  // Hide the original card when it's being dragged (DragOverlay shows the visual copy)
+  // Also hide when it's part of a multi-select being dragged
+  const shouldHideForDrag = isDragging || (isDragActive && isSelected);
 
   const handleDelete = useCallback(() => {
     onDelete(id);
@@ -630,4 +667,4 @@ export const TaskCard = memo(function TaskCard({
       />
     </>
   );
-});
+}, arePropsEqual);
