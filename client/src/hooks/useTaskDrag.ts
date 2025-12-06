@@ -49,6 +49,10 @@ export function useTaskDrag({
   const [overColumnId, setOverColumnId] = useState<string | null>(null);
   const [crossColumnPlaceholder, setCrossColumnPlaceholder] = useState<CrossColumnPlaceholder | null>(null);
   const projectionRef = useRef<DragProjection | null>(null);
+  
+  // Refs to track previous values and avoid unnecessary re-renders
+  const prevOverColumnIdRef = useRef<string | null>(null);
+  const prevPlaceholderRef = useRef<CrossColumnPlaceholder | null>(null);
 
   const todoTaskIds = useMemo(() => {
     const baseIds = todoTasks.map(t => t.id);
@@ -102,8 +106,15 @@ export function useTaskDrag({
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { active, over } = event;
     if (!over) {
-      setOverColumnId(null);
-      setCrossColumnPlaceholder(null);
+      // Only update if values actually changed
+      if (prevOverColumnIdRef.current !== null) {
+        setOverColumnId(null);
+        prevOverColumnIdRef.current = null;
+      }
+      if (prevPlaceholderRef.current !== null) {
+        setCrossColumnPlaceholder(null);
+        prevPlaceholderRef.current = null;
+      }
       projectionRef.current = null;
       return;
     }
@@ -132,7 +143,11 @@ export function useTaskDrag({
       targetStatus = activeTask?.status || "To Do";
     }
     
-    setOverColumnId(targetStatus);
+    // Only update overColumnId if it changed
+    if (prevOverColumnIdRef.current !== targetStatus) {
+      setOverColumnId(targetStatus);
+      prevOverColumnIdRef.current = targetStatus;
+    }
     
     if (!activeTask) return;
     
@@ -187,7 +202,11 @@ export function useTaskDrag({
         }
         insertIndex = targetColumnTasks.length;
       }
-      setCrossColumnPlaceholder(null);
+      // Only update if placeholder was previously set
+      if (prevPlaceholderRef.current !== null) {
+        setCrossColumnPlaceholder(null);
+        prevPlaceholderRef.current = null;
+      }
     } else {
       let targetColumnTasks: Task[];
       if (targetStatus === "To Do") {
@@ -199,8 +218,10 @@ export function useTaskDrag({
       }
       
       if (isOverPlaceholder) {
-        if (crossColumnPlaceholder?.targetStatus === targetStatus) {
-          insertIndex = crossColumnPlaceholder.insertIndex;
+        // Read from ref to avoid stale closure
+        const currentPlaceholder = prevPlaceholderRef.current;
+        if (currentPlaceholder?.targetStatus === targetStatus) {
+          insertIndex = currentPlaceholder.insertIndex;
         } else {
           insertIndex = targetColumnTasks.length;
         }
@@ -224,8 +245,10 @@ export function useTaskDrag({
           insertIndex = targetColumnTasks.length;
         }
       } else {
-        if (crossColumnPlaceholder?.targetStatus === targetStatus) {
-          insertIndex = crossColumnPlaceholder.insertIndex;
+        // Read from ref to avoid stale closure
+        const currentPlaceholder = prevPlaceholderRef.current;
+        if (currentPlaceholder?.targetStatus === targetStatus) {
+          insertIndex = currentPlaceholder.insertIndex;
         } else {
           insertIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
         }
@@ -234,15 +257,23 @@ export function useTaskDrag({
       const maxIndex = targetColumnTasks.filter(t => !movingIds.includes(t.id)).length;
       insertIndex = Math.min(insertIndex, maxIndex);
       
-      setCrossColumnPlaceholder({
-        targetStatus,
-        insertIndex,
-        count: movingIds.length,
-      });
+      // Only update if placeholder values actually changed
+      const prev = prevPlaceholderRef.current;
+      const newCount = movingIds.length;
+      if (
+        !prev ||
+        prev.targetStatus !== targetStatus ||
+        prev.insertIndex !== insertIndex ||
+        prev.count !== newCount
+      ) {
+        const newPlaceholder = { targetStatus, insertIndex, count: newCount };
+        setCrossColumnPlaceholder(newPlaceholder);
+        prevPlaceholderRef.current = newPlaceholder;
+      }
     }
     
     projectionRef.current = { movingIds, targetStatus, insertIndex };
-  }, [tasks, selectedTaskIds, todoTasks, inProgressTasks, doneTasks, crossColumnPlaceholder]);
+  }, [tasks, todoTasks, inProgressTasks, doneTasks]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -250,6 +281,11 @@ export function useTaskDrag({
     setActiveTaskId(null);
     setOverColumnId(null);
     setCrossColumnPlaceholder(null);
+    
+    // Reset refs
+    prevOverColumnIdRef.current = null;
+    prevPlaceholderRef.current = null;
+    
     const projection = projectionRef.current;
     projectionRef.current = null;
     
