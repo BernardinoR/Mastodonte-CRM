@@ -14,7 +14,8 @@ import {
   addWeeks,
   addMonths,
   subWeeks,
-  subMonths
+  subMonths,
+  isBefore
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -81,6 +82,18 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   const [relativeUnit, setRelativeUnit] = useState<"weeks" | "months">(
     value.relativeUnit || "weeks"
   );
+
+  // Custom range selection state
+  const [selectionPhase, setSelectionPhase] = useState<"start" | "end">("start");
+  const [pendingStartDate, setPendingStartDate] = useState<Date | null>(null);
+
+  // Reset selection phase when value changes externally (preset, relative, etc.)
+  useEffect(() => {
+    if (value.type !== "range" || (value.type === "range" && value.endDate)) {
+      setSelectionPhase("start");
+      setPendingStartDate(null);
+    }
+  }, [value.type, value.endDate]);
 
   useEffect(() => {
     if (value.type === "relative") {
@@ -168,16 +181,39 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     });
   }, [onChange, relativeDirection, relativeAmount]);
 
-  const handleCalendarSelect = useCallback((range: DateRange | undefined) => {
-    if (!range || !range.from) {
-      return;
+  // Custom day click handler for two-click selection
+  const handleDayClick = useCallback((day: Date) => {
+    if (selectionPhase === "start") {
+      // First click: set start date locally and in value, clear end date
+      const newStartDate = startOfDay(day);
+      setPendingStartDate(newStartDate);
+      onChange({
+        type: "range",
+        startDate: newStartDate,
+        endDate: undefined,
+      });
+      setSelectionPhase("end");
+    } else {
+      // Second click: use local pendingStartDate to avoid stale props issue
+      const startDate = pendingStartDate || value.startDate || day;
+      let newStart = startDate;
+      let newEnd = day;
+      
+      // Ensure start is before end
+      if (isBefore(day, startDate)) {
+        newStart = day;
+        newEnd = startDate;
+      }
+      
+      onChange({
+        type: "range",
+        startDate: startOfDay(newStart),
+        endDate: endOfDay(newEnd),
+      });
+      setSelectionPhase("start");
+      setPendingStartDate(null);
     }
-    onChange({
-      type: "range",
-      startDate: range.from,
-      endDate: range.to,
-    });
-  }, [onChange]);
+  }, [selectionPhase, pendingStartDate, value.startDate, onChange]);
 
   const getDisplayText = () => {
     if (value.type === "range" && value.startDate) {
@@ -288,12 +324,16 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
         </div>
 
         <div className="pt-1">
-          <div className="px-3 py-1.5 text-xs text-gray-500">Ou selecione um intervalo</div>
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {selectionPhase === "start" 
+              ? "Clique para selecionar a data inicial" 
+              : "Clique para selecionar a data final"}
+          </div>
           <div className="flex justify-center">
           <Calendar
             mode="range"
             selected={dateRange}
-            onSelect={handleCalendarSelect}
+            onDayClick={handleDayClick}
             locale={ptBR}
             className="p-2"
             classNames={{
