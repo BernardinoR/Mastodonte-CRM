@@ -102,7 +102,7 @@ const StatusFilterContent = memo(function StatusFilterContent({
                   )}
                   data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
                 >
-                  <StatusBadge status={status} label={STATUS_LABELS[status]} size="sm" dotSize="md" />
+                  <StatusBadge status={status} size="sm" dotSize="md" />
                   <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
                 </div>
               ))}
@@ -124,7 +124,7 @@ const StatusFilterContent = memo(function StatusFilterContent({
                 className={UI_CLASSES.dropdownItem}
                 data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
               >
-                <StatusBadge status={status} label={STATUS_LABELS[status]} size="sm" dotSize="md" />
+                <StatusBadge status={status} size="sm" dotSize="md" />
               </div>
             ))}
           </div>
