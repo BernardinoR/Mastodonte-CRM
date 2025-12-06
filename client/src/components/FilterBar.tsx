@@ -229,9 +229,8 @@ export function FilterBar({
   const [addFilterPopoverOpen, setAddFilterPopoverOpen] = useState(false);
   const [openFilterPopovers, setOpenFilterPopovers] = useState<Record<string, boolean>>({});
   const [searchExpanded, setSearchExpanded] = useState(false);
+  const [addFilterPopoverKey, setAddFilterPopoverKey] = useState(0);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const isClosingFilterPopoverRef = useRef(false);
-  const addFilterTriggerRef = useRef<HTMLButtonElement>(null);
 
   const handleToggleFilterBar = useCallback(() => {
     setFilterBarExpanded(prev => !prev);
@@ -242,9 +241,6 @@ export function FilterBar({
   }, []);
 
   const handleAddFilterPopoverChange = useCallback((open: boolean) => {
-    if (isClosingFilterPopoverRef.current && open) {
-      return;
-    }
     setAddFilterPopoverOpen(open);
   }, []);
 
@@ -728,12 +724,15 @@ export function FilterBar({
             );
           })}
 
-          {/* Add Filter Button */}
+          {/* Add Filter Button - uses key to force remount after adding filter */}
           {availableFilterTypes.length > 0 && (
-            <Popover open={addFilterPopoverOpen} onOpenChange={handleAddFilterPopoverChange}>
+            <Popover 
+              key={addFilterPopoverKey}
+              open={addFilterPopoverOpen} 
+              onOpenChange={handleAddFilterPopoverChange}
+            >
               <PopoverTrigger asChild>
                 <button
-                  ref={addFilterTriggerRef}
                   className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
                   data-testid="button-add-filter"
                 >
@@ -759,20 +758,11 @@ export function FilterBar({
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
-                        // Set flag BEFORE any state changes to block all reopening attempts
-                        isClosingFilterPopoverRef.current = true;
-                        // Blur the trigger to prevent focus-restore from reopening the popover
-                        addFilterTriggerRef.current?.blur();
-                        // Use requestAnimationFrame to ensure UI updates happen in next frame
-                        requestAnimationFrame(() => {
-                          setAddFilterPopoverOpen(false);
-                          onAddFilter(type);
-                          setFilterBarExpanded(true);
-                        });
-                        // Extended cooldown period to ensure no reopening
-                        setTimeout(() => {
-                          isClosingFilterPopoverRef.current = false;
-                        }, 300);
+                        // Increment key to force Popover remount, preventing event replay
+                        setAddFilterPopoverKey(k => k + 1);
+                        setAddFilterPopoverOpen(false);
+                        onAddFilter(type);
+                        setFilterBarExpanded(true);
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
                       data-testid={`button-add-filter-${type}`}
