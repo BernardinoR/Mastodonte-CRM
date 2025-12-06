@@ -1,8 +1,23 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Task, TaskStatus, TaskPriority } from '@/types/task';
+import { 
+  Task, 
+  TaskStatus, 
+  TaskPriority,
+  FilterType,
+  TypedActiveFilter,
+  DateFilterValue,
+  FilterValueMap,
+  DEFAULT_FILTER_VALUES,
+  createTypedFilter,
+  isDateFilter,
+  isStatusFilter,
+  isPriorityFilter,
+  isTaskFilter,
+  isAssigneeFilter,
+  isClientFilter
+} from '@/types/task';
 import { parseLocalDate } from '@/lib/date-utils';
-import { startOfDay, startOfWeek, startOfMonth, subWeeks, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
-import type { DateFilterValue } from '@/components/filter-bar/DateRangeFilterContent';
+import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
 
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";
@@ -12,56 +27,27 @@ interface SortOption {
   direction: SortDirection;
 }
 
-// Dynamic filter types
-export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | "client";
-
-export interface ActiveFilter {
-  id: string;
-  type: FilterType;
-  value: string | string[] | DateFilterValue;
-}
-
 interface UseTaskFiltersReturn {
-  // View mode
   viewMode: "board" | "table";
   setViewMode: (mode: "board" | "table") => void;
   
-  // Sorting
   sorts: SortOption[];
   setSorts: (sorts: SortOption[]) => void;
   
-  // Dynamic filters
-  activeFilters: ActiveFilter[];
+  activeFilters: TypedActiveFilter[];
   addFilter: (type: FilterType) => void;
-  updateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
+  updateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   removeFilter: (id: string) => void;
   
-  // Legacy filters (for compatibility)
-  statusFilter: TaskStatus[];
-  setStatusFilter: (statuses: TaskStatus[]) => void;
-  priorityFilter: (TaskPriority | "none")[];
-  setPriorityFilter: (priorities: (TaskPriority | "none")[]) => void;
-  dateFilter: string;
-  setDateFilter: (filter: string) => void;
-  
-  // Available options for filters
   availableAssignees: string[];
   availableClients: string[];
   
-  // Reset
   resetFilters: () => void;
   
-  // Filtered and sorted results
   filteredTasks: Task[];
   todoTasks: Task[];
   inProgressTasks: Task[];
   doneTasks: Task[];
-  
-  // Legacy support
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  assigneeFilter: string;
-  setAssigneeFilter: (assignee: string) => void;
 }
 
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
@@ -84,18 +70,8 @@ const STATUS_ORDER: Record<string, number> = {
 export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
   const [viewMode, setViewMode] = useState<"board" | "table">("board");
   const [sorts, setSorts] = useState<SortOption[]>([]);
-  const [statusFilter, setStatusFilter] = useState<TaskStatus[]>(ALL_STATUSES);
-  const [priorityFilter, setPriorityFilter] = useState<(TaskPriority | "none")[]>(ALL_PRIORITIES);
-  const [dateFilter, setDateFilter] = useState("all");
-  
-  // Dynamic filters
-  const [activeFilters, setActiveFilters] = useState<ActiveFilter[]>([]);
-  
-  // Legacy filters (kept for compatibility)
-  const [searchQuery, setSearchQuery] = useState("");
-  const [assigneeFilter, setAssigneeFilter] = useState("all");
+  const [activeFilters, setActiveFilters] = useState<TypedActiveFilter[]>([]);
 
-  // Extract available assignees and clients from tasks
   const availableAssignees = useMemo(() => {
     const assignees = new Set<string>();
     tasks.forEach(task => {
@@ -112,38 +88,14 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     return Array.from(clients).sort();
   }, [tasks]);
 
-  // Dynamic filter management
   const addFilter = useCallback((type: FilterType) => {
-    const id = `${type}-${Date.now()}`;
-    let defaultValue: string | string[] | DateFilterValue = "";
-    
-    switch (type) {
-      case "date":
-        defaultValue = { type: "all" } as DateFilterValue;
-        break;
-      case "status":
-        defaultValue = [...ALL_STATUSES];
-        break;
-      case "priority":
-        defaultValue = [...ALL_PRIORITIES];
-        break;
-      case "task":
-        defaultValue = "";
-        break;
-      case "assignee":
-        defaultValue = [];
-        break;
-      case "client":
-        defaultValue = [];
-        break;
-    }
-    
-    setActiveFilters(prev => [...prev, { id, type, value: defaultValue }]);
+    const newFilter = createTypedFilter(type);
+    setActiveFilters(prev => [...prev, newFilter]);
   }, []);
 
-  const updateFilter = useCallback((id: string, value: string | string[] | DateFilterValue) => {
+  const updateFilter = useCallback(<T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => {
     setActiveFilters(prev => 
-      prev.map(f => f.id === id ? { ...f, value } : f)
+      prev.map(f => f.id === id ? { ...f, type, value } as TypedActiveFilter : f)
     );
   }, []);
 
@@ -153,163 +105,82 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
 
   const resetFilters = useCallback(() => {
     setSorts([]);
-    setStatusFilter(ALL_STATUSES);
-    setPriorityFilter(ALL_PRIORITIES);
-    setDateFilter("all");
     setActiveFilters([]);
-    setSearchQuery("");
-    setAssigneeFilter("all");
   }, []);
 
   const filteredTasks = useMemo(() => {
     const today = startOfDay(new Date());
-    const weekStart = startOfWeek(today, { weekStartsOn: 1 });
-    const monthStart = startOfMonth(today);
-    const twoWeeksAgo = subWeeks(today, 2);
-    const eightWeeksAgo = subWeeks(today, 8);
 
     let result = tasks.filter((task) => {
-      // Apply dynamic filters
       for (const filter of activeFilters) {
-        switch (filter.type) {
-          case "date": {
-            const dateFilterValue = filter.value as DateFilterValue;
-            
-            if (dateFilterValue.type === "all") {
-              break;
-            }
-            
-            const taskDate = task.dueDate ? 
-              (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
-              : null;
-            
-            if (dateFilterValue.type === "preset") {
-              switch (dateFilterValue.preset) {
-                case "today":
-                  if (!taskDate || !isSameDay(taskDate, today)) return false;
-                  break;
-                case "overdue":
-                  if (!taskDate || !isBefore(taskDate, today)) return false;
-                  break;
-                case "no-date":
-                  if (taskDate) return false;
-                  break;
-              }
-            } else if (dateFilterValue.type === "relative" || dateFilterValue.type === "range") {
-              if (dateFilterValue.startDate && dateFilterValue.endDate) {
-                const startDate = startOfDay(dateFilterValue.startDate);
-                const endDate = endOfDay(dateFilterValue.endDate);
-                
-                if (!taskDate) return false;
-                if (isBefore(taskDate, startDate) || isAfter(taskDate, endDate)) return false;
-              } else if (dateFilterValue.startDate) {
-                const startDate = startOfDay(dateFilterValue.startDate);
-                if (!taskDate || isBefore(taskDate, startDate)) return false;
-              }
-            }
-            break;
+        if (isDateFilter(filter)) {
+          const dateFilterValue = filter.value;
+          
+          if (dateFilterValue.type === "all") {
+            continue;
           }
-          case "status": {
-            const statusValues = filter.value as TaskStatus[];
-            if (statusValues.length > 0 && statusValues.length < ALL_STATUSES.length) {
-              if (!statusValues.includes(task.status)) return false;
+          
+          const taskDate = task.dueDate ? 
+            (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
+            : null;
+          
+          if (dateFilterValue.type === "preset") {
+            switch (dateFilterValue.preset) {
+              case "today":
+                if (!taskDate || !isSameDay(taskDate, today)) return false;
+                break;
+              case "overdue":
+                if (!taskDate || !isBefore(taskDate, today)) return false;
+                break;
+              case "no-date":
+                if (taskDate) return false;
+                break;
             }
-            break;
+          } else if (dateFilterValue.type === "relative" || dateFilterValue.type === "range") {
+            if (dateFilterValue.startDate && dateFilterValue.endDate) {
+              const startDate = startOfDay(dateFilterValue.startDate);
+              const endDate = endOfDay(dateFilterValue.endDate);
+              
+              if (!taskDate) return false;
+              if (isBefore(taskDate, startDate) || isAfter(taskDate, endDate)) return false;
+            } else if (dateFilterValue.startDate) {
+              const startDate = startOfDay(dateFilterValue.startDate);
+              if (!taskDate || isBefore(taskDate, startDate)) return false;
+            }
           }
-          case "priority": {
-            const priorityValues = filter.value as (TaskPriority | "none")[];
-            if (priorityValues.length > 0 && priorityValues.length < ALL_PRIORITIES.length) {
-              const taskPriority = task.priority || "none";
-              if (!priorityValues.includes(taskPriority as TaskPriority | "none")) return false;
-            }
-            break;
+        } else if (isStatusFilter(filter)) {
+          const statusValues = filter.value;
+          if (statusValues.length > 0 && statusValues.length < ALL_STATUSES.length) {
+            if (!statusValues.includes(task.status)) return false;
           }
-          case "task": {
-            const taskSearch = (filter.value as string).toLowerCase();
-            if (taskSearch) {
-              if (!task.title.toLowerCase().includes(taskSearch)) return false;
-            }
-            break;
+        } else if (isPriorityFilter(filter)) {
+          const priorityValues = filter.value;
+          if (priorityValues.length > 0 && priorityValues.length < ALL_PRIORITIES.length) {
+            const taskPriority = task.priority || "none";
+            if (!priorityValues.includes(taskPriority as TaskPriority | "none")) return false;
           }
-          case "assignee": {
-            const assigneeValues = filter.value as string[];
-            if (assigneeValues.length > 0) {
-              const hasMatch = task.assignees.some(a => assigneeValues.includes(a));
-              if (!hasMatch) return false;
-            }
-            break;
+        } else if (isTaskFilter(filter)) {
+          const taskSearch = filter.value.toLowerCase();
+          if (taskSearch) {
+            if (!task.title.toLowerCase().includes(taskSearch)) return false;
           }
-          case "client": {
-            const clientValues = filter.value as string[];
-            if (clientValues.length > 0) {
-              if (!task.clientName || !clientValues.includes(task.clientName)) return false;
-            }
-            break;
+        } else if (isAssigneeFilter(filter)) {
+          const assigneeValues = filter.value;
+          if (assigneeValues.length > 0) {
+            const hasMatch = task.assignees.some(a => assigneeValues.includes(a));
+            if (!hasMatch) return false;
+          }
+        } else if (isClientFilter(filter)) {
+          const clientValues = filter.value;
+          if (clientValues.length > 0) {
+            if (!task.clientName || !clientValues.includes(task.clientName)) return false;
           }
         }
-      }
-      
-      // Legacy status filter (for compatibility)
-      if (statusFilter.length < ALL_STATUSES.length && !statusFilter.includes(task.status)) {
-        return false;
-      }
-      
-      // Legacy priority filter (for compatibility)
-      const taskPriority = task.priority || "none";
-      if (priorityFilter.length < ALL_PRIORITIES.length && !priorityFilter.includes(taskPriority as TaskPriority | "none")) {
-        return false;
-      }
-      
-      // Legacy date filter (for compatibility)
-      if (dateFilter !== "all") {
-        const taskDate = task.dueDate ? 
-          (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
-          : null;
-        
-        switch (dateFilter) {
-          case "today":
-            if (!taskDate || !isSameDay(taskDate, today)) return false;
-            break;
-          case "week":
-            if (!taskDate || isBefore(taskDate, weekStart)) return false;
-            break;
-          case "2weeks":
-            if (!taskDate || isBefore(taskDate, twoWeeksAgo)) return false;
-            break;
-          case "month":
-            if (!taskDate || isBefore(taskDate, monthStart)) return false;
-            break;
-          case "8weeks":
-            if (!taskDate || isBefore(taskDate, eightWeeksAgo)) return false;
-            break;
-          case "overdue":
-            if (!taskDate || !isBefore(taskDate, today)) return false;
-            break;
-          case "no-date":
-            if (taskDate) return false;
-            break;
-        }
-      }
-      
-      // Legacy search filter
-      if (searchQuery) {
-        const matchesSearch = task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (task.clientName && task.clientName.toLowerCase().includes(searchQuery.toLowerCase()));
-        if (!matchesSearch) return false;
-      }
-      
-      // Legacy assignee filter
-      if (assigneeFilter !== "all") {
-        const matchesAssignee = task.assignees.some(a => 
-          a.toLowerCase().includes(assigneeFilter.toLowerCase())
-        );
-        if (!matchesAssignee) return false;
       }
       
       return true;
     });
 
-    // Apply sorting
     if (sorts.length > 0) {
       result = [...result].sort((a, b) => {
         for (const sort of sorts) {
@@ -343,11 +214,10 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     }
 
     return result;
-  }, [tasks, statusFilter, priorityFilter, dateFilter, searchQuery, assigneeFilter, sorts, activeFilters]);
+  }, [tasks, sorts, activeFilters]);
 
   const todoTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "To Do");
-    // If no sorts applied, use default order
     if (sorts.length === 0) {
       return filtered.sort((a, b) => a.order - b.order);
     }
@@ -375,31 +245,16 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     setViewMode,
     sorts,
     setSorts,
-    // Dynamic filters
     activeFilters,
     addFilter,
     updateFilter,
     removeFilter,
-    // Legacy filters (for compatibility)
-    statusFilter,
-    setStatusFilter,
-    priorityFilter,
-    setPriorityFilter,
-    dateFilter,
-    setDateFilter,
-    // Available options
     availableAssignees,
     availableClients,
-    // Reset
     resetFilters,
     filteredTasks,
     todoTasks,
     inProgressTasks,
     doneTasks,
-    // Legacy support
-    searchQuery,
-    setSearchQuery,
-    assigneeFilter,
-    setAssigneeFilter,
   };
 }

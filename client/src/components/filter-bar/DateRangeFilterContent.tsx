@@ -19,16 +19,9 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
+import type { DateFilterValue } from "@/types/task";
 
-export interface DateFilterValue {
-  type: "all" | "preset" | "relative" | "range";
-  preset?: string;
-  relativeDirection?: "past" | "future";
-  relativeAmount?: number;
-  relativeUnit?: "weeks" | "months";
-  startDate?: Date;
-  endDate?: Date;
-}
+export type { DateFilterValue };
 
 interface DateRangeFilterContentProps {
   value: DateFilterValue;

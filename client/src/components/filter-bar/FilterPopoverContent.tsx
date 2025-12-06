@@ -9,24 +9,19 @@ import {
   STATUS_OPTIONS, 
   PRIORITY_OPTIONS, 
   type TaskStatus, 
-  type TaskPriority 
+  type TaskPriority,
+  type FilterType,
+  type TypedActiveFilter,
+  type DateFilterValue,
+  type FilterValueMap
 } from "@/types/task";
-import { DateRangeFilterContent, type DateFilterValue, formatDateFilterLabel } from "./DateRangeFilterContent";
-
-export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | "client";
-
-export interface ActiveFilter {
-  id: string;
-  type: FilterType;
-  value: string | string[] | DateFilterValue;
-}
+import { DateRangeFilterContent, formatDateFilterLabel } from "./DateRangeFilterContent";
 
 export { formatDateFilterLabel };
-export type { DateFilterValue };
 
 interface FilterPopoverContentProps {
-  filter: ActiveFilter;
-  onUpdateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
+  filter: TypedActiveFilter;
+  onUpdateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   availableAssignees: string[];
   availableClients: string[];
 }
@@ -191,42 +186,44 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
   availableClients,
 }: FilterPopoverContentProps) {
   const handleDateChange = useCallback((value: DateFilterValue) => {
-    onUpdateFilter(filter.id, value);
+    onUpdateFilter(filter.id, "date", value);
   }, [filter.id, onUpdateFilter]);
 
   const handleStatusToggle = useCallback((status: TaskStatus) => {
-    const currentValues = filter.value as string[];
+    if (filter.type !== "status") return;
+    const currentValues = filter.value;
     const newValues = currentValues.includes(status)
       ? currentValues.filter(s => s !== status)
       : [...currentValues, status];
-    onUpdateFilter(filter.id, newValues);
-  }, [filter.id, filter.value, onUpdateFilter]);
+    onUpdateFilter(filter.id, "status", newValues);
+  }, [filter.id, filter.type, filter.value, onUpdateFilter]);
 
   const handlePriorityToggle = useCallback((priority: TaskPriority | "none") => {
-    const currentValues = filter.value as string[];
+    if (filter.type !== "priority") return;
+    const currentValues = filter.value;
     const newValues = currentValues.includes(priority)
       ? currentValues.filter(p => p !== priority)
       : [...currentValues, priority];
-    onUpdateFilter(filter.id, newValues);
-  }, [filter.id, filter.value, onUpdateFilter]);
+    onUpdateFilter(filter.id, "priority", newValues);
+  }, [filter.id, filter.type, filter.value, onUpdateFilter]);
 
   const handleTaskChange = useCallback((value: string) => {
-    onUpdateFilter(filter.id, value);
+    onUpdateFilter(filter.id, "task", value);
   }, [filter.id, onUpdateFilter]);
 
   const handleAssigneeChange = useCallback((newSelection: string[]) => {
-    onUpdateFilter(filter.id, newSelection);
+    onUpdateFilter(filter.id, "assignee", newSelection);
   }, [filter.id, onUpdateFilter]);
 
   const handleClientChange = useCallback((newSelection: string[]) => {
-    onUpdateFilter(filter.id, newSelection);
+    onUpdateFilter(filter.id, "client", newSelection);
   }, [filter.id, onUpdateFilter]);
 
   switch (filter.type) {
     case "date":
       return (
         <DateRangeFilterContent
-          value={(filter.value as DateFilterValue) || { type: "all" }}
+          value={filter.value || { type: "all" }}
           onChange={handleDateChange}
         />
       );
@@ -234,7 +231,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
     case "status":
       return (
         <StatusFilterContent
-          selectedValues={filter.value as string[]}
+          selectedValues={filter.value}
           onToggle={handleStatusToggle}
         />
       );
@@ -242,7 +239,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
     case "priority":
       return (
         <PriorityFilterContent
-          selectedValues={filter.value as string[]}
+          selectedValues={filter.value}
           onToggle={handlePriorityToggle}
         />
       );
@@ -250,7 +247,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
     case "task":
       return (
         <TaskFilterContent
-          value={filter.value as string}
+          value={filter.value}
           onChange={handleTaskChange}
         />
       );
@@ -259,7 +256,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
       return (
         <SearchableMultiSelect
           items={availableAssignees}
-          selectedItems={filter.value as string[]}
+          selectedItems={filter.value}
           onSelectionChange={handleAssigneeChange}
           placeholder="Buscar responsável..."
           selectedLabel="Responsável selecionado"
@@ -273,7 +270,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
       return (
         <SearchableMultiSelect
           items={availableClients}
-          selectedItems={filter.value as string[]}
+          selectedItems={filter.value}
           onSelectionChange={handleClientChange}
           placeholder="Vincule ou crie uma página..."
           selectedLabel="Cliente selecionado"

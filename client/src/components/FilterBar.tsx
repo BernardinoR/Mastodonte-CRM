@@ -21,9 +21,8 @@ import {
   FileText
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority } from "@/types/task";
-import type { FilterType, ActiveFilter } from "@/hooks/useTaskFilters";
-import { FilterPopoverContent, formatDateFilterLabel, type DateFilterValue } from "@/components/filter-bar/FilterPopoverContent";
+import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "@/types/task";
+import { FilterPopoverContent, formatDateFilterLabel } from "@/components/filter-bar/FilterPopoverContent";
 import {
   DndContext,
   closestCenter,
@@ -57,23 +56,12 @@ interface FilterBarProps {
   onViewModeChange: (mode: ViewMode) => void;
   sorts: SortOption[];
   onSortsChange: (sorts: SortOption[]) => void;
-  // Dynamic filters
-  activeFilters: ActiveFilter[];
+  activeFilters: TypedActiveFilter[];
   onAddFilter: (type: FilterType) => void;
-  onUpdateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
+  onUpdateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   onRemoveFilter: (id: string) => void;
-  // Available options
   availableAssignees: string[];
   availableClients: string[];
-  // Legacy filters (for compatibility)
-  statusFilter: TaskStatus[];
-  onStatusFilterChange: (statuses: TaskStatus[]) => void;
-  priorityFilter: (TaskPriority | "none")[];
-  onPriorityFilterChange: (priorities: (TaskPriority | "none")[]) => void;
-  dateFilter: string;
-  onDateFilterChange: (filter: string) => void;
-  searchQuery: string;
-  onSearchQueryChange: (query: string) => void;
   onReset: () => void;
   onNewTask: () => void;
 }
@@ -213,14 +201,6 @@ export function FilterBar({
   onRemoveFilter,
   availableAssignees,
   availableClients,
-  statusFilter,
-  onStatusFilterChange,
-  priorityFilter,
-  onPriorityFilterChange,
-  dateFilter,
-  onDateFilterChange,
-  searchQuery,
-  onSearchQueryChange,
   onReset,
   onNewTask,
 }: FilterBarProps) {
@@ -295,38 +275,40 @@ export function FilterBar({
     onSortsChange([]);
   }, [onSortsChange]);
 
-  const handleToggleStatus = useCallback((status: TaskStatus) => {
-    if (statusFilter.includes(status)) {
-      onStatusFilterChange(statusFilter.filter(s => s !== status));
-    } else {
-      onStatusFilterChange([...statusFilter, status]);
-    }
-  }, [statusFilter, onStatusFilterChange]);
-
-  const handleTogglePriority = useCallback((priority: TaskPriority | "none") => {
-    if (priorityFilter.includes(priority)) {
-      onPriorityFilterChange(priorityFilter.filter(p => p !== priority));
-    } else {
-      onPriorityFilterChange([...priorityFilter, priority]);
-    }
-  }, [priorityFilter, onPriorityFilterChange]);
-
   const availableSortFields = useMemo(() => {
     const usedFields = new Set(sorts.map(s => s.field));
     return (Object.keys(SORT_FIELD_LABELS) as SortField[]).filter(f => !usedFields.has(f));
   }, [sorts]);
 
+  const taskFilter = useMemo(() => {
+    const filters = activeFilters || [];
+    return filters.find(f => f.type === "task");
+  }, [activeFilters]);
+
+  const searchQuery = useMemo(() => {
+    if (taskFilter && taskFilter.type === "task") {
+      return taskFilter.value;
+    }
+    return "";
+  }, [taskFilter]);
+
   const hasActiveFilters = useMemo(() => {
     const filters = activeFilters || [];
-    return filters.length > 0 ||
-           sorts.length > 0 ||
-           searchQuery.length > 0;
-  }, [activeFilters, sorts, searchQuery]);
+    return filters.length > 0 || sorts.length > 0;
+  }, [activeFilters, sorts]);
 
   const activeFilterCount = useMemo(() => {
     const filters = activeFilters || [];
     return filters.length;
   }, [activeFilters]);
+
+  const handleSearchChange = useCallback((value: string) => {
+    if (taskFilter) {
+      onUpdateFilter(taskFilter.id, "task", value);
+    } else if (value) {
+      onAddFilter("task");
+    }
+  }, [taskFilter, onUpdateFilter, onAddFilter]);
 
   const handleSearchBlur = useCallback(() => {
     if (!searchQuery) {
@@ -335,9 +317,11 @@ export function FilterBar({
   }, [searchQuery]);
 
   const handleClearSearch = useCallback(() => {
-    onSearchQueryChange("");
+    if (taskFilter) {
+      onRemoveFilter(taskFilter.id);
+    }
     setSearchExpanded(false);
-  }, [onSearchQueryChange]);
+  }, [taskFilter, onRemoveFilter]);
 
   const handleSetSortDirection = useCallback((field: SortField, direction: SortDirection) => {
     onSortsChange(sorts.map(s => 
@@ -420,7 +404,7 @@ export function FilterBar({
             ref={searchInputRef}
             type="text"
             value={searchQuery}
-            onChange={(e) => onSearchQueryChange(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             onBlur={handleSearchBlur}
             onKeyDown={(e) => {
               if (e.key === "Escape") {

@@ -76,14 +76,6 @@ export default function Dashboard() {
     removeFilter,
     availableAssignees,
     availableClients,
-    statusFilter,
-    setStatusFilter,
-    priorityFilter,
-    setPriorityFilter,
-    dateFilter,
-    setDateFilter,
-    searchQuery,
-    setSearchQuery,
     resetFilters,
     todoTasks,
     inProgressTasks,
@@ -425,14 +417,6 @@ export default function Dashboard() {
         onRemoveFilter={removeFilter}
         availableAssignees={availableAssignees}
         availableClients={availableClients}
-        statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        priorityFilter={priorityFilter}
-        onPriorityFilterChange={setPriorityFilter}
-        dateFilter={dateFilter}
-        onDateFilterChange={setDateFilter}
-        searchQuery={searchQuery}
-        onSearchQueryChange={setSearchQuery}
         onReset={resetFilters}
         onNewTask={handleNewTaskFromFilterBar}
       />
