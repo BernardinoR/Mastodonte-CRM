@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { memo, useState, useCallback, useMemo, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -15,8 +15,7 @@ import {
   addMonths,
   subWeeks,
   subMonths,
-  isBefore,
-  isSameDay
+  isBefore
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -87,13 +86,6 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   // Custom range selection state
   const [selectionPhase, setSelectionPhase] = useState<"start" | "end">("start");
   const [pendingStartDate, setPendingStartDate] = useState<Date | null>(null);
-  
-  // Drag state for adjusting range handles
-  const [draggingHandle, setDraggingHandle] = useState<"none" | "start" | "end">("none");
-  const [dragPreviewRange, setDragPreviewRange] = useState<DateRange | null>(null);
-  // Track the fixed anchor date (the opposite handle that doesn't move)
-  const dragAnchorDateRef = useRef<Date | null>(null);
-  const ignoreNextClickRef = useRef(false);
 
   // Reset selection phase when value changes externally (preset, relative, etc.)
   useEffect(() => {
@@ -102,44 +94,6 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       setPendingStartDate(null);
     }
   }, [value.type, value.endDate]);
-
-  // Cleanup drag on window mouse up
-  useEffect(() => {
-    const handleWindowMouseUp = () => {
-      if (draggingHandle !== "none") {
-        // Mark to ignore the next click (which fires after mouseup)
-        ignoreNextClickRef.current = true;
-        
-        // Reset the flag after a short delay to handle edge cases
-        // (e.g., drag ends outside calendar, no click fires)
-        setTimeout(() => {
-          ignoreNextClickRef.current = false;
-        }, 100);
-        
-        if (dragPreviewRange && dragPreviewRange.from && dragPreviewRange.to) {
-          // Finalize the drag - always use from/to which are already normalized
-          onChange({
-            type: "range",
-            startDate: startOfDay(dragPreviewRange.from),
-            endDate: endOfDay(dragPreviewRange.to),
-          });
-        }
-        setDraggingHandle("none");
-        setDragPreviewRange(null);
-        dragAnchorDateRef.current = null;
-        setSelectionPhase("start");
-      }
-    };
-
-    if (draggingHandle !== "none") {
-      window.addEventListener("mouseup", handleWindowMouseUp);
-      window.addEventListener("touchend", handleWindowMouseUp);
-      return () => {
-        window.removeEventListener("mouseup", handleWindowMouseUp);
-        window.removeEventListener("touchend", handleWindowMouseUp);
-      };
-    }
-  }, [draggingHandle, dragPreviewRange, onChange]);
 
   useEffect(() => {
     if (value.type === "relative") {
@@ -227,76 +181,8 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     });
   }, [onChange, relativeDirection, relativeAmount]);
 
-  // Check if a day element is the start or end handle
-  const isDayStartHandle = useCallback((dayButton: HTMLElement, day: Date): boolean => {
-    if (!value.startDate) return false;
-    return isSameDay(day, value.startDate);
-  }, [value.startDate]);
-
-  const isDayEndHandle = useCallback((dayButton: HTMLElement, day: Date): boolean => {
-    if (!value.endDate) return false;
-    return isSameDay(day, value.endDate);
-  }, [value.endDate]);
-
-  // Handle mouse down on calendar days to start drag
-  const handleDayMouseDown = useCallback((day: Date, e: React.MouseEvent) => {
-    // Only allow drag when we have a complete range
-    if (value.type !== "range" || !value.startDate || !value.endDate) return;
-    
-    const target = e.target as HTMLElement;
-    const dayButton = target.closest("button");
-    if (!dayButton) return;
-
-    if (isDayStartHandle(dayButton, day)) {
-      e.preventDefault();
-      setDraggingHandle("start");
-      // The anchor is the OPPOSITE handle (the one that stays fixed)
-      dragAnchorDateRef.current = value.endDate;
-      setDragPreviewRange({ from: value.startDate, to: value.endDate });
-    } else if (isDayEndHandle(dayButton, day)) {
-      e.preventDefault();
-      setDraggingHandle("end");
-      // The anchor is the OPPOSITE handle (the one that stays fixed)
-      dragAnchorDateRef.current = value.startDate;
-      setDragPreviewRange({ from: value.startDate, to: value.endDate });
-    }
-  }, [value, isDayStartHandle, isDayEndHandle]);
-
-  // Handle mouse enter on days during drag
-  const handleDayMouseEnter = useCallback((day: Date) => {
-    if (draggingHandle === "none" || !dragAnchorDateRef.current) return;
-
-    const anchorDate = dragAnchorDateRef.current;
-    let newFrom: Date;
-    let newTo: Date;
-
-    // The cursor position (day) is one bound, the anchor is the other
-    // Always normalize so from <= to
-    if (isBefore(day, anchorDate)) {
-      newFrom = day;
-      newTo = anchorDate;
-    } else if (isSameDay(day, anchorDate)) {
-      newFrom = day;
-      newTo = day;
-    } else {
-      newFrom = anchorDate;
-      newTo = day;
-    }
-
-    setDragPreviewRange({ from: newFrom, to: newTo });
-  }, [draggingHandle]);
-
   // Custom day click handler for two-click selection
   const handleDayClick = useCallback((day: Date) => {
-    // Ignore clicks that are part of a drag operation
-    if (draggingHandle !== "none") return;
-    
-    // Ignore the click that fires right after drag release
-    if (ignoreNextClickRef.current) {
-      ignoreNextClickRef.current = false;
-      return;
-    }
-
     if (selectionPhase === "start") {
       // First click: set start date locally and in value, clear end date
       const newStartDate = startOfDay(day);
@@ -327,7 +213,7 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
       setSelectionPhase("start");
       setPendingStartDate(null);
     }
-  }, [draggingHandle, selectionPhase, pendingStartDate, value.startDate, onChange]);
+  }, [selectionPhase, pendingStartDate, value.startDate, onChange]);
 
   const getDisplayText = () => {
     if (value.type === "range" && value.startDate) {
@@ -439,59 +325,21 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
         <div className="pt-1">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            {draggingHandle !== "none" 
-              ? "Arraste para ajustar o range"
-              : selectionPhase === "start" 
-                ? "Clique para selecionar a data inicial" 
-                : "Clique para selecionar a data final"}
+            {selectionPhase === "start" 
+              ? "Clique para selecionar a data inicial" 
+              : "Clique para selecionar a data final"}
           </div>
-          <div 
-            className={cn("flex justify-center select-none", draggingHandle !== "none" && "cursor-grabbing")}
-          >
+          <div className="flex justify-center">
           <Calendar
             mode="range"
-            selected={dragPreviewRange || dateRange}
+            selected={dateRange}
             onDayClick={handleDayClick}
-            onDayMouseEnter={handleDayMouseEnter}
             locale={ptBR}
             className="p-2"
-            modifiers={{
-              draggableStart: value.type === "range" && value.startDate && value.endDate ? [value.startDate] : [],
-              draggableEnd: value.type === "range" && value.startDate && value.endDate ? [value.endDate] : [],
-            }}
-            modifiersClassNames={{
-              draggableStart: "cursor-grab",
-              draggableEnd: "cursor-grab",
-            }}
             classNames={{
               day_range_start: "bg-blue-500 text-white rounded-l-full rounded-r-none",
               day_range_end: "bg-blue-500 text-white rounded-r-full rounded-l-none",
               day_range_middle: "bg-blue-500/30 text-white rounded-none",
-            }}
-            components={{
-              Day: ({ date, ...props }) => {
-                const { 
-                  children, 
-                  onMouseDown: originalOnMouseDown, 
-                  displayMonth: _displayMonth, // Filter out non-DOM prop
-                  ...restProps 
-                } = props as React.HTMLAttributes<HTMLButtonElement> & { 
-                  displayMonth: Date;
-                  children: React.ReactNode;
-                  onMouseDown?: React.MouseEventHandler<HTMLButtonElement>;
-                };
-                return (
-                  <button
-                    {...restProps}
-                    onMouseDown={(e) => {
-                      handleDayMouseDown(date, e);
-                      originalOnMouseDown?.(e);
-                    }}
-                  >
-                    {children}
-                  </button>
-                );
-              },
             }}
           />
           </div>
