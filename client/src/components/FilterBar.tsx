@@ -24,7 +24,7 @@ import {
   Clock,
   CalendarRange
 } from "lucide-react";
-import { addDays, addWeeks, addMonths, startOfDay } from "date-fns";
+import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "@/types/task";
 import { FilterPopoverContent, formatDateFilterLabel } from "@/components/filter-bar/FilterPopoverContent";
@@ -98,6 +98,7 @@ interface FilterPreset {
   icon: typeof Calendar;
   sorts: SortOption[];
   getDateFilter: () => DateFilterValue;
+  getStatusFilter?: () => TaskStatus[];
   matchTask: (task: { dueDate: Date; status: string }) => boolean;
 }
 
@@ -106,7 +107,7 @@ const FILTER_PRESETS: FilterPreset[] = [
     id: "work",
     label: "Work",
     shortLabel: "W",
-    description: "3 meses atrás até hoje",
+    description: "2 semanas atrás até hoje",
     icon: BriefcaseIcon,
     sorts: [
       { field: "priority", direction: "asc" },
@@ -114,22 +115,22 @@ const FILTER_PRESETS: FilterPreset[] = [
     ],
     getDateFilter: () => ({
       type: "range",
-      startDate: addMonths(startOfDay(new Date()), -3),
+      startDate: addWeeks(startOfDay(new Date()), -2),
       endDate: startOfDay(new Date()),
     }),
     matchTask: (task) => {
       const today = startOfDay(new Date());
-      const threeMonthsAgo = addMonths(today, -3);
+      const twoWeeksAgo = addWeeks(today, -2);
       const taskDate = task.dueDate ? startOfDay(new Date(task.dueDate)) : null;
       if (!taskDate) return false;
-      return taskDate >= threeMonthsAgo && taskDate <= today;
+      return taskDate >= twoWeeksAgo && taskDate <= today;
     },
   },
   {
     id: "overdue",
     label: "Atrasadas",
     shortLabel: "A",
-    description: "Tarefas vencidas",
+    description: "Vencidas (To Do + In Progress)",
     icon: Clock,
     sorts: [
       { field: "priority", direction: "asc" },
@@ -139,11 +140,12 @@ const FILTER_PRESETS: FilterPreset[] = [
       type: "preset",
       preset: "overdue",
     }),
+    getStatusFilter: () => ["To Do", "In Progress"] as TaskStatus[],
     matchTask: (task) => {
       const today = startOfDay(new Date());
       const taskDate = task.dueDate ? startOfDay(new Date(task.dueDate)) : null;
       if (!taskDate) return false;
-      return taskDate < today && task.status !== "Done";
+      return taskDate < today && (task.status === "To Do" || task.status === "In Progress");
     },
   },
   {
@@ -453,6 +455,10 @@ export function FilterBar({
     onSortsChange(preset.sorts);
     // Apply date filter with freshly computed value (avoids stale dates)
     onAddFilter("date", preset.getDateFilter());
+    // Apply status filter if preset has one
+    if (preset.getStatusFilter) {
+      onAddFilter("status", preset.getStatusFilter());
+    }
     // Set active preset
     onActivePresetChange(preset.id);
     // Close popover (don't expand filter bar when preset is active)
