@@ -139,28 +139,17 @@ const PriorityFilterContent = memo(function PriorityFilterContent({
   onToggle,
 }: {
   selectedValues: string[];
-  onToggle: (priority: TaskPriority | "none") => void;
+  onToggle: (priority: TaskPriority) => void;
 }) {
-  const allPriorities: (TaskPriority | "none")[] = ["none", ...PRIORITY_OPTIONS];
-  
   const selectedPriorities = useMemo(() => 
-    allPriorities.filter(p => selectedValues.includes(p)),
+    PRIORITY_OPTIONS.filter(p => selectedValues.includes(p)),
     [selectedValues]
   );
   
   const unselectedPriorities = useMemo(() => 
-    allPriorities.filter(p => !selectedValues.includes(p)),
+    PRIORITY_OPTIONS.filter(p => !selectedValues.includes(p)),
     [selectedValues]
   );
-
-  const renderPriorityItem = (priority: TaskPriority | "none") => {
-    if (priority === "none") {
-      return (
-        <span className="text-sm text-gray-400 px-2 py-0.5">Sem prioridade</span>
-      );
-    }
-    return <PriorityBadge priority={priority} size="sm" dotSize="md" />;
-  };
 
   return (
     <div className="w-full">
@@ -177,9 +166,9 @@ const PriorityFilterContent = memo(function PriorityFilterContent({
                     "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
                     UI_CLASSES.selectedItem
                   )}
-                  data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
+                  data-testid={`option-filter-priority-${priority.toLowerCase()}`}
                 >
-                  {renderPriorityItem(priority)}
+                  <PriorityBadge priority={priority} size="sm" dotSize="md" />
                   <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
                 </div>
               ))}
@@ -199,9 +188,9 @@ const PriorityFilterContent = memo(function PriorityFilterContent({
                 key={priority}
                 onClick={() => onToggle(priority)}
                 className={UI_CLASSES.dropdownItem}
-                data-testid={`option-filter-priority-${priority === "none" ? "none" : priority.toLowerCase()}`}
+                data-testid={`option-filter-priority-${priority.toLowerCase()}`}
               >
-                {renderPriorityItem(priority)}
+                <PriorityBadge priority={priority} size="sm" dotSize="md" />
               </div>
             ))}
           </div>
