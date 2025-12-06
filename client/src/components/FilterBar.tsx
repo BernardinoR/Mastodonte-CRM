@@ -759,15 +759,20 @@ export function FilterBar({
                       onClick={(e) => {
                         e.stopPropagation();
                         e.preventDefault();
+                        // Set flag BEFORE any state changes to block all reopening attempts
                         isClosingFilterPopoverRef.current = true;
                         // Blur the trigger to prevent focus-restore from reopening the popover
                         addFilterTriggerRef.current?.blur();
-                        onAddFilter(type);
-                        setAddFilterPopoverOpen(false);
-                        setFilterBarExpanded(true);
+                        // Use requestAnimationFrame to ensure UI updates happen in next frame
+                        requestAnimationFrame(() => {
+                          setAddFilterPopoverOpen(false);
+                          onAddFilter(type);
+                          setFilterBarExpanded(true);
+                        });
+                        // Extended cooldown period to ensure no reopening
                         setTimeout(() => {
                           isClosingFilterPopoverRef.current = false;
-                        }, 100);
+                        }, 300);
                       }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
                       data-testid={`button-add-filter-${type}`}
