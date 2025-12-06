@@ -23,7 +23,7 @@ import {
 import { cn } from "@/lib/utils";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority } from "@/types/task";
 import type { FilterType, ActiveFilter } from "@/hooks/useTaskFilters";
-import { FilterPopoverContent, DATE_FILTER_OPTIONS } from "@/components/filter-bar/FilterPopoverContent";
+import { FilterPopoverContent, formatDateFilterLabel, type DateFilterValue } from "@/components/filter-bar/FilterPopoverContent";
 import {
   DndContext,
   closestCenter,
@@ -60,7 +60,7 @@ interface FilterBarProps {
   // Dynamic filters
   activeFilters: ActiveFilter[];
   onAddFilter: (type: FilterType) => void;
-  onUpdateFilter: (id: string, value: string | string[]) => void;
+  onUpdateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
   onRemoveFilter: (id: string) => void;
   // Available options
   availableAssignees: string[];
@@ -606,9 +606,8 @@ export function FilterBar({
             const getFilterLabel = () => {
               switch (filter.type) {
                 case "date":
-                  const dateValue = filter.value as string;
-                  if (dateValue === "all") return config.label;
-                  return DATE_FILTER_OPTIONS.find(o => o.value === dateValue)?.label || config.label;
+                  const dateValue = filter.value as DateFilterValue;
+                  return formatDateFilterLabel(dateValue);
                 case "status":
                   const statusValues = filter.value as TaskStatus[];
                   if (statusValues.length === STATUS_OPTIONS.length) return config.label;
@@ -635,7 +634,8 @@ export function FilterBar({
             const hasValue = () => {
               switch (filter.type) {
                 case "date":
-                  return (filter.value as string) !== "all";
+                  const dateVal = filter.value as DateFilterValue;
+                  return dateVal && dateVal.type !== "all";
                 case "status":
                   return (filter.value as string[]).length < STATUS_OPTIONS.length;
                 case "priority":

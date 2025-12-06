@@ -1,72 +1,35 @@
 import { memo, useCallback, useMemo } from "react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
-import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
+import { UI_CLASSES } from "@/lib/statusConfig";
 import { StatusBadge, PriorityBadge } from "@/components/ui/task-badges";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { 
   STATUS_OPTIONS, 
   PRIORITY_OPTIONS, 
-  STATUS_LABELS, 
-  PRIORITY_LABELS,
   type TaskStatus, 
   type TaskPriority 
 } from "@/types/task";
+import { DateRangeFilterContent, type DateFilterValue, formatDateFilterLabel } from "./DateRangeFilterContent";
 
 export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | "client";
 
 export interface ActiveFilter {
   id: string;
   type: FilterType;
-  value: string | string[];
+  value: string | string[] | DateFilterValue;
 }
 
-export const DATE_FILTER_OPTIONS = [
-  { value: "all", label: "Todas as datas" },
-  { value: "today", label: "Hoje" },
-  { value: "week", label: "Esta semana" },
-  { value: "2weeks", label: "Últimas 2 semanas" },
-  { value: "month", label: "Este mês" },
-  { value: "8weeks", label: "Últimas 8 semanas" },
-  { value: "overdue", label: "Atrasadas" },
-  { value: "no-date", label: "Sem data" },
-] as const;
+export { formatDateFilterLabel };
+export type { DateFilterValue };
 
 interface FilterPopoverContentProps {
   filter: ActiveFilter;
-  onUpdateFilter: (id: string, value: string | string[]) => void;
+  onUpdateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
   availableAssignees: string[];
   availableClients: string[];
 }
-
-const DateFilterContent = memo(function DateFilterContent({
-  value,
-  onSelect,
-}: {
-  value: string;
-  onSelect: (value: string) => void;
-}) {
-  return (
-    <>
-      {DATE_FILTER_OPTIONS.map((option) => (
-        <button
-          key={option.value}
-          onClick={() => onSelect(option.value)}
-          className={`w-full flex items-center gap-2 px-3 py-2 text-sm rounded transition-colors cursor-pointer ${
-            value === option.value
-              ? "bg-[#2a2a2a] text-white"
-              : "text-gray-300 hover:bg-[#2a2a2a]"
-          }`}
-          data-testid={`option-filter-date-${option.value}`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </>
-  );
-});
 
 const StatusFilterContent = memo(function StatusFilterContent({
   selectedValues,
@@ -227,7 +190,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
   availableAssignees,
   availableClients,
 }: FilterPopoverContentProps) {
-  const handleDateSelect = useCallback((value: string) => {
+  const handleDateChange = useCallback((value: DateFilterValue) => {
     onUpdateFilter(filter.id, value);
   }, [filter.id, onUpdateFilter]);
 
@@ -262,9 +225,9 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
   switch (filter.type) {
     case "date":
       return (
-        <DateFilterContent
-          value={filter.value as string}
-          onSelect={handleDateSelect}
+        <DateRangeFilterContent
+          value={(filter.value as DateFilterValue) || { type: "all" }}
+          onChange={handleDateChange}
         />
       );
     

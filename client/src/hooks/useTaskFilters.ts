@@ -1,7 +1,8 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Task, TaskStatus, TaskPriority } from '@/types/task';
 import { parseLocalDate } from '@/lib/date-utils';
-import { startOfDay, startOfWeek, startOfMonth, subWeeks, isBefore, isAfter, isSameDay } from 'date-fns';
+import { startOfDay, startOfWeek, startOfMonth, subWeeks, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
+import type { DateFilterValue } from '@/components/filter-bar/DateRangeFilterContent';
 
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";
@@ -17,7 +18,7 @@ export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | 
 export interface ActiveFilter {
   id: string;
   type: FilterType;
-  value: string | string[];
+  value: string | string[] | DateFilterValue;
 }
 
 interface UseTaskFiltersReturn {
@@ -32,7 +33,7 @@ interface UseTaskFiltersReturn {
   // Dynamic filters
   activeFilters: ActiveFilter[];
   addFilter: (type: FilterType) => void;
-  updateFilter: (id: string, value: string | string[]) => void;
+  updateFilter: (id: string, value: string | string[] | DateFilterValue) => void;
   removeFilter: (id: string) => void;
   
   // Legacy filters (for compatibility)
@@ -114,11 +115,11 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
   // Dynamic filter management
   const addFilter = useCallback((type: FilterType) => {
     const id = `${type}-${Date.now()}`;
-    let defaultValue: string | string[] = "";
+    let defaultValue: string | string[] | DateFilterValue = "";
     
     switch (type) {
       case "date":
-        defaultValue = "all";
+        defaultValue = { type: "all" } as DateFilterValue;
         break;
       case "status":
         defaultValue = [...ALL_STATUSES];
@@ -140,7 +141,7 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
     setActiveFilters(prev => [...prev, { id, type, value: defaultValue }]);
   }, []);
 
-  const updateFilter = useCallback((id: string, value: string | string[]) => {
+  const updateFilter = useCallback((id: string, value: string | string[] | DateFilterValue) => {
     setActiveFilters(prev => 
       prev.map(f => f.id === id ? { ...f, value } : f)
     );
@@ -172,27 +173,20 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
       for (const filter of activeFilters) {
         switch (filter.type) {
           case "date": {
-            const dateValue = filter.value as string;
-            if (dateValue !== "all") {
-              const taskDate = task.dueDate ? 
-                (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
-                : null;
-              
-              switch (dateValue) {
+            const dateFilterValue = filter.value as DateFilterValue;
+            
+            if (dateFilterValue.type === "all") {
+              break;
+            }
+            
+            const taskDate = task.dueDate ? 
+              (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
+              : null;
+            
+            if (dateFilterValue.type === "preset") {
+              switch (dateFilterValue.preset) {
                 case "today":
                   if (!taskDate || !isSameDay(taskDate, today)) return false;
-                  break;
-                case "week":
-                  if (!taskDate || isBefore(taskDate, weekStart)) return false;
-                  break;
-                case "2weeks":
-                  if (!taskDate || isBefore(taskDate, twoWeeksAgo)) return false;
-                  break;
-                case "month":
-                  if (!taskDate || isBefore(taskDate, monthStart)) return false;
-                  break;
-                case "8weeks":
-                  if (!taskDate || isBefore(taskDate, eightWeeksAgo)) return false;
                   break;
                 case "overdue":
                   if (!taskDate || !isBefore(taskDate, today)) return false;
@@ -200,6 +194,17 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
                 case "no-date":
                   if (taskDate) return false;
                   break;
+              }
+            } else if (dateFilterValue.type === "relative" || dateFilterValue.type === "range") {
+              if (dateFilterValue.startDate && dateFilterValue.endDate) {
+                const startDate = startOfDay(dateFilterValue.startDate);
+                const endDate = endOfDay(dateFilterValue.endDate);
+                
+                if (!taskDate) return false;
+                if (isBefore(taskDate, startDate) || isAfter(taskDate, endDate)) return false;
+              } else if (dateFilterValue.startDate) {
+                const startDate = startOfDay(dateFilterValue.startDate);
+                if (!taskDate || isBefore(taskDate, startDate)) return false;
               }
             }
             break;
