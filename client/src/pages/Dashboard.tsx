@@ -19,9 +19,7 @@ import {
 import { 
   SortableContext, 
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
 import { useTaskHistory } from "@/hooks/useTaskHistory";
@@ -31,31 +29,6 @@ import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
 
 const COLUMN_IDS = ["To Do", "In Progress", "Done"] as const;
-
-// Sortable placeholder component for cross-column drops
-// Defined outside of Dashboard to avoid recreating on every render
-function SortablePlaceholder({ id }: { id: string }) {
-  const { 
-    setNodeRef, 
-    transform, 
-    transition,
-  } = useSortable({ id });
-  
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    height: '5rem', // Fixed height to avoid visual jumps
-  };
-  
-  return (
-    <div 
-      ref={setNodeRef}
-      style={style}
-      className="rounded-lg border-2 border-dashed border-blue-500/40 bg-blue-500/5 pointer-events-none"
-    />
-  );
-}
-
 const TASKS_PER_PAGE = 25;
 
 export default function Dashboard() {
@@ -110,7 +83,7 @@ export default function Dashboard() {
   const {
     activeTaskId,
     overColumnId,
-    crossColumnPlaceholder,
+    dropIndicator,
     todoTaskIds,
     inProgressTaskIds,
     doneTaskIds,
@@ -352,12 +325,18 @@ export default function Dashboard() {
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
 
-  // Helper to render tasks with placeholder at correct position for cross-column drag
+  // CSS-based drop indicator line component
+  const DropIndicatorLine = () => (
+    <div className="h-1 bg-blue-500 rounded-full my-1 shadow-[0_0_8px_rgba(59,130,246,0.5)]" />
+  );
+
+  // Helper to render tasks with CSS drop indicator for cross-column drag
   const renderTasksWithPlaceholder = (
     columnTasks: Task[],
     columnStatus: TaskStatus
   ) => {
-    const showPlaceholder = crossColumnPlaceholder?.targetStatus === columnStatus;
+    // Use state-based indicator - only updates when position actually changes
+    const showIndicator = dropIndicator?.targetStatus === columnStatus;
     const visibleCount = visibleCounts[columnStatus];
     const visibleTasks = columnTasks.slice(0, visibleCount);
     const hiddenCount = columnTasks.length - visibleTasks.length;
@@ -398,7 +377,7 @@ export default function Dashboard() {
       </button>
     ) : null;
     
-    if (!showPlaceholder) {
+    if (!showIndicator || !dropIndicator) {
       return (
         <>
           {visibleTasks.map(renderTaskCard)}
@@ -407,21 +386,20 @@ export default function Dashboard() {
       );
     }
 
-    const { insertIndex } = crossColumnPlaceholder;
-    const placeholderId = `__placeholder__${columnStatus}`;
+    const { insertIndex } = dropIndicator;
     const elements: JSX.Element[] = [];
     
     visibleTasks.forEach((task, index) => {
-      // Insert placeholder before this task if at the right index
+      // Insert indicator line before this task if at the right index
       if (index === insertIndex) {
-        elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
+        elements.push(<DropIndicatorLine key="drop-indicator" />);
       }
       elements.push(renderTaskCard(task));
     });
     
     // Insert at end if insertIndex is at or beyond the visible tasks
     if (insertIndex >= visibleTasks.length) {
-      elements.push(<SortablePlaceholder key={placeholderId} id={placeholderId} />);
+      elements.push(<DropIndicatorLine key="drop-indicator" />);
     }
     
     // Add load more button at the end
