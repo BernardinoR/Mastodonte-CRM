@@ -40,16 +40,20 @@ export interface UseTurboModeReturn {
 export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [isActive, setIsActive] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [timerSeconds, setTimerSeconds] = useState(POMODORO_DURATION);
   const [timerRunning, setTimerRunning] = useState(false);
   const [actionPerformed, setActionPerformed] = useState(false);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [completedInSession, setCompletedInSession] = useState(0);
   
-  // Use timestamp-based timer that works even when tab is in background
-  const timerStartTimeRef = useRef<number | null>(null);
-  const timerRemainingRef = useRef<number>(POMODORO_DURATION);
+  // Timestamp-based timer state
+  // remainingSeconds is the authoritative remaining time (updated on tick and pause)
+  const [remainingSeconds, setRemainingSeconds] = useState(POMODORO_DURATION);
+  // Reference to when the timer was last started/resumed
+  const timerStartTimeRef = useRef<number>(0);
+  // Reference to remaining seconds at the moment timer was started
+  const remainingAtStartRef = useRef<number>(POMODORO_DURATION);
   const timerIntervalRef = useRef<number | null>(null);
+  const animationTimeoutRef = useRef<number | null>(null);
 
   const sortedTasks = useMemo(() => {
     const eligibleTasks = tasks.filter(
@@ -158,24 +162,21 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       return;
     }
 
-    // Store when timer started and remaining time
-    timerStartTimeRef.current = Date.now();
-    timerRemainingRef.current = timerSeconds;
-
     const updateTimer = () => {
-      if (!timerStartTimeRef.current) return;
-      
       const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
-      const remaining = Math.max(0, timerRemainingRef.current - elapsed);
+      const remaining = Math.max(0, remainingAtStartRef.current - elapsed);
       
-      setTimerSeconds(remaining);
+      setRemainingSeconds(remaining);
       
       if (remaining <= 0) {
         setTimerRunning(false);
       }
     };
 
-    // Update immediately and then every second
+    // Update immediately
+    updateTimer();
+    
+    // Then update every second
     timerIntervalRef.current = window.setInterval(updateTimer, 1000);
 
     return () => {
@@ -186,11 +187,21 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     };
   }, [timerRunning]);
 
+  // Cleanup animation timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (animationTimeoutRef.current) {
+        clearTimeout(animationTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const startTurboMode = useCallback(() => {
     setIsActive(true);
     setCurrentIndex(0);
-    setTimerSeconds(POMODORO_DURATION);
-    timerRemainingRef.current = POMODORO_DURATION;
+    setRemainingSeconds(POMODORO_DURATION);
+    remainingAtStartRef.current = POMODORO_DURATION;
+    timerStartTimeRef.current = Date.now();
     setTimerRunning(true);
     setActionPerformed(false);
     setCompletedInSession(0);
@@ -203,6 +214,9 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+    }
   }, []);
 
   const goToNext = useCallback(() => {
@@ -210,15 +224,9 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       if (actionPerformed) {
         setCompletedInSession((prev) => prev + 1);
       }
-      setShowCompletionAnimation(actionPerformed);
       setCurrentIndex((prev) => prev + 1);
       setActionPerformed(false);
-      
-      if (actionPerformed) {
-        setTimeout(() => {
-          setShowCompletionAnimation(false);
-        }, 1500);
-      }
+      // Don't toggle animation here - it's controlled by markActionPerformed only
     }
   }, [currentIndex, sortedTasks.length, actionPerformed]);
 
@@ -226,14 +234,20 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     if (currentIndex > 0) {
       setCurrentIndex((prev) => prev - 1);
       setActionPerformed(false);
-      setShowCompletionAnimation(false);
     }
   }, [currentIndex]);
 
   const markActionPerformed = useCallback(() => {
     setActionPerformed(true);
     setShowCompletionAnimation(true);
-    setTimeout(() => {
+    
+    // Clear any existing timeout
+    if (animationTimeoutRef.current) {
+      clearTimeout(animationTimeoutRef.current);
+    }
+    
+    // Hide animation after 2 seconds
+    animationTimeoutRef.current = window.setTimeout(() => {
       setShowCompletionAnimation(false);
     }, 2000);
   }, []);
@@ -243,24 +257,26 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   }, []);
 
   const startTimer = useCallback(() => {
-    timerRemainingRef.current = timerSeconds;
+    // Store current remaining as the starting point
+    remainingAtStartRef.current = remainingSeconds;
     timerStartTimeRef.current = Date.now();
     setTimerRunning(true);
-  }, [timerSeconds]);
+  }, [remainingSeconds]);
 
   const pauseTimer = useCallback(() => {
-    // Store remaining time before pausing
-    if (timerStartTimeRef.current) {
+    if (timerRunning) {
+      // Calculate actual remaining and update state
       const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
-      timerRemainingRef.current = Math.max(0, timerRemainingRef.current - elapsed);
-      setTimerSeconds(timerRemainingRef.current);
+      const remaining = Math.max(0, remainingAtStartRef.current - elapsed);
+      setRemainingSeconds(remaining);
+      remainingAtStartRef.current = remaining;
     }
     setTimerRunning(false);
-  }, []);
+  }, [timerRunning]);
 
   const resetTimer = useCallback(() => {
-    setTimerSeconds(POMODORO_DURATION);
-    timerRemainingRef.current = POMODORO_DURATION;
+    setRemainingSeconds(POMODORO_DURATION);
+    remainingAtStartRef.current = POMODORO_DURATION;
     setTimerRunning(false);
   }, []);
 
@@ -274,7 +290,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     state: {
       isActive,
       currentIndex,
-      timerSeconds,
+      timerSeconds: remainingSeconds,
       timerRunning,
       actionPerformed,
       showCompletionAnimation,

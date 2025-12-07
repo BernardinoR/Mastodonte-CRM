@@ -176,58 +176,60 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         </div>
       </div>
 
-      {/* Navigation arrows on the sides - positioned next to the modal */}
-      <div className="fixed inset-0 z-[150] pointer-events-none flex items-center justify-between px-4">
-        {/* Left arrow */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={goToPrevious}
-          disabled={isFirstTask}
-          className={cn(
-            "pointer-events-auto h-14 w-14 rounded-full bg-background/90 backdrop-blur-sm shadow-lg border-2",
-            "hover:bg-background hover:scale-105 transition-all duration-200",
-            isFirstTask && "opacity-30 cursor-not-allowed"
-          )}
-          data-testid="button-turbo-prev"
-        >
-          <ChevronLeft className="w-7 h-7" />
-        </Button>
-        
-        {/* Right arrow */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={goToNext}
-          disabled={isLastTask}
-          className={cn(
-            "pointer-events-auto h-14 w-14 rounded-full bg-background/90 backdrop-blur-sm shadow-lg border-2",
-            "hover:bg-background hover:scale-105 transition-all duration-200",
-            isLastTask && "opacity-30 cursor-not-allowed"
-          )}
-          data-testid="button-turbo-next"
-        >
-          <ChevronRight className="w-7 h-7" />
-        </Button>
-      </div>
+      {/* Navigation arrows on the sides - z-index above radix dialog (z-50) */}
+      {/* Left arrow - fixed to left edge */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToPrevious}
+        disabled={isFirstTask}
+        className={cn(
+          "fixed left-4 top-1/2 -translate-y-1/2 z-[100] h-14 w-14 rounded-full",
+          "bg-background/95 backdrop-blur-sm shadow-lg border-2",
+          "hover:bg-background hover:scale-105 transition-all duration-200",
+          isFirstTask && "opacity-30 cursor-not-allowed"
+        )}
+        data-testid="button-turbo-prev"
+      >
+        <ChevronLeft className="w-7 h-7" />
+      </Button>
+      
+      {/* Right arrow - fixed to right edge */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={goToNext}
+        disabled={isLastTask}
+        className={cn(
+          "fixed right-4 top-1/2 -translate-y-1/2 z-[100] h-14 w-14 rounded-full",
+          "bg-background/95 backdrop-blur-sm shadow-lg border-2",
+          "hover:bg-background hover:scale-105 transition-all duration-200",
+          isLastTask && "opacity-30 cursor-not-allowed"
+        )}
+        data-testid="button-turbo-next"
+      >
+        <ChevronRight className="w-7 h-7" />
+      </Button>
 
       {/* Completion animation - green left sidebar + center message */}
       {showCompletionAnimation && (
         <>
           {/* Green left sidebar indicator */}
           <div 
-            className="fixed left-0 top-0 bottom-0 w-2 z-[250] bg-emerald-500 animate-pulse"
+            className="fixed left-0 top-0 bottom-0 w-2 z-[250] bg-emerald-500"
             style={{
               boxShadow: "0 0 20px 5px rgba(16, 185, 129, 0.5)",
+              animation: "pulse 1s ease-in-out infinite",
             }}
           />
           
           {/* Center completion message */}
           <div className="fixed inset-0 z-[245] pointer-events-none flex items-center justify-center">
             <div 
-              className="flex items-center gap-3 px-6 py-4 rounded-xl bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 animate-bounce"
+              className="flex items-center gap-3 px-6 py-4 rounded-xl bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30"
               style={{
                 boxShadow: "0 0 30px 10px rgba(16, 185, 129, 0.2)",
+                animation: "bounce 0.6s ease-in-out",
               }}
             >
               <CheckCircle2 className="w-8 h-8 text-emerald-500" />
@@ -237,7 +239,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         </>
       )}
 
-      {/* Green indicator when action was performed (persistent until next task) */}
+      {/* Persistent green indicator when action was performed (only when animation is not showing) */}
       {actionPerformed && !showCompletionAnimation && (
         <div 
           className="fixed left-0 top-0 bottom-0 w-1 z-[250] bg-emerald-500/70"
