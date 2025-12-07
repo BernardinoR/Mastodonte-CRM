@@ -189,40 +189,52 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         </div>
       </div>
 
-      {/* Navigation arrows on the sides - z-index above radix dialog (z-50) */}
-      {/* Left arrow - fixed to left edge */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={goToPrevious}
-        disabled={isFirstTask}
-        className={cn(
-          "fixed left-4 top-1/2 -translate-y-1/2 z-[100] h-14 w-14 rounded-full",
-          "bg-background/95 backdrop-blur-sm shadow-lg border-2",
-          "hover:bg-background hover:scale-105 transition-all duration-200",
-          isFirstTask && "opacity-30 cursor-not-allowed"
-        )}
-        data-testid="button-turbo-prev"
+      {/* Navigation arrows suspended next to the modal card */}
+      {/* Modal is max-w-[1200px] w-[90vw], so gap = (100vw - modalWidth)/2 */}
+      {/* Arrow positioned at: gap - buttonWidth(3rem) - spacing(0.75rem) */}
+      {/* Left arrow - positioned just outside the modal left edge */}
+      <div 
+        className="fixed top-1/2 -translate-y-1/2 z-[100]"
+        style={{ left: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
       >
-        <ChevronLeft className="w-7 h-7" />
-      </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={goToPrevious}
+          disabled={isFirstTask}
+          className={cn(
+            "h-12 w-12 rounded-full",
+            "bg-background/95 backdrop-blur-sm shadow-xl border-2",
+            "hover:bg-background hover:scale-110 transition-all duration-200",
+            isFirstTask && "opacity-30 cursor-not-allowed"
+          )}
+          data-testid="button-turbo-prev"
+        >
+          <ChevronLeft className="w-6 h-6" />
+        </Button>
+      </div>
       
-      {/* Right arrow - fixed to right edge */}
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={goToNext}
-        disabled={isLastTask}
-        className={cn(
-          "fixed right-4 top-1/2 -translate-y-1/2 z-[100] h-14 w-14 rounded-full",
-          "bg-background/95 backdrop-blur-sm shadow-lg border-2",
-          "hover:bg-background hover:scale-105 transition-all duration-200",
-          isLastTask && "opacity-30 cursor-not-allowed"
-        )}
-        data-testid="button-turbo-next"
+      {/* Right arrow - positioned just outside the modal right edge */}
+      <div 
+        className="fixed top-1/2 -translate-y-1/2 z-[100]"
+        style={{ right: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
       >
-        <ChevronRight className="w-7 h-7" />
-      </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={goToNext}
+          disabled={isLastTask}
+          className={cn(
+            "h-12 w-12 rounded-full",
+            "bg-background/95 backdrop-blur-sm shadow-xl border-2",
+            "hover:bg-background hover:scale-110 transition-all duration-200",
+            isLastTask && "opacity-30 cursor-not-allowed"
+          )}
+          data-testid="button-turbo-next"
+        >
+          <ChevronRight className="w-6 h-6" />
+        </Button>
+      </div>
 
       {/* Task Detail Modal - using existing component with turbo mode props */}
       <TaskDetailModal
