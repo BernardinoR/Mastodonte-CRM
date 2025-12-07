@@ -69,9 +69,9 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   // Handle task update - only mark action performed for history additions
   const handleTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
     // Check if this is a history addition (not deletion)
-    if (updates.history && currentTask?.history) {
+    if (updates.history) {
       const newHistoryLength = updates.history.length;
-      const currentHistoryLength = currentTask.history.length;
+      const currentHistoryLength = currentTask?.history?.length ?? 0;
       
       // Only mark action performed if history grew (addition, not deletion)
       if (newHistoryLength > currentHistoryLength) {
