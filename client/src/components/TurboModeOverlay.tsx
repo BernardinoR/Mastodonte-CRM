@@ -1,4 +1,5 @@
 import { memo, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { 
@@ -92,109 +93,109 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   const progress = totalTasks > 0 ? ((currentIndex + 1) / totalTasks) * 100 : 0;
   const timerProgress = (timerSeconds / (25 * 60)) * 100;
 
-  return (
-    <>
-      {/* Fixed top bar - positioned above everything */}
-      <div 
-        className="fixed top-0 left-0 right-0 z-[200] bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 backdrop-blur-md border-b"
-        data-testid="turbo-mode-bar"
-      >
-        {/* Progress bar */}
-        <div className="h-1 bg-muted/50">
-          <div 
-            className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+  // Timer bar and arrows rendered via portal to appear after Dialog in DOM
+  const timerBar = (
+    <div 
+      className="fixed top-0 left-0 right-0 z-[9999] pointer-events-auto bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 backdrop-blur-md border-b"
+      data-testid="turbo-mode-bar"
+    >
+      {/* Progress bar */}
+      <div className="h-1 bg-muted/50">
+        <div 
+          className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between px-4 py-2.5 gap-4">
+        {/* Left section: Turbo Mode label and task counter */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-500">
+            <Rocket className="w-4 h-4" />
+            <span className="font-semibold text-sm">Modo Turbo</span>
+          </div>
+          
+          <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-background/50">
+            <Zap className="w-4 h-4 text-amber-500" />
+            <span className="text-sm font-medium">
+              {currentIndex + 1} / {totalTasks}
+            </span>
+            {completedInSession > 0 && (
+              <span className="flex items-center gap-1 text-emerald-500 text-sm">
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {completedInSession}
+              </span>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2.5 gap-4">
-          {/* Left section: Turbo Mode label and task counter */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/20 text-orange-500">
-              <Rocket className="w-4 h-4" />
-              <span className="font-semibold text-sm">Modo Turbo</span>
-            </div>
-            
-            <div className="flex items-center gap-2 px-3 py-1 rounded-md bg-background/50">
-              <Zap className="w-4 h-4 text-amber-500" />
-              <span className="text-sm font-medium">
-                {currentIndex + 1} / {totalTasks}
-              </span>
-              {completedInSession > 0 && (
-                <span className="flex items-center gap-1 text-emerald-500 text-sm">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {completedInSession}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Right section: Timer and exit */}
+        {/* Right section: Timer and exit */}
+        <div className="flex items-center gap-2">
+          {/* Pomodoro timer */}
           <div className="flex items-center gap-2">
-            {/* Pomodoro timer */}
-            <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={timerRunning ? pauseTimer : startTimer}
-                className="h-9 w-9"
-                data-testid="button-timer-toggle"
-              >
-                {timerRunning ? (
-                  <Pause className="w-4 h-4" />
-                ) : (
-                  <Play className="w-4 h-4" />
-                )}
-              </Button>
-              
-              <div className="relative px-3 py-1 rounded-md bg-background/50 overflow-hidden min-w-[70px]">
-                <div 
-                  className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 transition-all duration-1000"
-                  style={{ width: `${timerProgress}%` }}
-                />
-                <span 
-                  className={cn(
-                    "relative font-mono text-sm font-semibold tabular-nums",
-                    timerSeconds <= 60 && "text-red-500 animate-pulse",
-                    timerSeconds <= 300 && timerSeconds > 60 && "text-amber-500"
-                  )}
-                  data-testid="text-timer"
-                >
-                  {formatTime(timerSeconds)}
-                </span>
-              </div>
-              
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={resetTimer}
-                className="h-9 w-9"
-                data-testid="button-timer-reset"
-              >
-                <RotateCcw className="w-4 h-4" />
-              </Button>
-            </div>
-
-            {/* Exit button */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={exitTurboMode}
+              onClick={timerRunning ? pauseTimer : startTimer}
               className="h-9 w-9"
-              data-testid="button-turbo-exit"
+              data-testid="button-timer-toggle"
             >
-              <X className="w-5 h-5" />
+              {timerRunning ? (
+                <Pause className="w-4 h-4" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+            </Button>
+            
+            <div className="relative px-3 py-1 rounded-md bg-background/50 overflow-hidden min-w-[70px]">
+              <div 
+                className="absolute inset-0 bg-gradient-to-r from-orange-500/20 to-amber-500/20 transition-all duration-1000"
+                style={{ width: `${timerProgress}%` }}
+              />
+              <span 
+                className={cn(
+                  "relative font-mono text-sm font-semibold tabular-nums",
+                  timerSeconds <= 60 && "text-red-500 animate-pulse",
+                  timerSeconds <= 300 && timerSeconds > 60 && "text-amber-500"
+                )}
+                data-testid="text-timer"
+              >
+                {formatTime(timerSeconds)}
+              </span>
+            </div>
+            
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={resetTimer}
+              className="h-9 w-9"
+              data-testid="button-timer-reset"
+            >
+              <RotateCcw className="w-4 h-4" />
             </Button>
           </div>
+
+          {/* Exit button */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={exitTurboMode}
+            className="h-9 w-9"
+            data-testid="button-turbo-exit"
+          >
+            <X className="w-5 h-5" />
+          </Button>
         </div>
       </div>
+    </div>
+  );
 
-      {/* Navigation arrows suspended next to the modal card */}
-      {/* Modal is max-w-[1200px] w-[90vw], so gap = (100vw - modalWidth)/2 */}
-      {/* Arrow positioned at: gap - buttonWidth(3rem) - spacing(0.75rem) */}
+  // Navigation arrows
+  const navigationArrows = (
+    <>
       {/* Left arrow - positioned just outside the modal left edge */}
       <div 
-        className="fixed top-1/2 -translate-y-1/2 z-[100]"
+        className="fixed top-1/2 -translate-y-1/2 z-[9999] pointer-events-auto"
         style={{ left: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
       >
         <Button
@@ -216,7 +217,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
       
       {/* Right arrow - positioned just outside the modal right edge */}
       <div 
-        className="fixed top-1/2 -translate-y-1/2 z-[100]"
+        className="fixed top-1/2 -translate-y-1/2 z-[9999] pointer-events-auto"
         style={{ right: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
       >
         <Button
@@ -235,8 +236,12 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           <ChevronRight className="w-6 h-6" />
         </Button>
       </div>
+    </>
+  );
 
-      {/* Task Detail Modal - using existing component with turbo mode props */}
+  return (
+    <>
+      {/* Task Detail Modal first - this creates the dialog portal */}
       <TaskDetailModal
         task={currentTask}
         open={true}
@@ -249,6 +254,10 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         isTurboModeActive={true}
         turboActionPerformed={actionPerformed}
       />
+      
+      {/* Timer bar and arrows rendered via portal AFTER the dialog to ensure they're on top */}
+      {createPortal(timerBar, document.body)}
+      {createPortal(navigationArrows, document.body)}
     </>
   );
 });
