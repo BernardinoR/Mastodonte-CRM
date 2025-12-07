@@ -594,8 +594,6 @@ export default function Dashboard() {
       <TurboModeOverlay
         turboMode={turboMode}
         onUpdateTask={handleUpdateTask}
-        availableClients={availableClients}
-        availableAssignees={availableAssignees}
       />
     </div>
   );

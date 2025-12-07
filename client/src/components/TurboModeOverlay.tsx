@@ -19,8 +19,6 @@ import type { Task } from "@/types/task";
 interface TurboModeOverlayProps {
   turboMode: UseTurboModeReturn;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
-  availableClients: string[];
-  availableAssignees: string[];
 }
 
 export const TurboModeOverlay = memo(function TurboModeOverlay({
