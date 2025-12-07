@@ -129,6 +129,23 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const totalTasks = sortedTasks.length;
 
   useEffect(() => {
+    if (!isActive) return;
+    
+    if (sortedTasks.length === 0) {
+      setIsActive(false);
+      setTimerRunning(false);
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+      return;
+    }
+    
+    if (currentIndex >= sortedTasks.length) {
+      setCurrentIndex(Math.max(0, sortedTasks.length - 1));
+    }
+  }, [isActive, sortedTasks.length, currentIndex]);
+
+  useEffect(() => {
     if (timerRunning && timerSeconds > 0) {
       timerIntervalRef.current = setInterval(() => {
         setTimerSeconds((prev) => {

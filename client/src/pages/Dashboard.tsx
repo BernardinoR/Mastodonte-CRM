@@ -102,6 +102,9 @@ export default function Dashboard() {
     clearSelection,
   });
 
+  // Use the turbo mode hook for focused task processing
+  const turboMode = useTurboMode(tasks);
+
   // Visible task IDs for SortableContext (limited by pagination)
   const visibleTodoTaskIds = useMemo(() => 
     todoTaskIds.slice(0, visibleCounts["To Do"]), 
@@ -297,9 +300,6 @@ export default function Dashboard() {
     onAddTask: handleAddNewTask,
     onSetEditingTaskId: setEditingTaskId,
   });
-
-  // Use the turbo mode hook for focused task processing
-  const turboMode = useTurboMode(tasks);
 
   // Handle new task from FilterBar - creates inline task at top of To Do column
   const handleNewTaskFromFilterBar = useCallback(() => {
