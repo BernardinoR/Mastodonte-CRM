@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import type { Task, TaskPriority, TaskStatus } from "@/types/task";
+import type { Task, TaskPriority } from "@/types/task";
 
 const PRIORITY_ORDER: Record<TaskPriority, number> = {
   "Urgente": 0,
@@ -46,7 +46,10 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [completedInSession, setCompletedInSession] = useState(0);
   
-  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  // Use timestamp-based timer that works even when tab is in background
+  const timerStartTimeRef = useRef<number | null>(null);
+  const timerRemainingRef = useRef<number>(POMODORO_DURATION);
+  const timerIntervalRef = useRef<number | null>(null);
 
   const sortedTasks = useMemo(() => {
     const eligibleTasks = tasks.filter(
@@ -145,30 +148,49 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     }
   }, [isActive, sortedTasks.length, currentIndex]);
 
+  // Timestamp-based timer that works in background
   useEffect(() => {
-    if (timerRunning && timerSeconds > 0) {
-      timerIntervalRef.current = setInterval(() => {
-        setTimerSeconds((prev) => {
-          if (prev <= 1) {
-            setTimerRunning(false);
-            return 0;
-          }
-          return prev - 1;
-        });
-      }, 1000);
+    if (!timerRunning) {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      return;
     }
+
+    // Store when timer started and remaining time
+    timerStartTimeRef.current = Date.now();
+    timerRemainingRef.current = timerSeconds;
+
+    const updateTimer = () => {
+      if (!timerStartTimeRef.current) return;
+      
+      const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
+      const remaining = Math.max(0, timerRemainingRef.current - elapsed);
+      
+      setTimerSeconds(remaining);
+      
+      if (remaining <= 0) {
+        setTimerRunning(false);
+      }
+    };
+
+    // Update immediately and then every second
+    timerIntervalRef.current = window.setInterval(updateTimer, 1000);
 
     return () => {
       if (timerIntervalRef.current) {
         clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
       }
     };
-  }, [timerRunning, timerSeconds]);
+  }, [timerRunning]);
 
   const startTurboMode = useCallback(() => {
     setIsActive(true);
     setCurrentIndex(0);
     setTimerSeconds(POMODORO_DURATION);
+    timerRemainingRef.current = POMODORO_DURATION;
     setTimerRunning(true);
     setActionPerformed(false);
     setCompletedInSession(0);
@@ -210,6 +232,10 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
 
   const markActionPerformed = useCallback(() => {
     setActionPerformed(true);
+    setShowCompletionAnimation(true);
+    setTimeout(() => {
+      setShowCompletionAnimation(false);
+    }, 2000);
   }, []);
 
   const resetActionPerformed = useCallback(() => {
@@ -217,15 +243,24 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   }, []);
 
   const startTimer = useCallback(() => {
+    timerRemainingRef.current = timerSeconds;
+    timerStartTimeRef.current = Date.now();
     setTimerRunning(true);
-  }, []);
+  }, [timerSeconds]);
 
   const pauseTimer = useCallback(() => {
+    // Store remaining time before pausing
+    if (timerStartTimeRef.current) {
+      const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
+      timerRemainingRef.current = Math.max(0, timerRemainingRef.current - elapsed);
+      setTimerSeconds(timerRemainingRef.current);
+    }
     setTimerRunning(false);
   }, []);
 
   const resetTimer = useCallback(() => {
     setTimerSeconds(POMODORO_DURATION);
+    timerRemainingRef.current = POMODORO_DURATION;
     setTimerRunning(false);
   }, []);
 

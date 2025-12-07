@@ -40,7 +40,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     formatTime,
   } = turboMode;
 
-  const { isActive, currentIndex, timerSeconds, timerRunning, showCompletionAnimation } = state;
+  const { isActive, currentIndex, timerSeconds, timerRunning, showCompletionAnimation, actionPerformed } = state;
 
   // Keyboard navigation
   useEffect(() => {
@@ -116,31 +116,6 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
             </div>
           </div>
 
-          {/* Center section: Navigation arrows */}
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goToPrevious}
-              disabled={isFirstTask}
-              className="h-9 w-9"
-              data-testid="button-turbo-prev"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={goToNext}
-              disabled={isLastTask}
-              className="h-9 w-9"
-              data-testid="button-turbo-next"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-
           {/* Right section: Timer and exit */}
           <div className="flex items-center gap-2">
             {/* Pomodoro timer */}
@@ -201,14 +176,72 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         </div>
       </div>
 
-      {/* Completion animation overlay */}
+      {/* Navigation arrows on the sides - positioned next to the modal */}
+      <div className="fixed inset-0 z-[150] pointer-events-none flex items-center justify-between px-4">
+        {/* Left arrow */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={goToPrevious}
+          disabled={isFirstTask}
+          className={cn(
+            "pointer-events-auto h-14 w-14 rounded-full bg-background/90 backdrop-blur-sm shadow-lg border-2",
+            "hover:bg-background hover:scale-105 transition-all duration-200",
+            isFirstTask && "opacity-30 cursor-not-allowed"
+          )}
+          data-testid="button-turbo-prev"
+        >
+          <ChevronLeft className="w-7 h-7" />
+        </Button>
+        
+        {/* Right arrow */}
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={goToNext}
+          disabled={isLastTask}
+          className={cn(
+            "pointer-events-auto h-14 w-14 rounded-full bg-background/90 backdrop-blur-sm shadow-lg border-2",
+            "hover:bg-background hover:scale-105 transition-all duration-200",
+            isLastTask && "opacity-30 cursor-not-allowed"
+          )}
+          data-testid="button-turbo-next"
+        >
+          <ChevronRight className="w-7 h-7" />
+        </Button>
+      </div>
+
+      {/* Completion animation - green left sidebar + center message */}
       {showCompletionAnimation && (
-        <div className="fixed inset-0 z-[195] pointer-events-none flex items-center justify-center">
-          <div className="flex flex-col items-center gap-3 animate-bounce">
-            <CheckCircle2 className="w-20 h-20 text-emerald-500/70" />
-            <span className="text-xl font-bold text-emerald-500">Concluído!</span>
+        <>
+          {/* Green left sidebar indicator */}
+          <div 
+            className="fixed left-0 top-0 bottom-0 w-2 z-[250] bg-emerald-500 animate-pulse"
+            style={{
+              boxShadow: "0 0 20px 5px rgba(16, 185, 129, 0.5)",
+            }}
+          />
+          
+          {/* Center completion message */}
+          <div className="fixed inset-0 z-[245] pointer-events-none flex items-center justify-center">
+            <div 
+              className="flex items-center gap-3 px-6 py-4 rounded-xl bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30 animate-bounce"
+              style={{
+                boxShadow: "0 0 30px 10px rgba(16, 185, 129, 0.2)",
+              }}
+            >
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
+              <span className="text-xl font-bold text-emerald-500">Atualização registrada!</span>
+            </div>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* Green indicator when action was performed (persistent until next task) */}
+      {actionPerformed && !showCompletionAnimation && (
+        <div 
+          className="fixed left-0 top-0 bottom-0 w-1 z-[250] bg-emerald-500/70"
+        />
       )}
 
       {/* Task Detail Modal - using existing component */}
