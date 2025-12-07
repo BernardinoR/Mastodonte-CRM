@@ -19,6 +19,8 @@ interface TaskDetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
+  isTurboModeActive?: boolean;
+  turboActionPerformed?: boolean;
 }
 
 function isTaskOverdue(dueDate: string | Date): boolean {
@@ -54,6 +56,8 @@ export function TaskDetailModal({
   open,
   onOpenChange,
   onUpdateTask,
+  isTurboModeActive = false,
+  turboActionPerformed = false,
 }: TaskDetailModalProps) {
   const [, navigate] = useLocation();
   const [description, setDescription] = useState(task?.description || "");
@@ -228,7 +232,11 @@ export function TaskDetailModal({
           "border-l-[6px]"
         )}
         style={{
-          borderLeftColor: isTaskOverdue(task.dueDate) ? UI_COLORS.taskBorderRed : UI_COLORS.taskBorderBlue
+          borderLeftColor: isTurboModeActive && turboActionPerformed 
+            ? UI_COLORS.taskBorderGreen 
+            : isTaskOverdue(task.dueDate) 
+              ? UI_COLORS.taskBorderRed 
+              : UI_COLORS.taskBorderBlue
         }}
       >
         <VisuallyHidden>

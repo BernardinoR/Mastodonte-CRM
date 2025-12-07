@@ -1,4 +1,4 @@
-import { memo, useEffect } from "react";
+import { memo, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { 
@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { UseTurboModeReturn } from "@/hooks/useTurboMode";
-import type { Task } from "@/types/task";
+import type { Task, TaskHistoryEvent } from "@/types/task";
 
 interface TurboModeOverlayProps {
   turboMode: UseTurboModeReturn;
@@ -40,7 +40,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     formatTime,
   } = turboMode;
 
-  const { isActive, currentIndex, timerSeconds, timerRunning, showCompletionAnimation, actionPerformed } = state;
+  const { isActive, currentIndex, timerSeconds, timerRunning, actionPerformed } = state;
 
   // Keyboard navigation
   useEffect(() => {
@@ -66,11 +66,24 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isActive, goToNext, goToPrevious, exitTurboMode]);
 
-  // Handle task update and mark action performed
-  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+  // Handle task update - only mark action performed for history additions
+  const handleTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
+    // Check if this is a history addition (not deletion)
+    if (updates.history && currentTask?.history) {
+      const newHistoryLength = updates.history.length;
+      const currentHistoryLength = currentTask.history.length;
+      
+      // Only mark action performed if history grew (addition, not deletion)
+      if (newHistoryLength > currentHistoryLength) {
+        onUpdateTask(taskId, updates);
+        markActionPerformed();
+        return;
+      }
+    }
+    
+    // For other updates, just update without marking action
     onUpdateTask(taskId, updates);
-    markActionPerformed();
-  };
+  }, [currentTask, onUpdateTask, markActionPerformed]);
 
   if (!isActive || !currentTask) return null;
 
@@ -211,42 +224,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         <ChevronRight className="w-7 h-7" />
       </Button>
 
-      {/* Completion animation - green left sidebar + center message */}
-      {showCompletionAnimation && (
-        <>
-          {/* Green left sidebar indicator */}
-          <div 
-            className="fixed left-0 top-0 bottom-0 w-2 z-[250] bg-emerald-500"
-            style={{
-              boxShadow: "0 0 20px 5px rgba(16, 185, 129, 0.5)",
-              animation: "pulse 1s ease-in-out infinite",
-            }}
-          />
-          
-          {/* Center completion message */}
-          <div className="fixed inset-0 z-[245] pointer-events-none flex items-center justify-center">
-            <div 
-              className="flex items-center gap-3 px-6 py-4 rounded-xl bg-emerald-500/20 backdrop-blur-md border border-emerald-500/30"
-              style={{
-                boxShadow: "0 0 30px 10px rgba(16, 185, 129, 0.2)",
-                animation: "bounce 0.6s ease-in-out",
-              }}
-            >
-              <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-              <span className="text-xl font-bold text-emerald-500">Atualização registrada!</span>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* Persistent green indicator when action was performed (only when animation is not showing) */}
-      {actionPerformed && !showCompletionAnimation && (
-        <div 
-          className="fixed left-0 top-0 bottom-0 w-1 z-[250] bg-emerald-500/70"
-        />
-      )}
-
-      {/* Task Detail Modal - using existing component */}
+      {/* Task Detail Modal - using existing component with turbo mode props */}
       <TaskDetailModal
         task={currentTask}
         open={true}
@@ -256,6 +234,8 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           }
         }}
         onUpdateTask={handleTaskUpdate}
+        isTurboModeActive={true}
+        turboActionPerformed={actionPerformed}
       />
     </>
   );
