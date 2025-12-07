@@ -3,6 +3,7 @@ import { KanbanColumn } from "@/components/KanbanColumn";
 import { SortableTaskCard } from "@/components/SortableTaskCard";
 import { DragPreview } from "@/components/DragPreview";
 import { FilterBar } from "@/components/FilterBar";
+import { TurboModeOverlay } from "@/components/TurboModeOverlay";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
@@ -28,6 +29,7 @@ import { useTaskFilters } from "@/hooks/useTaskFilters";
 import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
+import { useTurboMode } from "@/hooks/useTurboMode";
 
 const COLUMN_IDS = ["To Do", "In Progress", "Done"] as const;
 const TASKS_PER_PAGE = 25;
@@ -296,6 +298,9 @@ export default function Dashboard() {
     onSetEditingTaskId: setEditingTaskId,
   });
 
+  // Use the turbo mode hook for focused task processing
+  const turboMode = useTurboMode(tasks);
+
   // Handle new task from FilterBar - creates inline task at top of To Do column
   const handleNewTaskFromFilterBar = useCallback(() => {
     handleQuickAddTop("To Do");
@@ -469,6 +474,8 @@ export default function Dashboard() {
         availableClients={availableClients}
         onReset={resetFilters}
         onNewTask={handleNewTaskFromFilterBar}
+        onTurboMode={turboMode.startTurboMode}
+        turboModeTaskCount={turboMode.totalTasks}
         tasks={tasks}
         activePresetId={activePresetId}
         onActivePresetChange={setActivePresetId}
@@ -583,6 +590,13 @@ export default function Dashboard() {
           onUpdateTask={handleUpdateTask}
         />
       )}
+
+      <TurboModeOverlay
+        turboMode={turboMode}
+        onUpdateTask={handleUpdateTask}
+        availableClients={availableClients}
+        availableAssignees={availableAssignees}
+      />
     </div>
   );
 }
