@@ -93,11 +93,18 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   const progress = totalTasks > 0 ? ((currentIndex + 1) / totalTasks) * 100 : 0;
   const timerProgress = (timerSeconds / (25 * 60)) * 100;
 
+  // Stop event propagation to prevent Dialog from closing
+  const stopPropagation = (e: React.MouseEvent | React.PointerEvent) => {
+    e.stopPropagation();
+  };
+
   // Timer bar and arrows rendered via portal to appear after Dialog in DOM
   const timerBar = (
     <div 
       className="fixed top-0 left-0 right-0 z-[9999] pointer-events-auto bg-gradient-to-r from-orange-500/10 via-amber-500/5 to-orange-500/10 backdrop-blur-md border-b"
       data-testid="turbo-mode-bar"
+      onPointerDown={stopPropagation}
+      onClick={stopPropagation}
     >
       {/* Progress bar */}
       <div className="h-1 bg-muted/50">
@@ -136,7 +143,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
             <Button
               variant="ghost"
               size="icon"
-              onClick={timerRunning ? pauseTimer : startTimer}
+              onClick={(e) => { e.stopPropagation(); timerRunning ? pauseTimer() : startTimer(); }}
               className="h-9 w-9"
               data-testid="button-timer-toggle"
             >
@@ -167,7 +174,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
             <Button
               variant="ghost"
               size="icon"
-              onClick={resetTimer}
+              onClick={(e) => { e.stopPropagation(); resetTimer(); }}
               className="h-9 w-9"
               data-testid="button-timer-reset"
             >
@@ -179,7 +186,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           <Button
             variant="ghost"
             size="icon"
-            onClick={exitTurboMode}
+            onClick={(e) => { e.stopPropagation(); exitTurboMode(); }}
             className="h-9 w-9"
             data-testid="button-turbo-exit"
           >
@@ -197,11 +204,13 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
       <div 
         className="fixed top-1/2 -translate-y-1/2 z-[9999] pointer-events-auto"
         style={{ left: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
+        onPointerDown={stopPropagation}
+        onClick={stopPropagation}
       >
         <Button
           variant="outline"
           size="icon"
-          onClick={goToPrevious}
+          onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
           disabled={isFirstTask}
           className={cn(
             "h-12 w-12 rounded-full",
@@ -219,11 +228,13 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
       <div 
         className="fixed top-1/2 -translate-y-1/2 z-[9999] pointer-events-auto"
         style={{ right: "clamp(0.5rem, calc((100vw - min(1200px, 90vw)) / 2 - 4rem), calc(50% - 600px - 4rem))" }}
+        onPointerDown={stopPropagation}
+        onClick={stopPropagation}
       >
         <Button
           variant="outline"
           size="icon"
-          onClick={goToNext}
+          onClick={(e) => { e.stopPropagation(); goToNext(); }}
           disabled={isLastTask}
           className={cn(
             "h-12 w-12 rounded-full",
