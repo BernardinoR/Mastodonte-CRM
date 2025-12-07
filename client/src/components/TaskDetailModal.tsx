@@ -233,7 +233,7 @@ export function TaskDetailModal({
         )}
         style={{
           borderLeftColor: isTurboModeActive && turboActionPerformed 
-            ? UI_COLORS.taskBorderGreen 
+            ? UI_COLORS.taskBorderDone 
             : isTaskOverdue(task.dueDate) 
               ? UI_COLORS.taskBorderRed 
               : UI_COLORS.taskBorderBlue

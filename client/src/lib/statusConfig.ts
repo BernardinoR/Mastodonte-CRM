@@ -25,7 +25,7 @@ export const UI_COLORS = {
   // Task card borders (RGB for inline styles)
   taskBorderBlue: "rgb(66, 129, 220)",
   taskBorderRed: "rgb(185, 28, 28)",
-  taskBorderGreen: "rgb(16, 185, 129)",
+  taskBorderDone: "rgb(22, 101, 52)",
 } as const;
 
 // Classes Tailwind pré-definidas para reutilização
