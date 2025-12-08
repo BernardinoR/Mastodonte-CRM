@@ -1,66 +1,11 @@
-import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import type { Task, TaskPriority } from "@/types/task";
+import { useState, useCallback, useRef, useEffect } from "react";
+import type { Task } from "@/types/task";
+import { usePomodoroTimer } from "./usePomodoroTimer";
+import { useAudioNotification } from "./useAudioNotification";
+import { useTurboNavigation } from "./useTurboNavigation";
+import { type TaskTurboStatus, type TurboSessionStats } from "@/lib/turboModeConfig";
 
-// Play notification sound using Web Audio API
-function playTimerEndSound() {
-  try {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    
-    // Create a more pleasant bell-like sound
-    const playTone = (frequency: number, startTime: number, duration: number) => {
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      
-      oscillator.type = "sine";
-      oscillator.frequency.setValueAtTime(frequency, startTime);
-      
-      // Attack and decay envelope
-      gainNode.gain.setValueAtTime(0, startTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
-      
-      oscillator.start(startTime);
-      oscillator.stop(startTime + duration);
-    };
-    
-    const now = audioContext.currentTime;
-    // Play a pleasant chord progression
-    playTone(523.25, now, 0.3);        // C5
-    playTone(659.25, now + 0.15, 0.3); // E5
-    playTone(783.99, now + 0.3, 0.4);  // G5
-    playTone(1046.5, now + 0.45, 0.5); // C6
-  } catch (e) {
-    console.log("Audio not supported");
-  }
-}
-
-const PRIORITY_ORDER: Record<TaskPriority, number> = {
-  "Urgente": 0,
-  "Importante": 1,
-  "Normal": 2,
-  "Baixa": 3,
-};
-
-const POMODORO_DURATION = 25 * 60;
-
-// Track status of each task in Turbo Mode
-export interface TaskTurboStatus {
-  visited: boolean;
-  hadAction: boolean;
-}
-
-// Session statistics for summary
-export interface TurboSessionStats {
-  tasksWithHistory: number;
-  tasksMovedToDone: number;
-  totalTasksVisited: number;
-  totalTasks: number;
-  sessionDurationSeconds: number;
-  averageTimePerTask: number;
-}
+export { type TaskTurboStatus, type TurboSessionStats } from "@/lib/turboModeConfig";
 
 export interface TurboModeState {
   isActive: boolean;
@@ -96,193 +41,41 @@ export interface UseTurboModeReturn {
 
 export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [isActive, setIsActive] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [timerRunning, setTimerRunning] = useState(false);
-  const [actionPerformed, setActionPerformed] = useState(false);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [completedInSession, setCompletedInSession] = useState(0);
-  const [taskStatuses, setTaskStatuses] = useState<Record<string, TaskTurboStatus>>({});
   const [showSummary, setShowSummary] = useState(false);
   const [sessionStats, setSessionStats] = useState<TurboSessionStats | null>(null);
   const [tasksMovedToDone, setTasksMovedToDone] = useState(0);
-  
-  // Session snapshot: stores task IDs in order when Turbo Mode starts
-  // This ensures tasks persist even if their status changes to Done
-  const [sessionTaskIds, setSessionTaskIds] = useState<string[]>([]);
-  const [sessionTaskSnapshot, setSessionTaskSnapshot] = useState<Record<string, Task>>({});
-  
-  // Timestamp-based timer state
-  // remainingSeconds is the authoritative remaining time (updated on tick and pause)
-  const [remainingSeconds, setRemainingSeconds] = useState(POMODORO_DURATION);
-  // Reference to when the timer was last started/resumed
-  const timerStartTimeRef = useRef<number>(0);
-  // Reference to remaining seconds at the moment timer was started
-  const remainingAtStartRef = useRef<number>(POMODORO_DURATION);
-  const timerIntervalRef = useRef<number | null>(null);
-  const animationTimeoutRef = useRef<number | null>(null);
+
   const sessionStartTimeRef = useRef<number>(0);
-  // Track if timer end has already triggered exit to prevent multiple exits
-  const timerEndTriggeredRef = useRef<boolean>(false);
+  const animationTimeoutRef = useRef<number | null>(null);
 
-  const sortedTasks = useMemo(() => {
-    const eligibleTasks = tasks.filter(
-      (task) => task.status === "To Do" || task.status === "In Progress"
-    );
+  const { playTimerEndSound } = useAudioNotification();
 
-    const todoTasks = eligibleTasks.filter((t) => t.status === "To Do");
-    const inProgressTasks = eligibleTasks.filter((t) => t.status === "In Progress");
+  const navigation = useTurboNavigation(tasks);
 
-    const sortByPriorityAndDate = (a: Task, b: Task) => {
-      const priorityA = PRIORITY_ORDER[a.priority || "Normal"];
-      const priorityB = PRIORITY_ORDER[b.priority || "Normal"];
-      
-      if (priorityA !== priorityB) {
-        return priorityA - priorityB;
-      }
-      
-      const dateA = new Date(a.dueDate).getTime();
-      const dateB = new Date(b.dueDate).getTime();
-      return dateA - dateB;
-    };
+  const handleTimerEnd = useCallback(() => {
+    playTimerEndSound();
 
-    const sortedTodo = [...todoTasks].sort(sortByPriorityAndDate);
-    const sortedInProgress = [...inProgressTasks].sort(sortByPriorityAndDate);
+    const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+    const tasksWithHistory = Object.values(navigation.taskStatuses).filter((s) => s.hadAction).length;
+    const totalVisited = Object.values(navigation.taskStatuses).filter((s) => s.visited).length;
+    const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
 
-    const result: Task[] = [];
-    let todoIdx = 0;
-    let inProgressIdx = 0;
+    setSessionStats({
+      tasksWithHistory,
+      tasksMovedToDone,
+      totalTasksVisited: totalVisited,
+      totalTasks: navigation.totalTasks,
+      sessionDurationSeconds: sessionDuration,
+      averageTimePerTask: avgTime,
+    });
 
-    while (todoIdx < sortedTodo.length || inProgressIdx < sortedInProgress.length) {
-      const todoTask = sortedTodo[todoIdx];
-      const inProgressTask = sortedInProgress[inProgressIdx];
+    setIsActive(false);
+    setShowSummary(true);
+  }, [playTimerEndSound, navigation.taskStatuses, navigation.totalTasks, tasksMovedToDone]);
 
-      if (!todoTask) {
-        result.push(inProgressTask);
-        inProgressIdx++;
-        continue;
-      }
-      if (!inProgressTask) {
-        result.push(todoTask);
-        todoIdx++;
-        continue;
-      }
-
-      const todoPriority = PRIORITY_ORDER[todoTask.priority || "Normal"];
-      const inProgressPriority = PRIORITY_ORDER[inProgressTask.priority || "Normal"];
-      const todoDate = new Date(todoTask.dueDate).getTime();
-      const inProgressDate = new Date(inProgressTask.dueDate).getTime();
-
-      if (todoPriority < inProgressPriority) {
-        result.push(todoTask);
-        todoIdx++;
-      } else if (inProgressPriority < todoPriority) {
-        result.push(inProgressTask);
-        inProgressIdx++;
-      } else if (todoDate < inProgressDate) {
-        result.push(todoTask);
-        todoIdx++;
-      } else if (inProgressDate < todoDate) {
-        result.push(inProgressTask);
-        inProgressIdx++;
-      } else {
-        if (result.length === 0 || result[result.length - 1].status === "In Progress") {
-          result.push(todoTask);
-          todoIdx++;
-        } else {
-          result.push(inProgressTask);
-          inProgressIdx++;
-        }
-      }
-    }
-
-    return result;
-  }, [tasks]);
-
-  // Create a live tasks map for quick lookup
-  const liveTasksMap = useMemo(() => {
-    const map: Record<string, Task> = {};
-    for (const task of tasks) {
-      map[task.id] = task;
-    }
-    return map;
-  }, [tasks]);
-
-  // Session tasks: when Turbo Mode is active, use the snapshot with live updates merged in
-  // When inactive, use the regular sortedTasks for display/preview purposes
-  const sessionTasks = useMemo(() => {
-    if (!isActive || sessionTaskIds.length === 0) {
-      return sortedTasks;
-    }
-    // Build the session task list using IDs from the snapshot
-    // For each ID, prefer live data if available, otherwise use snapshot
-    return sessionTaskIds.map(id => {
-      const liveTask = liveTasksMap[id];
-      if (liveTask) {
-        return liveTask;
-      }
-      // Fall back to snapshot if task no longer in live array
-      return sessionTaskSnapshot[id];
-    }).filter(Boolean) as Task[];
-  }, [isActive, sessionTaskIds, sessionTaskSnapshot, liveTasksMap, sortedTasks]);
-
-  const currentTask = useMemo(() => {
-    return sessionTasks[currentIndex] || null;
-  }, [sessionTasks, currentIndex]);
-
-  const totalTasks = sessionTasks.length;
-
-  useEffect(() => {
-    if (!isActive) return;
-    
-    // Use sessionTasks length since that's the stable snapshot
-    if (sessionTasks.length === 0) {
-      setIsActive(false);
-      setTimerRunning(false);
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
-      return;
-    }
-    
-    if (currentIndex >= sessionTasks.length) {
-      setCurrentIndex(Math.max(0, sessionTasks.length - 1));
-    }
-  }, [isActive, sessionTasks.length, currentIndex]);
-
-  // Timestamp-based timer that works in background
-  useEffect(() => {
-    if (!timerRunning) {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-      return;
-    }
-
-    const updateTimer = () => {
-      const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
-      const remaining = Math.max(0, remainingAtStartRef.current - elapsed);
-      
-      setRemainingSeconds(remaining);
-      
-      if (remaining <= 0) {
-        setTimerRunning(false);
-      }
-    };
-
-    // Update immediately
-    updateTimer();
-    
-    // Then update every second
-    timerIntervalRef.current = window.setInterval(updateTimer, 1000);
-
-    return () => {
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-        timerIntervalRef.current = null;
-      }
-    };
-  }, [timerRunning]);
+  const timer = usePomodoroTimer(isActive, handleTimerEnd);
 
   // Cleanup animation timeout on unmount
   useEffect(() => {
@@ -293,209 +86,100 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     };
   }, []);
 
-  // Watch for timer reaching zero and auto-exit with sound
+  // Handle empty task list while active
   useEffect(() => {
-    if (isActive && remainingSeconds === 0 && !timerEndTriggeredRef.current) {
-      timerEndTriggeredRef.current = true;
-      
-      // Play notification sound
-      playTimerEndSound();
-      
-      // Calculate session statistics
-      const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
-      const tasksWithHistory = Object.values(taskStatuses).filter(s => s.hadAction).length;
-      const totalVisited = Object.values(taskStatuses).filter(s => s.visited).length;
-      const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
-      
-      setSessionStats({
-        tasksWithHistory,
-        tasksMovedToDone,
-        totalTasksVisited: totalVisited,
-        totalTasks: sessionTaskIds.length,
-        sessionDurationSeconds: sessionDuration,
-        averageTimePerTask: avgTime,
-      });
-      
+    if (isActive && navigation.totalTasks === 0) {
       setIsActive(false);
-      setTimerRunning(false);
-      setShowSummary(true);
-      
-      if (timerIntervalRef.current) {
-        clearInterval(timerIntervalRef.current);
-      }
     }
-  }, [isActive, remainingSeconds, taskStatuses, tasksMovedToDone, sessionTaskIds.length]);
+  }, [isActive, navigation.totalTasks]);
 
   const startTurboMode = useCallback(() => {
-    // Capture the session snapshot before activating
-    const taskIds = sortedTasks.map(t => t.id);
-    const snapshot: Record<string, Task> = {};
-    for (const task of sortedTasks) {
-      snapshot[task.id] = task;
-    }
-    setSessionTaskIds(taskIds);
-    setSessionTaskSnapshot(snapshot);
-    
-    setIsActive(true);
-    setCurrentIndex(0);
-    setRemainingSeconds(POMODORO_DURATION);
-    remainingAtStartRef.current = POMODORO_DURATION;
-    timerStartTimeRef.current = Date.now();
+    navigation.initializeSession(navigation.sessionTasks);
     sessionStartTimeRef.current = Date.now();
-    timerEndTriggeredRef.current = false;
-    setTimerRunning(true);
-    setActionPerformed(false);
+    setIsActive(true);
     setCompletedInSession(0);
     setShowCompletionAnimation(false);
-    setTaskStatuses({});
     setTasksMovedToDone(0);
     setShowSummary(false);
     setSessionStats(null);
-  }, [sortedTasks]);
+    // Reset timer to full duration then auto-start
+    timer.resetTimer();
+    setTimeout(() => timer.startTimer(), 0);
+  }, [navigation, timer]);
 
   const exitTurboMode = useCallback(() => {
-    // Calculate session statistics before closing
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
-    const tasksWithHistory = Object.values(taskStatuses).filter(s => s.hadAction).length;
-    const totalVisited = Object.values(taskStatuses).filter(s => s.visited).length;
+    const tasksWithHistory = Object.values(navigation.taskStatuses).filter((s) => s.hadAction).length;
+    const totalVisited = Object.values(navigation.taskStatuses).filter((s) => s.visited).length;
     const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
-    
+
     setSessionStats({
       tasksWithHistory,
       tasksMovedToDone,
       totalTasksVisited: totalVisited,
-      totalTasks: sessionTaskIds.length,
+      totalTasks: navigation.totalTasks,
       sessionDurationSeconds: sessionDuration,
       averageTimePerTask: avgTime,
     });
-    
+
     setIsActive(false);
-    setTimerRunning(false);
     setShowSummary(true);
-    
-    if (timerIntervalRef.current) {
-      clearInterval(timerIntervalRef.current);
-    }
+
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
     }
-  }, [taskStatuses, tasksMovedToDone, sessionTaskIds.length]);
-  
+  }, [navigation.taskStatuses, navigation.totalTasks, tasksMovedToDone]);
+
   const closeSummary = useCallback(() => {
     setShowSummary(false);
     setSessionStats(null);
-  }, []);
+    navigation.resetSession();
+  }, [navigation]);
 
   const goToNext = useCallback(() => {
-    if (currentIndex < sessionTasks.length - 1) {
-      const currentTaskId = sessionTasks[currentIndex]?.id;
-      if (currentTaskId) {
-        // Mark current task as visited with its action status
-        setTaskStatuses((prev) => ({
-          ...prev,
-          [currentTaskId]: { visited: true, hadAction: actionPerformed },
-        }));
-      }
-      if (actionPerformed) {
-        setCompletedInSession((prev) => prev + 1);
-      }
-      setCurrentIndex((prev) => prev + 1);
-      setActionPerformed(false);
+    if (navigation.actionPerformed) {
+      setCompletedInSession((prev) => prev + 1);
     }
-  }, [currentIndex, sessionTasks, actionPerformed]);
+    navigation.goToNext();
+  }, [navigation]);
 
   const goToPrevious = useCallback(() => {
-    if (currentIndex > 0) {
-      const currentTaskId = sessionTasks[currentIndex]?.id;
-      if (currentTaskId) {
-        // Mark current task as visited with its action status
-        setTaskStatuses((prev) => ({
-          ...prev,
-          [currentTaskId]: { visited: true, hadAction: actionPerformed },
-        }));
-      }
-      setCurrentIndex((prev) => prev - 1);
-      setActionPerformed(false);
-    }
-  }, [currentIndex, sessionTasks, actionPerformed]);
+    navigation.goToPrevious();
+    navigation.markCurrentAsVisited();
+  }, [navigation]);
 
   const markActionPerformed = useCallback(() => {
-    setActionPerformed(true);
+    navigation.markActionPerformed();
     setShowCompletionAnimation(true);
-    
-    // Mark current task as having action immediately
-    const currentTaskId = sessionTasks[currentIndex]?.id;
-    if (currentTaskId) {
-      setTaskStatuses((prev) => ({
-        ...prev,
-        [currentTaskId]: { visited: true, hadAction: true },
-      }));
-    }
-    
-    // Clear any existing timeout
+
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
     }
-    
-    // Hide animation after 2 seconds
+
     animationTimeoutRef.current = window.setTimeout(() => {
       setShowCompletionAnimation(false);
     }, 2000);
-  }, [sessionTasks, currentIndex]);
+  }, [navigation]);
 
-  const resetActionPerformed = useCallback(() => {
-    setActionPerformed(false);
-  }, []);
-  
   const markTaskMovedToDone = useCallback(() => {
     setTasksMovedToDone((prev) => prev + 1);
-  }, []);
-
-  const startTimer = useCallback(() => {
-    // Store current remaining as the starting point
-    remainingAtStartRef.current = remainingSeconds;
-    timerStartTimeRef.current = Date.now();
-    setTimerRunning(true);
-  }, [remainingSeconds]);
-
-  const pauseTimer = useCallback(() => {
-    if (timerRunning) {
-      // Calculate actual remaining and update state
-      const elapsed = Math.floor((Date.now() - timerStartTimeRef.current) / 1000);
-      const remaining = Math.max(0, remainingAtStartRef.current - elapsed);
-      setRemainingSeconds(remaining);
-      remainingAtStartRef.current = remaining;
-    }
-    setTimerRunning(false);
-  }, [timerRunning]);
-
-  const resetTimer = useCallback(() => {
-    setRemainingSeconds(POMODORO_DURATION);
-    remainingAtStartRef.current = POMODORO_DURATION;
-    setTimerRunning(false);
-  }, []);
-
-  const formatTime = useCallback((seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   }, []);
 
   return {
     state: {
       isActive,
-      currentIndex,
-      timerSeconds: remainingSeconds,
-      timerRunning,
-      actionPerformed,
+      currentIndex: navigation.currentIndex,
+      timerSeconds: timer.remainingSeconds,
+      timerRunning: timer.timerRunning,
+      actionPerformed: navigation.actionPerformed,
       showCompletionAnimation,
-      taskStatuses,
+      taskStatuses: navigation.taskStatuses,
       showSummary,
       sessionStats,
     },
-    sortedTasks: sessionTasks,
-    currentTask,
-    totalTasks,
+    sortedTasks: navigation.sessionTasks,
+    currentTask: navigation.currentTask,
+    totalTasks: navigation.totalTasks,
     completedInSession,
     startTurboMode,
     exitTurboMode,
@@ -503,11 +187,11 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     goToNext,
     goToPrevious,
     markActionPerformed,
-    resetActionPerformed,
+    resetActionPerformed: navigation.resetActionPerformed,
     markTaskMovedToDone,
-    startTimer,
-    pauseTimer,
-    resetTimer,
-    formatTime,
+    startTimer: timer.startTimer,
+    pauseTimer: timer.pauseTimer,
+    resetTimer: timer.resetTimer,
+    formatTime: timer.formatTime,
   };
 }
