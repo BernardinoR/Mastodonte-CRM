@@ -33,6 +33,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     goToNext,
     goToPrevious,
     markActionPerformed,
+    markTaskMovedToDone,
     startTimer,
     pauseTimer,
     resetTimer,
@@ -108,6 +109,11 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
 
   // Handle task update - only mark action performed for history additions
   const handleTaskUpdate = useCallback((taskId: string, updates: Partial<Task>) => {
+    // Check if task is being moved to Done
+    if (updates.status === "Done" && currentTask?.status !== "Done") {
+      markTaskMovedToDone();
+    }
+    
     // Check if this is a history addition (not deletion)
     if (updates.history) {
       const newHistoryLength = updates.history.length;
@@ -123,7 +129,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     
     // For other updates, just update without marking action
     onUpdateTask(taskId, updates);
-  }, [currentTask, onUpdateTask, markActionPerformed]);
+  }, [currentTask, onUpdateTask, markActionPerformed, markTaskMovedToDone]);
 
   if (!isActive || !currentTask) return null;
 

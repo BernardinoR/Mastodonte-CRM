@@ -4,6 +4,7 @@ import { SortableTaskCard } from "@/components/SortableTaskCard";
 import { DragPreview } from "@/components/DragPreview";
 import { FilterBar } from "@/components/FilterBar";
 import { TurboModeOverlay } from "@/components/TurboModeOverlay";
+import { TurboSummaryModal } from "@/components/TurboSummaryModal";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
@@ -594,6 +595,13 @@ export default function Dashboard() {
       <TurboModeOverlay
         turboMode={turboMode}
         onUpdateTask={handleUpdateTask}
+      />
+
+      <TurboSummaryModal
+        open={turboMode.state.showSummary}
+        onClose={turboMode.closeSummary}
+        stats={turboMode.state.sessionStats}
+        formatTime={turboMode.formatTime}
       />
     </div>
   );
