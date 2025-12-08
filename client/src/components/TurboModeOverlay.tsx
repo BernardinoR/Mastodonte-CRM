@@ -148,24 +148,30 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
 
   // Get step color based on task status
   const getStepColor = (taskId: string, index: number) => {
+    const status = taskStatuses[taskId];
+    
     if (index === currentIndex) {
-      // Current task - orange with glow
-      return { bg: TURBO_COLORS.orange, border: TURBO_COLORS.orangeLight, isCurrent: true };
+      // Current task - check if action was performed
+      if (status?.hadAction) {
+        // Current task with action - green with glow
+        return { bg: TURBO_COLORS.green, border: TURBO_COLORS.green, isCurrent: true, isGreen: true };
+      }
+      // Current task without action yet - orange with glow
+      return { bg: TURBO_COLORS.orange, border: TURBO_COLORS.orangeLight, isCurrent: true, isGreen: false };
     }
     
-    const status = taskStatuses[taskId];
     if (status?.visited) {
       if (status.hadAction) {
         // Visited with action - green
-        return { bg: TURBO_COLORS.green, border: TURBO_COLORS.green, isCurrent: false };
+        return { bg: TURBO_COLORS.green, border: TURBO_COLORS.green, isCurrent: false, isGreen: true };
       } else {
         // Visited without action - red
-        return { bg: TURBO_COLORS.red, border: TURBO_COLORS.red, isCurrent: false };
+        return { bg: TURBO_COLORS.red, border: TURBO_COLORS.red, isCurrent: false, isGreen: false };
       }
     }
     
     // Future task - gray
-    return { bg: TURBO_COLORS.gray, border: TURBO_COLORS.grayLight, isCurrent: false };
+    return { bg: TURBO_COLORS.gray, border: TURBO_COLORS.grayLight, isCurrent: false, isGreen: false };
   };
 
   // Timer bar and arrows rendered via portal to appear after Dialog in DOM
@@ -205,16 +211,18 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           <div className="flex-1 flex items-center justify-center gap-1 max-w-[600px] overflow-hidden">
             {sortedTasks.map((task, index) => {
               const stepColor = getStepColor(task.id, index);
+              const glowColor = stepColor.isGreen ? TURBO_COLORS.green : TURBO_COLORS.orange;
+              const ringColor = stepColor.isGreen ? "ring-emerald-400/50" : "ring-orange-400/50";
               return (
                 <div
                   key={task.id}
                   className={cn(
                     "h-2 rounded-sm transition-all duration-300 flex-1 min-w-[8px] max-w-[40px]",
-                    stepColor.isCurrent && "ring-1 ring-orange-400/50 ring-offset-1 ring-offset-[#18181B]"
+                    stepColor.isCurrent && `ring-1 ${ringColor} ring-offset-1 ring-offset-[#18181B]`
                   )}
                   style={{
                     backgroundColor: stepColor.bg,
-                    boxShadow: stepColor.isCurrent ? `0 0 8px ${TURBO_COLORS.orange}80` : undefined,
+                    boxShadow: stepColor.isCurrent ? `0 0 8px ${glowColor}80` : undefined,
                   }}
                   data-testid={`step-indicator-${index}`}
                 />

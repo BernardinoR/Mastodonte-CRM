@@ -229,7 +229,8 @@ export function TaskDetailModal({
         className={cn(
           "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
           UI_CLASSES.card,
-          "border-l-[6px]"
+          "border-l-[6px]",
+          isTurboModeActive && turboActionPerformed && "turbo-border-green-pulse"
         )}
         style={{
           borderLeftColor: isTurboModeActive && turboActionPerformed 

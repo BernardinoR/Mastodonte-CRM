@@ -265,6 +265,15 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     setActionPerformed(true);
     setShowCompletionAnimation(true);
     
+    // Mark current task as having action immediately
+    const currentTaskId = sortedTasks[currentIndex]?.id;
+    if (currentTaskId) {
+      setTaskStatuses((prev) => ({
+        ...prev,
+        [currentTaskId]: { visited: true, hadAction: true },
+      }));
+    }
+    
     // Clear any existing timeout
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
@@ -274,7 +283,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     animationTimeoutRef.current = window.setTimeout(() => {
       setShowCompletionAnimation(false);
     }, 2000);
-  }, []);
+  }, [sortedTasks, currentIndex]);
 
   const resetActionPerformed = useCallback(() => {
     setActionPerformed(false);
