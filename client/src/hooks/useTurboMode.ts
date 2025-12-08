@@ -106,6 +106,11 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [sessionStats, setSessionStats] = useState<TurboSessionStats | null>(null);
   const [tasksMovedToDone, setTasksMovedToDone] = useState(0);
   
+  // Session snapshot: stores task IDs in order when Turbo Mode starts
+  // This ensures tasks persist even if their status changes to Done
+  const [sessionTaskIds, setSessionTaskIds] = useState<string[]>([]);
+  const [sessionTaskSnapshot, setSessionTaskSnapshot] = useState<Record<string, Task>>({});
+  
   // Timestamp-based timer state
   // remainingSeconds is the authoritative remaining time (updated on tick and pause)
   const [remainingSeconds, setRemainingSeconds] = useState(POMODORO_DURATION);
@@ -193,16 +198,44 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     return result;
   }, [tasks]);
 
-  const currentTask = useMemo(() => {
-    return sortedTasks[currentIndex] || null;
-  }, [sortedTasks, currentIndex]);
+  // Create a live tasks map for quick lookup
+  const liveTasksMap = useMemo(() => {
+    const map: Record<string, Task> = {};
+    for (const task of tasks) {
+      map[task.id] = task;
+    }
+    return map;
+  }, [tasks]);
 
-  const totalTasks = sortedTasks.length;
+  // Session tasks: when Turbo Mode is active, use the snapshot with live updates merged in
+  // When inactive, use the regular sortedTasks for display/preview purposes
+  const sessionTasks = useMemo(() => {
+    if (!isActive || sessionTaskIds.length === 0) {
+      return sortedTasks;
+    }
+    // Build the session task list using IDs from the snapshot
+    // For each ID, prefer live data if available, otherwise use snapshot
+    return sessionTaskIds.map(id => {
+      const liveTask = liveTasksMap[id];
+      if (liveTask) {
+        return liveTask;
+      }
+      // Fall back to snapshot if task no longer in live array
+      return sessionTaskSnapshot[id];
+    }).filter(Boolean) as Task[];
+  }, [isActive, sessionTaskIds, sessionTaskSnapshot, liveTasksMap, sortedTasks]);
+
+  const currentTask = useMemo(() => {
+    return sessionTasks[currentIndex] || null;
+  }, [sessionTasks, currentIndex]);
+
+  const totalTasks = sessionTasks.length;
 
   useEffect(() => {
     if (!isActive) return;
     
-    if (sortedTasks.length === 0) {
+    // Use sessionTasks length since that's the stable snapshot
+    if (sessionTasks.length === 0) {
       setIsActive(false);
       setTimerRunning(false);
       if (timerIntervalRef.current) {
@@ -211,10 +244,10 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       return;
     }
     
-    if (currentIndex >= sortedTasks.length) {
-      setCurrentIndex(Math.max(0, sortedTasks.length - 1));
+    if (currentIndex >= sessionTasks.length) {
+      setCurrentIndex(Math.max(0, sessionTasks.length - 1));
     }
-  }, [isActive, sortedTasks.length, currentIndex]);
+  }, [isActive, sessionTasks.length, currentIndex]);
 
   // Timestamp-based timer that works in background
   useEffect(() => {
@@ -278,7 +311,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
         tasksWithHistory,
         tasksMovedToDone,
         totalTasksVisited: totalVisited,
-        totalTasks: sortedTasks.length,
+        totalTasks: sessionTaskIds.length,
         sessionDurationSeconds: sessionDuration,
         averageTimePerTask: avgTime,
       });
@@ -291,9 +324,18 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
         clearInterval(timerIntervalRef.current);
       }
     }
-  }, [isActive, remainingSeconds, taskStatuses, tasksMovedToDone]);
+  }, [isActive, remainingSeconds, taskStatuses, tasksMovedToDone, sessionTaskIds.length]);
 
   const startTurboMode = useCallback(() => {
+    // Capture the session snapshot before activating
+    const taskIds = sortedTasks.map(t => t.id);
+    const snapshot: Record<string, Task> = {};
+    for (const task of sortedTasks) {
+      snapshot[task.id] = task;
+    }
+    setSessionTaskIds(taskIds);
+    setSessionTaskSnapshot(snapshot);
+    
     setIsActive(true);
     setCurrentIndex(0);
     setRemainingSeconds(POMODORO_DURATION);
@@ -309,7 +351,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     setTasksMovedToDone(0);
     setShowSummary(false);
     setSessionStats(null);
-  }, []);
+  }, [sortedTasks]);
 
   const exitTurboMode = useCallback(() => {
     // Calculate session statistics before closing
@@ -322,7 +364,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       tasksWithHistory,
       tasksMovedToDone,
       totalTasksVisited: totalVisited,
-      totalTasks: sortedTasks.length,
+      totalTasks: sessionTaskIds.length,
       sessionDurationSeconds: sessionDuration,
       averageTimePerTask: avgTime,
     });
@@ -337,7 +379,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
     }
-  }, [taskStatuses, tasksMovedToDone]);
+  }, [taskStatuses, tasksMovedToDone, sessionTaskIds.length]);
   
   const closeSummary = useCallback(() => {
     setShowSummary(false);
@@ -345,8 +387,8 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   }, []);
 
   const goToNext = useCallback(() => {
-    if (currentIndex < sortedTasks.length - 1) {
-      const currentTaskId = sortedTasks[currentIndex]?.id;
+    if (currentIndex < sessionTasks.length - 1) {
+      const currentTaskId = sessionTasks[currentIndex]?.id;
       if (currentTaskId) {
         // Mark current task as visited with its action status
         setTaskStatuses((prev) => ({
@@ -360,11 +402,11 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       setCurrentIndex((prev) => prev + 1);
       setActionPerformed(false);
     }
-  }, [currentIndex, sortedTasks, actionPerformed]);
+  }, [currentIndex, sessionTasks, actionPerformed]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
-      const currentTaskId = sortedTasks[currentIndex]?.id;
+      const currentTaskId = sessionTasks[currentIndex]?.id;
       if (currentTaskId) {
         // Mark current task as visited with its action status
         setTaskStatuses((prev) => ({
@@ -375,14 +417,14 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       setCurrentIndex((prev) => prev - 1);
       setActionPerformed(false);
     }
-  }, [currentIndex, sortedTasks, actionPerformed]);
+  }, [currentIndex, sessionTasks, actionPerformed]);
 
   const markActionPerformed = useCallback(() => {
     setActionPerformed(true);
     setShowCompletionAnimation(true);
     
     // Mark current task as having action immediately
-    const currentTaskId = sortedTasks[currentIndex]?.id;
+    const currentTaskId = sessionTasks[currentIndex]?.id;
     if (currentTaskId) {
       setTaskStatuses((prev) => ({
         ...prev,
@@ -399,7 +441,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     animationTimeoutRef.current = window.setTimeout(() => {
       setShowCompletionAnimation(false);
     }, 2000);
-  }, [sortedTasks, currentIndex]);
+  }, [sessionTasks, currentIndex]);
 
   const resetActionPerformed = useCallback(() => {
     setActionPerformed(false);
@@ -451,7 +493,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       showSummary,
       sessionStats,
     },
-    sortedTasks,
+    sortedTasks: sessionTasks,
     currentTask,
     totalTasks,
     completedInSession,
