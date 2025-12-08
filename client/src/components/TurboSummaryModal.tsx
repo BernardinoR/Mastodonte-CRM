@@ -6,8 +6,7 @@ import {
   CheckCircle2, 
   Clock, 
   History, 
-  Zap,
-  ArrowRight
+  Zap
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TurboSessionStats } from "@/hooks/useTurboMode";
@@ -74,6 +73,7 @@ export const TurboSummaryModal = memo(function TurboSummaryModal({
                 <p className="text-sm text-white/70">Tarefas com histórico</p>
                 <p className="text-2xl font-bold text-violet-300">
                   {stats.tasksWithHistory}
+                  <span className="text-lg text-white/40 font-normal">/{stats.totalTasks}</span>
                 </p>
               </div>
             </div>
@@ -124,14 +124,13 @@ export const TurboSummaryModal = memo(function TurboSummaryModal({
               onClick={onClose}
               className={cn(
                 "w-full h-11",
-                "bg-gradient-to-r from-orange-500 to-amber-500",
-                "hover:from-orange-600 hover:to-amber-600",
-                "text-white font-medium shadow-lg shadow-orange-500/25"
+                "bg-white/10 hover:bg-white/15",
+                "border border-white/20",
+                "text-white/80 font-medium"
               )}
               data-testid="button-close-summary"
             >
-              <span>Voltar ao Dashboard</span>
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <span>Finalizar</span>
             </Button>
           </div>
         </div>
