@@ -57,6 +57,7 @@ export interface TurboSessionStats {
   tasksWithHistory: number;
   tasksMovedToDone: number;
   totalTasksVisited: number;
+  totalTasks: number;
   sessionDurationSeconds: number;
   averageTimePerTask: number;
 }
@@ -277,6 +278,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
         tasksWithHistory,
         tasksMovedToDone,
         totalTasksVisited: totalVisited,
+        totalTasks: sortedTasks.length,
         sessionDurationSeconds: sessionDuration,
         averageTimePerTask: avgTime,
       });
@@ -320,6 +322,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       tasksWithHistory,
       tasksMovedToDone,
       totalTasksVisited: totalVisited,
+      totalTasks: sortedTasks.length,
       sessionDurationSeconds: sessionDuration,
       averageTimePerTask: avgTime,
     });

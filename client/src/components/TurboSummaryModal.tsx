@@ -27,40 +27,12 @@ export const TurboSummaryModal = memo(function TurboSummaryModal({
 }: TurboSummaryModalProps) {
   if (!stats) return null;
 
-  const statsItems = [
-    {
-      icon: History,
-      label: "Tarefas com histórico",
-      value: stats.tasksWithHistory,
-      color: "text-emerald-400",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-500/30",
-    },
-    {
-      icon: CheckCircle2,
-      label: "Movidas para Done",
-      value: stats.tasksMovedToDone,
-      color: "text-green-400",
-      bgColor: "bg-green-500/10",
-      borderColor: "border-green-500/30",
-    },
-    {
-      icon: Clock,
-      label: "Tempo médio por tarefa",
-      value: formatTime(stats.averageTimePerTask),
-      isTime: true,
-      color: "text-orange-400",
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-500/30",
-    },
-  ];
-
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DialogContent 
         className={cn(
-          "max-w-md p-0 overflow-hidden",
-          "bg-[#18181B] border-[#363842]"
+          "max-w-sm p-0 overflow-hidden",
+          "bg-transparent border-none shadow-none"
         )}
         hideCloseButton
       >
@@ -68,52 +40,93 @@ export const TurboSummaryModal = memo(function TurboSummaryModal({
           <DialogTitle>Resumo da Sessão Turbo</DialogTitle>
           <DialogDescription>Estatísticas da sessão Turbo Mode</DialogDescription>
         </VisuallyHidden>
-        <div className="p-6 space-y-6">
+        
+        <div className="p-6 space-y-5">
+          {/* Header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <Zap className="w-8 h-8 text-white" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg shadow-orange-500/30">
+                <Zap className="w-7 h-7 text-white" />
               </div>
             </div>
-            <h2 className="text-xl font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-white">
               Sessão Turbo Finalizada
             </h2>
-            <p className="text-sm text-[#9B9A97]">
+            <p className="text-sm text-white/60">
               Duração total: {formatTime(stats.sessionDurationSeconds)}
             </p>
           </div>
 
+          {/* Stats Cards - each with distinct styling */}
           <div className="space-y-3">
-            {statsItems.map((item, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "flex items-center gap-4 p-4 rounded-lg border",
-                  item.bgColor,
-                  item.borderColor
-                )}
-              >
-                <div className={cn("p-2 rounded-lg", item.bgColor)}>
-                  <item.icon className={cn("w-5 h-5", item.color)} />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-[#9B9A97]">{item.label}</p>
-                  <p className={cn("text-2xl font-bold", item.color)}>
-                    {item.value}
-                  </p>
-                </div>
+            {/* Tarefas com histórico - Blue/Purple theme */}
+            <div
+              className={cn(
+                "flex items-center gap-4 p-4 rounded-xl",
+                "bg-violet-500/20 backdrop-blur-sm",
+                "border border-violet-400/30"
+              )}
+            >
+              <div className="p-2.5 rounded-lg bg-violet-500/30">
+                <History className="w-5 h-5 text-violet-300" />
               </div>
-            ))}
+              <div className="flex-1">
+                <p className="text-sm text-white/70">Tarefas com histórico</p>
+                <p className="text-2xl font-bold text-violet-300">
+                  {stats.tasksWithHistory}
+                </p>
+              </div>
+            </div>
+
+            {/* Movidas para Done - Green theme with X/Y format */}
+            <div
+              className={cn(
+                "flex items-center gap-4 p-4 rounded-xl",
+                "bg-emerald-500/20 backdrop-blur-sm",
+                "border border-emerald-400/30"
+              )}
+            >
+              <div className="p-2.5 rounded-lg bg-emerald-500/30">
+                <CheckCircle2 className="w-5 h-5 text-emerald-300" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-white/70">Movidas para Done</p>
+                <p className="text-2xl font-bold text-emerald-300">
+                  {stats.tasksMovedToDone}
+                  <span className="text-lg text-white/40 font-normal">/{stats.totalTasks}</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Tempo médio - Orange theme */}
+            <div
+              className={cn(
+                "flex items-center gap-4 p-4 rounded-xl",
+                "bg-orange-500/20 backdrop-blur-sm",
+                "border border-orange-400/30"
+              )}
+            >
+              <div className="p-2.5 rounded-lg bg-orange-500/30">
+                <Clock className="w-5 h-5 text-orange-300" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-white/70">Tempo médio por tarefa</p>
+                <p className="text-2xl font-bold text-orange-300">
+                  {formatTime(stats.averageTimePerTask)}
+                </p>
+              </div>
+            </div>
           </div>
 
-          <div className="pt-2">
+          {/* Action Button */}
+          <div className="pt-1">
             <Button
               onClick={onClose}
               className={cn(
-                "w-full h-12",
+                "w-full h-11",
                 "bg-gradient-to-r from-orange-500 to-amber-500",
                 "hover:from-orange-600 hover:to-amber-600",
-                "text-white font-medium"
+                "text-white font-medium shadow-lg shadow-orange-500/25"
               )}
               data-testid="button-close-summary"
             >
