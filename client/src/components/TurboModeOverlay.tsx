@@ -1,4 +1,4 @@
-import { memo, useEffect, useCallback } from "react";
+import { memo, useEffect, useCallback, useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
@@ -16,6 +16,20 @@ import { cn } from "@/lib/utils";
 import { UI_COLORS } from "@/lib/statusConfig";
 import type { UseTurboModeReturn } from "@/hooks/useTurboMode";
 import type { Task, TaskHistoryEvent } from "@/types/task";
+
+// Motivational phrases for Turbo Mode
+const MOTIVATIONAL_PHRASES = [
+  "Você está arrasando!",
+  "Foco total!",
+  "Uma de cada vez!",
+  "Mais perto do objetivo!",
+  "Continue assim!",
+  "Você consegue!",
+  "Progresso constante!",
+  "Excelente trabalho!",
+  "Mantenha o ritmo!",
+  "Quase lá!",
+];
 
 interface TurboModeOverlayProps {
   turboMode: UseTurboModeReturn;
@@ -42,6 +56,50 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   } = turboMode;
 
   const { isActive, currentIndex, timerSeconds, timerRunning, actionPerformed } = state;
+
+  // Motivational phrase state - changes on task completion
+  const [phraseIndex, setPhraseIndex] = useState(0);
+  const [showFlash, setShowFlash] = useState(false);
+  const prevActionPerformed = useRef(actionPerformed);
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Flash animation and phrase change when action is performed (edge detection)
+  useEffect(() => {
+    // Only trigger on rising edge: false -> true
+    if (actionPerformed && !prevActionPerformed.current) {
+      // Action just completed - trigger flash and change phrase
+      setShowFlash(true);
+      setPhraseIndex((prev) => (prev + 1) % MOTIVATIONAL_PHRASES.length);
+      
+      // Clear any existing timer
+      if (flashTimerRef.current) {
+        clearTimeout(flashTimerRef.current);
+      }
+      
+      // Remove flash after animation completes
+      flashTimerRef.current = setTimeout(() => {
+        setShowFlash(false);
+        flashTimerRef.current = null;
+      }, 600);
+      
+      // Update ref immediately to prevent re-triggering
+      prevActionPerformed.current = true;
+    }
+    
+    // Track when actionPerformed goes back to false
+    if (!actionPerformed && prevActionPerformed.current) {
+      prevActionPerformed.current = false;
+    }
+  }, [actionPerformed]);
+  
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (flashTimerRef.current) {
+        clearTimeout(flashTimerRef.current);
+      }
+    };
+  }, []);
 
   // Keyboard navigation
   useEffect(() => {
@@ -101,7 +159,11 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   // Timer bar and arrows rendered via portal to appear after Dialog in DOM
   const timerBar = (
     <div 
-      className="fixed top-0 left-0 right-0 z-[9999] pointer-events-auto bg-[#1E1F24] border-b border-[#363842]"
+      className={cn(
+        "fixed top-0 left-0 right-0 z-[9999] pointer-events-auto bg-[#1E1F24] border-b border-[#363842]",
+        "transition-all duration-300",
+        showFlash && "turbo-flash-green"
+      )}
       data-testid="turbo-mode-bar"
       onPointerDown={stopPropagation}
       onClick={stopPropagation}
@@ -116,7 +178,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
 
       <div className="flex items-center justify-between px-5 py-2 gap-4">
         {/* Left section: Turbo Mode label and task counter */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-[140px]">
           {/* Turbo label - using card border blue */}
           <div className="flex items-center gap-2" style={{ color: UI_COLORS.taskBorderBlue }}>
             <Rocket className="w-4 h-4" />
@@ -144,6 +206,19 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
               </>
             )}
           </div>
+        </div>
+
+        {/* Center section: Motivational phrase */}
+        <div className="flex-1 flex justify-center">
+          <span 
+            className={cn(
+              "text-sm text-[#9B9A97] italic transition-all duration-300",
+              showFlash && "text-emerald-400"
+            )}
+            data-testid="text-motivational-phrase"
+          >
+            {MOTIVATIONAL_PHRASES[phraseIndex]}
+          </span>
         </div>
 
         {/* Right section: Timer and controls */}
