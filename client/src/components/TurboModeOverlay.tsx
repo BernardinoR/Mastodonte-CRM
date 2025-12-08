@@ -135,12 +135,13 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     e.stopPropagation();
   };
 
-  // Orange color palette for Turbo Mode
+  // Color palette for Turbo Mode
   const TURBO_COLORS = {
     orange: "#F97316",
     orangeLight: "#FB923C",
     orangeDark: "#EA580C",
-    green: "#22C55E",
+    green: "#10B981",
+    greenLight: "#34D399",
     red: "#EF4444",
     gray: "#3F3F46",
     grayLight: "#52525B",
@@ -212,7 +213,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
             {sortedTasks.map((task, index) => {
               const stepColor = getStepColor(task.id, index);
               const glowColor = stepColor.isGreen ? TURBO_COLORS.green : TURBO_COLORS.orange;
-              const ringColor = stepColor.isGreen ? "ring-emerald-400/50" : "ring-orange-400/50";
+              const ringColor = stepColor.isGreen ? "ring-emerald-500/60" : "ring-orange-400/50";
               return (
                 <div
                   key={task.id}
