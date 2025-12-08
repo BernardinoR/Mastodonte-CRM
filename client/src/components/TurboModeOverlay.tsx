@@ -9,13 +9,13 @@ import {
   Play, 
   Pause, 
   RotateCcw,
-  Rocket,
-  CheckCircle2
+  Zap,
+  CheckCircle2,
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UI_COLORS } from "@/lib/statusConfig";
 import type { UseTurboModeReturn } from "@/hooks/useTurboMode";
-import type { Task, TaskHistoryEvent } from "@/types/task";
+import type { Task } from "@/types/task";
 
 // Motivational phrases for Turbo Mode
 const MOTIVATIONAL_PHRASES = [
@@ -149,141 +149,188 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   const isFirstTask = currentIndex === 0;
   const isLastTask = currentIndex === totalTasks - 1;
   const progress = totalTasks > 0 ? ((currentIndex + 1) / totalTasks) * 100 : 0;
-  const timerProgress = (timerSeconds / (25 * 60)) * 100;
 
   // Stop event propagation to prevent Dialog from closing
   const stopPropagation = (e: React.MouseEvent | React.PointerEvent) => {
     e.stopPropagation();
   };
 
+  // Orange color palette for Turbo Mode
+  const TURBO_COLORS = {
+    orange: "#F97316",
+    orangeLight: "#FB923C",
+    orangeDark: "#EA580C",
+    amber: "#F59E0B",
+    green: "#22C55E",
+  };
+
+  // Calculate progress color based on completion
+  const getProgressColor = () => {
+    if (showFlash) return TURBO_COLORS.green;
+    if (progress > 75) return TURBO_COLORS.amber;
+    return TURBO_COLORS.orange;
+  };
+
   // Timer bar and arrows rendered via portal to appear after Dialog in DOM
   const timerBar = (
     <div 
       className={cn(
-        "fixed top-0 left-0 right-0 z-[9999] pointer-events-auto bg-[#1E1F24] border-b border-[#363842]",
-        "transition-all duration-300",
-        showFlash && "turbo-flash-green"
+        "fixed top-0 left-0 right-0 z-[9999] pointer-events-auto",
+        "transition-all duration-300"
       )}
       data-testid="turbo-mode-bar"
       onPointerDown={stopPropagation}
       onClick={stopPropagation}
     >
-      {/* Subtle progress bar with blue accent matching card border */}
-      <div className="h-0.5 bg-[#2a2a2a]">
+      {/* Large progress bar at top with gradient */}
+      <div className="h-1.5 bg-[#1a1a1a]">
         <div 
-          className="h-full transition-all duration-300"
-          style={{ width: `${progress}%`, backgroundColor: UI_COLORS.taskBorderBlue }}
+          className={cn(
+            "h-full transition-all duration-500 ease-out",
+            showFlash && "turbo-progress-pulse"
+          )}
+          style={{ 
+            width: `${progress}%`, 
+            background: `linear-gradient(90deg, ${TURBO_COLORS.orangeDark}, ${getProgressColor()})`,
+            boxShadow: showFlash ? `0 0 12px ${TURBO_COLORS.green}` : `0 0 8px ${TURBO_COLORS.orange}40`
+          }}
         />
       </div>
 
-      <div className="flex items-center justify-between px-5 py-2 gap-4">
-        {/* Left section: Turbo Mode label and task counter */}
-        <div className="flex items-center gap-4 min-w-[140px]">
-          {/* Turbo label - using card border blue */}
-          <div className="flex items-center gap-2" style={{ color: UI_COLORS.taskBorderBlue }}>
-            <Rocket className="w-4 h-4" />
-            <span className="font-medium text-sm tracking-wide">TURBO</span>
-          </div>
+      {/* Main bar content */}
+      <div 
+        className={cn(
+          "bg-gradient-to-r from-[#1E1F24] via-[#1E1F24] to-[#1E1F24] border-b",
+          showFlash ? "border-emerald-500/50" : "border-orange-500/30"
+        )}
+      >
+        <div className="flex items-center justify-between px-6 py-3 gap-6">
           
-          {/* Separator */}
-          <div className="w-px h-4 bg-[#363842]" />
-          
-          {/* Task counter - minimal */}
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-[#9B9A97] tabular-nums">
-              <span className="text-foreground font-medium">{currentIndex + 1}</span>
-              <span className="mx-1">/</span>
-              <span>{totalTasks}</span>
-            </span>
-            
-            {completedInSession > 0 && (
-              <>
-                <div className="w-px h-4 bg-[#363842]" />
-                <span className="flex items-center gap-1.5 text-emerald-500/80 text-sm">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  <span>{completedInSession}</span>
-                </span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Center section: Motivational phrase */}
-        <div className="flex-1 flex justify-center">
-          <span 
-            className={cn(
-              "text-sm text-[#9B9A97] italic transition-all duration-300",
-              showFlash && "text-emerald-400"
-            )}
-            data-testid="text-motivational-phrase"
-          >
-            {MOTIVATIONAL_PHRASES[phraseIndex]}
-          </span>
-        </div>
-
-        {/* Right section: Timer and controls */}
-        <div className="flex items-center gap-1">
-          {/* Timer section */}
-          <div className="flex items-center gap-1 mr-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => { e.stopPropagation(); timerRunning ? pauseTimer() : startTimer(); }}
-              className="h-8 w-8 text-[#9B9A97] hover:text-foreground"
-              data-testid="button-timer-toggle"
-            >
-              {timerRunning ? (
-                <Pause className="w-4 h-4" />
-              ) : (
-                <Play className="w-4 h-4" />
+          {/* Left Panel: Identity */}
+          <div className="flex items-center gap-4">
+            {/* Turbo label with flame icon */}
+            <div 
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+                "bg-gradient-to-r from-orange-500/20 to-amber-500/10",
+                "border border-orange-500/30"
               )}
-            </Button>
+            >
+              <Zap 
+                className={cn(
+                  "w-5 h-5 text-orange-400",
+                  showFlash && "animate-pulse"
+                )} 
+              />
+              <span 
+                className="font-bold text-sm tracking-wider"
+                style={{ color: TURBO_COLORS.orange }}
+              >
+                TURBO
+              </span>
+            </div>
+          </div>
+
+          {/* Center Panel: Progress Info + Motivational */}
+          <div className="flex-1 flex flex-col items-center gap-1">
+            {/* Task Progress */}
+            <div className="flex items-center gap-3">
+              <Target className="w-4 h-4 text-orange-400/70" />
+              <span className="text-base font-semibold text-foreground">
+                {currentIndex + 1} <span className="text-[#6B6B6B] font-normal">de</span> {totalTasks}
+              </span>
+              
+              {completedInSession > 0 && (
+                <div 
+                  className={cn(
+                    "flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium",
+                    "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                  )}
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>{completedInSession} feitas</span>
+                </div>
+              )}
+            </div>
             
-            {/* Timer display - clean monospace */}
-            <div className="px-2 py-0.5 rounded bg-[#252730] border border-[#363842] min-w-[60px] text-center">
+            {/* Motivational phrase */}
+            <span 
+              className={cn(
+                "text-sm font-medium transition-all duration-300",
+                showFlash ? "text-emerald-400" : "text-orange-300/80"
+              )}
+              data-testid="text-motivational-phrase"
+            >
+              {showFlash ? "Muito bem!" : MOTIVATIONAL_PHRASES[phraseIndex]}
+            </span>
+          </div>
+
+          {/* Right Panel: Timer and Controls */}
+          <div className="flex items-center gap-3">
+            {/* Timer display - prominent */}
+            <div 
+              className={cn(
+                "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+                "bg-[#252730] border",
+                timerSeconds <= 60 ? "border-red-500/50" : 
+                timerSeconds <= 300 ? "border-amber-500/30" : 
+                "border-[#363842]"
+              )}
+            >
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); timerRunning ? pauseTimer() : startTimer(); }}
+                className="h-7 w-7 text-[#9B9A97] hover:text-foreground"
+                data-testid="button-timer-toggle"
+              >
+                {timerRunning ? (
+                  <Pause className="w-4 h-4" />
+                ) : (
+                  <Play className="w-4 h-4" />
+                )}
+              </Button>
+              
               <span 
                 className={cn(
-                  "font-mono text-sm tabular-nums",
+                  "font-mono text-lg font-semibold tabular-nums min-w-[60px]",
                   timerSeconds <= 60 && "text-red-400",
                   timerSeconds <= 300 && timerSeconds > 60 && "text-amber-400",
-                  timerSeconds > 300 && "text-[#9B9A97]"
+                  timerSeconds > 300 && "text-foreground"
                 )}
                 data-testid="text-timer"
               >
                 {formatTime(timerSeconds)}
               </span>
+              
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => { e.stopPropagation(); resetTimer(); }}
+                className="h-7 w-7 text-[#64666E] hover:text-foreground"
+                data-testid="button-timer-reset"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </Button>
             </div>
-            
+
+            {/* Exit button */}
             <Button
               variant="ghost"
               size="icon"
-              onClick={(e) => { e.stopPropagation(); resetTimer(); }}
-              className="h-8 w-8 text-[#9B9A97] hover:text-foreground"
-              data-testid="button-timer-reset"
+              onClick={(e) => { e.stopPropagation(); exitTurboMode(); }}
+              className="h-8 w-8 text-[#64666E] hover:text-red-400"
+              data-testid="button-turbo-exit"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </Button>
           </div>
-
-          {/* Separator */}
-          <div className="w-px h-4 bg-[#363842] mx-1" />
-
-          {/* Exit button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => { e.stopPropagation(); exitTurboMode(); }}
-            className="h-8 w-8 text-[#64666E] hover:text-foreground"
-            data-testid="button-turbo-exit"
-          >
-            <X className="w-4 h-4" />
-          </Button>
         </div>
       </div>
     </div>
   );
 
-  // Navigation arrows - matching card aesthetic
+  // Navigation arrows - matching orange Turbo theme
   const navigationArrows = (
     <>
       {/* Left arrow - positioned just outside the modal left edge */}
@@ -299,15 +346,15 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           onClick={(e) => { e.stopPropagation(); goToPrevious(); }}
           disabled={isFirstTask}
           className={cn(
-            "h-11 w-11 rounded-full",
-            "bg-[#252730] border border-[#363842]",
-            "text-[#9B9A97] hover:text-foreground hover:bg-[#2a2a2a] hover:border-[#4a4a4a]",
+            "h-12 w-12 rounded-full",
+            "bg-[#252730] border border-orange-500/30",
+            "text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50",
             "transition-all duration-200",
             isFirstTask && "opacity-30 cursor-not-allowed"
           )}
           data-testid="button-turbo-prev"
         >
-          <ChevronLeft className="w-5 h-5" />
+          <ChevronLeft className="w-6 h-6" />
         </Button>
       </div>
       
@@ -324,15 +371,15 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           onClick={(e) => { e.stopPropagation(); goToNext(); }}
           disabled={isLastTask}
           className={cn(
-            "h-11 w-11 rounded-full",
-            "bg-[#252730] border border-[#363842]",
-            "text-[#9B9A97] hover:text-foreground hover:bg-[#2a2a2a] hover:border-[#4a4a4a]",
+            "h-12 w-12 rounded-full",
+            "bg-[#252730] border border-orange-500/30",
+            "text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 hover:border-orange-500/50",
             "transition-all duration-200",
             isLastTask && "opacity-30 cursor-not-allowed"
           )}
           data-testid="button-turbo-next"
         >
-          <ChevronRight className="w-5 h-5" />
+          <ChevronRight className="w-6 h-6" />
         </Button>
       </div>
     </>
