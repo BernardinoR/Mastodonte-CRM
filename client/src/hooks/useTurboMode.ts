@@ -1,6 +1,42 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import type { Task, TaskPriority } from "@/types/task";
 
+// Play notification sound using Web Audio API
+function playTimerEndSound() {
+  try {
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create a more pleasant bell-like sound
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.type = "sine";
+      oscillator.frequency.setValueAtTime(frequency, startTime);
+      
+      // Attack and decay envelope
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.3, startTime + 0.02);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioContext.currentTime;
+    // Play a pleasant chord progression
+    playTone(523.25, now, 0.3);        // C5
+    playTone(659.25, now + 0.15, 0.3); // E5
+    playTone(783.99, now + 0.3, 0.4);  // G5
+    playTone(1046.5, now + 0.45, 0.5); // C6
+  } catch (e) {
+    console.log("Audio not supported");
+  }
+}
+
 const PRIORITY_ORDER: Record<TaskPriority, number> = {
   "Urgente": 0,
   "Importante": 1,
@@ -79,6 +115,8 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const timerIntervalRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
   const sessionStartTimeRef = useRef<number>(0);
+  // Track if timer end has already triggered exit to prevent multiple exits
+  const timerEndTriggeredRef = useRef<boolean>(false);
 
   const sortedTasks = useMemo(() => {
     const eligibleTasks = tasks.filter(
@@ -221,6 +259,38 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     };
   }, []);
 
+  // Watch for timer reaching zero and auto-exit with sound
+  useEffect(() => {
+    if (isActive && remainingSeconds === 0 && !timerEndTriggeredRef.current) {
+      timerEndTriggeredRef.current = true;
+      
+      // Play notification sound
+      playTimerEndSound();
+      
+      // Calculate session statistics
+      const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+      const tasksWithHistory = Object.values(taskStatuses).filter(s => s.hadAction).length;
+      const totalVisited = Object.values(taskStatuses).filter(s => s.visited).length;
+      const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
+      
+      setSessionStats({
+        tasksWithHistory,
+        tasksMovedToDone,
+        totalTasksVisited: totalVisited,
+        sessionDurationSeconds: sessionDuration,
+        averageTimePerTask: avgTime,
+      });
+      
+      setIsActive(false);
+      setTimerRunning(false);
+      setShowSummary(true);
+      
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    }
+  }, [isActive, remainingSeconds, taskStatuses, tasksMovedToDone]);
+
   const startTurboMode = useCallback(() => {
     setIsActive(true);
     setCurrentIndex(0);
@@ -228,6 +298,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     remainingAtStartRef.current = POMODORO_DURATION;
     timerStartTimeRef.current = Date.now();
     sessionStartTimeRef.current = Date.now();
+    timerEndTriggeredRef.current = false;
     setTimerRunning(true);
     setActionPerformed(false);
     setCompletedInSession(0);

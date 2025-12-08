@@ -238,37 +238,47 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
           </div>
 
           {/* Right: Timer and Controls */}
-          <div className="flex items-center gap-2 min-w-[160px] justify-end">
-            {/* Timer display */}
+          <div className="flex items-center gap-3 min-w-[200px] justify-end">
+            {/* Timer display - more prominent */}
             <div 
               className={cn(
-                "flex items-center gap-1.5 px-2 py-1 rounded-md",
-                "bg-[#252730] border",
-                timerSeconds <= 60 ? "border-red-500/50" : 
-                timerSeconds <= 300 ? "border-amber-500/30" : 
-                "border-[#363842]"
+                "flex items-center gap-2 px-3 py-1.5 rounded-lg",
+                "border-2 transition-all duration-300",
+                timerSeconds <= 60 
+                  ? "bg-red-500/20 border-red-500/70 shadow-[0_0_15px_rgba(239,68,68,0.4)]" 
+                  : timerSeconds <= 300 
+                    ? "bg-amber-500/15 border-amber-500/50 shadow-[0_0_12px_rgba(245,158,11,0.3)]" 
+                    : "bg-orange-500/10 border-orange-500/40 shadow-[0_0_10px_rgba(249,115,22,0.2)]",
+                timerRunning && timerSeconds <= 60 && "animate-pulse"
               )}
             >
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={(e) => { e.stopPropagation(); timerRunning ? pauseTimer() : startTimer(); }}
-                className="h-6 w-6 text-[#9B9A97] hover:text-foreground"
+                className={cn(
+                  "h-7 w-7 rounded-full transition-colors",
+                  timerSeconds <= 60 
+                    ? "text-red-400 hover:text-red-300 hover:bg-red-500/20" 
+                    : timerSeconds <= 300 
+                      ? "text-amber-400 hover:text-amber-300 hover:bg-amber-500/20"
+                      : "text-orange-400 hover:text-orange-300 hover:bg-orange-500/20"
+                )}
                 data-testid="button-timer-toggle"
               >
                 {timerRunning ? (
-                  <Pause className="w-3 h-3" />
+                  <Pause className="w-4 h-4" />
                 ) : (
-                  <Play className="w-3 h-3" />
+                  <Play className="w-4 h-4" />
                 )}
               </Button>
               
               <span 
                 className={cn(
-                  "font-mono text-sm font-semibold tabular-nums",
+                  "font-mono text-base font-bold tabular-nums tracking-wider",
                   timerSeconds <= 60 && "text-red-400",
                   timerSeconds <= 300 && timerSeconds > 60 && "text-amber-400",
-                  timerSeconds > 300 && "text-foreground"
+                  timerSeconds > 300 && "text-orange-400"
                 )}
                 data-testid="text-timer"
               >
@@ -279,10 +289,17 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
                 variant="ghost"
                 size="icon"
                 onClick={(e) => { e.stopPropagation(); resetTimer(); }}
-                className="h-6 w-6 text-[#64666E] hover:text-foreground"
+                className={cn(
+                  "h-7 w-7 rounded-full transition-colors",
+                  timerSeconds <= 60 
+                    ? "text-red-400/60 hover:text-red-300 hover:bg-red-500/20" 
+                    : timerSeconds <= 300 
+                      ? "text-amber-400/60 hover:text-amber-300 hover:bg-amber-500/20"
+                      : "text-orange-400/60 hover:text-orange-300 hover:bg-orange-500/20"
+                )}
                 data-testid="button-timer-reset"
               >
-                <RotateCcw className="w-3 h-3" />
+                <RotateCcw className="w-3.5 h-3.5" />
               </Button>
             </div>
 
