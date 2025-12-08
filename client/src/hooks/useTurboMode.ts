@@ -10,6 +10,12 @@ const PRIORITY_ORDER: Record<TaskPriority, number> = {
 
 const POMODORO_DURATION = 25 * 60;
 
+// Track status of each task in Turbo Mode
+export interface TaskTurboStatus {
+  visited: boolean;
+  hadAction: boolean;
+}
+
 export interface TurboModeState {
   isActive: boolean;
   currentIndex: number;
@@ -17,6 +23,7 @@ export interface TurboModeState {
   timerRunning: boolean;
   actionPerformed: boolean;
   showCompletionAnimation: boolean;
+  taskStatuses: Record<string, TaskTurboStatus>;
 }
 
 export interface UseTurboModeReturn {
@@ -44,6 +51,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [actionPerformed, setActionPerformed] = useState(false);
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [completedInSession, setCompletedInSession] = useState(0);
+  const [taskStatuses, setTaskStatuses] = useState<Record<string, TaskTurboStatus>>({});
   
   // Timestamp-based timer state
   // remainingSeconds is the authoritative remaining time (updated on tick and pause)
@@ -206,6 +214,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     setActionPerformed(false);
     setCompletedInSession(0);
     setShowCompletionAnimation(false);
+    setTaskStatuses({});
   }, []);
 
   const exitTurboMode = useCallback(() => {
@@ -221,21 +230,36 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
 
   const goToNext = useCallback(() => {
     if (currentIndex < sortedTasks.length - 1) {
+      const currentTaskId = sortedTasks[currentIndex]?.id;
+      if (currentTaskId) {
+        // Mark current task as visited with its action status
+        setTaskStatuses((prev) => ({
+          ...prev,
+          [currentTaskId]: { visited: true, hadAction: actionPerformed },
+        }));
+      }
       if (actionPerformed) {
         setCompletedInSession((prev) => prev + 1);
       }
       setCurrentIndex((prev) => prev + 1);
       setActionPerformed(false);
-      // Don't toggle animation here - it's controlled by markActionPerformed only
     }
-  }, [currentIndex, sortedTasks.length, actionPerformed]);
+  }, [currentIndex, sortedTasks, actionPerformed]);
 
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
+      const currentTaskId = sortedTasks[currentIndex]?.id;
+      if (currentTaskId) {
+        // Mark current task as visited with its action status
+        setTaskStatuses((prev) => ({
+          ...prev,
+          [currentTaskId]: { visited: true, hadAction: actionPerformed },
+        }));
+      }
       setCurrentIndex((prev) => prev - 1);
       setActionPerformed(false);
     }
-  }, [currentIndex]);
+  }, [currentIndex, sortedTasks, actionPerformed]);
 
   const markActionPerformed = useCallback(() => {
     setActionPerformed(true);
@@ -294,6 +318,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       timerRunning,
       actionPerformed,
       showCompletionAnimation,
+      taskStatuses,
     },
     sortedTasks,
     currentTask,
