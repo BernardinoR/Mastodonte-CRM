@@ -16,6 +16,15 @@ export interface TaskTurboStatus {
   hadAction: boolean;
 }
 
+// Session statistics for summary
+export interface TurboSessionStats {
+  tasksWithHistory: number;
+  tasksMovedToDone: number;
+  totalTasksVisited: number;
+  sessionDurationSeconds: number;
+  averageTimePerTask: number;
+}
+
 export interface TurboModeState {
   isActive: boolean;
   currentIndex: number;
@@ -24,6 +33,8 @@ export interface TurboModeState {
   actionPerformed: boolean;
   showCompletionAnimation: boolean;
   taskStatuses: Record<string, TaskTurboStatus>;
+  showSummary: boolean;
+  sessionStats: TurboSessionStats | null;
 }
 
 export interface UseTurboModeReturn {
@@ -34,10 +45,12 @@ export interface UseTurboModeReturn {
   completedInSession: number;
   startTurboMode: () => void;
   exitTurboMode: () => void;
+  closeSummary: () => void;
   goToNext: () => void;
   goToPrevious: () => void;
   markActionPerformed: () => void;
   resetActionPerformed: () => void;
+  markTaskMovedToDone: () => void;
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
@@ -52,6 +65,9 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
   const [completedInSession, setCompletedInSession] = useState(0);
   const [taskStatuses, setTaskStatuses] = useState<Record<string, TaskTurboStatus>>({});
+  const [showSummary, setShowSummary] = useState(false);
+  const [sessionStats, setSessionStats] = useState<TurboSessionStats | null>(null);
+  const [tasksMovedToDone, setTasksMovedToDone] = useState(0);
   
   // Timestamp-based timer state
   // remainingSeconds is the authoritative remaining time (updated on tick and pause)
@@ -62,6 +78,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const remainingAtStartRef = useRef<number>(POMODORO_DURATION);
   const timerIntervalRef = useRef<number | null>(null);
   const animationTimeoutRef = useRef<number | null>(null);
+  const sessionStartTimeRef = useRef<number>(0);
 
   const sortedTasks = useMemo(() => {
     const eligibleTasks = tasks.filter(
@@ -210,22 +227,47 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     setRemainingSeconds(POMODORO_DURATION);
     remainingAtStartRef.current = POMODORO_DURATION;
     timerStartTimeRef.current = Date.now();
+    sessionStartTimeRef.current = Date.now();
     setTimerRunning(true);
     setActionPerformed(false);
     setCompletedInSession(0);
     setShowCompletionAnimation(false);
     setTaskStatuses({});
+    setTasksMovedToDone(0);
+    setShowSummary(false);
+    setSessionStats(null);
   }, []);
 
   const exitTurboMode = useCallback(() => {
+    // Calculate session statistics before closing
+    const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
+    const tasksWithHistory = Object.values(taskStatuses).filter(s => s.hadAction).length;
+    const totalVisited = Object.values(taskStatuses).filter(s => s.visited).length;
+    const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
+    
+    setSessionStats({
+      tasksWithHistory,
+      tasksMovedToDone,
+      totalTasksVisited: totalVisited,
+      sessionDurationSeconds: sessionDuration,
+      averageTimePerTask: avgTime,
+    });
+    
     setIsActive(false);
     setTimerRunning(false);
+    setShowSummary(true);
+    
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
     }
     if (animationTimeoutRef.current) {
       clearTimeout(animationTimeoutRef.current);
     }
+  }, [taskStatuses, tasksMovedToDone]);
+  
+  const closeSummary = useCallback(() => {
+    setShowSummary(false);
+    setSessionStats(null);
   }, []);
 
   const goToNext = useCallback(() => {
@@ -288,6 +330,10 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   const resetActionPerformed = useCallback(() => {
     setActionPerformed(false);
   }, []);
+  
+  const markTaskMovedToDone = useCallback(() => {
+    setTasksMovedToDone((prev) => prev + 1);
+  }, []);
 
   const startTimer = useCallback(() => {
     // Store current remaining as the starting point
@@ -328,6 +374,8 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
       actionPerformed,
       showCompletionAnimation,
       taskStatuses,
+      showSummary,
+      sessionStats,
     },
     sortedTasks,
     currentTask,
@@ -335,10 +383,12 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     completedInSession,
     startTurboMode,
     exitTurboMode,
+    closeSummary,
     goToNext,
     goToPrevious,
     markActionPerformed,
     resetActionPerformed,
+    markTaskMovedToDone,
     startTimer,
     pauseTimer,
     resetTimer,
