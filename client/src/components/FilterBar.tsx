@@ -569,20 +569,15 @@ export function FilterBar({
         onClick={onTurboMode}
         disabled={turboModeTaskCount === 0}
         className={cn(
-          "relative flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+          "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
           turboModeTaskCount > 0
-            ? "text-orange-500 hover:bg-orange-500/20"
+            ? "text-gray-400 hover:text-orange-500 hover:bg-orange-500/20"
             : "text-gray-600 cursor-not-allowed"
         )}
         title={turboModeTaskCount > 0 ? `Modo Turbo: ${turboModeTaskCount} tarefas` : "Nenhuma tarefa pendente"}
         data-testid="button-turbo-mode"
       >
         <Rocket className="w-4 h-4" />
-        {turboModeTaskCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-orange-500 text-white text-[10px] font-medium flex items-center justify-center">
-            {turboModeTaskCount > 99 ? "99+" : turboModeTaskCount}
-          </span>
-        )}
       </button>
 
         {/* Presets Popover */}
