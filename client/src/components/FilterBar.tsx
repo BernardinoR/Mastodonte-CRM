@@ -58,23 +58,27 @@ interface SortOption {
 }
 
 interface FilterBarProps {
-  viewMode: ViewMode;
-  onViewModeChange: (mode: ViewMode) => void;
-  sorts: SortOption[];
-  onSortsChange: (sorts: SortOption[]) => void;
-  activeFilters: TypedActiveFilter[];
-  onAddFilter: <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => void;
-  onUpdateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
-  onRemoveFilter: (id: string) => void;
-  availableAssignees: string[];
-  availableClients: string[];
-  onReset: () => void;
-  onNewTask: () => void;
-  onTurboMode: () => void;
-  turboModeTaskCount: number;
-  tasks: Array<{ dueDate: Date; status: string }>;
-  activePresetId: string | null;
-  onActivePresetChange: (presetId: string | null) => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
+  sorts?: SortOption[];
+  onSortsChange?: (sorts: SortOption[]) => void;
+  activeFilters?: TypedActiveFilter[];
+  onAddFilter?: <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => void;
+  onUpdateFilter?: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
+  onRemoveFilter?: (id: string) => void;
+  availableAssignees?: string[];
+  availableClients?: string[];
+  onReset?: () => void;
+  onNewTask?: () => void;
+  onTurboMode?: () => void;
+  turboModeTaskCount?: number;
+  tasks?: Array<{ dueDate: Date; status: string }>;
+  activePresetId?: string | null;
+  onActivePresetChange?: (presetId: string | null) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
+  showAssignee?: boolean;
+  showPriority?: boolean;
 }
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
@@ -285,23 +289,23 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
 }
 
 export function FilterBar({
-  viewMode,
-  onViewModeChange,
-  sorts,
-  onSortsChange,
-  activeFilters,
-  onAddFilter,
-  onUpdateFilter,
-  onRemoveFilter,
-  availableAssignees,
-  availableClients,
-  onReset,
-  onNewTask,
-  onTurboMode,
-  turboModeTaskCount,
-  tasks,
-  activePresetId,
-  onActivePresetChange,
+  viewMode = "board",
+  onViewModeChange = () => {},
+  sorts = [],
+  onSortsChange = () => {},
+  activeFilters = [],
+  onAddFilter = () => {},
+  onUpdateFilter = () => {},
+  onRemoveFilter = () => {},
+  availableAssignees = [],
+  availableClients = [],
+  onReset = () => {},
+  onNewTask = () => {},
+  onTurboMode = () => {},
+  turboModeTaskCount = 0,
+  tasks = [],
+  activePresetId = null,
+  onActivePresetChange = () => {},
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
