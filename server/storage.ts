@@ -1,37 +1,97 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
-
-// modify the interface with any CRUD methods
-// you might need
+import { type User, type InsertUser, type Group, type InsertGroup } from "@shared/schema";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | undefined>;
+  getUserByClerkId(clerkId: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  getAllUsers(): Promise<User[]>;
+  
+  getGroup(id: number): Promise<Group | undefined>;
+  createGroup(group: InsertGroup): Promise<Group>;
+  updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | undefined>;
+  deleteGroup(id: number): Promise<boolean>;
+  getAllGroups(): Promise<Group[]>;
 }
 
 export class MemStorage implements IStorage {
-  private users: Map<string, User>;
+  private users: Map<number, User>;
+  private groups: Map<number, Group>;
+  private userIdCounter: number;
+  private groupIdCounter: number;
 
   constructor() {
     this.users = new Map();
+    this.groups = new Map();
+    this.userIdCounter = 1;
+    this.groupIdCounter = 1;
   }
 
-  async getUser(id: string): Promise<User | undefined> {
+  async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
+  async getUserByClerkId(clerkId: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
-      (user) => user.username === username,
+      (user) => user.clerkId === clerkId,
     );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
+    const id = this.userIdCounter++;
+    const user: User = { 
+      id,
+      clerkId: insertUser.clerkId,
+      email: insertUser.email,
+      name: insertUser.name ?? null,
+      role: insertUser.role ?? "consultor",
+      groupId: insertUser.groupId ?? null,
+    };
     this.users.set(id, user);
     return user;
+  }
+
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    const updatedUser = { ...user, ...updates };
+    this.users.set(id, updatedUser);
+    return updatedUser;
+  }
+
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values());
+  }
+
+  async getGroup(id: number): Promise<Group | undefined> {
+    return this.groups.get(id);
+  }
+
+  async createGroup(insertGroup: InsertGroup): Promise<Group> {
+    const id = this.groupIdCounter++;
+    const group: Group = { 
+      id,
+      name: insertGroup.name,
+      logoUrl: insertGroup.logoUrl ?? null,
+    };
+    this.groups.set(id, group);
+    return group;
+  }
+
+  async updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | undefined> {
+    const group = this.groups.get(id);
+    if (!group) return undefined;
+    const updatedGroup = { ...group, ...updates };
+    this.groups.set(id, updatedGroup);
+    return updatedGroup;
+  }
+
+  async deleteGroup(id: number): Promise<boolean> {
+    return this.groups.delete(id);
+  }
+
+  async getAllGroups(): Promise<Group[]> {
+    return Array.from(this.groups.values());
   }
 }
 
