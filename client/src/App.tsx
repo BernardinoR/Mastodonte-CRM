@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
+import Tasks from "@/pages/Tasks";
 import Clients from "@/pages/Clients";
 import ClientDetails from "@/pages/ClientDetails";
 import Meetings from "@/pages/Meetings";
@@ -20,7 +21,7 @@ function Router() {
       <Route path="/clients" component={Clients} />
       <Route path="/clients/:id" component={ClientDetails} />
       <Route path="/meetings" component={Meetings} />
-      <Route path="/tasks" component={Dashboard} />
+      <Route path="/tasks" component={Tasks} />
       <Route component={NotFound} />
     </Switch>
   );
