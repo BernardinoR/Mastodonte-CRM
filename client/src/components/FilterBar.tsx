@@ -571,7 +571,7 @@ export function FilterBar({
         className={cn(
           "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
           turboModeTaskCount > 0
-            ? "text-gray-400 hover:text-orange-500 hover:bg-orange-500/20"
+            ? "text-gray-500 hover:text-orange-500 hover:bg-orange-500/20"
             : "text-gray-600 cursor-not-allowed"
         )}
         title={turboModeTaskCount > 0 ? `Modo Turbo: ${turboModeTaskCount} tarefas` : "Nenhuma tarefa pendente"}
