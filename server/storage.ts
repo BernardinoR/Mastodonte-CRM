@@ -1,4 +1,6 @@
-import { type User, type InsertUser, type Group, type InsertGroup, type UserRole } from "@shared/schema";
+import { type User, type InsertUser, type Group, type InsertGroup, type UserRole, users, groups } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -15,96 +17,70 @@ export interface IStorage {
   getAllGroups(): Promise<Group[]>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private groups: Map<number, Group>;
-  private userIdCounter: number;
-  private groupIdCounter: number;
-
-  constructor() {
-    this.users = new Map();
-    this.groups = new Map();
-    this.userIdCounter = 1;
-    this.groupIdCounter = 1;
-  }
-
+export class DbStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
   }
 
   async getUserByClerkId(clerkId: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.clerkId === clerkId,
-    );
+    const result = await db.select().from(users).where(eq(users.clerkId, clerkId));
+    return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.userIdCounter++;
-    const user: User = { 
-      id,
+    const result = await db.insert(users).values({
       clerkId: insertUser.clerkId,
       email: insertUser.email,
       name: insertUser.name ?? null,
       roles: insertUser.roles ?? ["consultor"],
       groupId: insertUser.groupId ?? null,
       isActive: insertUser.isActive ?? true,
-    };
-    this.users.set(id, user);
-    return user;
+    }).returning();
+    return result[0];
   }
 
   async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
-    const user = this.users.get(id);
-    if (!user) return undefined;
-    const updatedUser = { ...user, ...updates };
-    this.users.set(id, updatedUser);
-    return updatedUser;
+    const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
+    return result[0];
   }
 
   async getAllUsers(): Promise<User[]> {
-    return Array.from(this.users.values());
+    return db.select().from(users);
   }
 
   async getUsersByGroupId(groupId: number): Promise<User[]> {
-    return Array.from(this.users.values()).filter(
-      (user) => user.groupId === groupId
-    );
+    return db.select().from(users).where(eq(users.groupId, groupId));
   }
 
   async getGroup(id: number): Promise<Group | undefined> {
-    return this.groups.get(id);
+    const result = await db.select().from(groups).where(eq(groups.id, id));
+    return result[0];
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const id = this.groupIdCounter++;
-    const now = new Date();
-    const group: Group = { 
-      id,
+    const result = await db.insert(groups).values({
       name: insertGroup.name,
       description: insertGroup.description ?? null,
       logoUrl: insertGroup.logoUrl ?? null,
       isActive: insertGroup.isActive ?? true,
-      createdAt: now,
-    };
-    this.groups.set(id, group);
-    return group;
+    }).returning();
+    return result[0];
   }
 
   async updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | undefined> {
-    const group = this.groups.get(id);
-    if (!group) return undefined;
-    const updatedGroup = { ...group, ...updates };
-    this.groups.set(id, updatedGroup);
-    return updatedGroup;
+    const result = await db.update(groups).set(updates).where(eq(groups.id, id)).returning();
+    return result[0];
   }
 
   async deleteGroup(id: number): Promise<boolean> {
-    return this.groups.delete(id);
+    const result = await db.delete(groups).where(eq(groups.id, id)).returning();
+    return result.length > 0;
   }
 
   async getAllGroups(): Promise<Group[]> {
-    return Array.from(this.groups.values());
+    return db.select().from(groups);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DbStorage();
