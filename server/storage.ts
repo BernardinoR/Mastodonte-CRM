@@ -1,4 +1,4 @@
-import { type User, type InsertUser, type Group, type InsertGroup } from "@shared/schema";
+import { type User, type InsertUser, type Group, type InsertGroup, type UserRole } from "@shared/schema";
 
 export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
@@ -6,6 +6,7 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
   getAllUsers(): Promise<User[]>;
+  getUsersByGroupId(groupId: number): Promise<User[]>;
   
   getGroup(id: number): Promise<Group | undefined>;
   createGroup(group: InsertGroup): Promise<Group>;
@@ -44,8 +45,9 @@ export class MemStorage implements IStorage {
       clerkId: insertUser.clerkId,
       email: insertUser.email,
       name: insertUser.name ?? null,
-      role: insertUser.role ?? "consultor",
+      roles: insertUser.roles ?? ["consultor"],
       groupId: insertUser.groupId ?? null,
+      isActive: insertUser.isActive ?? true,
     };
     this.users.set(id, user);
     return user;
@@ -63,6 +65,12 @@ export class MemStorage implements IStorage {
     return Array.from(this.users.values());
   }
 
+  async getUsersByGroupId(groupId: number): Promise<User[]> {
+    return Array.from(this.users.values()).filter(
+      (user) => user.groupId === groupId
+    );
+  }
+
   async getGroup(id: number): Promise<Group | undefined> {
     return this.groups.get(id);
   }
@@ -72,7 +80,10 @@ export class MemStorage implements IStorage {
     const group: Group = { 
       id,
       name: insertGroup.name,
+      description: insertGroup.description ?? null,
       logoUrl: insertGroup.logoUrl ?? null,
+      isActive: insertGroup.isActive ?? true,
+      createdAt: new Date(),
     };
     this.groups.set(id, group);
     return group;

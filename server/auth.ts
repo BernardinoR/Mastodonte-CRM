@@ -52,13 +52,16 @@ export async function clerkAuthMiddleware(
   }
 }
 
-export function requireRole(...roles: UserRole[]) {
+export function requireRole(...requiredRoles: UserRole[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.auth?.user) {
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    if (!roles.includes(req.auth.user.role)) {
+    const userRoles = req.auth.user.roles || [];
+    const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
+
+    if (!hasRequiredRole) {
       return res.status(403).json({ error: "Insufficient permissions" });
     }
 
@@ -76,7 +79,9 @@ export function requireGroupAccess(getGroupId: (req: Request) => number | undefi
       return res.status(401).json({ error: "Not authenticated" });
     }
 
-    if (req.auth.user.role === "administrador") {
+    const userRoles = req.auth.user.roles || [];
+    
+    if (userRoles.includes("administrador")) {
       return next();
     }
 

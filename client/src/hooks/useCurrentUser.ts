@@ -8,8 +8,9 @@ export interface CurrentUser {
   clerkId: string;
   email: string;
   name: string | null;
-  role: UserRole;
+  roles: UserRole[];
   groupId: number | null;
+  isActive: boolean;
 }
 
 export function useCurrentUser() {
@@ -28,4 +29,12 @@ export function useCurrentUser() {
     },
     enabled: isSignedIn,
   });
+}
+
+export function hasRole(user: CurrentUser | undefined, role: UserRole): boolean {
+  return user?.roles?.includes(role) ?? false;
+}
+
+export function isAdmin(user: CurrentUser | undefined): boolean {
+  return hasRole(user, "administrador");
 }

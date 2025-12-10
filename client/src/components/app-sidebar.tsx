@@ -14,7 +14,8 @@ import {
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { Badge } from "@/components/ui/badge";
+import { useCurrentUser, isAdmin } from "@/hooks/useCurrentUser";
 
 const menuItems = [
   {
@@ -49,13 +50,27 @@ const menuItems = [
   },
 ];
 
+const ROLE_LABELS: Record<string, string> = {
+  administrador: "Admin",
+  consultor: "Consultor",
+  alocador: "Alocador",
+  concierge: "Concierge",
+};
+
+const ROLE_COLORS: Record<string, string> = {
+  administrador: "bg-red-500/20 text-red-400 border-red-500/30",
+  consultor: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  alocador: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  concierge: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+};
+
 export function AppSidebar() {
   const [location] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
   const { data: currentUserData } = useCurrentUser();
   const currentUser = currentUserData?.user;
-  const isAdmin = currentUser?.role === "administrador";
+  const userIsAdmin = isAdmin(currentUser);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -66,17 +81,7 @@ export function AppSidebar() {
     signOut();
   };
 
-  const visibleMenuItems = menuItems.filter(item => !item.adminOnly || isAdmin);
-
-  const getRoleName = (role: string | undefined) => {
-    switch (role) {
-      case "administrador": return "Administrador";
-      case "consultor": return "Consultor";
-      case "alocador": return "Alocador";
-      case "concierge": return "Concierge";
-      default: return "Usuário";
-    }
-  };
+  const visibleMenuItems = menuItems.filter(item => !item.adminOnly || userIsAdmin);
 
   return (
     <Sidebar>
@@ -116,9 +121,17 @@ export function AppSidebar() {
             <p className="text-sm font-medium truncate" data-testid="text-username">
               {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
             </p>
-            <p className="text-xs text-muted-foreground truncate">
-              {getRoleName(currentUser?.role)}
-            </p>
+            <div className="flex flex-wrap gap-1 mt-1">
+              {currentUser?.roles?.map((role) => (
+                <Badge 
+                  key={role} 
+                  variant="outline" 
+                  className={`text-[10px] px-1.5 py-0 h-4 ${ROLE_COLORS[role] || ""}`}
+                >
+                  {ROLE_LABELS[role] || role}
+                </Badge>
+              ))}
+            </div>
           </div>
         </div>
         <Button 

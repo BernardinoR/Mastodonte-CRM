@@ -25,7 +25,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          role: isFirstUser ? "administrador" : "consultor",
+          roles: isFirstUser ? ["administrador"] : ["consultor"],
           groupId: null,
         });
       }
@@ -48,7 +48,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          role: "consultor",
+          roles: ["consultor"],
           groupId: null,
         });
       } else {
@@ -145,8 +145,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Invalid user ID" });
       }
       
-      const { role, groupId } = req.body;
-      const user = await storage.updateUser(userId, { role, groupId });
+      const { roles, groupId } = req.body;
+      const user = await storage.updateUser(userId, { roles, groupId });
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
