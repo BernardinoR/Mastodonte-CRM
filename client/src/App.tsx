@@ -16,6 +16,7 @@ import ClientDetails from "@/pages/ClientDetails";
 import Meetings from "@/pages/Meetings";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
+import SSOCallback from "@/pages/SSOCallback";
 import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
 
@@ -39,6 +40,7 @@ function PublicRouter() {
     <Switch>
       <Route path="/sign-in" component={SignIn} />
       <Route path="/sign-up" component={SignUp} />
+      <Route path="/sso-callback" component={SSOCallback} />
       <Route>
         <Redirect to="/sign-in" />
       </Route>

@@ -1,5 +1,7 @@
-import { SignIn as ClerkSignIn } from "@clerk/clerk-react";
+import { useSignIn } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "wouter";
+import { Loader2 } from "lucide-react";
 
 const quotes = [
   {
@@ -68,6 +70,17 @@ function MastodonteLogo() {
       >
         Mastodonte.
       </text>
+    </svg>
+  );
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M23.52 12.29C23.52 11.43 23.44 10.61 23.3 9.82H12V14.45H18.46C18.18 15.92 17.33 17.17 16.06 18.01V20.97H19.93C22.2 18.88 23.52 15.8 23.52 12.29Z" fill="#4285F4"/>
+      <path d="M12 24C15.24 24 17.96 22.92 19.93 21.1L16.06 18.14C14.99 18.86 13.61 19.28 12 19.28C8.87 19.28 6.22 17.17 5.27 14.33H1.26V17.43C3.25 21.38 7.34 24 12 24Z" fill="#34A853"/>
+      <path d="M5.27 14.33C5.03 13.61 4.89 12.82 4.89 12C4.89 11.18 5.03 10.39 5.27 9.67V6.57H1.26C0.46 8.18 0 10.03 0 12C0 13.97 0.46 15.82 1.26 17.43L5.27 14.33Z" fill="#FBBC05"/>
+      <path d="M12 4.72C13.76 4.72 15.34 5.33 16.58 6.51L19.99 3.1C17.95 1.19 15.23 0 12 0C7.34 0 3.25 2.62 1.26 6.57L5.27 9.67C6.22 6.83 8.87 4.72 12 4.72Z" fill="#EA4335"/>
     </svg>
   );
 }
@@ -157,6 +170,14 @@ function VisualEffect({ effect }: { effect: string }) {
 }
 
 export default function SignIn() {
+  const { signIn, isLoaded, setActive } = useSignIn();
+  const [, setLocation] = useLocation();
+  
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -167,6 +188,67 @@ export default function SignIn() {
   }, []);
 
   const currentQuote = quotes[currentIndex];
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || !signIn) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn.create({
+        identifier: email,
+        password,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        setLocation("/");
+      } else {
+        setError("Verificação adicional necessária. Entre em contato com o suporte.");
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
+      if (clerkError.errors && clerkError.errors.length > 0) {
+        const errorCode = clerkError.errors[0].code;
+        if (errorCode === "form_password_incorrect") {
+          setError("Senha incorreta. Tente novamente.");
+        } else if (errorCode === "form_identifier_not_found") {
+          setError("Email não encontrado. Verifique o endereço.");
+        } else {
+          setError(clerkError.errors[0].message);
+        }
+      } else {
+        setError("Erro ao fazer login. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (!isLoaded || !signIn) return;
+
+    setGoogleLoading(true);
+    setError("");
+
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy: "oauth_google",
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: "/",
+      });
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string }> };
+      if (clerkError.errors && clerkError.errors.length > 0) {
+        setError(clerkError.errors[0].message);
+      } else {
+        setError("Erro ao conectar com Google. Tente novamente.");
+      }
+      setGoogleLoading(false);
+    }
+  };
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
@@ -211,6 +293,74 @@ export default function SignIn() {
           color: transparent;
           animation: shineText 5s linear infinite;
         }
+        .input-dark {
+          width: 100%;
+          padding: 12px 16px;
+          background-color: #222;
+          border: 1px solid #333;
+          border-radius: 6px;
+          color: white;
+          font-size: 15px;
+          font-family: 'Inter', sans-serif;
+          transition: all 0.2s ease;
+        }
+        .input-dark:focus {
+          outline: none;
+          border-color: #666;
+          background-color: #252525;
+          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+        }
+        .input-dark::placeholder {
+          color: #666;
+        }
+        .btn-google {
+          width: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 10px;
+          padding: 12px;
+          background-color: #222;
+          border: 1px solid #333;
+          border-radius: 6px;
+          color: #FFF;
+          font-family: 'Inter', sans-serif;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: background-color 0.2s, border-color 0.2s;
+        }
+        .btn-google:hover:not(:disabled) {
+          background-color: #2a2a2a;
+          border-color: #444;
+        }
+        .btn-google:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
+        .btn-submit {
+          width: 100%;
+          padding: 12px;
+          background-color: #FFFFFF;
+          color: #000000;
+          border: none;
+          border-radius: 6px;
+          font-size: 15px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: transform 0.1s, background-color 0.2s;
+          margin-top: 8px;
+        }
+        .btn-submit:hover:not(:disabled) {
+          background-color: #e0e0e0;
+        }
+        .btn-submit:active:not(:disabled) {
+          transform: scale(0.98);
+        }
+        .btn-submit:disabled {
+          opacity: 0.7;
+          cursor: not-allowed;
+        }
       `}</style>
 
       {/* LEFT SIDE: LOGIN FORM */}
@@ -232,39 +382,90 @@ export default function SignIn() {
             Insira seus dados para acessar o painel.
           </p>
 
-          <ClerkSignIn
-            appearance={{
-              elements: {
-                rootBox: "w-full",
-                card: "bg-transparent shadow-none p-0 border-0",
-                headerTitle: "hidden",
-                headerSubtitle: "hidden",
-                socialButtonsBlockButton:
-                  "bg-[#222] border border-[#333] text-white hover:bg-[#2a2a2a] hover:border-[#444] transition-all",
-                socialButtonsBlockButtonText: "text-white font-medium",
-                dividerLine: "bg-[#333]",
-                dividerText: "text-[#555] uppercase text-xs tracking-wider",
-                formFieldLabel: "text-[#888] text-xs font-medium",
-                formFieldInput:
-                  "bg-[#222] border border-[#333] text-white placeholder-[#666] focus:border-[#666] focus:bg-[#252525] focus:ring-2 focus:ring-white/5",
-                formButtonPrimary:
-                  "bg-white text-black hover:bg-[#e0e0e0] font-semibold transition-all active:scale-[0.98]",
-                footerActionLink: "text-[#666] hover:text-white transition-colors",
-                identityPreviewText: "text-white",
-                identityPreviewEditButton: "text-[#888] hover:text-white",
-                formFieldInputShowPasswordButton: "text-[#666] hover:text-white",
-                alertText: "text-red-400",
-                formResendCodeLink: "text-[#888] hover:text-white",
-              },
-              layout: {
-                socialButtonsPlacement: "top",
-                showOptionalFields: false,
-              },
-            }}
-            routing="path"
-            path="/sign-in"
-            signUpUrl="/sign-up"
-          />
+          {/* Google Button */}
+          <button
+            type="button"
+            className="btn-google"
+            onClick={handleGoogleSignIn}
+            disabled={googleLoading || !isLoaded}
+            data-testid="button-google-signin"
+          >
+            {googleLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <GoogleIcon />
+            )}
+            Continuar com Google
+          </button>
+
+          {/* Divider */}
+          <div className="flex items-center my-6 text-[#555] text-xs uppercase tracking-wider">
+            <div className="flex-1 h-px bg-[#333]" />
+            <span className="px-3">ou continue com</span>
+            <div className="flex-1 h-px bg-[#333]" />
+          </div>
+
+          {/* Email/Password Form */}
+          <form onSubmit={handleEmailSignIn}>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-[#888] mb-1.5">
+                E-mail
+              </label>
+              <input
+                type="email"
+                className="input-dark"
+                placeholder="nome@exemplo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
+                data-testid="input-email"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-xs font-medium text-[#888] mb-1.5">
+                Senha
+              </label>
+              <input
+                type="password"
+                className="input-dark"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+                data-testid="input-password"
+              />
+            </div>
+
+            {error && (
+              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                <p className="text-sm text-red-400" data-testid="text-error">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              className="btn-submit flex items-center justify-center gap-2"
+              disabled={loading || !isLoaded}
+              data-testid="button-signin"
+            >
+              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+              Entrar
+            </button>
+
+            <div className="mt-6 flex justify-center gap-5 text-sm">
+              <a
+                href="#"
+                className="text-[#666] hover:text-white transition-colors"
+                data-testid="link-forgot-password"
+              >
+                Esqueceu a senha?
+              </a>
+            </div>
+          </form>
         </div>
       </div>
 
