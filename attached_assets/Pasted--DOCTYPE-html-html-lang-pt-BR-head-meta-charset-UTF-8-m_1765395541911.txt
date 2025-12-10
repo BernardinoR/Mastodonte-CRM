@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mastodonte - Login</title>
+
+<!-- Importando fontes -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<style>
+    /* --- CSS BASE --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background-color: #191919; color: #FFFFFF; height: 100vh; overflow: hidden; }
+    .split-container { display: flex; height: 100%; width: 100%; }
+
+    /* LADO ESQUERDO: FORMULÁRIO */
+    .form-side {
+        flex: 1; background-color: #191919; display: flex; flex-direction: column;
+        justify-content: center; align-items: center; padding: 40px; position: relative;
+        border-right: 1px solid #2a2a2a; z-index: 10;
+    }
+
+    /* LADO DIREITO: VISUAL */
+    .visual-side {
+        flex: 1.2; background-color: #000; position: relative;
+        display: flex; align-items: center; justify-content: center;
+        overflow: hidden;
+    }
+
+    /* --- CONTEÚDO DO FORM --- */
+    .login-wrapper { width: 100%; max-width: 380px; }
+    .logo-container { margin-bottom: 30px; color: #FFFFFF; }
+    .logo-container svg { animation: fadeInDown 0.8s ease-out; }
+    h2 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+    p.subtitle { font-size: 14px; color: #888; margin-bottom: 24px; }
+    
+    .btn-google {
+        width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+        padding: 12px; background-color: #222; border: 1px solid #333; border-radius: 6px;
+        color: #FFF; font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 500;
+        cursor: pointer; transition: background-color 0.2s, border-color 0.2s;
+    }
+    .btn-google:hover { background-color: #2a2a2a; border-color: #444; }
+
+    .divider { display: flex; align-items: center; margin: 24px 0; color: #555; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background-color: #333; }
+    .divider span { padding: 0 10px; }
+
+    .form-group { margin-bottom: 16px; }
+    label { display: block; font-size: 12px; font-weight: 500; color: #888; margin-bottom: 6px; }
+    input {
+        width: 100%; padding: 12px 16px; background-color: #222; border: 1px solid #333;
+        border-radius: 6px; color: white; font-size: 15px; font-family: 'Inter', sans-serif;
+        transition: all 0.2s ease;
+    }
+    input:focus { outline: none; border-color: #666; background-color: #252525; box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05); }
+
+    button.btn-submit {
+        width: 100%; padding: 12px; background-color: #FFFFFF; color: #000000; border: none;
+        border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer;
+        transition: transform 0.1s, background-color 0.2s; margin-top: 8px;
+    }
+    button.btn-submit:hover { background-color: #e0e0e0; }
+    button.btn-submit:active { transform: scale(0.98); }
+
+    .footer-links { margin-top: 24px; display: flex; justify-content: center; gap: 20px; font-size: 13px; }
+    .footer-links a { color: #666; text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: #FFF; }
+
+    @media (max-width: 900px) {
+        .visual-side { display: none; }
+        .form-side { border-right: none; }
+    }
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* =========================================
+       NAVEGAÇÃO DO PREVIEW
+       ========================================= */
+    .preview-nav {
+        position: absolute; top: 20px; right: 20px; z-index: 100;
+        background: rgba(255,255,255,0.1); backdrop-filter: blur(8px);
+        padding: 5px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+        display: flex; gap: 5px;
+    }
+    .nav-btn {
+        background: transparent; border: none; color: #888; padding: 8px 14px;
+        border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: 600; text-transform: uppercase;
+        transition: 0.3s;
+    }
+    .nav-btn:hover { color: #fff; }
+    .nav-btn.active { background: #fff; color: #000; }
+
+    /* =========================================
+       ESTILOS GERAIS DAS OPÇÕES (COMMON STYLE)
+       ========================================= */
+    .visual-option {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        display: none; flex-direction: column; justify-content: center; align-items: center;
+        opacity: 0; transition: opacity 0.5s ease;
+    }
+    .visual-option.active { display: flex; opacity: 1; animation: fadeInOption 0.8s ease forwards; }
+    @keyframes fadeInOption { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+    .quote-container {
+        max-width: 600px; padding: 40px; text-align: center; z-index: 10; position: relative;
+    }
+    /* Fonte unificada para todos */
+    .quote-text { 
+        font-family: 'Inter', sans-serif;
+        font-size: 32px; 
+        line-height: 1.3; 
+        color: #fff; 
+        margin-bottom: 24px; 
+        font-weight: 700;
+        letter-spacing: -0.5px;
+    }
+    .quote-author { 
+        font-family: 'Inter', sans-serif;
+        font-size: 13px; 
+        text-transform: uppercase; 
+        letter-spacing: 3px; 
+        color: #888; 
+        font-weight: 600; 
+    }
+
+    /* --- OPÇÃO 1: SENNA --- */
+    #opt-1 { background: radial-gradient(circle at bottom, #222 0%, #000 100%); }
+    .track-lines {
+        position: absolute; width: 100%; height: 100%;
+        background: repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px);
+        transform: perspective(500px) rotateX(60deg) scale(2);
+        animation: moveTrack 2s linear infinite;
+        opacity: 0.5;
+    }
+    @keyframes moveTrack { from { background-position: 0 0; } to { background-position: 0 100px; } }
+    #opt-1 .quote-text { font-style: italic; font-weight: 300; }
+
+    /* --- OPÇÃO 2: ROCKY (REFINADO & CONSISTENTE) --- */
+    #opt-2 { 
+        background-color: #050505;
+        background: radial-gradient(circle at center, #1a1a1a 0%, #000000 70%);
+    }
+    
+    .pulse-bg {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        width: 60vw; height: 60vw;
+        background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+        border-radius: 50%;
+        animation: heartbeat 4s infinite ease-in-out;
+    }
+    @keyframes heartbeat {
+        0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+        50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+    }
+
+    #opt-2 .quote-text {
+        font-weight: 800;
+        text-shadow: 0 4px 20px rgba(0,0,0,0.8);
+    }
+    
+    .rocky-divider {
+        width: 60px; height: 3px; background-color: #C5A059; /* Ouro Fosco */
+        margin: 0 auto 20px auto;
+        border-radius: 2px;
+        box-shadow: 0 0 10px rgba(197, 160, 89, 0.3);
+    }
+
+    #opt-2 .quote-author {
+        color: #C5A059;
+        opacity: 0.9;
+    }
+
+    /* --- OPÇÃO 3: MARCO AURÉLIO --- */
+    #opt-3 { background-color: #080808; }
+    .stoic-circle {
+        position: absolute; width: 400px; height: 400px;
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 50%;
+        animation: rotateCircle 60s linear infinite; pointer-events: none;
+    }
+    @keyframes rotateCircle { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    #opt-3 .quote-text { font-weight: 400; color: #dcdcdc; }
+
+    /* --- OPÇÃO 4: JORDAN --- */
+    #opt-4 { background: linear-gradient(135deg, #000 0%, #1a1a1a 100%); }
+    .spotlight {
+        position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+        background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 40%);
+        animation: spotlightMove 10s infinite alternate ease-in-out;
+    }
+    @keyframes spotlightMove { from { transform: translate(-10%, -10%); } to { transform: translate(10%, 10%); } }
+
+    /* --- OPÇÃO 5: KOBE --- */
+    #opt-5 { background-color: #000; }
+    .speed-lines {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px);
+    }
+    #opt-5 .quote-text {
+        background: linear-gradient(110deg, #888 30%, #fff 50%, #888 70%);
+        background-size: 200% 100%;
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+        animation: shineText 5s linear infinite;
+    }
+    @keyframes shineText { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+
+</style>
+</head>
+<body>
+
+<div class="split-container">
+    
+    <!-- LADO ESQUERDO: LOGIN -->
+    <div class="form-side">
+        <div class="login-wrapper">
+            <div class="logo-container">
+                <svg width="200" height="50" viewBox="0 0 280 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="0" y="25" width="10" height="25" rx="2" fill="currentColor"/>
+                    <rect x="15" y="15" width="10" height="35" rx="2" fill="currentColor"/>
+                    <path d="M30 15H40V35C40 45 50 45 50 35" stroke="currentColor" stroke-width="10" stroke-linecap="round"/>
+                    <text x="70" y="45" font-weight="900" font-size="32" letter-spacing="0" fill="currentColor" style="font-family: 'Inter', sans-serif;">Mastodonte.</text>
+                </svg>
+            </div>
+            <h2>Bem-vindo de volta</h2>
+            <p class="subtitle">Insira seus dados para acessar o painel.</p>
+            <button class="btn-google">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M23.52 12.29C23.52 11.43 23.44 10.61 23.3 9.82H12V14.45H18.46C18.18 15.92 17.33 17.17 16.06 18.01V20.97H19.93C22.2 18.88 23.52 15.8 23.52 12.29Z" fill="#4285F4"/>
+                    <path d="M12 24C15.24 24 17.96 22.92 19.93 21.1L16.06 18.14C14.99 18.86 13.61 19.28 12 19.28C8.87 19.28 6.22 17.17 5.27 14.33H1.26V17.43C3.25 21.38 7.34 24 12 24Z" fill="#34A853"/>
+                    <path d="M5.27 14.33C5.03 13.61 4.89 12.82 4.89 12C4.89 11.18 5.03 10.39 5.27 9.67V6.57H1.26C0.46 8.18 0 10.03 0 12C0 13.97 0.46 15.82 1.26 17.43L5.27 14.33Z" fill="#FBBC05"/>
+                    <path d="M12 4.72C13.76 4.72 15.34 5.33 16.58 6.51L19.99 3.1C17.95 1.19 15.23 0 12 0C7.34 0 3.25 2.62 1.26 6.57L5.27 9.67C6.22 6.83 8.87 4.72 12 4.72Z" fill="#EA4335"/>
+                </svg>
+                Continuar com Google
+            </button>
+            <div class="divider"><span>ou continue com</span></div>
+            <form>
+                <div class="form-group">
+                    <label for="email">E-mail</label>
+                    <input type="email" id="email" placeholder="nome@exemplo.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="password">Senha</label>
+                    <input type="password" id="password" placeholder="••••••••">
+                </div>
+                <button type="submit" class="btn-submit">Entrar</button>
+                <div class="footer-links">
+                    <a href="#">Esqueceu a senha?</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LADO DIREITO: VISUAL (5 OPÇÕES) -->
+    <div class="visual-side">
+        
+        <!-- Navegação para testar -->
+        <div class="preview-nav">
+            <button onclick="setOption(1)" class="nav-btn active" id="btn-1">Senna</button>
+            <button onclick="setOption(2)" class="nav-btn" id="btn-2">Rocky</button>
+            <button onclick="setOption(3)" class="nav-btn" id="btn-3">M. Aurélio</button>
+            <button onclick="setOption(4)" class="nav-btn" id="btn-4">Jordan</button>
+            <button onclick="setOption(5)" class="nav-btn" id="btn-5">Kobe</button>
+        </div>
+
+        <!-- OPÇÃO 1: AYRTON SENNA -->
+        <div id="opt-1" class="visual-option active">
+            <div class="track-lines"></div>
+            <div class="quote-container">
+                <div class="quote-text">"Não tenho ídolos. Tenho admiração por trabalho, dedicação e competência."</div>
+                <div class="quote-author">Ayrton Senna</div>
+            </div>
+        </div>
+
+        <!-- OPÇÃO 2: ROCKY BALBOA (CONSISTENTE & SOFISTICADO) -->
+        <div id="opt-2" class="visual-option">
+            <div class="pulse-bg"></div>
+            <div class="quote-container">
+                <div class="quote-text">"Ninguém vai bater tão forte como a vida. Mas não se trata de bater forte."</div>
+                <div class="rocky-divider"></div>
+                <div class="quote-author">Rocky Balboa</div>
+            </div>
+        </div>
+
+        <!-- OPÇÃO 3: MARCO AURÉLIO -->
+        <div id="opt-3" class="visual-option">
+            <div class="stoic-circle"></div>
+            <div class="quote-container">
+                <div class="quote-text">"Você tem poder sobre sua mente - não sobre eventos externos. Perceba isso e você encontrará a força."</div>
+                <div class="quote-author">Marco Aurélio</div>
+            </div>
+        </div>
+
+        <!-- OPÇÃO 4: MICHAEL JORDAN -->
+        <div id="opt-4" class="visual-option">
+            <div class="spotlight"></div>
+            <div class="quote-container">
+                <div class="quote-text">"Algumas pessoas querem que aconteça, outras desejam que aconteça, outras fazem acontecer."</div>
+                <div class="quote-author">Michael Jordan</div>
+            </div>
+        </div>
+
+        <!-- OPÇÃO 5: KOBE BRYANT -->
+        <div id="opt-5" class="visual-option">
+            <div class="speed-lines"></div>
+            <div class="quote-container">
+                <div class="quote-text">"Tudo o que é negativo - pressão, desafios - é uma oportunidade para eu crescer."</div>
+                <div class="quote-author">Kobe Bryant</div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let currentOption = 1;
+    const totalOptions = 5;
+    const intervalTime = 20000; // 20 segundos
+    let autoSlideInterval;
+
+    // Função para ativar uma opção específica
+    function setOption(id) {
+        // Atualiza o estado interno
+        currentOption = id;
+
+        // Manipulação do DOM (troca as classes)
+        document.querySelectorAll('.visual-option').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+        document.getElementById('opt-' + id).classList.add('active');
+        document.getElementById('btn-' + id).classList.add('active');
+
+        // Reinicia o cronômetro se houver interação manual
+        clearInterval(autoSlideInterval);
+        startAutoSlide();
+    }
+
+    // Função para ir para o próximo slide automaticamente
+    function nextOption() {
+        currentOption++;
+        if (currentOption > totalOptions) {
+            currentOption = 1;
+        }
+        setOption(currentOption);
+    }
+
+    // Inicia o intervalo
+    function startAutoSlide() {
+        autoSlideInterval = setInterval(nextOption, intervalTime);
+    }
+
+    // Inicializa ao carregar
+    startAutoSlide();
+</script>
+
+</body>
+</html>

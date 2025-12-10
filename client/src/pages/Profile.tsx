@@ -40,6 +40,7 @@ export default function Profile() {
   
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -73,9 +74,11 @@ export default function Profile() {
       toast({ title: "Nome atualizado com sucesso" });
       setEditingName(false);
       setNameValue("");
+      setSavingName(false);
     },
     onError: () => {
-      toast({ title: "Erro ao atualizar nome", variant: "destructive" });
+      toast({ title: "Erro ao atualizar nome no banco de dados", variant: "destructive" });
+      setSavingName(false);
     },
   });
 
@@ -89,9 +92,25 @@ export default function Profile() {
     setEditingName(true);
   };
 
-  const handleSaveName = () => {
-    if (nameValue.trim()) {
-      updateProfileMutation.mutate({ name: nameValue.trim() });
+  const handleSaveName = async () => {
+    const trimmedName = nameValue.trim();
+    if (!trimmedName || !clerkUser || savingName) return;
+
+    // Split name into firstName and lastName for Clerk
+    const nameParts = trimmedName.split(" ");
+    const firstName = nameParts[0] || "";
+    const lastName = nameParts.slice(1).join(" ") || "";
+
+    setSavingName(true);
+    try {
+      // Update Clerk first
+      await clerkUser.update({ firstName, lastName });
+      // Then update local database
+      updateProfileMutation.mutate({ name: trimmedName });
+    } catch (error) {
+      console.error("Error updating Clerk profile:", error);
+      toast({ title: "Erro ao atualizar nome", variant: "destructive" });
+      setSavingName(false);
     }
   };
 
@@ -227,10 +246,10 @@ export default function Profile() {
                       <Button
                         size="icon"
                         onClick={handleSaveName}
-                        disabled={updateProfileMutation.isPending}
+                        disabled={savingName}
                         data-testid="button-save-name"
                       >
-                        {updateProfileMutation.isPending ? (
+                        {savingName ? (
                           <Loader2 className="w-4 h-4 animate-spin" />
                         ) : (
                           <Check className="w-4 h-4" />
@@ -240,6 +259,7 @@ export default function Profile() {
                         size="icon"
                         variant="outline"
                         onClick={handleCancelEditName}
+                        disabled={savingName}
                         data-testid="button-cancel-name"
                       >
                         <X className="w-4 h-4" />
