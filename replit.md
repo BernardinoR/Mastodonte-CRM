@@ -8,6 +8,20 @@ CRM Mastodonte is a wealth management platform designed for financial consultant
 
 Preferred communication style: Simple, everyday language.
 
+## Important Development Notes
+
+### OAuth Testing
+- **Google OAuth must be tested in external preview** (not Replit's internal preview)
+- The internal preview blocks external page redirects, causing 403 errors
+- Use the "Open in new tab" button to test OAuth flows
+
+### Authentication Flow
+- Custom login page at `/sign-in` with Clerk backend
+- Uses `useSignIn()` hook with `signIn.create()` for email/password
+- Uses `signIn.authenticateWithRedirect()` for Google OAuth
+- SSO callback at `/sso-callback` with `AuthenticateWithRedirectCallback`
+- All name updates sync to Clerk first using `clerkUser.update()`, then local DB
+
 ## System Architecture
 
 ### Frontend Architecture
