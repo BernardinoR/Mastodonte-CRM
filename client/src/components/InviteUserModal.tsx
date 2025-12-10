@@ -19,6 +19,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Loader2, Info, ShieldAlert, UserCheck, Users, HeartHandshake } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -44,15 +45,18 @@ interface RoleOption {
   dotColor: string;
 }
 
-const ROLE_OPTIONS: RoleOption[] = [
-  {
-    value: "administrador",
-    label: "Administrador",
-    description: "Acesso total ao sistema, pode gerenciar usuários e grupos.",
-    icon: ShieldAlert,
-    colorClass: "border-red-500/50 bg-red-500/5",
-    dotColor: "bg-red-500",
-  },
+type OperationalRole = "consultor" | "alocador" | "concierge";
+
+const ADMIN_ROLE = {
+  value: "administrador" as const,
+  label: "Administrador",
+  description: "Acesso total ao sistema, pode gerenciar usuários e grupos.",
+  icon: ShieldAlert,
+  colorClass: "border-red-500/50 bg-red-500/5",
+  dotColor: "bg-red-500",
+};
+
+const OPERATIONAL_ROLES: RoleOption[] = [
   {
     value: "consultor",
     label: "Consultor",
@@ -84,7 +88,8 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const { toast } = useToast();
   
   const [email, setEmail] = useState("");
-  const [selectedRole, setSelectedRole] = useState<UserRole>("consultor");
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedOperationalRole, setSelectedOperationalRole] = useState<OperationalRole>("consultor");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
   const { data: groupsData } = useQuery<{ groups: Group[] }>({
@@ -104,7 +109,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const groups = groupsData?.groups || [];
 
   const inviteMutation = useMutation({
-    mutationFn: async (data: { email: string; role: UserRole; groupId?: number }) => {
+    mutationFn: async (data: { email: string; roles: UserRole[]; groupId?: number }) => {
       const token = await getToken();
       return apiRequest("POST", "/api/invitations", data, { Authorization: `Bearer ${token}` });
     },
@@ -130,7 +135,8 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
 
   const resetForm = () => {
     setEmail("");
-    setSelectedRole("consultor");
+    setIsAdmin(false);
+    setSelectedOperationalRole("consultor");
     setSelectedGroupId("");
   };
 
@@ -148,9 +154,14 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       return;
     }
 
-    const payload: { email: string; role: UserRole; groupId?: number } = {
+    const roles: UserRole[] = [selectedOperationalRole];
+    if (isAdmin) {
+      roles.unshift("administrador");
+    }
+
+    const payload: { email: string; roles: UserRole[]; groupId?: number } = {
       email: email.trim(),
-      role: selectedRole,
+      roles,
     };
     
     if (selectedGroupId && selectedGroupId !== "none") {
@@ -189,17 +200,49 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
           <Separator />
 
           <div className="space-y-3">
+            <Label>Permissões do Usuário</Label>
+            
+            <button
+              type="button"
+              onClick={() => setIsAdmin(!isAdmin)}
+              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                isAdmin
+                  ? `${ADMIN_ROLE.colorClass} border-opacity-100`
+                  : "border-muted bg-muted/30 hover-elevate"
+              }`}
+              data-testid="checkbox-role-administrador"
+            >
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  checked={isAdmin}
+                  onCheckedChange={(checked) => setIsAdmin(checked === true)}
+                  className="mt-0.5"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${ADMIN_ROLE.dotColor}`} />
+                    <span className="font-medium">{ADMIN_ROLE.label}</span>
+                    <span className="text-xs text-muted-foreground">(opcional)</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {ADMIN_ROLE.description}
+                  </p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          <div className="space-y-3">
             <Label>Tipo de Usuário *</Label>
             <div className="space-y-2">
-              {ROLE_OPTIONS.map((role) => {
-                const isSelected = selectedRole === role.value;
-                const Icon = role.icon;
+              {OPERATIONAL_ROLES.map((role) => {
+                const isSelected = selectedOperationalRole === role.value;
                 
                 return (
                   <button
                     key={role.value}
                     type="button"
-                    onClick={() => setSelectedRole(role.value)}
+                    onClick={() => setSelectedOperationalRole(role.value as OperationalRole)}
                     className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
                       isSelected
                         ? `${role.colorClass} border-opacity-100`

@@ -21,22 +21,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allUsers = await storage.getAllUsers();
         const isFirstUser = allUsers.length === 0;
         
-        // Check for invitation metadata (role and group assigned during invite)
+        // Check for invitation metadata (roles and group assigned during invite)
         const publicMetadata = clerkUser.publicMetadata as { 
-          pendingRole?: string; 
+          pendingRole?: string;  // Legacy single role support
+          pendingRoles?: string[];
           pendingGroupId?: number | null;
         } | undefined;
         
         const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
-        let assignedRole: UserRole = "consultor";
+        let assignedRoles: UserRole[] = ["consultor"];
         let assignedGroupId: number | null = null;
         
         // First user always becomes admin
         if (isFirstUser) {
-          assignedRole = "administrador";
+          assignedRoles = ["administrador"];
+        } else if (publicMetadata?.pendingRoles && Array.isArray(publicMetadata.pendingRoles)) {
+          // Use roles array from invitation if valid
+          const validPendingRoles = publicMetadata.pendingRoles.filter(
+            (r: string) => validRoles.includes(r as UserRole)
+          ) as UserRole[];
+          if (validPendingRoles.length > 0) {
+            assignedRoles = validPendingRoles;
+          }
         } else if (publicMetadata?.pendingRole && validRoles.includes(publicMetadata.pendingRole as UserRole)) {
-          // Use role from invitation if valid
-          assignedRole = publicMetadata.pendingRole as UserRole;
+          // Legacy: single role support
+          assignedRoles = [publicMetadata.pendingRole as UserRole];
         }
         
         // Assign group from invitation if specified
@@ -48,15 +57,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          roles: [assignedRole],
+          roles: assignedRoles,
           groupId: assignedGroupId,
         });
         
         // Clear the pending invitation metadata after user is created
-        if (publicMetadata?.pendingRole || publicMetadata?.pendingGroupId) {
+        if (publicMetadata?.pendingRole || publicMetadata?.pendingRoles || publicMetadata?.pendingGroupId) {
           try {
             await clerkClient.users.updateUser(req.auth!.userId, {
-              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingGroupId: undefined },
+              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingRoles: undefined, pendingGroupId: undefined },
             });
           } catch (e) {
             console.warn("Failed to clear invitation metadata:", e);
@@ -80,16 +89,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         // Check for invitation metadata
         const publicMetadata = clerkUser.publicMetadata as { 
-          pendingRole?: string; 
+          pendingRole?: string;  // Legacy single role support
+          pendingRoles?: string[];
           pendingGroupId?: number | null;
         } | undefined;
         
         const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
-        let assignedRole: UserRole = "consultor";
+        let assignedRoles: UserRole[] = ["consultor"];
         let assignedGroupId: number | null = null;
         
-        if (publicMetadata?.pendingRole && validRoles.includes(publicMetadata.pendingRole as UserRole)) {
-          assignedRole = publicMetadata.pendingRole as UserRole;
+        if (publicMetadata?.pendingRoles && Array.isArray(publicMetadata.pendingRoles)) {
+          // Use roles array from invitation if valid
+          const validPendingRoles = publicMetadata.pendingRoles.filter(
+            (r: string) => validRoles.includes(r as UserRole)
+          ) as UserRole[];
+          if (validPendingRoles.length > 0) {
+            assignedRoles = validPendingRoles;
+          }
+        } else if (publicMetadata?.pendingRole && validRoles.includes(publicMetadata.pendingRole as UserRole)) {
+          // Legacy: single role support
+          assignedRoles = [publicMetadata.pendingRole as UserRole];
         }
         
         if (publicMetadata?.pendingGroupId && typeof publicMetadata.pendingGroupId === "number") {
@@ -100,15 +119,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          roles: [assignedRole],
+          roles: assignedRoles,
           groupId: assignedGroupId,
         });
         
         // Clear invitation metadata
-        if (publicMetadata?.pendingRole || publicMetadata?.pendingGroupId) {
+        if (publicMetadata?.pendingRole || publicMetadata?.pendingRoles || publicMetadata?.pendingGroupId) {
           try {
             await clerkClient.users.updateUser(req.auth!.userId, {
-              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingGroupId: undefined },
+              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingRoles: undefined, pendingGroupId: undefined },
             });
           } catch (e) {
             console.warn("Failed to clear invitation metadata:", e);
@@ -241,20 +260,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Invitation endpoint using Clerk Invitations API
   app.post("/api/invitations", clerkAuthMiddleware, requireAdmin(), async (req, res) => {
     try {
-      const { email, role, groupId } = req.body;
+      const { email, roles, groupId } = req.body;
       
       if (!email || typeof email !== "string") {
         return res.status(400).json({ error: "Email is required" });
       }
       
       const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
-      if (!role || !validRoles.includes(role)) {
-        return res.status(400).json({ error: "Valid role is required" });
+      
+      // Validate roles array
+      if (!roles || !Array.isArray(roles) || roles.length === 0) {
+        return res.status(400).json({ error: "At least one role is required" });
       }
       
-      // Store pending invitation data in public metadata
+      const invalidRoles = roles.filter((r: string) => !validRoles.includes(r as UserRole));
+      if (invalidRoles.length > 0) {
+        return res.status(400).json({ error: `Invalid roles: ${invalidRoles.join(", ")}` });
+      }
+      
+      // Store pending invitation data in public metadata (roles as array)
       const publicMetadata = {
-        pendingRole: role,
+        pendingRoles: roles,
         pendingGroupId: groupId || null,
       };
       
