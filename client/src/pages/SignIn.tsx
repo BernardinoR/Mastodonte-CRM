@@ -234,11 +234,13 @@ export default function SignIn() {
     setError("");
 
     try {
-      await signIn.authenticateWithRedirect({
-        strategy: "oauth_google",
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/",
-      });
+      // Use Clerk's Account Portal for Google OAuth (works with shared credentials)
+      // The Account Portal is pre-configured with Google OAuth
+      const clerkAccountUrl = "https://climbing-cub-76.accounts.dev";
+      const redirectBack = encodeURIComponent(window.location.origin);
+      
+      // Redirect to Clerk Account Portal sign-in with redirect back to our app
+      window.location.href = `${clerkAccountUrl}/sign-in?redirect_url=${redirectBack}`;
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ message: string }> };
       if (clerkError.errors && clerkError.errors.length > 0) {
