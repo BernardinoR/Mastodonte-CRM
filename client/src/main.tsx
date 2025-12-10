@@ -26,7 +26,13 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 createRoot(document.getElementById("root")!).render(
-  <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+  <ClerkProvider 
+    publishableKey={PUBLISHABLE_KEY}
+    signInUrl="/sign-in"
+    signUpUrl="/sign-up"
+    afterSignInUrl="/"
+    afterSignUpUrl="/"
+  >
     <App />
   </ClerkProvider>
 );
