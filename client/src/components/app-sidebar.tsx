@@ -1,4 +1,5 @@
-import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield } from "lucide-react";
+import { useState } from "react";
+import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import {
@@ -12,10 +13,18 @@ import {
   SidebarMenuItem,
   SidebarFooter,
 } from "@/components/ui/sidebar";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useCurrentUser, isAdmin } from "@/hooks/useCurrentUser";
+import { useCurrentUser, isAdmin, type UserRole } from "@/hooks/useCurrentUser";
 
 const menuItems = [
   {
@@ -42,12 +51,6 @@ const menuItems = [
     icon: CheckSquare,
     adminOnly: false,
   },
-  {
-    title: "Administração",
-    url: "/admin",
-    icon: Shield,
-    adminOnly: true,
-  },
 ];
 
 const ROLE_LABELS: Record<string, string> = {
@@ -71,6 +74,7 @@ export function AppSidebar() {
   const { data: currentUserData } = useCurrentUser();
   const currentUser = currentUserData?.user;
   const userIsAdmin = isAdmin(currentUser);
+  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -81,7 +85,7 @@ export function AppSidebar() {
     signOut();
   };
 
-  const visibleMenuItems = menuItems.filter(item => !item.adminOnly || userIsAdmin);
+  const displayedRole = activeRole || (currentUser?.roles?.[0] as UserRole) || null;
 
   return (
     <Sidebar>
@@ -92,7 +96,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {visibleMenuItems.map((item) => {
+              {menuItems.map((item) => {
                 const isActive = location === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
@@ -110,30 +114,67 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center gap-3 mb-3">
-          <Avatar className="w-8 h-8">
-            <AvatarImage src={user?.imageUrl} />
-            <AvatarFallback className="text-xs">
-              {getInitials(user?.fullName || user?.firstName)}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate" data-testid="text-username">
-              {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
-            </p>
-            <div className="flex flex-wrap gap-1 mt-1">
-              {currentUser?.roles?.map((role) => (
-                <Badge 
-                  key={role} 
-                  variant="outline" 
-                  className={`text-[10px] px-1.5 py-0 h-4 ${ROLE_COLORS[role] || ""}`}
-                >
-                  {ROLE_LABELS[role] || role}
-                </Badge>
-              ))}
+        {userIsAdmin && (
+          <Link href="/admin">
+            <SidebarMenuButton 
+              data-active={location === "/admin"} 
+              data-testid="nav-administração"
+              className="w-full mb-3"
+            >
+              <Shield className="w-5 h-5" />
+              <span>Administração</span>
+            </SidebarMenuButton>
+          </Link>
+        )}
+        
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
+            <div className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-context-menu" data-testid="user-card">
+              <Avatar className="w-8 h-8">
+                <AvatarImage src={user?.imageUrl} />
+                <AvatarFallback className="text-xs">
+                  {getInitials(user?.fullName || user?.firstName)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate" data-testid="text-username">
+                  {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
+                </p>
+                {displayedRole && (
+                  <Badge 
+                    variant="outline" 
+                    className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
+                  >
+                    {ROLE_LABELS[displayedRole] || displayedRole}
+                  </Badge>
+                )}
+              </div>
             </div>
-          </div>
-        </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent className="w-48">
+            <ContextMenuLabel>Ver como</ContextMenuLabel>
+            <ContextMenuSeparator />
+            {currentUser?.roles?.map((role) => (
+              <ContextMenuItem 
+                key={role}
+                onClick={() => setActiveRole(role as UserRole)}
+                className="flex items-center justify-between"
+                data-testid={`context-role-${role}`}
+              >
+                <span className="flex items-center gap-2">
+                  <span className={`w-2 h-2 rounded-full ${
+                    role === "administrador" ? "bg-red-500" :
+                    role === "consultor" ? "bg-blue-500" :
+                    role === "alocador" ? "bg-orange-500" : "bg-purple-500"
+                  }`} />
+                  {ROLE_LABELS[role] || role}
+                </span>
+                {displayedRole === role && <Check className="w-4 h-4" />}
+              </ContextMenuItem>
+            ))}
+          </ContextMenuContent>
+        </ContextMenu>
+        
         <Button 
           variant="ghost" 
           size="sm" 
