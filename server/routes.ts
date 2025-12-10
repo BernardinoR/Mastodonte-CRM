@@ -21,13 +21,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const allUsers = await storage.getAllUsers();
         const isFirstUser = allUsers.length === 0;
         
+        // Check for invitation metadata (role and group assigned during invite)
+        const publicMetadata = clerkUser.publicMetadata as { 
+          pendingRole?: string; 
+          pendingGroupId?: number | null;
+        } | undefined;
+        
+        const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
+        let assignedRole: UserRole = "consultor";
+        let assignedGroupId: number | null = null;
+        
+        // First user always becomes admin
+        if (isFirstUser) {
+          assignedRole = "administrador";
+        } else if (publicMetadata?.pendingRole && validRoles.includes(publicMetadata.pendingRole as UserRole)) {
+          // Use role from invitation if valid
+          assignedRole = publicMetadata.pendingRole as UserRole;
+        }
+        
+        // Assign group from invitation if specified
+        if (publicMetadata?.pendingGroupId && typeof publicMetadata.pendingGroupId === "number") {
+          assignedGroupId = publicMetadata.pendingGroupId;
+        }
+        
         user = await storage.createUser({
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          roles: isFirstUser ? ["administrador"] : ["consultor"],
-          groupId: null,
+          roles: [assignedRole],
+          groupId: assignedGroupId,
         });
+        
+        // Clear the pending invitation metadata after user is created
+        if (publicMetadata?.pendingRole || publicMetadata?.pendingGroupId) {
+          try {
+            await clerkClient.users.updateUser(req.auth!.userId, {
+              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingGroupId: undefined },
+            });
+          } catch (e) {
+            console.warn("Failed to clear invitation metadata:", e);
+          }
+        }
       }
       
       return res.json({ user });
@@ -44,13 +78,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let user = await storage.getUserByClerkId(req.auth!.userId);
       
       if (!user) {
+        // Check for invitation metadata
+        const publicMetadata = clerkUser.publicMetadata as { 
+          pendingRole?: string; 
+          pendingGroupId?: number | null;
+        } | undefined;
+        
+        const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
+        let assignedRole: UserRole = "consultor";
+        let assignedGroupId: number | null = null;
+        
+        if (publicMetadata?.pendingRole && validRoles.includes(publicMetadata.pendingRole as UserRole)) {
+          assignedRole = publicMetadata.pendingRole as UserRole;
+        }
+        
+        if (publicMetadata?.pendingGroupId && typeof publicMetadata.pendingGroupId === "number") {
+          assignedGroupId = publicMetadata.pendingGroupId;
+        }
+        
         user = await storage.createUser({
           clerkId: req.auth!.userId,
           email: clerkUser.emailAddresses[0]?.emailAddress || "",
           name: `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() || null,
-          roles: ["consultor"],
-          groupId: null,
+          roles: [assignedRole],
+          groupId: assignedGroupId,
         });
+        
+        // Clear invitation metadata
+        if (publicMetadata?.pendingRole || publicMetadata?.pendingGroupId) {
+          try {
+            await clerkClient.users.updateUser(req.auth!.userId, {
+              publicMetadata: { ...publicMetadata, pendingRole: undefined, pendingGroupId: undefined },
+            });
+          } catch (e) {
+            console.warn("Failed to clear invitation metadata:", e);
+          }
+        }
       } else {
         user = await storage.updateUser(user.id, {
           email: clerkUser.emailAddresses[0]?.emailAddress || user.email,
@@ -172,6 +235,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error updating user:", error);
       return res.status(500).json({ error: "Failed to update user" });
+    }
+  });
+
+  // Invitation endpoint using Clerk Invitations API
+  app.post("/api/invitations", clerkAuthMiddleware, requireAdmin(), async (req, res) => {
+    try {
+      const { email, role, groupId } = req.body;
+      
+      if (!email || typeof email !== "string") {
+        return res.status(400).json({ error: "Email is required" });
+      }
+      
+      const validRoles: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
+      if (!role || !validRoles.includes(role)) {
+        return res.status(400).json({ error: "Valid role is required" });
+      }
+      
+      // Store pending invitation data in public metadata
+      const publicMetadata = {
+        pendingRole: role,
+        pendingGroupId: groupId || null,
+      };
+      
+      // Create invitation via Clerk
+      const invitation = await clerkClient.invitations.createInvitation({
+        emailAddress: email,
+        publicMetadata,
+        redirectUrl: `${process.env.REPLIT_DOMAINS?.split(",")[0] ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "http://localhost:5000"}/`,
+      });
+      
+      return res.status(201).json({ 
+        success: true, 
+        invitation: {
+          id: invitation.id,
+          email: invitation.emailAddress,
+          status: invitation.status,
+        }
+      });
+    } catch (error: any) {
+      console.error("Error creating invitation:", error);
+      
+      // Handle Clerk-specific errors
+      if (error?.errors?.[0]?.code === "form_identifier_exists") {
+        return res.status(400).json({ error: "Este email já possui uma conta ou convite pendente" });
+      }
+      
+      return res.status(500).json({ error: "Falha ao enviar convite" });
     }
   });
 

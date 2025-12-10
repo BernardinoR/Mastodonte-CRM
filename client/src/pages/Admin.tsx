@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCurrentUser, isAdmin as checkIsAdmin, type UserRole } from "@/hooks/useCurrentUser";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { InviteUserModal } from "@/components/InviteUserModal";
 
 interface Group {
   id: number;
@@ -88,6 +89,7 @@ export default function Admin() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [editGroupOpen, setEditGroupOpen] = useState(false);
   const [manageGroupMembersOpen, setManageGroupMembersOpen] = useState(false);
+  const [inviteUserOpen, setInviteUserOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
   
   const toggleGroupExpanded = (groupId: number) => {
@@ -577,7 +579,7 @@ export default function Admin() {
                 <option key={group.id} value={group.id.toString()}>{group.name}</option>
               ))}
             </select>
-            <Button variant="outline" data-testid="button-invite-user">
+            <Button variant="outline" onClick={() => setInviteUserOpen(true)} data-testid="button-invite-user">
               <UserPlus className="w-4 h-4 mr-2" />
               Convidar
             </Button>
@@ -940,6 +942,8 @@ export default function Admin() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <InviteUserModal open={inviteUserOpen} onOpenChange={setInviteUserOpen} />
     </div>
   );
 }
