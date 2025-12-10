@@ -17,6 +17,7 @@ import Meetings from "@/pages/Meetings";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
 import Admin from "@/pages/Admin";
+import Profile from "@/pages/Profile";
 
 function AuthenticatedRouter() {
   return (
@@ -27,6 +28,7 @@ function AuthenticatedRouter() {
       <Route path="/meetings" component={Meetings} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/admin" component={Admin} />
+      <Route path="/profile" component={Profile} />
       <Route component={NotFound} />
     </Switch>
   );

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import {
@@ -17,18 +17,13 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
-  ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
-  ContextMenuSub,
-  ContextMenuSubContent,
-  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { useCurrentUser, isAdmin, type UserRole } from "@/hooks/useCurrentUser";
-import { UserProfileModal } from "@/components/UserProfileModal";
+import { useCurrentUser, type UserRole } from "@/hooks/useCurrentUser";
 
 const menuItems = [
   {
@@ -78,15 +73,21 @@ export function AppSidebar() {
   const { data: currentUserData } = useCurrentUser();
   const currentUser = currentUserData?.user;
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
-  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [, navigate] = useLocation();
+  
+  const hasMultipleRoles = currentUser?.roles && currentUser.roles.length > 1;
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
     return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
   };
 
-  const handleLogout = () => {
-    signOut();
+  const handleLogout = async () => {
+    await signOut();
+  };
+  
+  const handleUserCardClick = () => {
+    navigate("/profile");
   };
 
   const displayedRole = activeRole || (currentUser?.roles?.[0] as UserRole) || null;
@@ -131,81 +132,107 @@ export function AppSidebar() {
           </Link>
         )}
         
-        <ContextMenu>
-          <ContextMenuTrigger asChild>
-            <div className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-context-menu" data-testid="user-card">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={user?.imageUrl} />
-                <AvatarFallback className="text-xs">
-                  {getInitials(user?.fullName || user?.firstName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate" data-testid="text-username">
-                  {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
-                </p>
-                {displayedRole && (
-                  <Badge 
-                    variant="outline" 
-                    className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
-                  >
-                    {ROLE_LABELS[displayedRole] || displayedRole}
-                  </Badge>
-                )}
+        {hasMultipleRoles ? (
+          <ContextMenu>
+            <ContextMenuTrigger asChild>
+              <div 
+                className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-pointer" 
+                data-testid="user-card"
+                onClick={handleUserCardClick}
+              >
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user?.imageUrl} />
+                  <AvatarFallback className="text-xs">
+                    {getInitials(user?.fullName || user?.firstName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate" data-testid="text-username">
+                    {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
+                  </p>
+                  {displayedRole && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
+                    >
+                      {ROLE_LABELS[displayedRole] || displayedRole}
+                    </Badge>
+                  )}
+                </div>
               </div>
+            </ContextMenuTrigger>
+            <ContextMenuContent className="w-52">
+              <ContextMenuItem disabled className="text-xs text-muted-foreground">
+                Trocar visão
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              {currentUser?.roles?.map((role) => (
+                <ContextMenuItem 
+                  key={role}
+                  onClick={() => setActiveRole(role as UserRole)}
+                  className="flex items-center justify-between"
+                  data-testid={`context-role-${role}`}
+                >
+                  <span className="flex items-center gap-2">
+                    <span className={`w-2 h-2 rounded-full ${
+                      role === "administrador" ? "bg-red-500" :
+                      role === "consultor" ? "bg-blue-500" :
+                      role === "alocador" ? "bg-orange-500" : "bg-purple-500"
+                    }`} />
+                    {ROLE_LABELS[role] || role}
+                  </span>
+                  {displayedRole === role && <Check className="w-4 h-4" />}
+                </ContextMenuItem>
+              ))}
+              <ContextMenuSeparator />
+              <ContextMenuItem 
+                onClick={handleLogout}
+                className="text-destructive focus:text-destructive"
+                data-testid="context-logout"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sair
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
+        ) : (
+          <div 
+            className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-pointer" 
+            data-testid="user-card"
+            onClick={handleUserCardClick}
+          >
+            <Avatar className="w-8 h-8">
+              <AvatarImage src={user?.imageUrl} />
+              <AvatarFallback className="text-xs">
+                {getInitials(user?.fullName || user?.firstName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate" data-testid="text-username">
+                {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
+              </p>
+              {displayedRole && (
+                <Badge 
+                  variant="outline" 
+                  className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
+                >
+                  {ROLE_LABELS[displayedRole] || displayedRole}
+                </Badge>
+              )}
             </div>
-          </ContextMenuTrigger>
-          <ContextMenuContent className="w-52">
-            <ContextMenuItem 
-              onClick={() => setProfileModalOpen(true)}
-              data-testid="context-profile"
-            >
-              Meu Perfil
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            {currentUser?.roles && currentUser.roles.length > 1 && (
-              <>
-                <ContextMenuSub>
-                  <ContextMenuSubTrigger>Ver como</ContextMenuSubTrigger>
-                  <ContextMenuSubContent className="w-48">
-                    {currentUser.roles.map((role) => (
-                      <ContextMenuItem 
-                        key={role}
-                        onClick={() => setActiveRole(role as UserRole)}
-                        className="flex items-center justify-between"
-                        data-testid={`context-role-${role}`}
-                      >
-                        <span className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${
-                            role === "administrador" ? "bg-red-500" :
-                            role === "consultor" ? "bg-blue-500" :
-                            role === "alocador" ? "bg-orange-500" : "bg-purple-500"
-                          }`} />
-                          {ROLE_LABELS[role] || role}
-                        </span>
-                        {displayedRole === role && <Check className="w-4 h-4" />}
-                      </ContextMenuItem>
-                    ))}
-                  </ContextMenuSubContent>
-                </ContextMenuSub>
-                <ContextMenuSeparator />
-              </>
-            )}
-            <ContextMenuItem 
-              onClick={handleLogout}
-              className="text-destructive focus:text-destructive"
-              data-testid="context-logout"
-            >
-              Sair
-            </ContextMenuItem>
-          </ContextMenuContent>
-        </ContextMenu>
+          </div>
+        )}
         
-        <UserProfileModal 
-          open={profileModalOpen} 
-          onOpenChange={setProfileModalOpen}
-          currentUser={currentUser}
-        />
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={handleLogout}
+          className="w-full justify-start text-muted-foreground hover:text-foreground"
+          data-testid="button-logout"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Sair
+        </Button>
       </SidebarFooter>
     </Sidebar>
   );
