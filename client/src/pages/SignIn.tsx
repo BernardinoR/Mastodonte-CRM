@@ -184,7 +184,7 @@ export default function SignIn() {
   const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
   const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
   const [secondFactorCode, setSecondFactorCode] = useState("");
-  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | null>(null);
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | "backup_code" | null>(null);
   const [phoneId, setPhoneId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -229,11 +229,16 @@ export default function SignIn() {
           setError("Verificação adicional necessária. Entre em contato com o suporte.");
         }
       } else if (result.status === "needs_second_factor") {
+        console.log("2FA required. Supported factors:", JSON.stringify(result.supportedSecondFactors, null, 2));
+        
         const totpFactor = result.supportedSecondFactors?.find(
           (factor) => factor.strategy === "totp"
         );
         const phoneFactor = result.supportedSecondFactors?.find(
           (factor) => factor.strategy === "phone_code"
+        );
+        const backupCodeFactor = result.supportedSecondFactors?.find(
+          (factor) => factor.strategy === "backup_code"
         );
         
         if (totpFactor) {
@@ -249,8 +254,14 @@ export default function SignIn() {
           });
           setNeedsSecondFactor(true);
           setError("");
+        } else if (backupCodeFactor) {
+          setSecondFactorStrategy("backup_code");
+          setNeedsSecondFactor(true);
+          setError("");
         } else {
-          setError("Método de verificação de dois fatores não suportado. Entre em contato com o suporte.");
+          const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
+          console.error("Unsupported 2FA strategies:", factorStrategies);
+          setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
         }
       } else {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
@@ -574,20 +585,32 @@ export default function SignIn() {
               <p className="text-sm text-[#888] mb-6">
                 {secondFactorStrategy === "totp" 
                   ? "Insira o código do seu aplicativo autenticador (Google Authenticator, Authy, etc.)."
+                  : secondFactorStrategy === "backup_code"
+                  ? "Insira um dos seus códigos de backup."
                   : "Enviamos um código de verificação para seu telefone. Insira-o abaixo."}
               </p>
               <form onSubmit={handleVerifySecondFactor}>
                 <div className="mb-4">
                   <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    {secondFactorStrategy === "totp" ? "Código do autenticador" : "Código SMS"}
+                    {secondFactorStrategy === "totp" 
+                      ? "Código do autenticador" 
+                      : secondFactorStrategy === "backup_code"
+                      ? "Código de backup"
+                      : "Código SMS"}
                   </label>
                   <input
                     type="text"
-                    className="input-dark text-center tracking-[0.5em] text-lg"
-                    placeholder="000000"
+                    className={`input-dark text-center text-lg ${secondFactorStrategy === "backup_code" ? "tracking-normal" : "tracking-[0.5em]"}`}
+                    placeholder={secondFactorStrategy === "backup_code" ? "xxxxxxxx" : "000000"}
                     value={secondFactorCode}
-                    onChange={(e) => setSecondFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    maxLength={6}
+                    onChange={(e) => {
+                      if (secondFactorStrategy === "backup_code") {
+                        setSecondFactorCode(e.target.value.slice(0, 10));
+                      } else {
+                        setSecondFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6));
+                      }
+                    }}
+                    maxLength={secondFactorStrategy === "backup_code" ? 10 : 6}
                     autoComplete="one-time-code"
                     required
                     data-testid="input-2fa-code"
@@ -605,7 +628,7 @@ export default function SignIn() {
                 <button
                   type="submit"
                   className="btn-submit flex items-center justify-center gap-2"
-                  disabled={loading || !isLoaded || secondFactorCode.length !== 6}
+                  disabled={loading || !isLoaded || (secondFactorStrategy === "backup_code" ? secondFactorCode.length < 6 : secondFactorCode.length !== 6)}
                   data-testid="button-verify-2fa"
                 >
                   {loading && <Loader2 className="w-4 h-4 animate-spin" />}
