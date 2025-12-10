@@ -179,6 +179,9 @@ export default function SignIn() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [verificationCode, setVerificationCode] = useState("");
+  const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -205,6 +208,24 @@ export default function SignIn() {
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
         setLocation("/");
+      } else if (result.status === "needs_first_factor") {
+        const emailFactor = result.supportedFirstFactors?.find(
+          (factor) => factor.strategy === "email_code"
+        );
+        if (emailFactor && "emailAddressId" in emailFactor) {
+          const factorEmailId = emailFactor.emailAddressId;
+          setEmailAddressId(factorEmailId);
+          await signIn.prepareFirstFactor({
+            strategy: "email_code",
+            emailAddressId: factorEmailId,
+          });
+          setNeedsVerification(true);
+          setError("");
+        } else {
+          setError("Verificação adicional necessária. Entre em contato com o suporte.");
+        }
+      } else if (result.status === "needs_second_factor") {
+        setError("Autenticação de dois fatores necessária. Entre em contato com o suporte.");
       } else {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
@@ -216,6 +237,13 @@ export default function SignIn() {
           setError("Senha incorreta. Tente novamente.");
         } else if (errorCode === "form_identifier_not_found") {
           setError("Email não encontrado. Verifique o endereço.");
+        } else if (errorCode === "session_exists") {
+          setLocation("/");
+        } else if (errorCode === "strategy_for_user_invalid" || clerkError.errors[0].message.includes("attempt")) {
+          setNeedsVerification(false);
+          setVerificationCode("");
+          setEmailAddressId(null);
+          setError("Por favor, tente novamente.");
         } else {
           setError(clerkError.errors[0].message);
         }
@@ -225,6 +253,73 @@ export default function SignIn() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || !signIn) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn.attemptFirstFactor({
+        strategy: "email_code",
+        code: verificationCode,
+      });
+
+      if (result.status === "complete") {
+        try {
+          await setActive({ session: result.createdSessionId });
+          setLocation("/");
+        } catch (sessionErr) {
+          console.error("Failed to activate session:", sessionErr);
+          setError("Erro ao ativar sessão. Tente novamente.");
+        }
+      } else {
+        setError("Verificação adicional necessária. Entre em contato com o suporte.");
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
+      if (clerkError.errors && clerkError.errors.length > 0) {
+        const errorCode = clerkError.errors[0].code;
+        if (errorCode === "form_code_incorrect") {
+          setError("Código incorreto. Verifique e tente novamente.");
+        } else {
+          setError(clerkError.errors[0].message);
+        }
+      } else {
+        setError("Erro ao verificar código. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (!isLoaded || !signIn || !emailAddressId) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await signIn.prepareFirstFactor({
+        strategy: "email_code",
+        emailAddressId: emailAddressId,
+      });
+      setError("");
+    } catch (err: unknown) {
+      setError("Erro ao reenviar código. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+    setNeedsVerification(false);
+    setVerificationCode("");
+    setEmailAddressId(null);
+    setError("");
   };
 
   const handleGoogleSignIn = async () => {
@@ -384,90 +479,157 @@ export default function SignIn() {
             Insira seus dados para acessar o painel.
           </p>
 
-          {/* Google Button */}
-          <button
-            type="button"
-            className="btn-google"
-            onClick={handleGoogleSignIn}
-            disabled={googleLoading || !isLoaded}
-            data-testid="button-google-signin"
-          >
-            {googleLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <GoogleIcon />
-            )}
-            Continuar com Google
-          </button>
+          {needsVerification ? (
+            <>
+              <p className="text-sm text-[#888] mb-6">
+                Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo para continuar.
+              </p>
+              <form onSubmit={handleVerifyCode}>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                    Código de verificação
+                  </label>
+                  <input
+                    type="text"
+                    className="input-dark text-center tracking-[0.5em] text-lg"
+                    placeholder="000000"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    required
+                    data-testid="input-verification-code"
+                  />
+                </div>
 
-          {/* Divider */}
-          <div className="flex items-center my-6 text-[#555] text-xs uppercase tracking-wider">
-            <div className="flex-1 h-px bg-[#333]" />
-            <span className="px-3">ou continue com</span>
-            <div className="flex-1 h-px bg-[#333]" />
-          </div>
+                {error && (
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                    <p className="text-sm text-red-400" data-testid="text-error">
+                      {error}
+                    </p>
+                  </div>
+                )}
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleEmailSignIn}>
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-[#888] mb-1.5">
-                E-mail
-              </label>
-              <input
-                type="email"
-                className="input-dark"
-                placeholder="nome@exemplo.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                data-testid="input-email"
-              />
-            </div>
-            <div className="mb-4">
-              <label className="block text-xs font-medium text-[#888] mb-1.5">
-                Senha
-              </label>
-              <input
-                type="password"
-                className="input-dark"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                data-testid="input-password"
-              />
-            </div>
+                <button
+                  type="submit"
+                  className="btn-submit flex items-center justify-center gap-2"
+                  disabled={loading || !isLoaded || verificationCode.length !== 6}
+                  data-testid="button-verify-code"
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Verificar
+                </button>
 
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                <p className="text-sm text-red-400" data-testid="text-error">
-                  {error}
-                </p>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn-submit flex items-center justify-center gap-2"
-              disabled={loading || !isLoaded}
-              data-testid="button-signin"
-            >
-              {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-              Entrar
-            </button>
-
-            <div className="mt-6 flex justify-center gap-5 text-sm">
-              <Link
-                href="/forgot-password"
-                className="text-[#666] hover:text-white transition-colors"
-                data-testid="link-forgot-password"
+                <div className="mt-6 flex justify-center gap-5 text-sm">
+                  <button
+                    type="button"
+                    onClick={handleResendCode}
+                    disabled={loading}
+                    className="text-[#666] hover:text-white transition-colors"
+                    data-testid="button-resend-code"
+                  >
+                    Reenviar código
+                  </button>
+                  <span className="text-[#444]">|</span>
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="text-[#666] hover:text-white transition-colors"
+                    data-testid="button-back-to-login"
+                  >
+                    Voltar
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : (
+            <>
+              {/* Google Button */}
+              <button
+                type="button"
+                className="btn-google"
+                onClick={handleGoogleSignIn}
+                disabled={googleLoading || !isLoaded}
+                data-testid="button-google-signin"
               >
-                Esqueceu a senha?
-              </Link>
-            </div>
-          </form>
+                {googleLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <GoogleIcon />
+                )}
+                Continuar com Google
+              </button>
+
+              {/* Divider */}
+              <div className="flex items-center my-6 text-[#555] text-xs uppercase tracking-wider">
+                <div className="flex-1 h-px bg-[#333]" />
+                <span className="px-3">ou continue com</span>
+                <div className="flex-1 h-px bg-[#333]" />
+              </div>
+
+              {/* Email/Password Form */}
+              <form onSubmit={handleEmailSignIn}>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                    E-mail
+                  </label>
+                  <input
+                    type="email"
+                    className="input-dark"
+                    placeholder="nome@exemplo.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    required
+                    data-testid="input-email"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                    Senha
+                  </label>
+                  <input
+                    type="password"
+                    className="input-dark"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    data-testid="input-password"
+                  />
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                    <p className="text-sm text-red-400" data-testid="text-error">
+                      {error}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn-submit flex items-center justify-center gap-2"
+                  disabled={loading || !isLoaded}
+                  data-testid="button-signin"
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Entrar
+                </button>
+
+                <div className="mt-6 flex justify-center gap-5 text-sm">
+                  <Link
+                    href="/forgot-password"
+                    className="text-[#666] hover:text-white transition-colors"
+                    data-testid="link-forgot-password"
+                  >
+                    Esqueceu a senha?
+                  </Link>
+                </div>
+              </form>
+            </>
+          )}
         </div>
       </div>
 
