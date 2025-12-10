@@ -8,7 +8,12 @@ export default function SSOCallback() {
         <Loader2 className="w-8 h-8 animate-spin text-white mx-auto mb-4" />
         <p className="text-[#888] text-sm">Autenticando...</p>
       </div>
-      <AuthenticateWithRedirectCallback />
+      <AuthenticateWithRedirectCallback 
+        signInFallbackRedirectUrl="/"
+        signUpFallbackRedirectUrl="/"
+      />
+      {/* Required for sign-up flows - Clerk's bot protection */}
+      <div id="clerk-captcha" />
     </div>
   );
 }

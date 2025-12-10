@@ -89,3 +89,7 @@ externalPort = 3003
 
 [userenv.shared]
 VITE_CLERK_PUBLISHABLE_KEY = "pk_test_Y2xpbWJpbmctY3ViLTc2LmNsZXJrLmFjY291bnRzLmRldiQ"
+VITE_CLERK_SIGN_IN_URL = "/sign-in"
+VITE_CLERK_SIGN_UP_URL = "/sign-up"
+VITE_CLERK_AFTER_SIGN_IN_URL = "/"
+VITE_CLERK_AFTER_SIGN_UP_URL = "/"

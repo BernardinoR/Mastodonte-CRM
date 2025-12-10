@@ -234,12 +234,10 @@ export default function SignIn() {
     setError("");
 
     try {
-      // Use absolute URLs for OAuth redirects
-      const baseUrl = window.location.origin;
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
-        redirectUrl: `${baseUrl}/sso-callback`,
-        redirectUrlComplete: `${baseUrl}/`,
+        redirectUrl: "/sso-callback",
+        redirectUrlComplete: "/",
       });
     } catch (err: unknown) {
       const clerkError = err as { errors?: Array<{ message: string }> };
