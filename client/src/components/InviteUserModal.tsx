@@ -215,8 +215,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
               <div className="flex items-start gap-3">
                 <Checkbox
                   checked={isAdmin}
-                  onCheckedChange={(checked) => setIsAdmin(checked === true)}
-                  className="mt-0.5"
+                  className="mt-0.5 pointer-events-none"
                 />
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
