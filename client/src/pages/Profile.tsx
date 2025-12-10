@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useState, useRef } from "react";
+import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User, Camera, Users, Key, Check, X, ExternalLink, Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
@@ -33,22 +33,40 @@ const ROLE_COLORS: Record<string, string> = {
 export default function Profile() {
   const { user: clerkUser } = useUser();
   const { openUserProfile } = useClerk();
+  const { getToken } = useAuth();
   const { toast } = useToast();
   const { data: currentUserData, isLoading: loadingUser } = useCurrentUser();
   const currentUser = currentUserData?.user;
   
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const groupId = currentUser?.groupId;
   const { data: groupData, isLoading: loadingGroup } = useQuery<{ group: Group; members: DbUser[] }>({
     queryKey: [`/api/groups/${groupId}/members`],
+    queryFn: async () => {
+      const token = await getToken();
+      if (!token) throw new Error("No auth token available");
+      const res = await fetch(`/api/groups/${groupId}/members`, {
+        headers: { Authorization: `Bearer ${token}` },
+        credentials: "include",
+      });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`${res.status}: ${text}`);
+      }
+      return res.json();
+    },
     enabled: !!groupId,
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { name: string }) => {
-      return apiRequest('PATCH', '/api/auth/profile', data);
+      const token = await getToken();
+      if (!token) throw new Error("No auth token available");
+      return apiRequest('PATCH', '/api/auth/profile', data, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
@@ -87,7 +105,38 @@ export default function Profile() {
   };
 
   const handlePhotoClick = () => {
-    openUserProfile();
+    fileInputRef.current?.click();
+  };
+
+  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !clerkUser) return;
+
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: "Formato inválido", description: "Use JPG, PNG, WebP ou GIF", variant: "destructive" });
+      return;
+    }
+
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({ title: "Arquivo muito grande", description: "Máximo 10MB", variant: "destructive" });
+      return;
+    }
+
+    setUploadingPhoto(true);
+    try {
+      await clerkUser.setProfileImage({ file });
+      toast({ title: "Foto atualizada com sucesso" });
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast({ title: "Erro ao atualizar foto", variant: "destructive" });
+    } finally {
+      setUploadingPhoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
   };
 
   if (loadingUser) {
@@ -133,18 +182,35 @@ export default function Profile() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="flex flex-col items-center gap-4">
-                <div className="relative group cursor-pointer" onClick={handlePhotoClick}>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handlePhotoChange}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  data-testid="input-photo"
+                />
+                <div 
+                  className={`relative group cursor-pointer ${uploadingPhoto ? 'pointer-events-none' : ''}`} 
+                  onClick={handlePhotoClick}
+                >
                   <Avatar className="w-24 h-24">
                     <AvatarImage src={clerkUser?.imageUrl} />
                     <AvatarFallback className="text-2xl">
                       {getInitials(currentUser?.name || clerkUser?.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Camera className="w-6 h-6 text-white" />
+                  <div className={`absolute inset-0 flex items-center justify-center bg-black/50 rounded-full transition-opacity ${uploadingPhoto ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                    {uploadingPhoto ? (
+                      <Loader2 className="w-6 h-6 text-white animate-spin" />
+                    ) : (
+                      <Camera className="w-6 h-6 text-white" />
+                    )}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Clique para alterar a foto</p>
+                <p className="text-xs text-muted-foreground">
+                  {uploadingPhoto ? "Enviando..." : "Clique para alterar a foto"}
+                </p>
               </div>
 
               <div className="space-y-4">
