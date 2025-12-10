@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { 
   Plus, 
   Pencil, 
@@ -28,7 +29,11 @@ import {
   MoreHorizontal,
   ImagePlus,
   X,
-  UserPlus
+  UserPlus,
+  ChevronDown,
+  TrendingUp,
+  DollarSign,
+  BarChart3
 } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -83,6 +88,19 @@ export default function Admin() {
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [editGroupOpen, setEditGroupOpen] = useState(false);
   const [manageGroupMembersOpen, setManageGroupMembersOpen] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState<Set<number>>(new Set());
+  
+  const toggleGroupExpanded = (groupId: number) => {
+    setExpandedGroups(prev => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        next.add(groupId);
+      }
+      return next;
+    });
+  };
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   
   const [newGroupName, setNewGroupName] = useState("");
@@ -362,98 +380,162 @@ export default function Admin() {
             <div className="space-y-4">
               {filteredGroups.map((group) => {
                 const members = getGroupMembers(group.id);
+                const isExpanded = expandedGroups.has(group.id);
+                const mockClients = 10 + (group.id * 7) % 50;
+                const mockAUM = (20 + (group.id * 13) % 180).toFixed(1);
+                const mockGrowth = (-5 + (group.id * 17) % 20);
+                
                 return (
-                  <Card key={group.id} className="overflow-hidden" data-testid={`group-card-${group.id}`}>
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-2xl shrink-0">
-                          {group.logoUrl ? (
-                            <img src={group.logoUrl} alt={group.name} className="w-full h-full object-cover rounded-lg" />
-                          ) : (
-                            <Users className="w-8 h-8 text-muted-foreground" />
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-4">
-                            <div>
-                              <h3 className="text-lg font-semibold">{group.name}</h3>
-                              {group.description && (
-                                <p className="text-sm text-muted-foreground mt-1">{group.description}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Criado em {format(new Date(group.createdAt), "d MMM yyyy", { locale: ptBR })}
-                              </p>
-                            </div>
-                            <Badge variant={group.isActive ? "default" : "secondary"} className="shrink-0">
-                              {group.isActive ? "Ativo" : "Inativo"}
-                            </Badge>
+                  <Collapsible 
+                    key={group.id} 
+                    open={isExpanded} 
+                    onOpenChange={() => toggleGroupExpanded(group.id)}
+                  >
+                    <Card className="overflow-visible" data-testid={`group-card-${group.id}`}>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-2xl shrink-0">
+                            {group.logoUrl ? (
+                              <img src={group.logoUrl} alt={group.name} className="w-full h-full object-cover rounded-lg" />
+                            ) : (
+                              <Users className="w-8 h-8 text-muted-foreground" />
+                            )}
                           </div>
-
-                          {members.length > 0 && (
-                            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                                <Users className="w-3 h-3" />
-                                MEMBROS
-                              </p>
-                              <div className="space-y-2">
-                                {members.slice(0, 5).map((member) => (
-                                  <div key={member.id} className="flex items-center gap-3">
-                                    <Avatar className="w-7 h-7">
-                                      <AvatarFallback className="text-xs">
-                                        {getInitials(member.name)}
-                                      </AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-sm flex-1 truncate">{member.name || member.email}</span>
-                                    <div className="flex gap-1">
-                                      {member.roles.map((role) => (
-                                        <Badge 
-                                          key={role} 
-                                          variant="outline" 
-                                          className={`text-[10px] px-1.5 py-0 h-5 ${ROLE_COLORS[role]}`}
-                                        >
-                                          {ROLE_LABELS[role]}
-                                        </Badge>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ))}
-                                {members.length > 5 && (
-                                  <p className="text-xs text-muted-foreground">
-                                    +{members.length - 5} membros
-                                  </p>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-4">
+                              <div>
+                                <h3 className="text-lg font-semibold uppercase tracking-wide">{group.name}</h3>
+                                {group.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">{group.description}</p>
                                 )}
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  Criado em {format(new Date(group.createdAt), "d MMM yyyy", { locale: ptBR })}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Badge variant={group.isActive ? "default" : "secondary"} className="shrink-0">
+                                  {group.isActive ? "Ativo" : "Inativo"}
+                                </Badge>
+                                <CollapsibleTrigger asChild>
+                                  <Button variant="ghost" size="icon" className="shrink-0">
+                                    <ChevronDown className={`w-4 h-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                  </Button>
+                                </CollapsibleTrigger>
                               </div>
                             </div>
-                          )}
 
-                          <div className="flex items-center gap-2 mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleEditGroup(group)}
-                              data-testid={`button-edit-group-${group.id}`}
-                            >
-                              <Pencil className="w-4 h-4 mr-1" />
-                              Editar
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => handleManageMembers(group)}
-                              data-testid={`button-manage-members-${group.id}`}
-                            >
-                              <Users className="w-4 h-4 mr-1" />
-                              Gerenciar Membros
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
+                            {!isExpanded && (
+                              <div className="flex items-center gap-4 mt-4 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-4 h-4" />
+                                  {members.length} membros
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <BarChart3 className="w-4 h-4" />
+                                  {mockClients} Clientes
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <DollarSign className="w-4 h-4" />
+                                  R$ {mockAUM}M AUM
+                                </span>
+                              </div>
+                            )}
+
+                            <CollapsibleContent>
+                              {members.length > 0 && (
+                                <div className="mt-4 p-4 bg-muted/50 rounded-lg">
+                                  <p className="text-xs font-medium text-muted-foreground mb-3 flex items-center gap-1 uppercase tracking-wide">
+                                    <Users className="w-3 h-3" />
+                                    MEMBROS
+                                  </p>
+                                  <div className="border rounded-md overflow-hidden">
+                                    <table className="w-full text-sm">
+                                      <tbody>
+                                        {members.map((member, idx) => (
+                                          <tr key={member.id} className={idx !== members.length - 1 ? "border-b" : ""}>
+                                            <td className="p-2">
+                                              <div className="flex items-center gap-2">
+                                                <Avatar className="w-7 h-7">
+                                                  <AvatarFallback className="text-xs">
+                                                    {getInitials(member.name)}
+                                                  </AvatarFallback>
+                                                </Avatar>
+                                              </div>
+                                            </td>
+                                            <td className="p-2 flex-1">
+                                              <span className="truncate">{member.name || member.email}</span>
+                                            </td>
+                                            <td className="p-2 text-right">
+                                              <div className="flex gap-1 justify-end">
+                                                {member.roles.map((role) => (
+                                                  <Badge 
+                                                    key={role} 
+                                                    variant="outline" 
+                                                    className={`text-[10px] px-1.5 py-0 h-5 ${ROLE_COLORS[role]}`}
+                                                  >
+                                                    {ROLE_LABELS[role]}
+                                                  </Badge>
+                                                ))}
+                                              </div>
+                                            </td>
+                                          </tr>
+                                        ))}
+                                      </tbody>
+                                    </table>
+                                  </div>
+                                </div>
+                              )}
+
+                              <div className="mt-4 p-3 bg-muted/30 rounded-lg flex items-center gap-6 text-sm">
+                                <div className="flex items-center gap-2">
+                                  <BarChart3 className="w-4 h-4 text-muted-foreground" />
+                                  <span className="font-medium">{mockClients}</span>
+                                  <span className="text-muted-foreground">Clientes</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <DollarSign className="w-4 h-4 text-muted-foreground" />
+                                  <span className="font-medium">R$ {mockAUM}M</span>
+                                  <span className="text-muted-foreground">AUM</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp className={`w-4 h-4 ${Number(mockGrowth) >= 0 ? 'text-green-500' : 'text-red-500'}`} />
+                                  <span className={`font-medium ${Number(mockGrowth) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                    {Number(mockGrowth) >= 0 ? '+' : ''}{mockGrowth}%
+                                  </span>
+                                  <span className="text-muted-foreground">mês</span>
+                                </div>
+                              </div>
+                            </CollapsibleContent>
+
+                            <div className="flex items-center gap-2 mt-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleEditGroup(group)}
+                                data-testid={`button-edit-group-${group.id}`}
+                              >
+                                <Pencil className="w-4 h-4 mr-1" />
+                                Editar
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={() => handleManageMembers(group)}
+                                data-testid={`button-manage-members-${group.id}`}
+                              >
+                                <Users className="w-4 h-4 mr-1" />
+                                Gerenciar Membros
+                              </Button>
+                              <Button variant="ghost" size="icon">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                      </CardContent>
+                    </Card>
+                  </Collapsible>
                 );
               })}
             </div>
