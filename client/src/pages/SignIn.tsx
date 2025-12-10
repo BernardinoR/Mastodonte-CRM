@@ -1,6 +1,6 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import { Loader2 } from "lucide-react";
 
 const quotes = [
@@ -459,13 +459,13 @@ export default function SignIn() {
             </button>
 
             <div className="mt-6 flex justify-center gap-5 text-sm">
-              <a
-                href="#"
+              <Link
+                href="/forgot-password"
                 className="text-[#666] hover:text-white transition-colors"
                 data-testid="link-forgot-password"
               >
                 Esqueceu a senha?
-              </a>
+              </Link>
             </div>
           </form>
         </div>
