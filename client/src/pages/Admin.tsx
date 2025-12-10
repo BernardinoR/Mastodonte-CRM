@@ -158,7 +158,10 @@ export default function Admin() {
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, roles, groupId }: { id: number; roles?: UserRole[]; groupId?: number | null }) => {
       const token = await getToken();
-      return apiRequest("PATCH", `/api/users/${id}`, { roles, groupId }, { Authorization: `Bearer ${token}` });
+      const body: { roles?: UserRole[]; groupId?: number | null } = {};
+      if (roles !== undefined) body.roles = roles;
+      if (groupId !== undefined) body.groupId = groupId;
+      return apiRequest("PATCH", `/api/users/${id}`, body, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
