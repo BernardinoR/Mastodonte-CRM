@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { clerkAuthMiddleware, requireAdmin } from "./auth";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
-import { insertGroupSchema, insertUserSchema } from "@shared/schema";
+import { insertGroupSchema, insertUserSchema, type UserRole } from "@shared/schema";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -158,7 +158,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      const user = await storage.updateUser(userId, { roles, groupId });
+      const updates: { roles?: UserRole[]; groupId?: number | null } = {};
+      if (roles !== undefined) updates.roles = roles as UserRole[];
+      if (groupId !== undefined) updates.groupId = groupId;
+      
+      const user = await storage.updateUser(userId, updates);
       
       if (!user) {
         return res.status(404).json({ error: "User not found" });
