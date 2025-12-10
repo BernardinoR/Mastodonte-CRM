@@ -220,6 +220,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get group members (only for users in that group or admins)
+  app.get("/api/groups/:id/members", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id, 10);
+      if (isNaN(groupId)) {
+        return res.status(400).json({ error: "Invalid group ID" });
+      }
+      
+      // Authorization check: user must belong to this group or be admin
+      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const isUserAdmin = currentUser.roles?.includes("administrador");
+      const belongsToGroup = currentUser.groupId === groupId;
+      
+      if (!isUserAdmin && !belongsToGroup) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+      
+      const group = await storage.getGroup(groupId);
+      if (!group) {
+        return res.status(404).json({ error: "Group not found" });
+      }
+      
+      const members = await storage.getUsersByGroupId(groupId);
+      return res.json({ group, members });
+    } catch (error) {
+      console.error("Error fetching group members:", error);
+      return res.status(500).json({ error: "Failed to fetch group members" });
+    }
+  });
+
+  // Update current user's own profile (name only - photo managed via Clerk)
+  app.patch("/api/auth/profile", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const user = await storage.getUserByClerkId(req.auth!.userId);
+      if (!user) {
+        return res.status(404).json({ error: "User not found" });
+      }
+      
+      const { name } = req.body;
+      
+      // Validate name
+      if (name !== undefined) {
+        if (typeof name !== "string") {
+          return res.status(400).json({ error: "Invalid name" });
+        }
+        if (name.trim().length === 0) {
+          return res.status(400).json({ error: "Name cannot be empty" });
+        }
+        if (name.length > 100) {
+          return res.status(400).json({ error: "Name too long (max 100 chars)" });
+        }
+      }
+      
+      const updates: { name?: string } = {};
+      if (name !== undefined) updates.name = name.trim();
+      
+      const updatedUser = await storage.updateUser(user.id, updates);
+      
+      return res.json({ user: updatedUser });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      return res.status(500).json({ error: "Failed to update profile" });
+    }
+  });
+
   app.patch("/api/users/:id", clerkAuthMiddleware, requireAdmin(), async (req, res) => {
     try {
       const userId = parseInt(req.params.id, 10);

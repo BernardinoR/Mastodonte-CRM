@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check } from "lucide-react";
+import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check, ChevronRight } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import {
@@ -20,11 +20,15 @@ import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuTrigger,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
 } from "@/components/ui/context-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCurrentUser, isAdmin, type UserRole } from "@/hooks/useCurrentUser";
+import { UserProfileModal } from "@/components/UserProfileModal";
 
 const menuItems = [
   {
@@ -73,8 +77,8 @@ export function AppSidebar() {
   const { user } = useUser();
   const { data: currentUserData } = useCurrentUser();
   const currentUser = currentUserData?.user;
-  const userIsAdmin = isAdmin(currentUser);
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -151,40 +155,57 @@ export function AppSidebar() {
               </div>
             </div>
           </ContextMenuTrigger>
-          <ContextMenuContent className="w-48">
-            <ContextMenuLabel>Ver como</ContextMenuLabel>
+          <ContextMenuContent className="w-52">
+            <ContextMenuItem 
+              onClick={() => setProfileModalOpen(true)}
+              data-testid="context-profile"
+            >
+              Meu Perfil
+            </ContextMenuItem>
             <ContextMenuSeparator />
-            {currentUser?.roles?.map((role) => (
-              <ContextMenuItem 
-                key={role}
-                onClick={() => setActiveRole(role as UserRole)}
-                className="flex items-center justify-between"
-                data-testid={`context-role-${role}`}
-              >
-                <span className="flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    role === "administrador" ? "bg-red-500" :
-                    role === "consultor" ? "bg-blue-500" :
-                    role === "alocador" ? "bg-orange-500" : "bg-purple-500"
-                  }`} />
-                  {ROLE_LABELS[role] || role}
-                </span>
-                {displayedRole === role && <Check className="w-4 h-4" />}
-              </ContextMenuItem>
-            ))}
+            {currentUser?.roles && currentUser.roles.length > 1 && (
+              <>
+                <ContextMenuSub>
+                  <ContextMenuSubTrigger>Ver como</ContextMenuSubTrigger>
+                  <ContextMenuSubContent className="w-48">
+                    {currentUser.roles.map((role) => (
+                      <ContextMenuItem 
+                        key={role}
+                        onClick={() => setActiveRole(role as UserRole)}
+                        className="flex items-center justify-between"
+                        data-testid={`context-role-${role}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${
+                            role === "administrador" ? "bg-red-500" :
+                            role === "consultor" ? "bg-blue-500" :
+                            role === "alocador" ? "bg-orange-500" : "bg-purple-500"
+                          }`} />
+                          {ROLE_LABELS[role] || role}
+                        </span>
+                        {displayedRole === role && <Check className="w-4 h-4" />}
+                      </ContextMenuItem>
+                    ))}
+                  </ContextMenuSubContent>
+                </ContextMenuSub>
+                <ContextMenuSeparator />
+              </>
+            )}
+            <ContextMenuItem 
+              onClick={handleLogout}
+              className="text-destructive focus:text-destructive"
+              data-testid="context-logout"
+            >
+              Sair
+            </ContextMenuItem>
           </ContextMenuContent>
         </ContextMenu>
         
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className="w-full justify-start gap-2" 
-          onClick={handleLogout}
-          data-testid="button-logout"
-        >
-          <LogOut className="w-4 h-4" />
-          Sair
-        </Button>
+        <UserProfileModal 
+          open={profileModalOpen} 
+          onOpenChange={setProfileModalOpen}
+          currentUser={currentUser}
+        />
       </SidebarFooter>
     </Sidebar>
   );
