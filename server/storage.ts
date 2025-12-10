@@ -77,13 +77,14 @@ export class MemStorage implements IStorage {
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
     const id = this.groupIdCounter++;
+    const now = new Date();
     const group: Group = { 
       id,
       name: insertGroup.name,
       description: insertGroup.description ?? null,
       logoUrl: insertGroup.logoUrl ?? null,
       isActive: insertGroup.isActive ?? true,
-      createdAt: new Date(),
+      createdAt: now,
     };
     this.groups.set(id, group);
     return group;

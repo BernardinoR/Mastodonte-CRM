@@ -1,33 +1,48 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Dialog, 
   DialogContent, 
   DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Plus, Pencil, Trash2, Users, Building2, ShieldAlert, Loader2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Plus, 
+  Pencil, 
+  Users, 
+  ShieldAlert, 
+  Loader2, 
+  Search,
+  Lock,
+  MoreHorizontal,
+  ImagePlus,
+  X,
+  UserPlus
+} from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { useCurrentUser, type UserRole } from "@/hooks/useCurrentUser";
+import { useCurrentUser, isAdmin as checkIsAdmin, type UserRole } from "@/hooks/useCurrentUser";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface Group {
   id: number;
   name: string;
+  description: string | null;
   logoUrl: string | null;
+  isActive: boolean;
+  createdAt: string;
 }
 
 interface User {
@@ -35,20 +50,50 @@ interface User {
   clerkId: string;
   email: string;
   name: string | null;
-  role: UserRole;
+  roles: UserRole[];
   groupId: number | null;
+  isActive: boolean;
 }
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  administrador: "Admin",
+  consultor: "Consultor",
+  alocador: "Alocador",
+  concierge: "Concierge",
+};
+
+const ROLE_COLORS: Record<UserRole, string> = {
+  administrador: "bg-red-500/20 text-red-400 border-red-500/30",
+  consultor: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+  alocador: "bg-orange-500/20 text-orange-400 border-orange-500/30",
+  concierge: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+};
+
+const ALL_ROLES: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
 
 export default function Admin() {
   const { getToken } = useAuth();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState("groups");
+  const [groupSearch, setGroupSearch] = useState("");
+  const [userSearch, setUserSearch] = useState("");
+  const [userRoleFilter, setUserRoleFilter] = useState<string>("all");
+  const [userGroupFilter, setUserGroupFilter] = useState<string>("all");
+  
+  const [createGroupOpen, setCreateGroupOpen] = useState(false);
+  const [editGroupOpen, setEditGroupOpen] = useState(false);
+  const [manageGroupMembersOpen, setManageGroupMembersOpen] = useState(false);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
+  
   const [newGroupName, setNewGroupName] = useState("");
-  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
-  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const [newGroupDescription, setNewGroupDescription] = useState("");
+  const [newGroupLogoUrl, setNewGroupLogoUrl] = useState("");
+  const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
+  const [memberSearchQuery, setMemberSearchQuery] = useState("");
 
   const { data: currentUserData, isLoading: userLoading } = useCurrentUser();
   const currentUser = currentUserData?.user;
-  const isAdmin = currentUser?.role === "administrador";
+  const isAdmin = checkIsAdmin(currentUser);
 
   const { data: groupsData, isLoading: groupsLoading } = useQuery<{ groups: Group[] }>({
     queryKey: ["/api/groups"],
@@ -79,14 +124,14 @@ export default function Admin() {
   });
 
   const createGroupMutation = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async (data: { name: string; description?: string; logoUrl?: string }) => {
       const token = await getToken();
-      return apiRequest("POST", "/api/groups", { name }, { Authorization: `Bearer ${token}` });
+      return apiRequest("POST", "/api/groups", data, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      setNewGroupName("");
-      setGroupDialogOpen(false);
+      resetCreateGroupForm();
+      setCreateGroupOpen(false);
       toast({ title: "Grupo criado com sucesso" });
     },
     onError: () => {
@@ -95,13 +140,14 @@ export default function Admin() {
   });
 
   const updateGroupMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: number; name: string }) => {
+    mutationFn: async ({ id, ...data }: { id: number; name?: string; description?: string; logoUrl?: string }) => {
       const token = await getToken();
-      return apiRequest("PATCH", `/api/groups/${id}`, { name }, { Authorization: `Bearer ${token}` });
+      return apiRequest("PATCH", `/api/groups/${id}`, data, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      setEditingGroup(null);
+      setEditGroupOpen(false);
+      setSelectedGroup(null);
       toast({ title: "Grupo atualizado com sucesso" });
     },
     onError: () => {
@@ -109,24 +155,10 @@ export default function Admin() {
     },
   });
 
-  const deleteGroupMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const token = await getToken();
-      return apiRequest("DELETE", `/api/groups/${id}`, undefined, { Authorization: `Bearer ${token}` });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
-      toast({ title: "Grupo excluído com sucesso" });
-    },
-    onError: () => {
-      toast({ title: "Erro ao excluir grupo", variant: "destructive" });
-    },
-  });
-
   const updateUserMutation = useMutation({
-    mutationFn: async ({ id, role, groupId }: { id: number; role?: UserRole; groupId?: number | null }) => {
+    mutationFn: async ({ id, roles, groupId }: { id: number; roles?: UserRole[]; groupId?: number | null }) => {
       const token = await getToken();
-      return apiRequest("PATCH", `/api/users/${id}`, { role, groupId }, { Authorization: `Bearer ${token}` });
+      return apiRequest("PATCH", `/api/users/${id}`, { roles, groupId }, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/users"] });
@@ -140,15 +172,119 @@ export default function Admin() {
   const groups = groupsData?.groups || [];
   const users = usersData?.users || [];
 
-  const getRoleBadgeColor = (role: UserRole) => {
-    switch (role) {
-      case "administrador": return "bg-red-500/20 text-red-400";
-      case "consultor": return "bg-blue-500/20 text-blue-400";
-      case "alocador": return "bg-green-500/20 text-green-400";
-      case "concierge": return "bg-purple-500/20 text-purple-400";
-      default: return "bg-gray-500/20 text-gray-400";
+  const filteredGroups = useMemo(() => {
+    return groups.filter(group => 
+      group.name.toLowerCase().includes(groupSearch.toLowerCase()) ||
+      group.description?.toLowerCase().includes(groupSearch.toLowerCase())
+    );
+  }, [groups, groupSearch]);
+
+  const filteredUsers = useMemo(() => {
+    return users.filter(user => {
+      const matchesSearch = 
+        user.name?.toLowerCase().includes(userSearch.toLowerCase()) ||
+        user.email.toLowerCase().includes(userSearch.toLowerCase());
+      
+      const matchesRole = userRoleFilter === "all" || user.roles.includes(userRoleFilter as UserRole);
+      const matchesGroup = userGroupFilter === "all" || 
+        (userGroupFilter === "none" && !user.groupId) ||
+        user.groupId?.toString() === userGroupFilter;
+      
+      return matchesSearch && matchesRole && matchesGroup;
+    });
+  }, [users, userSearch, userRoleFilter, userGroupFilter]);
+
+  const getGroupMembers = (groupId: number) => {
+    return users.filter(user => user.groupId === groupId);
+  };
+
+  const getInitials = (name: string | null) => {
+    if (!name) return "U";
+    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+  };
+
+  const resetCreateGroupForm = () => {
+    setNewGroupName("");
+    setNewGroupDescription("");
+    setNewGroupLogoUrl("");
+    setSelectedMemberIds([]);
+    setMemberSearchQuery("");
+  };
+
+  const handleCreateGroup = async () => {
+    const response = await createGroupMutation.mutateAsync({
+      name: newGroupName,
+      description: newGroupDescription || undefined,
+      logoUrl: newGroupLogoUrl || undefined,
+    });
+    
+    const data = await response.json() as { group: Group };
+    const createdGroup = data?.group;
+    
+    if (selectedMemberIds.length > 0 && createdGroup?.id) {
+      for (const userId of selectedMemberIds) {
+        await updateUserMutation.mutateAsync({ id: userId, groupId: createdGroup.id });
+      }
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
     }
   };
+
+  const handleEditGroup = (group: Group) => {
+    setSelectedGroup(group);
+    setNewGroupName(group.name);
+    setNewGroupDescription(group.description || "");
+    setNewGroupLogoUrl(group.logoUrl || "");
+    setEditGroupOpen(true);
+  };
+
+  const handleManageMembers = (group: Group) => {
+    setSelectedGroup(group);
+    setSelectedMemberIds(getGroupMembers(group.id).map(u => u.id));
+    setMemberSearchQuery("");
+    setManageGroupMembersOpen(true);
+  };
+
+  const handleSaveMembers = async () => {
+    if (!selectedGroup) return;
+    
+    const currentMembers = getGroupMembers(selectedGroup.id);
+    const currentMemberIds = currentMembers.map(u => u.id);
+    
+    const toAdd = selectedMemberIds.filter(id => !currentMemberIds.includes(id));
+    const toRemove = currentMemberIds.filter(id => !selectedMemberIds.includes(id));
+    
+    for (const userId of toAdd) {
+      await updateUserMutation.mutateAsync({ id: userId, groupId: selectedGroup.id });
+    }
+    
+    for (const userId of toRemove) {
+      await updateUserMutation.mutateAsync({ id: userId, groupId: null });
+    }
+    
+    setManageGroupMembersOpen(false);
+    setSelectedGroup(null);
+    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+  };
+
+  const toggleRole = (user: User, role: UserRole) => {
+    const newRoles = user.roles.includes(role)
+      ? user.roles.filter(r => r !== role)
+      : [...user.roles, role];
+    
+    if (newRoles.length === 0) {
+      toast({ title: "Usuário deve ter pelo menos uma role", variant: "destructive" });
+      return;
+    }
+    
+    updateUserMutation.mutate({ id: user.id, roles: newRoles });
+  };
+
+  const searchableUsers = useMemo(() => {
+    return users.filter(user =>
+      user.name?.toLowerCase().includes(memberSearchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(memberSearchQuery.toLowerCase())
+    );
+  }, [users, memberSearchQuery]);
 
   if (userLoading) {
     return (
@@ -171,196 +307,554 @@ export default function Admin() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Administração</h1>
-      </div>
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <h1 className="text-2xl font-semibold">Administração</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
-              <Building2 className="w-5 h-5 text-muted-foreground" />
-              <CardTitle>Grupos</CardTitle>
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="mb-6">
+          <TabsTrigger value="groups" className="gap-2" data-testid="tab-groups">
+            <Users className="w-4 h-4" />
+            Grupos de Trabalho
+          </TabsTrigger>
+          <TabsTrigger value="users" className="gap-2" data-testid="tab-users">
+            <Users className="w-4 h-4" />
+            Usuários
+          </TabsTrigger>
+          <TabsTrigger value="permissions" className="gap-2" data-testid="tab-permissions">
+            <Lock className="w-4 h-4" />
+            Permissões
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="groups" className="space-y-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar grupo..."
+                value={groupSearch}
+                onChange={(e) => setGroupSearch(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-groups"
+              />
             </div>
-            <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" data-testid="button-add-group">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Novo Grupo
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Criar Novo Grupo</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 pt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="group-name">Nome do Grupo</Label>
-                    <Input
-                      id="group-name"
-                      value={newGroupName}
-                      onChange={(e) => setNewGroupName(e.target.value)}
-                      placeholder="Ex: Equipe São Paulo"
-                      data-testid="input-group-name"
-                    />
-                  </div>
-                  <Button 
-                    onClick={() => createGroupMutation.mutate(newGroupName)}
-                    disabled={!newGroupName.trim() || createGroupMutation.isPending}
-                    className="w-full"
-                    data-testid="button-save-group"
-                  >
-                    {createGroupMutation.isPending ? "Criando..." : "Criar Grupo"}
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </CardHeader>
-          <CardContent>
-            {groupsLoading ? (
-              <p className="text-muted-foreground text-sm">Carregando...</p>
-            ) : groups.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Nenhum grupo criado</p>
-            ) : (
-              <div className="space-y-2">
-                {groups.map((group) => (
-                  <div
-                    key={group.id}
-                    className="flex items-center justify-between p-3 rounded-md bg-muted/50"
-                    data-testid={`group-item-${group.id}`}
-                  >
-                    {editingGroup?.id === group.id ? (
-                      <Input
-                        value={editingGroup.name}
-                        onChange={(e) => setEditingGroup({ ...editingGroup, name: e.target.value })}
-                        className="flex-1 mr-2"
-                        data-testid="input-edit-group-name"
-                      />
-                    ) : (
-                      <span className="font-medium">{group.name}</span>
+            <Button onClick={() => setCreateGroupOpen(true)} data-testid="button-new-group">
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Grupo
+            </Button>
+          </div>
+
+          {groupsLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : filteredGroups.length === 0 ? (
+            <Card className="p-8 text-center">
+              <Users className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+              <p className="text-muted-foreground">
+                {groups.length === 0 ? "Nenhum grupo criado ainda" : "Nenhum grupo encontrado"}
+              </p>
+            </Card>
+          ) : (
+            <div className="space-y-4">
+              {filteredGroups.map((group) => {
+                const members = getGroupMembers(group.id);
+                return (
+                  <Card key={group.id} className="overflow-hidden" data-testid={`group-card-${group.id}`}>
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center text-2xl shrink-0">
+                          {group.logoUrl ? (
+                            <img src={group.logoUrl} alt={group.name} className="w-full h-full object-cover rounded-lg" />
+                          ) : (
+                            <Users className="w-8 h-8 text-muted-foreground" />
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-lg font-semibold">{group.name}</h3>
+                              {group.description && (
+                                <p className="text-sm text-muted-foreground mt-1">{group.description}</p>
+                              )}
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Criado em {format(new Date(group.createdAt), "d MMM yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                            <Badge variant={group.isActive ? "default" : "secondary"} className="shrink-0">
+                              {group.isActive ? "Ativo" : "Inativo"}
+                            </Badge>
+                          </div>
+
+                          {members.length > 0 && (
+                            <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                                <Users className="w-3 h-3" />
+                                MEMBROS
+                              </p>
+                              <div className="space-y-2">
+                                {members.slice(0, 5).map((member) => (
+                                  <div key={member.id} className="flex items-center gap-3">
+                                    <Avatar className="w-7 h-7">
+                                      <AvatarFallback className="text-xs">
+                                        {getInitials(member.name)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="text-sm flex-1 truncate">{member.name || member.email}</span>
+                                    <div className="flex gap-1">
+                                      {member.roles.map((role) => (
+                                        <Badge 
+                                          key={role} 
+                                          variant="outline" 
+                                          className={`text-[10px] px-1.5 py-0 h-5 ${ROLE_COLORS[role]}`}
+                                        >
+                                          {ROLE_LABELS[role]}
+                                        </Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                                {members.length > 5 && (
+                                  <p className="text-xs text-muted-foreground">
+                                    +{members.length - 5} membros
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="flex items-center gap-2 mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleEditGroup(group)}
+                              data-testid={`button-edit-group-${group.id}`}
+                            >
+                              <Pencil className="w-4 h-4 mr-1" />
+                              Editar
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm" 
+                              onClick={() => handleManageMembers(group)}
+                              data-testid={`button-manage-members-${group.id}`}
+                            >
+                              <Users className="w-4 h-4 mr-1" />
+                              Gerenciar Membros
+                            </Button>
+                            <Button variant="ghost" size="icon">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="users" className="space-y-4">
+          <div className="flex items-center gap-4 flex-wrap">
+            <div className="relative flex-1 min-w-[200px] max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuário..."
+                value={userSearch}
+                onChange={(e) => setUserSearch(e.target.value)}
+                className="pl-10"
+                data-testid="input-search-users"
+              />
+            </div>
+            <select
+              value={userRoleFilter}
+              onChange={(e) => setUserRoleFilter(e.target.value)}
+              className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              data-testid="select-filter-role"
+            >
+              <option value="all">Todos os tipos</option>
+              {ALL_ROLES.map(role => (
+                <option key={role} value={role}>{ROLE_LABELS[role]}</option>
+              ))}
+            </select>
+            <select
+              value={userGroupFilter}
+              onChange={(e) => setUserGroupFilter(e.target.value)}
+              className="h-9 px-3 rounded-md border border-input bg-background text-sm"
+              data-testid="select-filter-group"
+            >
+              <option value="all">Todos os grupos</option>
+              <option value="none">Sem grupo</option>
+              {groups.map(group => (
+                <option key={group.id} value={group.id.toString()}>{group.name}</option>
+              ))}
+            </select>
+            <Button variant="outline" data-testid="button-invite-user">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Convidar
+            </Button>
+          </div>
+
+          {usersLoading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left p-4 font-medium text-muted-foreground text-sm">USUÁRIO</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground text-sm">ROLES</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground text-sm">GRUPO</th>
+                      <th className="text-left p-4 font-medium text-muted-foreground text-sm">STATUS</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredUsers.map((user) => {
+                      const userGroup = groups.find(g => g.id === user.groupId);
+                      return (
+                        <tr key={user.id} className="border-b last:border-0" data-testid={`user-row-${user.id}`}>
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-9 h-9">
+                                <AvatarFallback className="text-xs">
+                                  {getInitials(user.name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <p className="font-medium">{user.name || "Sem nome"}</p>
+                                <p className="text-sm text-muted-foreground">{user.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-wrap gap-1">
+                              {ALL_ROLES.map((role) => (
+                                <Badge
+                                  key={role}
+                                  variant="outline"
+                                  className={`cursor-pointer transition-opacity ${
+                                    user.roles.includes(role) 
+                                      ? ROLE_COLORS[role] 
+                                      : "opacity-30 hover:opacity-60"
+                                  }`}
+                                  onClick={() => toggleRole(user, role)}
+                                  data-testid={`badge-role-${user.id}-${role}`}
+                                >
+                                  {ROLE_LABELS[role]}
+                                </Badge>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className="text-sm">
+                              {userGroup?.name || "—"}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className={`w-2 h-2 rounded-full ${user.isActive ? "bg-green-500" : "bg-gray-400"}`} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {filteredUsers.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="p-8 text-center text-muted-foreground">
+                          Nenhum usuário encontrado
+                        </td>
+                      </tr>
                     )}
-                    <div className="flex items-center gap-1">
-                      {editingGroup?.id === group.id ? (
-                        <>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => updateGroupMutation.mutate({ id: group.id, name: editingGroup.name })}
-                            disabled={updateGroupMutation.isPending}
-                            data-testid="button-confirm-edit"
-                          >
-                            Salvar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setEditingGroup(null)}
-                            data-testid="button-cancel-edit"
-                          >
-                            Cancelar
-                          </Button>
-                        </>
-                      ) : (
-                        <>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => setEditingGroup(group)}
-                            data-testid={`button-edit-group-${group.id}`}
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <Button
-                            size="icon"
-                            variant="ghost"
-                            onClick={() => deleteGroupMutation.mutate(group.id)}
-                            disabled={deleteGroupMutation.isPending}
-                            data-testid={`button-delete-group-${group.id}`}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  </tbody>
+                </table>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </Card>
+          )}
+        </TabsContent>
 
-        <Card>
-          <CardHeader>
-            <div className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-muted-foreground" />
-              <CardTitle>Usuários</CardTitle>
+        <TabsContent value="permissions" className="space-y-4">
+          <Card className="p-12 text-center">
+            <Lock className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">Gestão de Permissões</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              Configure permissões detalhadas por role. Em breve você poderá definir o que cada tipo de usuário pode acessar e modificar no sistema.
+            </p>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      <Dialog open={createGroupOpen} onOpenChange={setCreateGroupOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Grupo de Trabalho</DialogTitle>
+            <DialogDescription>
+              Defina as informações do grupo e adicione membros.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div 
+              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
+              onClick={() => {
+                const url = prompt("URL da imagem do grupo:");
+                if (url) setNewGroupLogoUrl(url);
+              }}
+            >
+              {newGroupLogoUrl ? (
+                <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+              ) : (
+                <div className="text-center">
+                  <ImagePlus className="w-8 h-8 mx-auto text-muted-foreground" />
+                  <span className="text-xs text-muted-foreground mt-1 block">Adicionar</span>
+                </div>
+              )}
             </div>
-          </CardHeader>
-          <CardContent>
-            {usersLoading ? (
-              <p className="text-muted-foreground text-sm">Carregando...</p>
-            ) : users.length === 0 ? (
-              <p className="text-muted-foreground text-sm">Nenhum usuário cadastrado</p>
-            ) : (
-              <div className="space-y-3">
-                {users.map((user) => (
+
+            <div className="space-y-2">
+              <Label htmlFor="group-name">Nome de Guerra *</Label>
+              <Input
+                id="group-name"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                placeholder="Guerreiros do Legado"
+                data-testid="input-group-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="group-description">Descrição</Label>
+              <Textarea
+                id="group-description"
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                placeholder="Equipe especializada em..."
+                rows={3}
+                data-testid="input-group-description"
+              />
+            </div>
+
+            <div className="border-t pt-4">
+              <Label className="mb-2 block">Adicionar Membros</Label>
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar usuário por nome ou email..."
+                  value={memberSearchQuery}
+                  onChange={(e) => setMemberSearchQuery(e.target.value)}
+                  className="pl-10"
+                  data-testid="input-search-members"
+                />
+              </div>
+
+              <div className="max-h-40 overflow-y-auto space-y-1 border rounded-md p-2">
+                {searchableUsers.map((user) => (
                   <div
                     key={user.id}
-                    className="p-3 rounded-md bg-muted/50 space-y-2"
-                    data-testid={`user-item-${user.id}`}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                    onClick={() => {
+                      if (selectedMemberIds.includes(user.id)) {
+                        setSelectedMemberIds(ids => ids.filter(id => id !== user.id));
+                      } else {
+                        setSelectedMemberIds(ids => [...ids, user.id]);
+                      }
+                    }}
+                    data-testid={`member-option-${user.id}`}
                   >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">{user.name || user.email}</p>
-                        <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleBadgeColor(user.role)}`}>
-                        {user.role}
-                      </span>
+                    <Checkbox checked={selectedMemberIds.includes(user.id)} />
+                    <Avatar className="w-7 h-7">
+                      <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{user.name || user.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Select
-                        value={user.role}
-                        onValueChange={(value) => updateUserMutation.mutate({ id: user.id, role: value as UserRole })}
-                      >
-                        <SelectTrigger className="flex-1" data-testid={`select-role-${user.id}`}>
-                          <SelectValue placeholder="Role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="administrador">Administrador</SelectItem>
-                          <SelectItem value="consultor">Consultor</SelectItem>
-                          <SelectItem value="alocador">Alocador</SelectItem>
-                          <SelectItem value="concierge">Concierge</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={user.groupId?.toString() || "none"}
-                        onValueChange={(value) => updateUserMutation.mutate({ 
-                          id: user.id, 
-                          groupId: value === "none" ? null : parseInt(value) 
-                        })}
-                      >
-                        <SelectTrigger className="flex-1" data-testid={`select-group-${user.id}`}>
-                          <SelectValue placeholder="Grupo" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Sem grupo</SelectItem>
-                          {groups.map((group) => (
-                            <SelectItem key={group.id} value={group.id.toString()}>
-                              {group.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                    <div className="flex gap-1">
+                      {user.roles.map(role => (
+                        <Badge key={role} variant="outline" className={`text-[10px] ${ROLE_COLORS[role]}`}>
+                          {ROLE_LABELS[role]}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
                 ))}
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+
+              {selectedMemberIds.length > 0 && (
+                <div className="mt-3">
+                  <p className="text-xs text-muted-foreground mb-2">Membros selecionados ({selectedMemberIds.length})</p>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedMemberIds.map(id => {
+                      const user = users.find(u => u.id === id);
+                      if (!user) return null;
+                      return (
+                        <Badge key={id} variant="secondary" className="gap-1 pr-1">
+                          {user.name || user.email}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedMemberIds(ids => ids.filter(i => i !== id));
+                            }}
+                            className="ml-1 hover:bg-background/50 rounded"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => { resetCreateGroupForm(); setCreateGroupOpen(false); }}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleCreateGroup}
+                disabled={!newGroupName.trim() || createGroupMutation.isPending}
+                data-testid="button-save-group"
+              >
+                {createGroupMutation.isPending ? "Criando..." : "Criar Grupo"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editGroupOpen} onOpenChange={setEditGroupOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Editar Grupo</DialogTitle>
+            <DialogDescription>
+              Atualize as informações do grupo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div 
+              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
+              onClick={() => {
+                const url = prompt("URL da imagem do grupo:", newGroupLogoUrl);
+                if (url !== null) setNewGroupLogoUrl(url);
+              }}
+            >
+              {newGroupLogoUrl ? (
+                <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+              ) : (
+                <ImagePlus className="w-8 h-8 text-muted-foreground" />
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-group-name">Nome de Guerra</Label>
+              <Input
+                id="edit-group-name"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                data-testid="input-edit-group-name"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit-group-description">Descrição</Label>
+              <Textarea
+                id="edit-group-description"
+                value={newGroupDescription}
+                onChange={(e) => setNewGroupDescription(e.target.value)}
+                rows={3}
+                data-testid="input-edit-group-description"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setEditGroupOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedGroup) {
+                    updateGroupMutation.mutate({
+                      id: selectedGroup.id,
+                      name: newGroupName,
+                      description: newGroupDescription || undefined,
+                      logoUrl: newGroupLogoUrl || undefined,
+                    });
+                  }
+                }}
+                disabled={!newGroupName.trim() || updateGroupMutation.isPending}
+                data-testid="button-update-group"
+              >
+                {updateGroupMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={manageGroupMembersOpen} onOpenChange={setManageGroupMembersOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerenciar Membros - {selectedGroup?.name}</DialogTitle>
+            <DialogDescription>
+              Adicione ou remova membros deste grupo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Buscar usuário..."
+                value={memberSearchQuery}
+                onChange={(e) => setMemberSearchQuery(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="max-h-60 overflow-y-auto space-y-1 border rounded-md p-2">
+              {searchableUsers.map((user) => (
+                <div
+                  key={user.id}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer"
+                  onClick={() => {
+                    if (selectedMemberIds.includes(user.id)) {
+                      setSelectedMemberIds(ids => ids.filter(id => id !== user.id));
+                    } else {
+                      setSelectedMemberIds(ids => [...ids, user.id]);
+                    }
+                  }}
+                >
+                  <Checkbox checked={selectedMemberIds.includes(user.id)} />
+                  <Avatar className="w-7 h-7">
+                    <AvatarFallback className="text-xs">{getInitials(user.name)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{user.name || user.email}</p>
+                  </div>
+                  <div className="flex gap-1">
+                    {user.roles.map(role => (
+                      <Badge key={role} variant="outline" className={`text-[10px] ${ROLE_COLORS[role]}`}>
+                        {ROLE_LABELS[role]}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setManageGroupMembersOpen(false)}>
+                Cancelar
+              </Button>
+              <Button onClick={handleSaveMembers} disabled={updateUserMutation.isPending}>
+                {updateUserMutation.isPending ? "Salvando..." : "Salvar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

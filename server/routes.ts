@@ -146,6 +146,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const { roles, groupId } = req.body;
+      
+      if (roles !== undefined) {
+        if (!Array.isArray(roles) || roles.length === 0) {
+          return res.status(400).json({ error: "User must have at least one role" });
+        }
+        const validRoles = ["administrador", "consultor", "alocador", "concierge"];
+        const invalidRoles = roles.filter((r: string) => !validRoles.includes(r));
+        if (invalidRoles.length > 0) {
+          return res.status(400).json({ error: `Invalid roles: ${invalidRoles.join(", ")}` });
+        }
+      }
+      
       const user = await storage.updateUser(userId, { roles, groupId });
       
       if (!user) {
