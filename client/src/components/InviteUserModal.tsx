@@ -19,7 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Mail, Loader2, Info, ShieldAlert, UserCheck, Users, HeartHandshake } from "lucide-react";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -202,10 +201,9 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
           <div className="space-y-3">
             <Label>Permissões do Usuário</Label>
             
-            <button
-              type="button"
+            <div
               onClick={() => setIsAdmin(!isAdmin)}
-              className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+              className={`w-full p-4 rounded-lg border-2 text-left transition-all cursor-pointer ${
                 isAdmin
                   ? `${ADMIN_ROLE.colorClass} border-opacity-100`
                   : "border-muted bg-muted/30 hover-elevate"
@@ -213,10 +211,15 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
               data-testid="checkbox-role-administrador"
             >
               <div className="flex items-start gap-3">
-                <Checkbox
-                  checked={isAdmin}
-                  className="mt-0.5 pointer-events-none"
-                />
+                <div className={`w-4 h-4 rounded border-2 mt-0.5 flex items-center justify-center ${
+                  isAdmin ? "border-red-500 bg-red-500" : "border-muted-foreground"
+                }`}>
+                  {isAdmin && (
+                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
                     <span className={`w-2 h-2 rounded-full ${ADMIN_ROLE.dotColor}`} />
@@ -228,7 +231,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
                   </p>
                 </div>
               </div>
-            </button>
+            </div>
           </div>
 
           <div className="space-y-3">
