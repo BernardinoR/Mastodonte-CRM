@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
@@ -110,6 +110,41 @@ export default function Admin() {
   const [newGroupLogoUrl, setNewGroupLogoUrl] = useState("");
   const [selectedMemberIds, setSelectedMemberIds] = useState<number[]>([]);
   const [memberSearchQuery, setMemberSearchQuery] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const MAX_FILE_SIZE = 500 * 1024; // 500KB
+  const handleLogoFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "Arquivo muito grande",
+        description: "O tamanho máximo permitido é 500KB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!file.type.startsWith("image/")) {
+      toast({
+        title: "Tipo de arquivo inválido",
+        description: "Por favor, selecione uma imagem",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const base64 = e.target?.result as string;
+      setNewGroupLogoUrl(base64);
+    };
+    reader.readAsDataURL(file);
+    
+    // Reset input so same file can be selected again
+    event.target.value = "";
+  };
 
   const { data: currentUserData, isLoading: userLoading } = useCurrentUser();
   const currentUser = currentUserData?.user;
@@ -331,6 +366,14 @@ export default function Admin() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleLogoFileChange}
+        className="hidden"
+        data-testid="input-group-logo-file"
+      />
       <h1 className="text-2xl font-semibold">Administração</h1>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -684,14 +727,17 @@ export default function Admin() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div 
-              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
-              onClick={() => {
-                const url = prompt("URL da imagem do grupo:");
-                if (url) setNewGroupLogoUrl(url);
-              }}
+              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors relative group"
+              onClick={() => fileInputRef.current?.click()}
+              data-testid="button-upload-logo"
             >
               {newGroupLogoUrl ? (
-                <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                <>
+                  <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                  <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ImagePlus className="w-6 h-6 text-white" />
+                  </div>
+                </>
               ) : (
                 <div className="text-center">
                   <ImagePlus className="w-8 h-8 mx-auto text-muted-foreground" />
@@ -822,14 +868,17 @@ export default function Admin() {
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div 
-              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors"
-              onClick={() => {
-                const url = prompt("URL da imagem do grupo:", newGroupLogoUrl);
-                if (url !== null) setNewGroupLogoUrl(url);
-              }}
+              className="w-24 h-24 mx-auto rounded-lg bg-muted flex items-center justify-center cursor-pointer hover:bg-muted/80 transition-colors relative group"
+              onClick={() => fileInputRef.current?.click()}
+              data-testid="button-edit-upload-logo"
             >
               {newGroupLogoUrl ? (
-                <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                <>
+                  <img src={newGroupLogoUrl} alt="Logo" className="w-full h-full object-cover rounded-lg" />
+                  <div className="absolute inset-0 bg-black/50 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <ImagePlus className="w-6 h-6 text-white" />
+                  </div>
+                </>
               ) : (
                 <ImagePlus className="w-8 h-8 text-muted-foreground" />
               )}
