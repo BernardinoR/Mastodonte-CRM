@@ -182,6 +182,10 @@ export default function SignIn() {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [verificationCode, setVerificationCode] = useState("");
   const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
+  const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
+  const [secondFactorCode, setSecondFactorCode] = useState("");
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | null>(null);
+  const [phoneId, setPhoneId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -225,7 +229,29 @@ export default function SignIn() {
           setError("Verificação adicional necessária. Entre em contato com o suporte.");
         }
       } else if (result.status === "needs_second_factor") {
-        setError("Autenticação de dois fatores necessária. Entre em contato com o suporte.");
+        const totpFactor = result.supportedSecondFactors?.find(
+          (factor) => factor.strategy === "totp"
+        );
+        const phoneFactor = result.supportedSecondFactors?.find(
+          (factor) => factor.strategy === "phone_code"
+        );
+        
+        if (totpFactor) {
+          setSecondFactorStrategy("totp");
+          setNeedsSecondFactor(true);
+          setError("");
+        } else if (phoneFactor && "phoneNumberId" in phoneFactor) {
+          setPhoneId(phoneFactor.phoneNumberId);
+          setSecondFactorStrategy("phone_code");
+          await signIn.prepareSecondFactor({
+            strategy: "phone_code",
+            phoneNumberId: phoneFactor.phoneNumberId,
+          });
+          setNeedsSecondFactor(true);
+          setError("");
+        } else {
+          setError("Método de verificação de dois fatores não suportado. Entre em contato com o suporte.");
+        }
       } else {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
@@ -319,7 +345,71 @@ export default function SignIn() {
     setNeedsVerification(false);
     setVerificationCode("");
     setEmailAddressId(null);
+    setNeedsSecondFactor(false);
+    setSecondFactorCode("");
+    setSecondFactorStrategy(null);
+    setPhoneId(null);
     setError("");
+  };
+
+  const handleVerifySecondFactor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isLoaded || !signIn || !secondFactorStrategy) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: secondFactorStrategy,
+        code: secondFactorCode,
+      });
+
+      if (result.status === "complete") {
+        try {
+          await setActive({ session: result.createdSessionId });
+          setLocation("/");
+        } catch (sessionErr) {
+          console.error("Failed to activate session:", sessionErr);
+          setError("Erro ao ativar sessão. Tente novamente.");
+        }
+      } else {
+        setError("Verificação adicional necessária. Entre em contato com o suporte.");
+      }
+    } catch (err: unknown) {
+      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
+      if (clerkError.errors && clerkError.errors.length > 0) {
+        const errorCode = clerkError.errors[0].code;
+        if (errorCode === "form_code_incorrect") {
+          setError("Código incorreto. Verifique e tente novamente.");
+        } else {
+          setError(clerkError.errors[0].message);
+        }
+      } else {
+        setError("Erro ao verificar código. Tente novamente.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendSecondFactorCode = async () => {
+    if (!isLoaded || !signIn || secondFactorStrategy !== "phone_code" || !phoneId) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      await signIn.prepareSecondFactor({
+        strategy: "phone_code",
+        phoneNumberId: phoneId,
+      });
+      setError("");
+    } catch (err: unknown) {
+      setError("Erro ao reenviar código. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleSignIn = async () => {
@@ -479,7 +569,76 @@ export default function SignIn() {
             Insira seus dados para acessar o painel.
           </p>
 
-          {needsVerification ? (
+          {needsSecondFactor ? (
+            <>
+              <p className="text-sm text-[#888] mb-6">
+                {secondFactorStrategy === "totp" 
+                  ? "Insira o código do seu aplicativo autenticador (Google Authenticator, Authy, etc.)."
+                  : "Enviamos um código de verificação para seu telefone. Insira-o abaixo."}
+              </p>
+              <form onSubmit={handleVerifySecondFactor}>
+                <div className="mb-4">
+                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                    {secondFactorStrategy === "totp" ? "Código do autenticador" : "Código SMS"}
+                  </label>
+                  <input
+                    type="text"
+                    className="input-dark text-center tracking-[0.5em] text-lg"
+                    placeholder="000000"
+                    value={secondFactorCode}
+                    onChange={(e) => setSecondFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    maxLength={6}
+                    autoComplete="one-time-code"
+                    required
+                    data-testid="input-2fa-code"
+                  />
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                    <p className="text-sm text-red-400" data-testid="text-error">
+                      {error}
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn-submit flex items-center justify-center gap-2"
+                  disabled={loading || !isLoaded || secondFactorCode.length !== 6}
+                  data-testid="button-verify-2fa"
+                >
+                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  Verificar
+                </button>
+
+                <div className="mt-6 flex justify-center gap-5 text-sm">
+                  {secondFactorStrategy === "phone_code" && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={handleResendSecondFactorCode}
+                        disabled={loading}
+                        className="text-[#666] hover:text-white transition-colors"
+                        data-testid="button-resend-2fa-code"
+                      >
+                        Reenviar código
+                      </button>
+                      <span className="text-[#444]">|</span>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleBackToLogin}
+                    className="text-[#666] hover:text-white transition-colors"
+                    data-testid="button-back-to-login"
+                  >
+                    Voltar
+                  </button>
+                </div>
+              </form>
+            </>
+          ) : needsVerification ? (
             <>
               <p className="text-sm text-[#888] mb-6">
                 Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo para continuar.
