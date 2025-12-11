@@ -20,6 +20,7 @@ interface KanbanColumnProps {
   onAddTaskTop?: (status: TaskStatus) => void;
   addButtonTextColor?: string;
   addButtonHoverBgColor?: string;
+  isCompact?: boolean;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({ 
@@ -36,6 +37,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   onAddTaskTop,
   addButtonTextColor,
   addButtonHoverBgColor,
+  isCompact = false,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,
@@ -58,7 +60,10 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div 
       ref={setNodeRef}
-      className="flex-1 min-w-[200px] max-w-[340px] flex flex-col"
+      className={cn(
+        "flex-1 flex flex-col",
+        isCompact ? "min-w-[180px] max-w-[260px]" : "min-w-[200px] max-w-[340px]"
+      )}
     >
       <div 
         className={cn(

@@ -511,6 +511,7 @@ export default function Tasks() {
             onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="#8E8B86"
             addButtonHoverBgColor="#262626"
+            isCompact={isCompact}
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#64635E]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#8E8B86]" />
@@ -534,6 +535,7 @@ export default function Tasks() {
             onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="rgb(66,129,220)"
             addButtonHoverBgColor="#243041"
+            isCompact={isCompact}
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(64,97,145)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(66,129,220)]" />
@@ -557,6 +559,7 @@ export default function Tasks() {
             onAddTaskTop={handleQuickAddTop}
             addButtonTextColor="rgb(70,161,113)"
             addButtonHoverBgColor="rgb(35,43,38)"
+            isCompact={isCompact}
             customIcon={
               <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[rgb(56,108,78)]">
                 <div className="w-1.5 h-1.5 rounded-full bg-[rgb(70,161,113)]" />
