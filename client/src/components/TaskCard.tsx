@@ -444,7 +444,7 @@ export const TaskCard = memo(function TaskCard({
             {(!isCompact || isEditing) && <Separator className="mt-2 bg-[#64635E]" />}
           </CardHeader>
 
-          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "space-y-1" : "space-y-2")}>
+          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "space-y-0.5" : "space-y-2")}>
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
