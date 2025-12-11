@@ -390,7 +390,7 @@ export const TaskCard = memo(function TaskCard({
               onDoubleClick={handleEditClick}
               data-testid={`card-task-${id}`}
             >
-          <CardHeader className={cn("p-3 md:p-4 space-y-1", isCompact && !isEditing && "pb-1 md:pb-1")}>
+          <CardHeader className={cn("p-3 md:p-4 space-y-1", isCompact && !isEditing && "pb-0 md:pb-0 space-y-0")}>
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
