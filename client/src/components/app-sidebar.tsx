@@ -7,11 +7,11 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarHeader,
 } from "@/components/ui/sidebar";
 import {
   ContextMenu,
@@ -94,11 +94,29 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
+      <SidebarHeader className="p-4 border-b border-sidebar-border">
+        <div className="flex items-center gap-2">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 60 60"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="5" y="25" width="8" height="20" rx="2" fill="currentColor" />
+            <rect x="18" y="15" width="8" height="30" rx="2" fill="currentColor" />
+            <path
+              d="M31 15H39V30C39 38 47 38 47 30"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="text-lg font-bold tracking-tight">Mastodonte</span>
+        </div>
+      </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel className="px-4 py-6 text-lg font-semibold">
-            CRM Mastodonte
-          </SidebarGroupLabel>
+        <SidebarGroup className="pt-2">
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => {
@@ -140,9 +158,9 @@ export function AppSidebar() {
                 data-testid="user-card"
                 onClick={handleUserCardClick}
               >
-                <Avatar className="w-8 h-8">
+                <Avatar className="w-10 h-10">
                   <AvatarImage src={user?.imageUrl} />
-                  <AvatarFallback className="text-xs">
+                  <AvatarFallback className="text-sm">
                     {getInitials(user?.fullName || user?.firstName)}
                   </AvatarFallback>
                 </Avatar>
@@ -201,9 +219,9 @@ export function AppSidebar() {
             data-testid="user-card"
             onClick={handleUserCardClick}
           >
-            <Avatar className="w-8 h-8">
+            <Avatar className="w-10 h-10">
               <AvatarImage src={user?.imageUrl} />
-              <AvatarFallback className="text-xs">
+              <AvatarFallback className="text-sm">
                 {getInitials(user?.fullName || user?.firstName)}
               </AvatarFallback>
             </Avatar>
