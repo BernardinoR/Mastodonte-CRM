@@ -1,46 +1,15 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
-import { useLocation, Link } from "wouter";
+import { Link } from "wouter";
 import { Loader2, ArrowLeft, Mail, KeyRound, CheckCircle } from "lucide-react";
-
-function MastodonteLogo() {
-  return (
-    <svg
-      width="200"
-      height="50"
-      viewBox="0 0 280 70"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="animate-fadeInDown"
-    >
-      <rect x="0" y="25" width="10" height="25" rx="2" fill="currentColor" />
-      <rect x="15" y="15" width="10" height="35" rx="2" fill="currentColor" />
-      <path
-        d="M30 15H40V35C40 45 50 45 50 35"
-        stroke="currentColor"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-      <text
-        x="70"
-        y="45"
-        fontWeight="900"
-        fontSize="32"
-        letterSpacing="0"
-        fill="currentColor"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Mastodonte.
-      </text>
-    </svg>
-  );
-}
+import { MastodonteLogo } from "@/components/auth/MastodonteLogo";
+import { AuthStyles } from "@/components/auth/AuthStyles";
+import { handleClerkError, redirectAfterAuth } from "@/components/auth/authHelpers";
 
 type Step = "email" | "code" | "success";
 
 export default function ForgotPassword() {
   const { signIn, isLoaded, setActive } = useSignIn();
-  const [, setLocation] = useLocation();
 
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
@@ -64,17 +33,8 @@ export default function ForgotPassword() {
       });
       setStep("code");
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
-      if (clerkError.errors && clerkError.errors.length > 0) {
-        const errorCode = clerkError.errors[0].code;
-        if (errorCode === "form_identifier_not_found") {
-          setError("Email não encontrado. Verifique o endereço.");
-        } else {
-          setError(clerkError.errors[0].message);
-        }
-      } else {
-        setError("Erro ao enviar código. Tente novamente.");
-      }
+      const errorResult = handleClerkError(err);
+      setError(errorResult.message);
     } finally {
       setLoading(false);
     }
@@ -109,7 +69,7 @@ export default function ForgotPassword() {
           await setActive({ session: result.createdSessionId });
           setStep("success");
           setTimeout(() => {
-            window.location.href = "/";
+            redirectAfterAuth("/");
           }, 2000);
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);
@@ -119,21 +79,8 @@ export default function ForgotPassword() {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
-      if (clerkError.errors && clerkError.errors.length > 0) {
-        const errorCode = clerkError.errors[0].code;
-        if (errorCode === "form_code_incorrect") {
-          setError("Código incorreto. Verifique e tente novamente.");
-        } else if (errorCode === "form_password_pwned") {
-          setError("Esta senha foi exposta em vazamentos de dados. Use outra.");
-        } else if (errorCode === "form_password_length_too_short") {
-          setError("A senha deve ter pelo menos 8 caracteres.");
-        } else {
-          setError(clerkError.errors[0].message);
-        }
-      } else {
-        setError("Erro ao redefinir senha. Tente novamente.");
-      }
+      const errorResult = handleClerkError(err);
+      setError(errorResult.message);
     } finally {
       setLoading(false);
     }
@@ -142,7 +89,6 @@ export default function ForgotPassword() {
   const handleResendCode = async () => {
     if (!isLoaded || !signIn) return;
     
-    // Guard against empty email
     if (!email || !email.trim()) {
       setError("Email não disponível. Por favor, volte e insira o email novamente.");
       return;
@@ -152,13 +98,11 @@ export default function ForgotPassword() {
     setError("");
 
     try {
-      // For password reset flow, call signIn.create() again to resend the code
       await signIn.create({
         strategy: "reset_password_email_code",
         identifier: email,
       });
-      // Show success feedback
-      setError(""); // Clear any previous errors - code resent successfully
+      setError("");
     } catch (err: unknown) {
       setError("Erro ao reenviar código. Tente novamente.");
     } finally {
@@ -168,58 +112,7 @@ export default function ForgotPassword() {
 
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <style>{`
-        @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fadeInDown {
-          animation: fadeInDown 0.8s ease-out;
-        }
-        .input-dark {
-          width: 100%;
-          padding: 12px 16px;
-          background-color: #222;
-          border: 1px solid #333;
-          border-radius: 6px;
-          color: white;
-          font-size: 15px;
-          font-family: 'Inter', sans-serif;
-          transition: all 0.2s ease;
-        }
-        .input-dark:focus {
-          outline: none;
-          border-color: #666;
-          background-color: #252525;
-          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
-        }
-        .input-dark::placeholder {
-          color: #666;
-        }
-        .btn-submit {
-          width: 100%;
-          padding: 12px;
-          background-color: #FFFFFF;
-          color: #000000;
-          border: none;
-          border-radius: 6px;
-          font-size: 15px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.1s, background-color 0.2s;
-          margin-top: 8px;
-        }
-        .btn-submit:hover:not(:disabled) {
-          background-color: #e0e0e0;
-        }
-        .btn-submit:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-        .btn-submit:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-      `}</style>
+      <AuthStyles />
 
       <div
         className="flex-1 flex flex-col justify-center items-center p-10 relative z-10"

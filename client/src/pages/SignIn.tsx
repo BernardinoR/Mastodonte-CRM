@@ -1,201 +1,54 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import { useLocation, Link } from "wouter";
-import { Loader2 } from "lucide-react";
+import { MastodonteLogo } from "@/components/auth/MastodonteLogo";
+import { AuthStyles } from "@/components/auth/AuthStyles";
+import { VisualEffect } from "@/components/auth/VisualEffects";
+import { quotes } from "@/components/auth/QuoteCarousel";
+import { LoginForm } from "@/components/auth/forms/LoginForm";
+import { EmailVerificationForm } from "@/components/auth/forms/EmailVerificationForm";
+import { TwoFactorForm, TwoFactorStrategy } from "@/components/auth/forms/TwoFactorForm";
+import { handleClerkError, redirectAfterAuth } from "@/components/auth/authHelpers";
 
-const quotes = [
-  {
-    id: "senna",
-    text: '"Não tenho ídolos. Tenho admiração por trabalho, dedicação e competência."',
-    author: "Ayrton Senna",
-    background: "radial-gradient(circle at bottom, #222 0%, #000 100%)",
-    effect: "track-lines",
-  },
-  {
-    id: "rocky",
-    text: '"Ninguém vai bater tão forte como a vida. Mas não se trata de bater forte."',
-    author: "Rocky Balboa",
-    background: "radial-gradient(circle at center, #1a1a1a 0%, #000000 70%)",
-    effect: "pulse-bg",
-  },
-  {
-    id: "aurelius",
-    text: '"Você tem poder sobre sua mente - não sobre eventos externos. Perceba isso e você encontrará a força."',
-    author: "Marco Aurélio",
-    background: "#080808",
-    effect: "stoic-circle",
-  },
-  {
-    id: "jordan",
-    text: '"Algumas pessoas querem que aconteça, outras desejam que aconteça, outras fazem acontecer."',
-    author: "Michael Jordan",
-    background: "linear-gradient(135deg, #000 0%, #1a1a1a 100%)",
-    effect: "spotlight",
-  },
-  {
-    id: "kobe",
-    text: '"Tudo o que é negativo - pressão, desafios - é uma oportunidade para eu crescer."',
-    author: "Kobe Bryant",
-    background: "#000",
-    effect: "speed-lines",
-  },
-];
-
-function MastodonteLogo() {
-  return (
-    <svg
-      width="200"
-      height="50"
-      viewBox="0 0 280 70"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      className="animate-fadeInDown"
-    >
-      <rect x="0" y="25" width="10" height="25" rx="2" fill="currentColor" />
-      <rect x="15" y="15" width="10" height="35" rx="2" fill="currentColor" />
-      <path
-        d="M30 15H40V35C40 45 50 45 50 35"
-        stroke="currentColor"
-        strokeWidth="10"
-        strokeLinecap="round"
-      />
-      <text
-        x="70"
-        y="45"
-        fontWeight="900"
-        fontSize="32"
-        letterSpacing="0"
-        fill="currentColor"
-        style={{ fontFamily: "'Inter', sans-serif" }}
-      >
-        Mastodonte.
-      </text>
-    </svg>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M23.52 12.29C23.52 11.43 23.44 10.61 23.3 9.82H12V14.45H18.46C18.18 15.92 17.33 17.17 16.06 18.01V20.97H19.93C22.2 18.88 23.52 15.8 23.52 12.29Z" fill="#4285F4"/>
-      <path d="M12 24C15.24 24 17.96 22.92 19.93 21.1L16.06 18.14C14.99 18.86 13.61 19.28 12 19.28C8.87 19.28 6.22 17.17 5.27 14.33H1.26V17.43C3.25 21.38 7.34 24 12 24Z" fill="#34A853"/>
-      <path d="M5.27 14.33C5.03 13.61 4.89 12.82 4.89 12C4.89 11.18 5.03 10.39 5.27 9.67V6.57H1.26C0.46 8.18 0 10.03 0 12C0 13.97 0.46 15.82 1.26 17.43L5.27 14.33Z" fill="#FBBC05"/>
-      <path d="M12 4.72C13.76 4.72 15.34 5.33 16.58 6.51L19.99 3.1C17.95 1.19 15.23 0 12 0C7.34 0 3.25 2.62 1.26 6.57L5.27 9.67C6.22 6.83 8.87 4.72 12 4.72Z" fill="#EA4335"/>
-    </svg>
-  );
-}
-
-function TrackLines() {
-  return (
-    <div
-      className="absolute w-full h-full opacity-50"
-      style={{
-        background:
-          "repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px)",
-        transform: "perspective(500px) rotateX(60deg) scale(2)",
-        animation: "moveTrack 2s linear infinite",
-      }}
-    />
-  );
-}
-
-function PulseBg() {
-  return (
-    <div
-      className="absolute top-1/2 left-1/2 w-[60vw] h-[60vw] rounded-full"
-      style={{
-        transform: "translate(-50%, -50%)",
-        background:
-          "radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%)",
-        animation: "heartbeat 4s infinite ease-in-out",
-      }}
-    />
-  );
-}
-
-function StoicCircle() {
-  return (
-    <div
-      className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
-      style={{
-        border: "1px solid rgba(255,255,255,0.1)",
-        animation: "rotateCircle 60s linear infinite",
-      }}
-    />
-  );
-}
-
-function Spotlight() {
-  return (
-    <div
-      className="absolute w-[200%] h-[200%]"
-      style={{
-        top: "-50%",
-        left: "-50%",
-        background:
-          "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 40%)",
-        animation: "spotlightMove 10s infinite alternate ease-in-out",
-      }}
-    />
-  );
-}
-
-function SpeedLines() {
-  return (
-    <div
-      className="absolute top-0 left-0 w-full h-full"
-      style={{
-        background:
-          "repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px)",
-      }}
-    />
-  );
-}
-
-function VisualEffect({ effect }: { effect: string }) {
-  switch (effect) {
-    case "track-lines":
-      return <TrackLines />;
-    case "pulse-bg":
-      return <PulseBg />;
-    case "stoic-circle":
-      return <StoicCircle />;
-    case "spotlight":
-      return <Spotlight />;
-    case "speed-lines":
-      return <SpeedLines />;
-    default:
-      return null;
-  }
-}
+type AuthView = "login" | "email-verification" | "two-factor";
 
 export default function SignIn() {
   const { signIn, isLoaded, setActive } = useSignIn();
-  const [, setLocation] = useLocation();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [needsVerification, setNeedsVerification] = useState(false);
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  
+  const [authView, setAuthView] = useState<AuthView>("login");
   const [verificationCode, setVerificationCode] = useState("");
   const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
-  const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
+  
   const [secondFactorCode, setSecondFactorCode] = useState("");
-  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | "backup_code" | "email_code" | null>(null);
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState<TwoFactorStrategy | null>(null);
   const [secondFactorEmailId, setSecondFactorEmailId] = useState<string | null>(null);
   const [phoneId, setPhoneId] = useState<string | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % quotes.length);
+      setCurrentQuoteIndex((prev) => (prev + 1) % quotes.length);
     }, 20000);
     return () => clearInterval(interval);
   }, []);
 
-  const currentQuote = quotes[currentIndex];
+  const currentQuote = quotes[currentQuoteIndex];
+
+  const resetToLogin = () => {
+    setAuthView("login");
+    setVerificationCode("");
+    setEmailAddressId(null);
+    setSecondFactorCode("");
+    setSecondFactorStrategy(null);
+    setSecondFactorEmailId(null);
+    setPhoneId(null);
+    setError("");
+  };
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -212,7 +65,7 @@ export default function SignIn() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        window.location.href = "/";
+        redirectAfterAuth("/");
       } else if (result.status === "needs_first_factor") {
         const emailFactor = result.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code"
@@ -224,91 +77,83 @@ export default function SignIn() {
             strategy: "email_code",
             emailAddressId: factorEmailId,
           });
-          setNeedsVerification(true);
+          setAuthView("email-verification");
           setError("");
         } else {
           setError("Verificação adicional necessária. Entre em contato com o suporte.");
         }
       } else if (result.status === "needs_second_factor") {
-        console.log("2FA required. Supported factors:", JSON.stringify(result.supportedSecondFactors, null, 2));
-        
-        const totpFactor = result.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "totp"
-        );
-        const phoneFactor = result.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "phone_code"
-        );
-        const backupCodeFactor = result.supportedSecondFactors?.find(
-          (factor) => factor.strategy === "backup_code"
-        );
-        
-        if (totpFactor) {
-          setSecondFactorStrategy("totp");
-          setNeedsSecondFactor(true);
-          setError("");
-        } else if (phoneFactor && "phoneNumberId" in phoneFactor) {
-          setPhoneId(phoneFactor.phoneNumberId);
-          setSecondFactorStrategy("phone_code");
-          await signIn.prepareSecondFactor({
-            strategy: "phone_code",
-            phoneNumberId: phoneFactor.phoneNumberId,
-          });
-          setNeedsSecondFactor(true);
-          setError("");
-        } else if (backupCodeFactor) {
-          setSecondFactorStrategy("backup_code");
-          setNeedsSecondFactor(true);
-          setError("");
-        } else {
-          const emailCodeFactor = result.supportedSecondFactors?.find(
-            (factor) => factor.strategy === "email_code"
-          );
-          if (emailCodeFactor && "emailAddressId" in emailCodeFactor) {
-            const factorEmailId = emailCodeFactor.emailAddressId;
-            setSecondFactorEmailId(factorEmailId);
-            setSecondFactorStrategy("email_code");
-            await signIn.prepareSecondFactor({
-              strategy: "email_code",
-              emailAddressId: factorEmailId,
-            });
-            setNeedsSecondFactor(true);
-            setError("");
-          } else {
-            const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
-            console.error("Unsupported 2FA strategies:", factorStrategies);
-            setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
-          }
-        }
+        await handleSecondFactorSetup(result);
       } else {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
-      if (clerkError.errors && clerkError.errors.length > 0) {
-        const errorCode = clerkError.errors[0].code;
-        if (errorCode === "form_password_incorrect") {
-          setError("Senha incorreta. Tente novamente.");
-        } else if (errorCode === "form_identifier_not_found") {
-          setError("Email não encontrado. Verifique o endereço.");
-        } else if (errorCode === "session_exists") {
-          window.location.href = "/";
-        } else if (errorCode === "strategy_for_user_invalid" || clerkError.errors[0].message.includes("attempt")) {
-          setNeedsVerification(false);
-          setVerificationCode("");
-          setEmailAddressId(null);
-          setError("Por favor, tente novamente.");
-        } else {
-          setError(clerkError.errors[0].message);
-        }
+      const errorResult = handleClerkError(err);
+      if (errorResult.shouldRedirect && errorResult.redirectUrl) {
+        redirectAfterAuth(errorResult.redirectUrl);
+      } else if (errorResult.code === "strategy_for_user_invalid") {
+        resetToLogin();
+        setError(errorResult.message);
       } else {
-        setError("Erro ao fazer login. Tente novamente.");
+        setError(errorResult.message);
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyCode = async (e: React.FormEvent) => {
+  const handleSecondFactorSetup = async (result: { supportedSecondFactors?: Array<{ strategy: string; phoneNumberId?: string; emailAddressId?: string }> | null }) => {
+    if (!signIn) return;
+    
+    const totpFactor = result.supportedSecondFactors?.find(
+      (factor) => factor.strategy === "totp"
+    );
+    const phoneFactor = result.supportedSecondFactors?.find(
+      (factor) => factor.strategy === "phone_code"
+    );
+    const backupCodeFactor = result.supportedSecondFactors?.find(
+      (factor) => factor.strategy === "backup_code"
+    );
+    
+    if (totpFactor) {
+      setSecondFactorStrategy("totp");
+      setAuthView("two-factor");
+      setError("");
+    } else if (phoneFactor && phoneFactor.phoneNumberId) {
+      setPhoneId(phoneFactor.phoneNumberId);
+      setSecondFactorStrategy("phone_code");
+      await signIn.prepareSecondFactor({
+        strategy: "phone_code",
+        phoneNumberId: phoneFactor.phoneNumberId,
+      });
+      setAuthView("two-factor");
+      setError("");
+    } else if (backupCodeFactor) {
+      setSecondFactorStrategy("backup_code");
+      setAuthView("two-factor");
+      setError("");
+    } else {
+      const emailCodeFactor = result.supportedSecondFactors?.find(
+        (factor) => factor.strategy === "email_code"
+      );
+      if (emailCodeFactor && emailCodeFactor.emailAddressId) {
+        const factorEmailId = emailCodeFactor.emailAddressId;
+        setSecondFactorEmailId(factorEmailId);
+        setSecondFactorStrategy("email_code");
+        await signIn.prepareSecondFactor({
+          strategy: "email_code",
+          emailAddressId: factorEmailId,
+        });
+        setAuthView("two-factor");
+        setError("");
+      } else {
+        const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
+        setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
+      }
+    }
+  };
+
+  const handleVerifyEmailCode = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded || !signIn) return;
 
@@ -324,7 +169,7 @@ export default function SignIn() {
       if (result.status === "complete") {
         try {
           await setActive({ session: result.createdSessionId });
-          window.location.href = "/";
+          redirectAfterAuth("/");
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);
           setError("Erro ao ativar sessão. Tente novamente.");
@@ -333,23 +178,14 @@ export default function SignIn() {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
-      if (clerkError.errors && clerkError.errors.length > 0) {
-        const errorCode = clerkError.errors[0].code;
-        if (errorCode === "form_code_incorrect") {
-          setError("Código incorreto. Verifique e tente novamente.");
-        } else {
-          setError(clerkError.errors[0].message);
-        }
-      } else {
-        setError("Erro ao verificar código. Tente novamente.");
-      }
+      const errorResult = handleClerkError(err);
+      setError(errorResult.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleResendCode = async () => {
+  const handleResendEmailCode = async () => {
     if (!isLoaded || !signIn || !emailAddressId) return;
 
     setLoading(true);
@@ -368,18 +204,6 @@ export default function SignIn() {
     }
   };
 
-  const handleBackToLogin = () => {
-    setNeedsVerification(false);
-    setVerificationCode("");
-    setEmailAddressId(null);
-    setNeedsSecondFactor(false);
-    setSecondFactorCode("");
-    setSecondFactorStrategy(null);
-    setSecondFactorEmailId(null);
-    setPhoneId(null);
-    setError("");
-  };
-
   const handleVerifySecondFactor = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isLoaded || !signIn || !secondFactorStrategy) return;
@@ -396,7 +220,7 @@ export default function SignIn() {
       if (result.status === "complete") {
         try {
           await setActive({ session: result.createdSessionId });
-          window.location.href = "/";
+          redirectAfterAuth("/");
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);
           setError("Erro ao ativar sessão. Tente novamente.");
@@ -405,17 +229,8 @@ export default function SignIn() {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
       }
     } catch (err: unknown) {
-      const clerkError = err as { errors?: Array<{ message: string; code: string }> };
-      if (clerkError.errors && clerkError.errors.length > 0) {
-        const errorCode = clerkError.errors[0].code;
-        if (errorCode === "form_code_incorrect") {
-          setError("Código incorreto. Verifique e tente novamente.");
-        } else {
-          setError(clerkError.errors[0].message);
-        }
-      } else {
-        setError("Erro ao verificar código. Tente novamente.");
-      }
+      const errorResult = handleClerkError(err);
+      setError(errorResult.message);
     } finally {
       setLoading(false);
     }
@@ -462,9 +277,8 @@ export default function SignIn() {
       });
     } catch (err: unknown) {
       console.error("Google OAuth error:", err);
-      const clerkError = err as { errors?: Array<{ message: string; code?: string; longMessage?: string }> };
+      const clerkError = err as { errors?: Array<{ message: string; longMessage?: string }> };
       if (clerkError.errors && clerkError.errors.length > 0) {
-        console.error("Clerk error details:", clerkError.errors);
         setError(clerkError.errors[0].longMessage || clerkError.errors[0].message);
       } else {
         setError("Erro ao conectar com Google. Tente novamente.");
@@ -473,118 +287,60 @@ export default function SignIn() {
     }
   };
 
+  const renderAuthForm = () => {
+    switch (authView) {
+      case "email-verification":
+        return (
+          <EmailVerificationForm
+            email={email}
+            code={verificationCode}
+            error={error}
+            loading={loading}
+            isLoaded={isLoaded}
+            onCodeChange={setVerificationCode}
+            onSubmit={handleVerifyEmailCode}
+            onResendCode={handleResendEmailCode}
+            onBack={resetToLogin}
+          />
+        );
+      
+      case "two-factor":
+        return secondFactorStrategy ? (
+          <TwoFactorForm
+            email={email}
+            code={secondFactorCode}
+            strategy={secondFactorStrategy}
+            error={error}
+            loading={loading}
+            isLoaded={isLoaded}
+            onCodeChange={setSecondFactorCode}
+            onSubmit={handleVerifySecondFactor}
+            onResendCode={handleResendSecondFactorCode}
+            onBack={resetToLogin}
+          />
+        ) : null;
+      
+      default:
+        return (
+          <LoginForm
+            email={email}
+            password={password}
+            error={error}
+            loading={loading}
+            googleLoading={googleLoading}
+            isLoaded={isLoaded}
+            onEmailChange={setEmail}
+            onPasswordChange={setPassword}
+            onSubmit={handleEmailSignIn}
+            onGoogleSignIn={handleGoogleSignIn}
+          />
+        );
+    }
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden">
-      <style>{`
-        @keyframes fadeInDown {
-          from { opacity: 0; transform: translateY(-10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeInOption {
-          from { opacity: 0; transform: scale(0.98); }
-          to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes moveTrack {
-          from { background-position: 0 0; }
-          to { background-position: 0 100px; }
-        }
-        @keyframes heartbeat {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-          50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
-          100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-        }
-        @keyframes rotateCircle {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-        @keyframes spotlightMove {
-          from { transform: translate(-10%, -10%); }
-          to { transform: translate(10%, 10%); }
-        }
-        @keyframes shineText {
-          0% { background-position: 100% 0; }
-          100% { background-position: -100% 0; }
-        }
-        .animate-fadeInDown {
-          animation: fadeInDown 0.8s ease-out;
-        }
-        .shine-text {
-          background: linear-gradient(110deg, #888 30%, #fff 50%, #888 70%);
-          background-size: 200% 100%;
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          animation: shineText 5s linear infinite;
-        }
-        .input-dark {
-          width: 100%;
-          padding: 12px 16px;
-          background-color: #222;
-          border: 1px solid #333;
-          border-radius: 6px;
-          color: white;
-          font-size: 15px;
-          font-family: 'Inter', sans-serif;
-          transition: all 0.2s ease;
-        }
-        .input-dark:focus {
-          outline: none;
-          border-color: #666;
-          background-color: #252525;
-          box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
-        }
-        .input-dark::placeholder {
-          color: #666;
-        }
-        .btn-google {
-          width: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          padding: 12px;
-          background-color: #222;
-          border: 1px solid #333;
-          border-radius: 6px;
-          color: #FFF;
-          font-family: 'Inter', sans-serif;
-          font-size: 14px;
-          font-weight: 500;
-          cursor: pointer;
-          transition: background-color 0.2s, border-color 0.2s;
-        }
-        .btn-google:hover:not(:disabled) {
-          background-color: #2a2a2a;
-          border-color: #444;
-        }
-        .btn-google:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-        .btn-submit {
-          width: 100%;
-          padding: 12px;
-          background-color: #FFFFFF;
-          color: #000000;
-          border: none;
-          border-radius: 6px;
-          font-size: 15px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: transform 0.1s, background-color 0.2s;
-          margin-top: 8px;
-        }
-        .btn-submit:hover:not(:disabled) {
-          background-color: #e0e0e0;
-        }
-        .btn-submit:active:not(:disabled) {
-          transform: scale(0.98);
-        }
-        .btn-submit:disabled {
-          opacity: 0.7;
-          cursor: not-allowed;
-        }
-      `}</style>
+      <AuthStyles />
 
       {/* LEFT SIDE: LOGIN FORM */}
       <div
@@ -598,253 +354,11 @@ export default function SignIn() {
           <div className="mb-8 text-white">
             <MastodonteLogo />
           </div>
-          <h2 className="text-2xl font-semibold text-white mb-2">
-            Bem-vindo de volta
-          </h2>
-          <p className="text-sm text-[#888] mb-6">
-            Insira seus dados para acessar o painel.
-          </p>
-
-          {needsSecondFactor ? (
-            <>
-              <p className="text-sm text-[#888] mb-6">
-                {secondFactorStrategy === "totp" 
-                  ? "Insira o código do seu aplicativo autenticador (Google Authenticator, Authy, etc.)."
-                  : secondFactorStrategy === "backup_code"
-                  ? "Insira um dos seus códigos de backup."
-                  : secondFactorStrategy === "email_code"
-                  ? <>Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo.</>
-                  : "Enviamos um código de verificação para seu telefone. Insira-o abaixo."}
-              </p>
-              <form onSubmit={handleVerifySecondFactor}>
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    {secondFactorStrategy === "totp" 
-                      ? "Código do autenticador" 
-                      : secondFactorStrategy === "backup_code"
-                      ? "Código de backup"
-                      : secondFactorStrategy === "email_code"
-                      ? "Código de verificação"
-                      : "Código SMS"}
-                  </label>
-                  <input
-                    type="text"
-                    className={`input-dark text-center text-lg ${secondFactorStrategy === "backup_code" ? "tracking-normal" : "tracking-[0.5em]"}`}
-                    placeholder={secondFactorStrategy === "backup_code" ? "xxxxxxxx" : "000000"}
-                    value={secondFactorCode}
-                    onChange={(e) => {
-                      if (secondFactorStrategy === "backup_code") {
-                        setSecondFactorCode(e.target.value.slice(0, 10));
-                      } else {
-                        setSecondFactorCode(e.target.value.replace(/\D/g, "").slice(0, 6));
-                      }
-                    }}
-                    maxLength={secondFactorStrategy === "backup_code" ? 10 : 6}
-                    autoComplete="one-time-code"
-                    required
-                    data-testid="input-2fa-code"
-                  />
-                </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                    <p className="text-sm text-red-400" data-testid="text-error">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="btn-submit flex items-center justify-center gap-2"
-                  disabled={loading || !isLoaded || (secondFactorStrategy === "backup_code" ? secondFactorCode.length < 6 : secondFactorCode.length !== 6)}
-                  data-testid="button-verify-2fa"
-                >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Verificar
-                </button>
-
-                <div className="mt-6 flex justify-center gap-5 text-sm">
-                  {(secondFactorStrategy === "phone_code" || secondFactorStrategy === "email_code") && (
-                    <>
-                      <button
-                        type="button"
-                        onClick={handleResendSecondFactorCode}
-                        disabled={loading}
-                        className="text-[#666] hover:text-white transition-colors"
-                        data-testid="button-resend-2fa-code"
-                      >
-                        Reenviar código
-                      </button>
-                      <span className="text-[#444]">|</span>
-                    </>
-                  )}
-                  <button
-                    type="button"
-                    onClick={handleBackToLogin}
-                    className="text-[#666] hover:text-white transition-colors"
-                    data-testid="button-back-to-login"
-                  >
-                    Voltar
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : needsVerification ? (
-            <>
-              <p className="text-sm text-[#888] mb-6">
-                Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo para continuar.
-              </p>
-              <form onSubmit={handleVerifyCode}>
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    Código de verificação
-                  </label>
-                  <input
-                    type="text"
-                    className="input-dark text-center tracking-[0.5em] text-lg"
-                    placeholder="000000"
-                    value={verificationCode}
-                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
-                    maxLength={6}
-                    autoComplete="one-time-code"
-                    required
-                    data-testid="input-verification-code"
-                  />
-                </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                    <p className="text-sm text-red-400" data-testid="text-error">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="btn-submit flex items-center justify-center gap-2"
-                  disabled={loading || !isLoaded || verificationCode.length !== 6}
-                  data-testid="button-verify-code"
-                >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Verificar
-                </button>
-
-                <div className="mt-6 flex justify-center gap-5 text-sm">
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={loading}
-                    className="text-[#666] hover:text-white transition-colors"
-                    data-testid="button-resend-code"
-                  >
-                    Reenviar código
-                  </button>
-                  <span className="text-[#444]">|</span>
-                  <button
-                    type="button"
-                    onClick={handleBackToLogin}
-                    className="text-[#666] hover:text-white transition-colors"
-                    data-testid="button-back-to-login"
-                  >
-                    Voltar
-                  </button>
-                </div>
-              </form>
-            </>
-          ) : (
-            <>
-              {/* Google Button */}
-              <button
-                type="button"
-                className="btn-google"
-                onClick={handleGoogleSignIn}
-                disabled={googleLoading || !isLoaded}
-                data-testid="button-google-signin"
-              >
-                {googleLoading ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <GoogleIcon />
-                )}
-                Continuar com Google
-              </button>
-
-              {/* Divider */}
-              <div className="flex items-center my-6 text-[#555] text-xs uppercase tracking-wider">
-                <div className="flex-1 h-px bg-[#333]" />
-                <span className="px-3">ou continue com</span>
-                <div className="flex-1 h-px bg-[#333]" />
-              </div>
-
-              {/* Email/Password Form */}
-              <form onSubmit={handleEmailSignIn}>
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    E-mail
-                  </label>
-                  <input
-                    type="email"
-                    className="input-dark"
-                    placeholder="nome@exemplo.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    required
-                    data-testid="input-email"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    Senha
-                  </label>
-                  <input
-                    type="password"
-                    className="input-dark"
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    required
-                    data-testid="input-password"
-                  />
-                </div>
-
-                {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
-                    <p className="text-sm text-red-400" data-testid="text-error">
-                      {error}
-                    </p>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  className="btn-submit flex items-center justify-center gap-2"
-                  disabled={loading || !isLoaded}
-                  data-testid="button-signin"
-                >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
-                  Entrar
-                </button>
-
-                <div className="mt-6 flex justify-center gap-5 text-sm">
-                  <Link
-                    href="/forgot-password"
-                    className="text-[#666] hover:text-white transition-colors"
-                    data-testid="link-forgot-password"
-                  >
-                    Esqueceu a senha?
-                  </Link>
-                </div>
-              </form>
-            </>
-          )}
+          {renderAuthForm()}
         </div>
       </div>
 
-      {/* RIGHT SIDE: VISUAL */}
+      {/* RIGHT SIDE: VISUAL QUOTES */}
       <div
         className="hidden lg:flex flex-[1.2] relative items-center justify-center overflow-hidden transition-all duration-500"
         style={{ background: currentQuote.background }}
@@ -875,8 +389,7 @@ export default function SignIn() {
           <p
             className="text-[13px] uppercase tracking-[3px] font-semibold"
             style={{
-              color:
-                currentQuote.effect === "pulse-bg" ? "#C5A059" : "#888",
+              color: currentQuote.effect === "pulse-bg" ? "#C5A059" : "#888",
             }}
           >
             {currentQuote.author}
@@ -888,9 +401,9 @@ export default function SignIn() {
           {quotes.map((q, idx) => (
             <button
               key={q.id}
-              onClick={() => setCurrentIndex(idx)}
+              onClick={() => setCurrentQuoteIndex(idx)}
               className={`w-2 h-2 rounded-full transition-all ${
-                idx === currentIndex
+                idx === currentQuoteIndex
                   ? "bg-white w-6"
                   : "bg-white/30 hover:bg-white/50"
               }`}
