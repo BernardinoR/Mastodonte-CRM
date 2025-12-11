@@ -390,7 +390,9 @@ export const TaskCard = memo(function TaskCard({
               onDoubleClick={handleEditClick}
               data-testid={`card-task-${id}`}
             >
-          <CardHeader className={cn("p-3 md:p-4 space-y-1", isCompact && !isEditing && "px-3 md:px-4 pt-2 pb-1 space-y-0")}>
+          {/* CardHeader only in normal mode or editing */}
+          {(!isCompact || isEditing) && (
+          <CardHeader className="p-3 md:p-4 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -405,8 +407,7 @@ export const TaskCard = memo(function TaskCard({
                   }
                 }}
                 className={cn(
-                  "font-bold text-xs md:text-sm flex-1",
-                  isCompact && !isEditing ? "leading-none" : "leading-tight",
+                  "font-bold text-xs md:text-sm flex-1 leading-tight",
                   isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
                   isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
                   isEditing && status === "Done" && "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
@@ -442,10 +443,31 @@ export const TaskCard = memo(function TaskCard({
                 </Button>
               </div>
             </div>
-            {(!isCompact || isEditing) && <Separator className="mt-2 bg-[#64635E]" />}
+            <Separator className="mt-2 bg-[#64635E]" />
           </CardHeader>
+          )}
 
-          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "px-3 md:px-4 pt-1 pb-2 space-y-0.5" : "space-y-2")}>
+          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "p-3 md:p-3 space-y-0.5" : "space-y-2")}>
+              {/* Compact mode: Title row inside CardContent */}
+              {isCompact && !isEditing && (
+                <div className="flex items-start justify-between gap-2 mb-0.5">
+                  <div
+                    className="font-bold text-xs md:text-sm flex-1 leading-none"
+                    data-testid={`text-tasktitle-${id}`}
+                  >
+                    {title}
+                  </div>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-6 w-6 shrink-0 opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
+                    onClick={handleEditClick}
+                    data-testid={`button-edit-${id}`}
+                  >
+                    <Pencil className="w-3 h-3" />
+                  </Button>
+                </div>
+              )}
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
