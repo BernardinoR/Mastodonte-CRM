@@ -40,6 +40,7 @@ export default function Tasks() {
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [activePresetId, setActivePresetId] = useState<string | null>(null);
+  const [isCompact, setIsCompact] = useState(false);
   
   // Pagination state per column - tracks how many tasks are visible
   const [visibleCounts, setVisibleCounts] = useState<Record<TaskStatus, number>>({
@@ -384,6 +385,7 @@ export default function Tasks() {
         selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
         isDragActive={activeTaskId !== null}
         initialEditMode={editingTaskId === task.id}
+        isCompact={isCompact}
         onSelect={handleSelectTask}
         onUpdate={handleUpdateTaskWithClearEdit}
         onDelete={handleDeleteTask}
@@ -480,6 +482,8 @@ export default function Tasks() {
         tasks={tasks}
         activePresetId={activePresetId}
         onActivePresetChange={setActivePresetId}
+        isCompact={isCompact}
+        onCompactModeChange={setIsCompact}
       />
 
       {viewMode === "table" ? (

@@ -70,6 +70,7 @@ export interface TaskCardProps {
   selectedCount?: number;
   isDragActive?: boolean;
   initialEditMode?: boolean;
+  isCompact?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
   onUpdate: (taskId: string, updates: any) => void;
   onDelete: (taskId: string) => void;
@@ -99,6 +100,7 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
   if (prev.selectedCount !== next.selectedCount) return false;
   if (prev.isDragActive !== next.isDragActive) return false;
   if (prev.initialEditMode !== next.initialEditMode) return false;
+  if (prev.isCompact !== next.isCompact) return false;
   
   // Deep compare assignees array
   if (prev.assignees.length !== next.assignees.length) return false;
@@ -132,6 +134,7 @@ export const TaskCard = memo(function TaskCard({
   selectedCount = 0,
   isDragActive = false,
   initialEditMode = false,
+  isCompact = false,
   onSelect,
   onUpdate,
   onDelete,
@@ -438,10 +441,10 @@ export const TaskCard = memo(function TaskCard({
                 </Button>
               </div>
             </div>
-            <Separator className="mt-2 bg-[#64635E]" />
+            {(!isCompact || isEditing) && <Separator className="mt-2 bg-[#64635E]" />}
           </CardHeader>
 
-          <CardContent className="p-3 md:p-4 pt-0 space-y-2">
+          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "space-y-1" : "space-y-2")}>
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
@@ -457,40 +460,68 @@ export const TaskCard = memo(function TaskCard({
               </div>
               
               {/* Linha 3: Cliente - Only show if has client or in edit mode */}
-              <TaskClientPopover
-                id={id}
-                clientName={clientName || null}
-                isEditing={isEditing}
-                isOpen={activePopover === "client"}
-                onOpenChange={(open) => setActivePopover(open ? "client" : null)}
-                onClientChange={handleClientChange}
-                onStopPropagation={cancelClickTimeout}
-                onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
-                variant="card"
-              />
+              {(!isCompact || isEditing || clientName) && (
+                <TaskClientPopover
+                  id={id}
+                  clientName={clientName || null}
+                  isEditing={isEditing}
+                  isOpen={activePopover === "client"}
+                  onOpenChange={(open) => setActivePopover(open ? "client" : null)}
+                  onClientChange={handleClientChange}
+                  onStopPropagation={cancelClickTimeout}
+                  onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
+                  variant="card"
+                />
+              )}
               
-              {/* Linha 4: Prioridade */}
-              <TaskPriorityPopover
-                id={id}
-                priority={priority}
-                isEditing={isEditing}
-                isOpen={activePopover === "priority"}
-                onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
-                onPriorityChange={handlePriorityChange}
-                onStopPropagation={cancelClickTimeout}
-              />
+              {/* Compact mode: Priority and Status on same line */}
+              {isCompact && !isEditing ? (
+                <div className="flex items-center gap-2 flex-wrap [&>div]:inline-flex [&>div]:w-auto">
+                  <TaskPriorityPopover
+                    id={id}
+                    priority={priority}
+                    isEditing={isEditing}
+                    isOpen={activePopover === "priority"}
+                    onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
+                    onPriorityChange={handlePriorityChange}
+                    onStopPropagation={cancelClickTimeout}
+                  />
+                  <TaskStatusPopover
+                    id={id}
+                    status={status}
+                    isOpen={activePopover === "status"}
+                    onOpenChange={(open) => setActivePopover(open ? "status" : null)}
+                    onStatusChange={handleStatusChange}
+                    onStopPropagation={cancelClickTimeout}
+                  />
+                </div>
+              ) : (
+                <>
+                  {/* Linha 4: Prioridade */}
+                  <TaskPriorityPopover
+                    id={id}
+                    priority={priority}
+                    isEditing={isEditing}
+                    isOpen={activePopover === "priority"}
+                    onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
+                    onPriorityChange={handlePriorityChange}
+                    onStopPropagation={cancelClickTimeout}
+                  />
+                  
+                  {/* Linha 5: Status - Always clickable */}
+                  <TaskStatusPopover
+                    id={id}
+                    status={status}
+                    isOpen={activePopover === "status"}
+                    onOpenChange={(open) => setActivePopover(open ? "status" : null)}
+                    onStatusChange={handleStatusChange}
+                    onStopPropagation={cancelClickTimeout}
+                  />
+                </>
+              )}
               
-              {/* Linha 5: Status - Always clickable */}
-              <TaskStatusPopover
-                id={id}
-                status={status}
-                isOpen={activePopover === "status"}
-                onOpenChange={(open) => setActivePopover(open ? "status" : null)}
-                onStatusChange={handleStatusChange}
-                onStopPropagation={cancelClickTimeout}
-              />
-              
-              {/* Responsáveis */}
+              {/* Responsáveis - Hidden in compact mode unless editing */}
+              {(!isCompact || isEditing) && (
               <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
                 <div className={cn("text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
                   Responsáveis
@@ -531,6 +562,7 @@ export const TaskCard = memo(function TaskCard({
                   </PopoverContent>
                 </Popover>
               </div>
+              )}
           </CardContent>
             </Card>
         </ContextMenuTrigger>

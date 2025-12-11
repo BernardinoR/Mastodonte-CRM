@@ -23,7 +23,9 @@ import {
   Briefcase as BriefcaseIcon,
   Clock,
   CalendarRange,
-  Rocket
+  Rocket,
+  AlignJustify,
+  Rows3
 } from "lucide-react";
 import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/lib/utils";
@@ -79,6 +81,8 @@ interface FilterBarProps {
   onSearchChange?: (query: string) => void;
   showAssignee?: boolean;
   showPriority?: boolean;
+  isCompact?: boolean;
+  onCompactModeChange?: (isCompact: boolean) => void;
 }
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
@@ -306,6 +310,8 @@ export function FilterBar({
   tasks = [],
   activePresetId = null,
   onActivePresetChange = () => {},
+  isCompact = false,
+  onCompactModeChange = () => {},
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
@@ -567,6 +573,21 @@ export function FilterBar({
           )}
         </div>
       </div>
+
+      {/* Compact Mode Toggle Button */}
+      <button
+        onClick={() => onCompactModeChange(!isCompact)}
+        className={cn(
+          "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+          isCompact
+            ? "bg-blue-500/20 text-blue-400"
+            : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+        )}
+        title={isCompact ? "Modo expandido" : "Modo compacto"}
+        data-testid="button-compact-mode"
+      >
+        {isCompact ? <AlignJustify className="w-4 h-4" /> : <Rows3 className="w-4 h-4" />}
+      </button>
 
       {/* Turbo Mode Button */}
       <button
