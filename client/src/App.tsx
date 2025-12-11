@@ -99,22 +99,32 @@ function AuthenticatedApp() {
   );
 }
 
+// TEMPORARY: Set to true to bypass authentication during development
+const DEV_BYPASS_AUTH = true;
+
 export default function App() {
   const { isLoaded } = useAuth();
 
-  if (!isLoaded) {
+  // Skip auth loading check in dev bypass mode
+  if (!DEV_BYPASS_AUTH && !isLoaded) {
     return <LoadingScreen />;
   }
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SignedIn>
+        {DEV_BYPASS_AUTH ? (
           <AuthenticatedApp />
-        </SignedIn>
-        <SignedOut>
-          <PublicRouter />
-        </SignedOut>
+        ) : (
+          <>
+            <SignedIn>
+              <AuthenticatedApp />
+            </SignedIn>
+            <SignedOut>
+              <PublicRouter />
+            </SignedOut>
+          </>
+        )}
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
