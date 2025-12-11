@@ -173,6 +173,8 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
                 style={{
                   width: scaledWidth,
                   height: scaledHeight,
+                  maxWidth: "none",
+                  maxHeight: "none",
                   left: (CROP_SIZE - scaledWidth) / 2 + position.x,
                   top: (CROP_SIZE - scaledHeight) / 2 + position.y,
                 }}
