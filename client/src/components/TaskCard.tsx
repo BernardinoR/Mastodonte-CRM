@@ -497,51 +497,26 @@ export const TaskCard = memo(function TaskCard({
                 />
               )}
               
-              {/* Compact mode: Priority and Status on same line */}
-              {isCompact && !isEditing ? (
-                <div className="flex items-center gap-2 flex-wrap [&>div]:inline-flex [&>div]:w-auto">
-                  <TaskPriorityPopover
-                    id={id}
-                    priority={priority}
-                    isEditing={isEditing}
-                    isOpen={activePopover === "priority"}
-                    onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
-                    onPriorityChange={handlePriorityChange}
-                    onStopPropagation={cancelClickTimeout}
-                  />
-                  <TaskStatusPopover
-                    id={id}
-                    status={status}
-                    isOpen={activePopover === "status"}
-                    onOpenChange={(open) => setActivePopover(open ? "status" : null)}
-                    onStatusChange={handleStatusChange}
-                    onStopPropagation={cancelClickTimeout}
-                  />
-                </div>
-              ) : (
-                <>
-                  {/* Linha 4: Prioridade */}
-                  <TaskPriorityPopover
-                    id={id}
-                    priority={priority}
-                    isEditing={isEditing}
-                    isOpen={activePopover === "priority"}
-                    onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
-                    onPriorityChange={handlePriorityChange}
-                    onStopPropagation={cancelClickTimeout}
-                  />
-                  
-                  {/* Linha 5: Status - Always clickable */}
-                  <TaskStatusPopover
-                    id={id}
-                    status={status}
-                    isOpen={activePopover === "status"}
-                    onOpenChange={(open) => setActivePopover(open ? "status" : null)}
-                    onStatusChange={handleStatusChange}
-                    onStopPropagation={cancelClickTimeout}
-                  />
-                </>
-              )}
+              {/* Linha 4: Prioridade */}
+              <TaskPriorityPopover
+                id={id}
+                priority={priority}
+                isEditing={isEditing}
+                isOpen={activePopover === "priority"}
+                onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
+                onPriorityChange={handlePriorityChange}
+                onStopPropagation={cancelClickTimeout}
+              />
+              
+              {/* Linha 5: Status - Always clickable */}
+              <TaskStatusPopover
+                id={id}
+                status={status}
+                isOpen={activePopover === "status"}
+                onOpenChange={(open) => setActivePopover(open ? "status" : null)}
+                onStatusChange={handleStatusChange}
+                onStopPropagation={cancelClickTimeout}
+              />
               
               {/* Responsáveis - Hidden in compact mode unless editing */}
               {(!isCompact || isEditing) && (
