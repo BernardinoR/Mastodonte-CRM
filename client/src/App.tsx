@@ -20,6 +20,7 @@ import SSOCallback from "@/pages/SSOCallback";
 import ForgotPassword from "@/pages/ForgotPassword";
 import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
+import ClerkLogin from "@/pages/ClerkLogin";
 
 function AuthenticatedRouter() {
   return (
@@ -43,6 +44,7 @@ function PublicRouter() {
       <Route path="/sign-up" component={SignUp} />
       <Route path="/sso-callback" component={SSOCallback} />
       <Route path="/forgot-password" component={ForgotPassword} />
+      <Route path="/clerk-login" component={ClerkLogin} />
       <Route>
         <Redirect to="/sign-in" />
       </Route>
@@ -100,7 +102,7 @@ function AuthenticatedApp() {
 }
 
 // TEMPORARY: Set to true to bypass authentication during development
-const DEV_BYPASS_AUTH = true;
+const DEV_BYPASS_AUTH = false;
 
 export default function App() {
   const { isLoaded } = useAuth();
