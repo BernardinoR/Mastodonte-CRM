@@ -109,7 +109,7 @@ export default function ForgotPassword() {
           await setActive({ session: result.createdSessionId });
           setStep("success");
           setTimeout(() => {
-            setLocation("/");
+            window.location.href = "/";
           }, 2000);
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);

@@ -212,7 +212,7 @@ export default function SignIn() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        setLocation("/");
+        window.location.href = "/";
       } else if (result.status === "needs_first_factor") {
         const emailFactor = result.supportedFirstFactors?.find(
           (factor) => factor.strategy === "email_code"
@@ -291,7 +291,7 @@ export default function SignIn() {
         } else if (errorCode === "form_identifier_not_found") {
           setError("Email não encontrado. Verifique o endereço.");
         } else if (errorCode === "session_exists") {
-          setLocation("/");
+          window.location.href = "/";
         } else if (errorCode === "strategy_for_user_invalid" || clerkError.errors[0].message.includes("attempt")) {
           setNeedsVerification(false);
           setVerificationCode("");
@@ -324,7 +324,7 @@ export default function SignIn() {
       if (result.status === "complete") {
         try {
           await setActive({ session: result.createdSessionId });
-          setLocation("/");
+          window.location.href = "/";
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);
           setError("Erro ao ativar sessão. Tente novamente.");
@@ -396,7 +396,7 @@ export default function SignIn() {
       if (result.status === "complete") {
         try {
           await setActive({ session: result.createdSessionId });
-          setLocation("/");
+          window.location.href = "/";
         } catch (sessionErr) {
           console.error("Failed to activate session:", sessionErr);
           setError("Erro ao ativar sessão. Tente novamente.");
