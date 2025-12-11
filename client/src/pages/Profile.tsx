@@ -14,6 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { ImageCropModal } from "@/components/ImageCropModal";
 import type { User as DbUser, Group } from "@shared/schema";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -42,6 +43,8 @@ export default function Profile() {
   const [nameValue, setNameValue] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [cropModalOpen, setCropModalOpen] = useState(false);
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const groupId = currentUser?.groupId;
@@ -127,9 +130,9 @@ export default function Profile() {
     fileInputRef.current?.click();
   };
 
-  const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !clerkUser) return;
+    if (!file) return;
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
     if (!validTypes.includes(file.type)) {
@@ -143,19 +146,34 @@ export default function Profile() {
       return;
     }
 
+    setSelectedImageFile(file);
+    setCropModalOpen(true);
+    
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const handleCropConfirm = async (croppedFile: File) => {
+    if (!clerkUser) return;
+
     setUploadingPhoto(true);
     try {
-      await clerkUser.setProfileImage({ file });
+      await clerkUser.setProfileImage({ file: croppedFile });
       toast({ title: "Foto atualizada com sucesso" });
+      setCropModalOpen(false);
+      setSelectedImageFile(null);
     } catch (error) {
       console.error("Error uploading photo:", error);
       toast({ title: "Erro ao atualizar foto", variant: "destructive" });
     } finally {
       setUploadingPhoto(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
+  };
+
+  const handleCropModalClose = () => {
+    setCropModalOpen(false);
+    setSelectedImageFile(null);
   };
 
   if (loadingUser) {
@@ -435,6 +453,14 @@ export default function Profile() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <ImageCropModal
+        open={cropModalOpen}
+        onClose={handleCropModalClose}
+        imageFile={selectedImageFile}
+        onConfirm={handleCropConfirm}
+        isUploading={uploadingPhoto}
+      />
     </div>
   );
 }
