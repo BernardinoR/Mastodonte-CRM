@@ -387,7 +387,7 @@ export const TaskCard = memo(function TaskCard({
               onDoubleClick={handleEditClick}
               data-testid={`card-task-${id}`}
             >
-          <CardHeader className="p-4 space-y-1">
+          <CardHeader className="p-3 md:p-4 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <div
                 ref={titleRef}
@@ -402,7 +402,7 @@ export const TaskCard = memo(function TaskCard({
                   }
                 }}
                 className={cn(
-                  "font-bold text-sm leading-tight flex-1",
+                  "font-bold text-xs md:text-sm leading-tight flex-1",
                   isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
                   isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
                   isEditing && status === "Done" && "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
@@ -441,7 +441,7 @@ export const TaskCard = memo(function TaskCard({
             <Separator className="mt-2 bg-[#64635E]" />
           </CardHeader>
 
-          <CardContent className="p-4 pt-0 space-y-2">
+          <CardContent className="p-3 md:p-4 pt-0 space-y-2">
               
               {/* Linha 2: Data - Always clickable */}
               <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">

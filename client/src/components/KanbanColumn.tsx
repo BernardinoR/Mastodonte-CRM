@@ -58,7 +58,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div 
       ref={setNodeRef}
-      className="flex-1 min-w-[200px] max-w-[400px] flex flex-col"
+      className="flex-1 min-w-[200px] max-w-[340px] flex flex-col"
     >
       <div 
         className={cn(
