@@ -447,7 +447,7 @@ export const TaskCard = memo(function TaskCard({
           </CardHeader>
           )}
 
-          <CardContent className={cn("p-3 md:p-4 pt-0", isCompact && !isEditing ? "p-3 md:p-3 space-y-0.5" : "space-y-2")}>
+          <CardContent className={cn("space-y-2", isCompact && !isEditing ? "p-3 md:p-3" : "p-3 md:p-4 pt-0")}>
               {/* Compact mode: Title row inside CardContent */}
               {isCompact && !isEditing && (
                 <div className="flex items-start justify-between gap-2 mb-0.5">
