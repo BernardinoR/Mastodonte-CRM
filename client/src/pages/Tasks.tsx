@@ -495,7 +495,7 @@ export default function Tasks() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex items-stretch gap-6 overflow-x-auto pb-4">
+        <div className="flex items-stretch gap-4 pb-4">
           <KanbanColumn 
             id="To Do"
             title="" 
