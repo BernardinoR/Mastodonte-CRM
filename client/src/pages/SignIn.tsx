@@ -184,7 +184,8 @@ export default function SignIn() {
   const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
   const [needsSecondFactor, setNeedsSecondFactor] = useState(false);
   const [secondFactorCode, setSecondFactorCode] = useState("");
-  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | "backup_code" | null>(null);
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState<"totp" | "phone_code" | "backup_code" | "email_code" | null>(null);
+  const [secondFactorEmailId, setSecondFactorEmailId] = useState<string | null>(null);
   const [phoneId, setPhoneId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -259,9 +260,24 @@ export default function SignIn() {
           setNeedsSecondFactor(true);
           setError("");
         } else {
-          const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
-          console.error("Unsupported 2FA strategies:", factorStrategies);
-          setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
+          const emailCodeFactor = result.supportedSecondFactors?.find(
+            (factor) => factor.strategy === "email_code"
+          );
+          if (emailCodeFactor && "emailAddressId" in emailCodeFactor) {
+            const factorEmailId = emailCodeFactor.emailAddressId;
+            setSecondFactorEmailId(factorEmailId);
+            setSecondFactorStrategy("email_code");
+            await signIn.prepareSecondFactor({
+              strategy: "email_code",
+              emailAddressId: factorEmailId,
+            });
+            setNeedsSecondFactor(true);
+            setError("");
+          } else {
+            const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
+            console.error("Unsupported 2FA strategies:", factorStrategies);
+            setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
+          }
         }
       } else {
         setError("Verificação adicional necessária. Entre em contato com o suporte.");
@@ -359,6 +375,7 @@ export default function SignIn() {
     setNeedsSecondFactor(false);
     setSecondFactorCode("");
     setSecondFactorStrategy(null);
+    setSecondFactorEmailId(null);
     setPhoneId(null);
     setError("");
   };
@@ -405,16 +422,24 @@ export default function SignIn() {
   };
 
   const handleResendSecondFactorCode = async () => {
-    if (!isLoaded || !signIn || secondFactorStrategy !== "phone_code" || !phoneId) return;
+    if (!isLoaded || !signIn) return;
+    if (secondFactorStrategy !== "phone_code" && secondFactorStrategy !== "email_code") return;
 
     setLoading(true);
     setError("");
 
     try {
-      await signIn.prepareSecondFactor({
-        strategy: "phone_code",
-        phoneNumberId: phoneId,
-      });
+      if (secondFactorStrategy === "phone_code" && phoneId) {
+        await signIn.prepareSecondFactor({
+          strategy: "phone_code",
+          phoneNumberId: phoneId,
+        });
+      } else if (secondFactorStrategy === "email_code" && secondFactorEmailId) {
+        await signIn.prepareSecondFactor({
+          strategy: "email_code",
+          emailAddressId: secondFactorEmailId,
+        });
+      }
       setError("");
     } catch (err: unknown) {
       setError("Erro ao reenviar código. Tente novamente.");
@@ -587,6 +612,8 @@ export default function SignIn() {
                   ? "Insira o código do seu aplicativo autenticador (Google Authenticator, Authy, etc.)."
                   : secondFactorStrategy === "backup_code"
                   ? "Insira um dos seus códigos de backup."
+                  : secondFactorStrategy === "email_code"
+                  ? <>Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo.</>
                   : "Enviamos um código de verificação para seu telefone. Insira-o abaixo."}
               </p>
               <form onSubmit={handleVerifySecondFactor}>
@@ -596,6 +623,8 @@ export default function SignIn() {
                       ? "Código do autenticador" 
                       : secondFactorStrategy === "backup_code"
                       ? "Código de backup"
+                      : secondFactorStrategy === "email_code"
+                      ? "Código de verificação"
                       : "Código SMS"}
                   </label>
                   <input
@@ -636,7 +665,7 @@ export default function SignIn() {
                 </button>
 
                 <div className="mt-6 flex justify-center gap-5 text-sm">
-                  {secondFactorStrategy === "phone_code" && (
+                  {(secondFactorStrategy === "phone_code" || secondFactorStrategy === "email_code") && (
                     <>
                       <button
                         type="button"
