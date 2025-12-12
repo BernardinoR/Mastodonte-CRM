@@ -20,7 +20,8 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, CalendarIcon, Plus } from "lucide-react";
+import { GripVertical, CalendarIcon, Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -36,6 +37,7 @@ interface TaskTableViewProps {
   selectedTaskIds: Set<string>;
   onTaskClick?: (task: Task) => void;
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
+  onBulkUpdate?: (taskIds: string[], updates: Partial<Task>) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTask?: () => void;
   onReorderTasks?: (tasks: Task[]) => void;
@@ -425,7 +427,10 @@ const TaskRowContent = memo(function TaskRowContent({
 
   return (
     <div 
-      className="flex group"
+      className={cn(
+        "flex group",
+        isSelected && "bg-primary/10"
+      )}
       data-testid={`row-task-${task.id}`}
     >
       <div 
@@ -472,7 +477,7 @@ const TaskRowContent = memo(function TaskRowContent({
       <div 
         className={cn(
           "flex-1 grid border-b border-border transition-colors duration-200",
-          "hover:bg-muted/50",
+          !isSelected && "hover:bg-muted/50",
           isDragging && "bg-muted"
         )}
         style={{
@@ -497,6 +502,7 @@ export const TaskTableView = memo(function TaskTableView({
   selectedTaskIds,
   onTaskClick,
   onUpdateTask,
+  onBulkUpdate,
   onSelectionChange,
   onAddTask,
   onReorderTasks,
@@ -577,10 +583,104 @@ export const TaskTableView = memo(function TaskTableView({
 
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
   const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
+  const hasSelection = selectedTaskIds.size > 0;
 
+  const handleClearSelection = useCallback(() => {
+    onSelectionChange?.(new Set());
+  }, [onSelectionChange]);
+
+  const handleBulkStatusChange = useCallback((status: TaskStatus) => {
+    if (hasSelection && onBulkUpdate) {
+      onBulkUpdate(Array.from(selectedTaskIds), { status });
+    }
+  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+
+  const handleBulkPriorityChange = useCallback((priority: TaskPriority | "_none") => {
+    if (hasSelection && onBulkUpdate) {
+      onBulkUpdate(Array.from(selectedTaskIds), { priority: priority === "_none" ? undefined : priority });
+    }
+  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+
+  const handleBulkDateChange = useCallback((date: Date | undefined) => {
+    if (hasSelection && onBulkUpdate && date) {
+      onBulkUpdate(Array.from(selectedTaskIds), { dueDate: date });
+    }
+  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+
+  const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
+  const [bulkPriorityOpen, setBulkPriorityOpen] = useState(false);
+  const [bulkDateOpen, setBulkDateOpen] = useState(false);
 
   return (
     <div className="flex-1 overflow-auto" data-testid="table-view-container">
+      {hasSelection && (
+        <div className="flex items-center gap-2 px-4 h-10 bg-primary/10 border-b border-border sticky top-0 z-20" data-testid="bulk-actions-bar">
+          <span className="text-sm font-medium text-primary" data-testid="text-selected-count">
+            {selectedTaskIds.size} selecionado{selectedTaskIds.size > 1 ? "s" : ""}
+          </span>
+          <div className="flex items-center gap-1 ml-2">
+            <Popover open={bulkStatusOpen} onOpenChange={setBulkStatusOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-status">
+                  Status
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="bottom" align="start">
+                {STATUS_OPTIONS.map((s) => (
+                  <div
+                    key={s}
+                    className={cn("px-2 py-1.5 cursor-pointer rounded-md", UI_CLASSES.dropdownItem)}
+                    onClick={() => { handleBulkStatusChange(s); setBulkStatusOpen(false); }}
+                  >
+                    <StatusBadgeShared status={s} />
+                  </div>
+                ))}
+              </PopoverContent>
+            </Popover>
+            <Popover open={bulkPriorityOpen} onOpenChange={setBulkPriorityOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-priority">
+                  Prioridade
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="bottom" align="start">
+                {PRIORITY_OPTIONS.map((p) => (
+                  <div
+                    key={p}
+                    className={cn("px-2 py-1.5 cursor-pointer rounded-md", UI_CLASSES.dropdownItem)}
+                    onClick={() => { handleBulkPriorityChange(p); setBulkPriorityOpen(false); }}
+                  >
+                    <PriorityBadgeShared priority={p} />
+                  </div>
+                ))}
+              </PopoverContent>
+            </Popover>
+            <Popover open={bulkDateOpen} onOpenChange={setBulkDateOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-date">
+                  <CalendarIcon className="w-3 h-3 mr-1" />
+                  Data e Hora
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className={cn("w-auto p-0", UI_CLASSES.popover)} side="bottom" align="start">
+                <DateInput
+                  value=""
+                  onChange={(date) => { handleBulkDateChange(date); setBulkDateOpen(false); }}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 ml-auto" 
+            onClick={handleClearSelection}
+            data-testid="button-clear-selection"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
       <div className="min-w-max">
         <DndContext 
           sensors={sensors} 
@@ -588,7 +688,7 @@ export const TaskTableView = memo(function TaskTableView({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex sticky top-0 z-10 group">
+          <div className={cn("flex sticky z-10 group bg-background", hasSelection ? "top-10" : "top-0")}>
             <div 
               className="flex items-center justify-end pr-2 py-3"
               style={{ width: HEADER_CONTROL_WIDTH }}
