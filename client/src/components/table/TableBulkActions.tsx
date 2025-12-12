@@ -62,6 +62,9 @@ export const TableBulkActions = memo(function TableBulkActions({
     <div 
       className="fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 bg-background/95 backdrop-blur-sm border border-border rounded-xl shadow-lg z-50" 
       data-testid="bulk-actions-bar"
+      onClick={(e) => e.stopPropagation()}
+      onPointerDown={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
     >
       <span className="text-sm font-medium text-primary whitespace-nowrap" data-testid="text-selected-count">
         {selectedCount} selecionado{selectedCount > 1 ? "s" : ""}
