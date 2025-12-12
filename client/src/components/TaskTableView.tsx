@@ -18,7 +18,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, User } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
@@ -40,12 +40,12 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(200px, 2fr)" },
-  { id: "status", label: "Status", width: "100px" },
-  { id: "client", label: "Cliente", width: "minmax(150px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(250px, 2fr)" },
+  { id: "status", label: "Status", width: "120px" },
+  { id: "client", label: "Cliente", width: "minmax(180px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
   { id: "priority", label: "Prioridade", width: "120px" },
-  { id: "assignee", label: "Pessoa", width: "minmax(150px, 1fr)" },
+  { id: "assignee", label: "Pessoa", width: "minmax(160px, 1fr)" },
 ];
 
 const SortableHeader = memo(function SortableHeader({ 
@@ -72,14 +72,15 @@ const SortableHeader = memo(function SortableHeader({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none",
-        isDragging && "opacity-50 bg-accent/20 rounded"
+        "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide select-none",
+        "text-[#a8a8b3]",
+        isDragging && "opacity-50 bg-[#29292e] rounded"
       )}
       data-testid={`header-column-${column.id}`}
       {...attributes}
     >
       <GripVertical 
-        className="w-3 h-3 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground" 
+        className="w-3 h-3 cursor-grab active:cursor-grabbing text-[#a8a8b3]/50 hover:text-[#a8a8b3]" 
         {...listeners}
         data-testid={`drag-handle-${column.id}`}
       />
@@ -93,20 +94,30 @@ const StatusBadge = memo(function StatusBadge({ status }: { status: TaskStatus }
   return (
     <Badge 
       variant="secondary" 
-      className={cn("text-[10px] px-2 py-0.5", config?.bgColor, config?.textColor)}
+      className={cn(
+        "text-xs px-2.5 py-0.5 rounded-xl font-semibold border",
+        config?.bgColor, 
+        config?.borderColor,
+        config?.textColor
+      )}
     >
-      {status === "To Do" ? "To Do" : status === "In Progress" ? "In Progress" : "Done"}
+      {status}
     </Badge>
   );
 });
 
 const PriorityBadge = memo(function PriorityBadge({ priority }: { priority?: TaskPriority }) {
-  if (!priority) return <span className="text-muted-foreground text-xs">-</span>;
+  if (!priority) return <span className="text-[#a8a8b3] text-sm">-</span>;
   const config = PRIORITY_CONFIG[priority];
   return (
     <Badge 
       variant="secondary" 
-      className={cn("text-[10px] px-2 py-0.5", config?.bgColor, config?.textColor)}
+      className={cn(
+        "text-xs px-2.5 py-0.5 rounded-xl font-semibold border",
+        config?.bgColor, 
+        config?.borderColor,
+        config?.textColor
+      )}
     >
       {priority}
     </Badge>
@@ -114,20 +125,23 @@ const PriorityBadge = memo(function PriorityBadge({ priority }: { priority?: Tas
 });
 
 const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees: string[] }) {
-  if (assignees.length === 0) return <span className="text-muted-foreground text-xs">-</span>;
+  if (assignees.length === 0) return <span className="text-[#a8a8b3] text-sm">-</span>;
   
   const firstAssignee = assignees[0];
   const initials = firstAssignee.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  const shortName = firstAssignee.split(" ").length > 1 
+    ? `${firstAssignee.split(" ")[0]} ${firstAssignee.split(" ")[1]?.[0] || ""}.`
+    : firstAssignee;
   const remaining = assignees.length - 1;
   
   return (
-    <div className="flex items-center gap-1.5">
-      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-medium text-white shrink-0">
+    <div className="flex items-center gap-2">
+      <div className="w-6 h-6 rounded-full bg-[#64635E] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
         {initials}
       </div>
-      <span className="text-xs text-foreground truncate max-w-[100px]">{firstAssignee}</span>
+      <span className="text-sm text-[#a8a8b3] truncate">{shortName}</span>
       {remaining > 0 && (
-        <span className="text-[10px] text-muted-foreground">+{remaining}</span>
+        <span className="text-xs text-[#a8a8b3]">+{remaining}</span>
       )}
     </div>
   );
@@ -153,7 +167,7 @@ const TaskRow = memo(function TaskRow({
       case "title":
         return (
           <span 
-            className="text-sm text-foreground truncate hover:text-primary hover:underline cursor-pointer"
+            className="text-sm font-medium text-[#e1e1e6] truncate hover:text-primary hover:underline cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onTitleClick?.();
@@ -167,16 +181,13 @@ const TaskRow = memo(function TaskRow({
         return <StatusBadge status={task.status} />;
       case "client":
         return task.clientName ? (
-          <div className="flex items-center gap-1.5">
-            <User className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-            <span className="text-xs text-foreground truncate">{task.clientName}</span>
-          </div>
+          <span className="text-sm text-[#a8a8b3] truncate">{task.clientName}</span>
         ) : (
-          <span className="text-muted-foreground text-xs">-</span>
+          <span className="text-[#a8a8b3] text-sm">-</span>
         );
       case "dueDate":
         return (
-          <span className="text-xs text-foreground">
+          <span className="text-sm text-[#a8a8b3]">
             {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
           </span>
         );
@@ -191,13 +202,16 @@ const TaskRow = memo(function TaskRow({
 
   return (
     <div 
-      className="grid border-b border-border/50 hover-elevate group"
+      className={cn(
+        "grid border-b border-[#323238] group transition-colors duration-200",
+        "hover:bg-[#29292e]"
+      )}
       style={{
-        gridTemplateColumns: `36px ${columns.map(c => c.width).join(" ")}`,
+        gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
       }}
       data-testid={`row-task-${task.id}`}
     >
-      <div className="px-2 py-2.5 flex items-center justify-center">
+      <div className="px-3 py-4 flex items-center justify-center">
         <Checkbox
           checked={isSelected}
           onCheckedChange={onSelectChange}
@@ -212,8 +226,8 @@ const TaskRow = memo(function TaskRow({
         <div 
           key={column.id} 
           className={cn(
-            "px-3 py-2.5 flex items-center",
-            column.id !== "title" && "cursor-pointer hover:bg-accent/30"
+            "px-4 py-4 flex items-center",
+            column.id !== "title" && "cursor-pointer"
           )}
           onClick={column.id !== "title" ? (e) => {
             e.stopPropagation();
@@ -284,20 +298,20 @@ export const TaskTableView = memo(function TaskTableView({
   };
 
   return (
-    <div className="w-full bg-card border border-border rounded-lg overflow-hidden" data-testid="table-tasks">
+    <div className="w-full bg-[#121214] rounded-lg overflow-hidden" data-testid="table-tasks">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragEnd={handleDragEnd}
       >
         <div 
-          className="grid bg-muted/30 border-b border-border group"
+          className="grid border-b border-[#323238] group"
           style={{
-            gridTemplateColumns: `36px ${columns.map(c => c.width).join(" ")}`,
+            gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
           }}
           data-testid="table-header"
         >
-          <div className="px-2 py-2 flex items-center justify-center">
+          <div className="px-3 py-3 flex items-center justify-center">
             <Checkbox
               checked={allSelected ? true : someSelected ? "indeterminate" : false}
               onCheckedChange={handleSelectAll}
@@ -318,7 +332,7 @@ export const TaskTableView = memo(function TaskTableView({
 
       <div className="max-h-[calc(100vh-280px)] overflow-y-auto" data-testid="table-body">
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground" data-testid="text-empty-table">
+          <div className="flex items-center justify-center py-16 text-[#a8a8b3]" data-testid="text-empty-table">
             Nenhuma tarefa encontrada
           </div>
         ) : (
