@@ -123,10 +123,12 @@ export const TableHeader = memo(function TableHeader({
       <div 
         className="flex items-center justify-end pr-2 py-2 relative z-30"
         style={{ width: controlWidth }}
+        data-no-dnd="true"
       >
         <Checkbox
           checked={allSelected}
           onCheckedChange={(checked) => onSelectAll(!!checked)}
+          onPointerDown={(e) => e.stopPropagation()}
           className={cn(
             "transition-opacity cursor-pointer",
             allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
