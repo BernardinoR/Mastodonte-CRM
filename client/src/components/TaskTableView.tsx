@@ -53,7 +53,7 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(150px, 1.5fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(150px, 1fr)" },
   { id: "status", label: "Status", width: "120px" },
   { id: "client", label: "Cliente", width: "minmax(180px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
