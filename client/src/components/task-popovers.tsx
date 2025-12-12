@@ -349,7 +349,7 @@ export const TaskClientPopover = memo(function TaskClientPopover({
         {clientName ? (
           <>
             <span 
-              className="text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer line-clamp-2"
+              className="text-sm text-muted-foreground hover:text-primary hover:bg-muted/50 rounded px-1 -mx-1 cursor-pointer line-clamp-2 transition-colors"
               onClick={handleNavigate}
               data-testid={`text-client-${id}`}
             >
