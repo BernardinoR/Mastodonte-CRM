@@ -53,12 +53,12 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(120px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(100px, 1fr)" },
   { id: "status", label: "Status", width: "120px" },
-  { id: "client", label: "Cliente", width: "minmax(120px, 1fr)" },
+  { id: "client", label: "Cliente", width: "minmax(100px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
   { id: "priority", label: "Prioridade", width: "120px" },
-  { id: "assignee", label: "Responsável", width: "minmax(180px, 1fr)" },
+  { id: "assignee", label: "Responsável", width: "minmax(100px, 1fr)" },
 ];
 
 const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
@@ -88,7 +88,7 @@ const SortableHeader = memo(function SortableHeader({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 px-4 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
+        "flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
         "text-muted-foreground/70",
         isDragging && "opacity-50 bg-muted rounded"
       )}
@@ -379,7 +379,7 @@ const TaskRowContent = memo(function TaskRowContent({
         {columns.map((column) => (
           <div 
             key={column.id} 
-            className="px-4 py-2 flex items-center"
+            className="px-3 py-2 flex items-center"
           >
             {renderCell(column.id)}
           </div>
