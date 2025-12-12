@@ -30,7 +30,8 @@ import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
 import { PriorityBadge as PriorityBadgeShared, StatusBadge as StatusBadgeShared, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import { DateInput } from "@/components/ui/date-input";
-import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
+import { ClientSelector } from "@/components/task-editors";
+import { TaskAssigneesPopover } from "@/components/task-popovers";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -136,29 +137,6 @@ const PriorityBadgeTable = memo(function PriorityBadgeTable({ priority }: { prio
     >
       {priority}
     </Badge>
-  );
-});
-
-const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees: string[] }) {
-  if (assignees.length === 0) return <span className="text-muted-foreground cursor-pointer hover:text-foreground">Atribuir</span>;
-  
-  const firstAssignee = assignees[0];
-  const initials = firstAssignee.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
-  const shortName = firstAssignee.split(" ").length > 1 
-    ? `${firstAssignee.split(" ")[0]} ${firstAssignee.split(" ")[1]?.[0] || ""}.`
-    : firstAssignee;
-  const remaining = assignees.length - 1;
-  
-  return (
-    <div className="flex items-center gap-2 cursor-pointer">
-      <div className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
-        {initials}
-      </div>
-      <span className="text-foreground truncate">{shortName}</span>
-      {remaining > 0 && (
-        <span className="text-xs text-muted-foreground">+{remaining}</span>
-      )}
-    </div>
   );
 });
 
@@ -399,25 +377,17 @@ const TaskRowContent = memo(function TaskRowContent({
       
       case "assignee":
         return (
-          <Popover open={openPopover === "assignee"} onOpenChange={(open) => setOpenPopover(open ? "assignee" : null)}>
-            <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()}>
-                <AssigneeDisplay assignees={task.assignees} />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              className={cn("w-64 p-0", UI_CLASSES.popover)} 
-              side="bottom" 
-              align="start"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <AssigneeSelector
-                selectedAssignees={task.assignees}
-                onSelect={handleAssigneeAdd}
-                onRemove={handleAssigneeRemove}
-              />
-            </PopoverContent>
-          </Popover>
+          <TaskAssigneesPopover
+            id={task.id}
+            assignees={task.assignees}
+            isOpen={openPopover === "assignee"}
+            onOpenChange={(open) => setOpenPopover(open ? "assignee" : null)}
+            onAddAssignee={handleAssigneeAdd}
+            onRemoveAssignee={handleAssigneeRemove}
+            onStopPropagation={() => {}}
+            variant="modal"
+            maxDisplay={3}
+          />
         );
       
       default:
