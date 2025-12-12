@@ -206,7 +206,7 @@ const TaskRowContent = memo(function TaskRowContent({
       case "title":
         return (
           <span 
-            className="text-sm font-normal text-foreground hover:text-primary hover:bg-muted/50 rounded px-1 -mx-1 cursor-pointer line-clamp-2 transition-colors"
+            className="text-sm font-normal text-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               onTitleClick?.();
