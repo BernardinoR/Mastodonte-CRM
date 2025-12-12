@@ -72,11 +72,17 @@ export const TableBulkActions = memo(function TableBulkActions({
       <div className="flex items-center gap-1">
         <Popover open={statusOpen} onOpenChange={setStatusOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" data-testid="button-bulk-status">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-3 text-sm" 
+              data-testid="button-bulk-status"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               Status
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="top" align="start">
+          <PopoverContent className={cn("w-48 p-1 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             {STATUS_OPTIONS.map((s) => (
               <div
                 key={s}
@@ -91,11 +97,17 @@ export const TableBulkActions = memo(function TableBulkActions({
         
         <Popover open={priorityOpen} onOpenChange={setPriorityOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" data-testid="button-bulk-priority">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-3 text-sm" 
+              data-testid="button-bulk-priority"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               Prioridade
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="top" align="start">
+          <PopoverContent className={cn("w-48 p-1 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             {PRIORITY_OPTIONS.map((p) => (
               <div
                 key={p}
@@ -110,12 +122,18 @@ export const TableBulkActions = memo(function TableBulkActions({
         
         <Popover open={dateOpen} onOpenChange={setDateOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" data-testid="button-bulk-date">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-3 text-sm" 
+              data-testid="button-bulk-date"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               <CalendarIcon className="w-3.5 h-3.5 mr-1.5" />
               Data
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-auto p-0", UI_CLASSES.popover)} side="top" align="start">
+          <PopoverContent className={cn("w-auto p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             <DateInput
               value=""
               onChange={handleDateSelect}
@@ -125,12 +143,18 @@ export const TableBulkActions = memo(function TableBulkActions({
         
         <Popover open={clientOpen} onOpenChange={setClientOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" data-testid="button-bulk-client">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-3 text-sm" 
+              data-testid="button-bulk-client"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               <Building2 className="w-3.5 h-3.5 mr-1.5" />
               Cliente
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-80 p-0", UI_CLASSES.popover)} side="top" align="start">
+          <PopoverContent className={cn("w-80 p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             <ClientSelector 
               selectedClient={null}
               onSelect={handleClientSelect}
@@ -140,12 +164,18 @@ export const TableBulkActions = memo(function TableBulkActions({
         
         <Popover open={assigneesOpen} onOpenChange={setAssigneesOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="sm" className="h-8 px-3 text-sm" data-testid="button-bulk-assignees">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-3 text-sm" 
+              data-testid="button-bulk-assignees"
+              onPointerDown={(e) => e.stopPropagation()}
+            >
               <Users className="w-3.5 h-3.5 mr-1.5" />
               Responsáveis
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-64 p-0", UI_CLASSES.popover)} side="top" align="start">
+          <PopoverContent className={cn("w-64 p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             <AssigneeSelector
               selectedAssignees={[]}
               onSelect={handleAssigneeAdd}
