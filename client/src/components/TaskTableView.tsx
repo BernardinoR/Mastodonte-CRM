@@ -88,8 +88,8 @@ const SortableHeader = memo(function SortableHeader({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
-        "text-muted-foreground",
+        "flex items-center gap-1.5 px-4 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
+        "text-muted-foreground/70",
         isDragging && "opacity-50 bg-muted rounded"
       )}
       data-testid={`header-column-${column.id}`}
@@ -97,7 +97,7 @@ const SortableHeader = memo(function SortableHeader({
       {...listeners}
     >
       <GripVertical 
-        className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" 
+        className="w-3 h-3 text-muted-foreground/40 hover:text-muted-foreground" 
         data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
@@ -205,7 +205,7 @@ const TaskRowContent = memo(function TaskRowContent({
       case "title":
         return (
           <span 
-            className="text-sm font-medium text-foreground hover:text-primary hover:underline cursor-pointer line-clamp-2"
+            className="text-sm font-normal text-foreground hover:text-primary hover:underline cursor-pointer line-clamp-2"
             onClick={(e) => {
               e.stopPropagation();
               onTitleClick?.();
@@ -234,7 +234,7 @@ const TaskRowContent = memo(function TaskRowContent({
             <PopoverTrigger asChild>
               <div onClick={(e) => e.stopPropagation()} className="cursor-pointer">
                 {task.clientName ? (
-                  <span className="text-sm text-muted-foreground truncate hover:text-foreground">{task.clientName}</span>
+                  <span className="text-sm text-muted-foreground hover:text-foreground">{task.clientName}</span>
                 ) : (
                   <span className="text-muted-foreground text-sm hover:text-foreground">Selecionar</span>
                 )}
@@ -326,7 +326,7 @@ const TaskRowContent = memo(function TaskRowContent({
       data-testid={`row-task-${task.id}`}
     >
       <div 
-        className="flex items-center py-3"
+        className="flex items-center py-2"
         style={{ width: CONTROL_COLUMNS_WIDTH.split(" ").reduce((acc, w) => acc + parseInt(w), 0) + "px" }}
       >
         <div 
@@ -379,7 +379,7 @@ const TaskRowContent = memo(function TaskRowContent({
         {columns.map((column) => (
           <div 
             key={column.id} 
-            className="px-4 py-3 flex items-center"
+            className="px-4 py-2 flex items-center"
           >
             {renderCell(column.id)}
           </div>
@@ -582,7 +582,7 @@ export const TaskTableView = memo(function TaskTableView({
         >
           <div className={cn("flex sticky z-10 group bg-background", hasSelection ? "top-10" : "top-0")}>
             <div 
-              className="flex items-center justify-end pr-2 py-3"
+              className="flex items-center justify-end pr-2 py-2"
               style={{ width: HEADER_CONTROL_WIDTH }}
             >
               <Checkbox
