@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useRef, useEffect, useState } from "react";
 import { GripVertical } from "lucide-react";
 import { 
   SortableContext, 
@@ -18,18 +18,10 @@ export interface Column {
 
 interface SortableColumnHeaderProps {
   column: Column;
-  showResizeHandle?: boolean;
-  onResizeStart?: (columnId: string, clientX: number) => void;
-  onResizeMove?: (clientX: number) => void;
-  onResizeEnd?: (finalClientX?: number) => void;
 }
 
 const SortableColumnHeader = memo(function SortableColumnHeader({ 
   column,
-  showResizeHandle = true,
-  onResizeStart,
-  onResizeMove,
-  onResizeEnd,
 }: SortableColumnHeaderProps) {
   const {
     attributes,
@@ -63,14 +55,6 @@ const SortableColumnHeader = memo(function SortableColumnHeader({
         data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
-      {showResizeHandle && onResizeStart && onResizeMove && onResizeEnd && (
-        <ColumnResizeHandle
-          columnId={column.id}
-          onResizeStart={onResizeStart}
-          onResizeMove={onResizeMove}
-          onResizeEnd={onResizeEnd}
-        />
-      )}
     </div>
   );
 });
@@ -99,6 +83,37 @@ export const TableHeader = memo(function TableHeader({
   onResizeEnd,
 }: TableHeaderProps) {
   const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [columnOffsets, setColumnOffsets] = useState<number[]>([]);
+
+  useEffect(() => {
+    if (!gridRef.current || !onResizeStart) return;
+    
+    const updateOffsets = () => {
+      const grid = gridRef.current;
+      if (!grid) return;
+      
+      const children = Array.from(grid.children).filter(
+        child => !child.classList.contains('resize-handle-overlay')
+      );
+      const offsets: number[] = [];
+      let cumulative = 0;
+      
+      for (let i = 0; i < children.length - 1; i++) {
+        const child = children[i] as HTMLElement;
+        cumulative += child.offsetWidth;
+        offsets.push(cumulative);
+      }
+      
+      setColumnOffsets(offsets);
+    };
+
+    updateOffsets();
+    const observer = new ResizeObserver(updateOffsets);
+    observer.observe(gridRef.current);
+    
+    return () => observer.disconnect();
+  }, [columns, onResizeStart]);
 
   return (
     <div 
@@ -120,23 +135,34 @@ export const TableHeader = memo(function TableHeader({
         />
       </div>
       <div 
-        className="flex-1 grid border-b border-border bg-background"
+        ref={gridRef}
+        className="flex-1 grid border-b border-border bg-background relative"
         style={{
           gridTemplateColumns: columns.map(c => c.width).join(" "),
         }}
       >
         <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-          {columns.map((column, index) => (
+          {columns.map((column) => (
             <SortableColumnHeader 
               key={column.id} 
               column={column}
-              showResizeHandle={index < columns.length - 1}
+            />
+          ))}
+        </SortableContext>
+        {onResizeStart && onResizeMove && onResizeEnd && columnOffsets.map((offset, index) => (
+          <div
+            key={`resize-${columns[index].id}`}
+            className="resize-handle-overlay absolute top-0 bottom-0"
+            style={{ left: `${offset}px`, transform: 'translateX(-2px)' }}
+          >
+            <ColumnResizeHandle
+              columnId={columns[index].id}
               onResizeStart={onResizeStart}
               onResizeMove={onResizeMove}
               onResizeEnd={onResizeEnd}
             />
-          ))}
-        </SortableContext>
+          </div>
+        ))}
       </div>
     </div>
   );

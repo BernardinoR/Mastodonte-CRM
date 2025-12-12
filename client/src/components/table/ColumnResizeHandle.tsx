@@ -59,12 +59,18 @@ export const ColumnResizeHandle = memo(function ColumnResizeHandle({
   return (
     <div
       className={cn(
-        "absolute right-0 top-0 bottom-0 w-1 cursor-col-resize z-10",
-        "hover:bg-primary/50 transition-colors",
-        isDragging && "bg-primary"
+        "w-4 h-full cursor-col-resize z-20 flex items-center justify-center group/resize",
       )}
       onMouseDown={handleMouseDown}
       data-testid={`resize-handle-${columnId}`}
-    />
+    >
+      <div 
+        className={cn(
+          "w-0.5 h-full transition-colors",
+          "group-hover/resize:bg-primary/50",
+          isDragging && "bg-primary"
+        )}
+      />
+    </div>
   );
 });

@@ -225,7 +225,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
       data-testid={`row-task-${task.id}`}
     >
       <div 
-        className="flex items-center py-2"
+        className="flex items-center py-1.5"
         style={{ width: `${controlColumnsWidth}px` }}
       >
         <div 
@@ -281,7 +281,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
         {columns.map((column) => (
           <div 
             key={column.id} 
-            className="px-3 py-2 flex items-center"
+            className="px-3 py-1.5 flex items-center"
           >
             {renderCell(column.id)}
           </div>
