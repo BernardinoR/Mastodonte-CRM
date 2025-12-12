@@ -59,6 +59,7 @@ const DEFAULT_COLUMNS: Column[] = [
 ];
 
 const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
+const HEADER_CONTROL_WIDTH = "88px";
 
 const SortableHeader = memo(function SortableHeader({ 
   column 
@@ -424,60 +425,69 @@ const TaskRowContent = memo(function TaskRowContent({
 
   return (
     <div 
-      className={cn(
-        "grid border-b border-border group transition-colors duration-200",
-        "hover:bg-muted/50",
-        isDragging && "bg-muted"
-      )}
-      style={{
-        gridTemplateColumns: `${CONTROL_COLUMNS_WIDTH} ${columns.map(c => c.width).join(" ")}`,
-      }}
+      className="flex group"
       data-testid={`row-task-${task.id}`}
     >
       <div 
-        className="flex items-center justify-center py-3"
-        onClick={(e) => e.stopPropagation()}
+        className="flex items-center py-3"
+        style={{ width: CONTROL_COLUMNS_WIDTH.split(" ").reduce((acc, w) => acc + parseInt(w), 0) + "px" }}
       >
-        <button
-          onClick={onAddTask}
-          className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-          data-testid={`button-add-task-${task.id}`}
-        >
-          <Plus className="w-4 h-4" />
-        </button>
-      </div>
-      <div 
-        className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing"
-        {...dragListeners}
-        {...dragAttributes}
-      >
-        <GripVertical 
-          className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
-          data-testid={`drag-handle-task-${task.id}`}
-        />
-      </div>
-      <div 
-        className="flex items-center justify-center py-3"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <Checkbox
-          checked={isSelected}
-          onCheckedChange={onSelectChange}
-          className={cn(
-            "transition-opacity",
-            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-          )}
-          data-testid={`checkbox-task-${task.id}`}
-        />
-      </div>
-      {columns.map((column) => (
         <div 
-          key={column.id} 
-          className="px-4 py-3 flex items-center"
+          className="flex items-center justify-center w-8"
+          onClick={(e) => e.stopPropagation()}
         >
-          {renderCell(column.id)}
+          <button
+            onClick={onAddTask}
+            className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+            data-testid={`button-add-task-${task.id}`}
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
-      ))}
+        <div 
+          className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing"
+          {...dragListeners}
+          {...dragAttributes}
+        >
+          <GripVertical 
+            className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
+            data-testid={`drag-handle-task-${task.id}`}
+          />
+        </div>
+        <div 
+          className="flex items-center justify-center w-8"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Checkbox
+            checked={isSelected}
+            onCheckedChange={onSelectChange}
+            className={cn(
+              "transition-opacity",
+              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}
+            data-testid={`checkbox-task-${task.id}`}
+          />
+        </div>
+      </div>
+      <div 
+        className={cn(
+          "flex-1 grid border-b border-border transition-colors duration-200",
+          "hover:bg-muted/50",
+          isDragging && "bg-muted"
+        )}
+        style={{
+          gridTemplateColumns: columns.map(c => c.width).join(" "),
+        }}
+      >
+        {columns.map((column) => (
+          <div 
+            key={column.id} 
+            className="px-4 py-3 flex items-center"
+          >
+            {renderCell(column.id)}
+          </div>
+        ))}
+      </div>
     </div>
   );
 });
@@ -578,25 +588,11 @@ export const TaskTableView = memo(function TaskTableView({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div 
-            className="grid border-b border-border bg-background sticky top-0 z-10 group"
-            style={{
-              gridTemplateColumns: `${CONTROL_COLUMNS_WIDTH} ${columns.map(c => c.width).join(" ")}`,
-            }}
-          >
-            <div className="flex items-center justify-center py-3">
-              <button
-                onClick={onAddTask}
-                className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground transition-colors"
-                data-testid="button-add-task-header"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex items-center justify-center py-3">
-              <GripVertical className="w-4 h-4 text-muted-foreground/30" />
-            </div>
-            <div className="flex items-center justify-center py-3">
+          <div className="flex sticky top-0 z-10 group">
+            <div 
+              className="flex items-center justify-end pr-2 py-3"
+              style={{ width: HEADER_CONTROL_WIDTH }}
+            >
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
@@ -607,11 +603,18 @@ export const TaskTableView = memo(function TaskTableView({
                 data-testid="checkbox-select-all"
               />
             </div>
-            <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-              {columns.map((column) => (
-                <SortableHeader key={column.id} column={column} />
-              ))}
-            </SortableContext>
+            <div 
+              className="flex-1 grid border-b border-border bg-background"
+              style={{
+                gridTemplateColumns: columns.map(c => c.width).join(" "),
+              }}
+            >
+              <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+                {columns.map((column) => (
+                  <SortableHeader key={column.id} column={column} />
+                ))}
+              </SortableContext>
+            </div>
           </div>
           
           {tasks.length === 0 ? (
