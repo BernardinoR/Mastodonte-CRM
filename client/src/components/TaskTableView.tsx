@@ -1,7 +1,4 @@
-import { useState, useMemo, memo, useCallback, useRef } from "react";
-import { useLocation } from "wouter";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { useState, useMemo, memo, useCallback } from "react";
 import {
   DndContext,
   closestCenter,
@@ -16,22 +13,12 @@ import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
-  horizontalListSortingStrategy,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, CalendarIcon, Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
-import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
-import { PriorityBadge as PriorityBadgeShared, StatusBadge as StatusBadgeShared, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
-import { DateInput } from "@/components/ui/date-input";
-import { TaskAssigneesPopover, TaskStatusPopover, TaskPriorityPopover, TaskClientPopover } from "@/components/task-popovers";
+import { TableHeader, type Column } from "@/components/table/TableHeader";
+import { TableBulkActions } from "@/components/table/TableBulkActions";
+import { TaskTableRow } from "@/components/table/TaskTableRow";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -46,12 +33,6 @@ interface TaskTableViewProps {
   availableClients?: string[];
 }
 
-interface Column {
-  id: string;
-  label: string;
-  width: string;
-}
-
 const DEFAULT_COLUMNS: Column[] = [
   { id: "title", label: "Tarefa", width: "minmax(100px, 1fr)" },
   { id: "status", label: "Status", width: "120px" },
@@ -61,324 +42,8 @@ const DEFAULT_COLUMNS: Column[] = [
   { id: "assignee", label: "Responsável", width: "minmax(100px, 1fr)" },
 ];
 
-const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
+const CONTROL_COLUMNS_WIDTH = 88; // 32px + 24px + 32px
 const HEADER_CONTROL_WIDTH = "88px";
-
-const SortableHeader = memo(function SortableHeader({ 
-  column 
-}: { 
-  column: Column;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `col-${column.id}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
-  return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        "flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
-        "text-muted-foreground/70",
-        isDragging && "opacity-50 bg-muted rounded"
-      )}
-      data-testid={`header-column-${column.id}`}
-      {...attributes}
-      {...listeners}
-    >
-      <GripVertical 
-        className="w-3 h-3 text-muted-foreground/40 hover:text-muted-foreground" 
-        data-testid={`drag-handle-${column.id}`}
-      />
-      <span>{column.label}</span>
-    </div>
-  );
-});
-
-interface SortableTaskRowProps {
-  task: Task;
-  columns: Column[];
-  isSelected: boolean;
-  onTitleClick?: () => void;
-  onSelectChange?: (checked: boolean, shiftKey: boolean) => void;
-  onUpdateTask?: (updates: Partial<Task>) => void;
-  onAddTask?: () => void;
-  availableAssignees?: string[];
-  availableClients?: string[];
-  isDragging?: boolean;
-}
-
-const SortableTaskRow = memo(function SortableTaskRow(props: SortableTaskRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `task-${props.task.id}` });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <TaskRowContent 
-        {...props} 
-        dragListeners={listeners}
-        dragAttributes={attributes}
-        isDragging={isDragging}
-      />
-    </div>
-  );
-});
-
-interface TaskRowContentProps extends SortableTaskRowProps {
-  dragListeners?: any;
-  dragAttributes?: any;
-}
-
-const TaskRowContent = memo(function TaskRowContent({ 
-  task, 
-  columns,
-  isSelected,
-  onTitleClick,
-  onSelectChange,
-  onUpdateTask,
-  onAddTask,
-  availableAssignees = [],
-  availableClients = [],
-  dragListeners,
-  dragAttributes,
-  isDragging,
-}: TaskRowContentProps) {
-  const [, navigate] = useLocation();
-  const [openPopover, setOpenPopover] = useState<string | null>(null);
-  const datePopoverRef = useRef<HTMLDivElement>(null);
-
-  const handleStatusChange = useCallback((status: TaskStatus) => {
-    onUpdateTask?.({ status });
-    setOpenPopover(null);
-  }, [onUpdateTask]);
-
-  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    onUpdateTask?.({ priority: priority === "_none" ? undefined : priority });
-    setOpenPopover(null);
-  }, [onUpdateTask]);
-
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) {
-      onUpdateTask?.({ dueDate: date });
-      setOpenPopover(null);
-    }
-  }, [onUpdateTask]);
-
-  const handleClientChange = useCallback((clientName: string) => {
-    onUpdateTask?.({ clientName });
-    setOpenPopover(null);
-  }, [onUpdateTask]);
-
-  const handleAssigneeAdd = useCallback((assignee: string) => {
-    const newAssignees = [...task.assignees, assignee];
-    onUpdateTask?.({ assignees: newAssignees });
-  }, [onUpdateTask, task.assignees]);
-
-  const handleAssigneeRemove = useCallback((assignee: string) => {
-    const newAssignees = task.assignees.filter(a => a !== assignee);
-    onUpdateTask?.({ assignees: newAssignees });
-  }, [onUpdateTask, task.assignees]);
-
-  const renderCell = (columnId: string) => {
-    switch (columnId) {
-      case "title":
-        return (
-          <span 
-            className="text-sm font-normal text-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              onTitleClick?.();
-            }}
-            data-testid={`text-task-title-${task.id}`}
-          >
-            {task.title}
-          </span>
-        );
-      
-      case "status":
-        return (
-          <TaskStatusPopover
-            id={task.id}
-            status={task.status}
-            isOpen={openPopover === "status"}
-            onOpenChange={(open) => setOpenPopover(open ? "status" : null)}
-            onStatusChange={handleStatusChange}
-            onStopPropagation={() => {}}
-          />
-        );
-      
-      case "client":
-        return (
-          <TaskClientPopover
-            id={task.id}
-            clientName={task.clientName || null}
-            isOpen={openPopover === "client"}
-            onOpenChange={(open) => setOpenPopover(open ? "client" : null)}
-            onClientChange={handleClientChange}
-            onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
-            variant="table"
-          />
-        );
-      
-      case "dueDate":
-        return (
-          <Popover open={openPopover === "dueDate"} onOpenChange={(open) => setOpenPopover(open ? "dueDate" : null)}>
-            <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
-                <CalendarIcon className="w-3.5 h-3.5" />
-                <span className="text-sm">
-                  {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
-                </span>
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              ref={datePopoverRef}
-              className={cn("w-auto p-0", UI_CLASSES.popover)} 
-              side="bottom" 
-              align="start"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <DateInput
-                value={format(task.dueDate, "yyyy-MM-dd")}
-                onChange={handleDateChange}
-                className="font-semibold"
-                dataTestId={`input-date-${task.id}`}
-                hideIcon
-                commitOnInput={false}
-              />
-            </PopoverContent>
-          </Popover>
-        );
-      
-      case "priority":
-        return (
-          <TaskPriorityPopover
-            id={task.id}
-            priority={task.priority}
-            isEditing={true}
-            isOpen={openPopover === "priority"}
-            onOpenChange={(open) => setOpenPopover(open ? "priority" : null)}
-            onPriorityChange={handlePriorityChange}
-            onStopPropagation={() => {}}
-          />
-        );
-      
-      case "assignee":
-        return (
-          <TaskAssigneesPopover
-            id={task.id}
-            assignees={task.assignees}
-            isOpen={openPopover === "assignee"}
-            onOpenChange={(open) => setOpenPopover(open ? "assignee" : null)}
-            onAddAssignee={handleAssigneeAdd}
-            onRemoveAssignee={handleAssigneeRemove}
-            onStopPropagation={() => {}}
-            variant="modal"
-            maxDisplay={3}
-          />
-        );
-      
-      default:
-        return null;
-    }
-  };
-
-  return (
-    <div 
-      className={cn(
-        "flex group",
-        isSelected && "bg-primary/10"
-      )}
-      data-testid={`row-task-${task.id}`}
-    >
-      <div 
-        className="flex items-center py-2"
-        style={{ width: CONTROL_COLUMNS_WIDTH.split(" ").reduce((acc, w) => acc + parseInt(w), 0) + "px" }}
-      >
-        <div 
-          className="flex items-center justify-center w-8"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={onAddTask}
-            className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-            data-testid={`button-add-task-${task.id}`}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-        <div 
-          className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing"
-          {...dragListeners}
-          {...dragAttributes}
-        >
-          <GripVertical 
-            className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
-            data-testid={`drag-handle-task-${task.id}`}
-          />
-        </div>
-        <div 
-          className="flex items-center justify-center w-8"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(checked) => {
-              const event = window.event as MouseEvent | undefined;
-              onSelectChange?.(!!checked, event?.shiftKey ?? false);
-            }}
-            className={cn(
-              "transition-opacity",
-              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            )}
-            data-testid={`checkbox-task-${task.id}`}
-          />
-        </div>
-      </div>
-      <div 
-        className={cn(
-          "flex-1 grid border-b border-border transition-colors duration-200",
-          !isSelected && "hover:bg-muted/50",
-          isDragging && "bg-muted"
-        )}
-        style={{
-          gridTemplateColumns: columns.map(c => c.width).join(" "),
-        }}
-      >
-        {columns.map((column) => (
-          <div 
-            key={column.id} 
-            className="px-3 py-2 flex items-center"
-          >
-            {renderCell(column.id)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-});
 
 export const TaskTableView = memo(function TaskTableView({ 
   tasks,
@@ -389,24 +54,20 @@ export const TaskTableView = memo(function TaskTableView({
   onSelectionChange,
   onAddTask,
   onReorderTasks,
-  availableAssignees = [],
-  availableClients = [],
 }: TaskTableViewProps) {
   const [columns, setColumns] = useState<Column[]>(DEFAULT_COLUMNS);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 5,
-      },
+      activationConstraint: { distance: 5 },
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
 
-  const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
   const taskIds = useMemo(() => tasks.map(t => `task-${t.id}`), [tasks]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -445,11 +106,9 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, [tasks, onReorderTasks]);
 
-  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
-
+  // Selection handlers
   const handleSelectTask = useCallback((taskId: string, checked: boolean, shiftKey: boolean = false) => {
     if (shiftKey && lastSelectedId) {
-      // Range selection
       const lastIndex = tasks.findIndex(t => t.id === lastSelectedId);
       const currentIndex = tasks.findIndex(t => t.id === taskId);
       
@@ -466,7 +125,6 @@ export const TaskTableView = memo(function TaskTableView({
       }
     }
     
-    // Regular selection
     const newSelection = new Set(selectedTaskIds);
     if (checked) {
       newSelection.add(taskId);
@@ -479,114 +137,52 @@ export const TaskTableView = memo(function TaskTableView({
 
   const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
-      const allIds = new Set(tasks.map(t => t.id));
-      onSelectionChange?.(allIds);
+      onSelectionChange?.(new Set(tasks.map(t => t.id)));
     } else {
       onSelectionChange?.(new Set());
     }
     setLastSelectedId(null);
   }, [tasks, onSelectionChange]);
 
-  const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
-  const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
-  const hasSelection = selectedTaskIds.size > 0;
-
   const handleClearSelection = useCallback(() => {
     onSelectionChange?.(new Set());
     setLastSelectedId(null);
   }, [onSelectionChange]);
 
+  // Bulk action handlers
   const handleBulkStatusChange = useCallback((status: TaskStatus) => {
-    if (hasSelection && onBulkUpdate) {
+    if (selectedTaskIds.size > 0 && onBulkUpdate) {
       onBulkUpdate(Array.from(selectedTaskIds), { status });
     }
-  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+  }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkPriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    if (hasSelection && onBulkUpdate) {
+    if (selectedTaskIds.size > 0 && onBulkUpdate) {
       onBulkUpdate(Array.from(selectedTaskIds), { priority: priority === "_none" ? undefined : priority });
     }
-  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+  }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkDateChange = useCallback((date: Date | undefined) => {
-    if (hasSelection && onBulkUpdate && date) {
+    if (selectedTaskIds.size > 0 && onBulkUpdate && date) {
       onBulkUpdate(Array.from(selectedTaskIds), { dueDate: date });
     }
-  }, [hasSelection, selectedTaskIds, onBulkUpdate]);
+  }, [selectedTaskIds, onBulkUpdate]);
 
-  const [bulkStatusOpen, setBulkStatusOpen] = useState(false);
-  const [bulkPriorityOpen, setBulkPriorityOpen] = useState(false);
-  const [bulkDateOpen, setBulkDateOpen] = useState(false);
+  // Computed values
+  const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
+  const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
+  const hasSelection = selectedTaskIds.size > 0;
 
   return (
     <div className="flex-1 overflow-auto" data-testid="table-view-container">
       {hasSelection && (
-        <div className="flex items-center gap-2 px-4 h-10 bg-primary/10 border-b border-border sticky top-0 z-20" data-testid="bulk-actions-bar">
-          <span className="text-sm font-medium text-primary" data-testid="text-selected-count">
-            {selectedTaskIds.size} selecionado{selectedTaskIds.size > 1 ? "s" : ""}
-          </span>
-          <div className="flex items-center gap-1 ml-2">
-            <Popover open={bulkStatusOpen} onOpenChange={setBulkStatusOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-status">
-                  Status
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="bottom" align="start">
-                {STATUS_OPTIONS.map((s) => (
-                  <div
-                    key={s}
-                    className={cn("px-2 py-1.5 cursor-pointer rounded-md", UI_CLASSES.dropdownItem)}
-                    onClick={() => { handleBulkStatusChange(s); setBulkStatusOpen(false); }}
-                  >
-                    <StatusBadgeShared status={s} />
-                  </div>
-                ))}
-              </PopoverContent>
-            </Popover>
-            <Popover open={bulkPriorityOpen} onOpenChange={setBulkPriorityOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-priority">
-                  Prioridade
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={cn("w-48 p-1", UI_CLASSES.popover)} side="bottom" align="start">
-                {PRIORITY_OPTIONS.map((p) => (
-                  <div
-                    key={p}
-                    className={cn("px-2 py-1.5 cursor-pointer rounded-md", UI_CLASSES.dropdownItem)}
-                    onClick={() => { handleBulkPriorityChange(p); setBulkPriorityOpen(false); }}
-                  >
-                    <PriorityBadgeShared priority={p} />
-                  </div>
-                ))}
-              </PopoverContent>
-            </Popover>
-            <Popover open={bulkDateOpen} onOpenChange={setBulkDateOpen}>
-              <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs" data-testid="button-bulk-date">
-                  <CalendarIcon className="w-3 h-3 mr-1" />
-                  Data e Hora
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className={cn("w-auto p-0", UI_CLASSES.popover)} side="bottom" align="start">
-                <DateInput
-                  value=""
-                  onChange={(date) => { handleBulkDateChange(date); setBulkDateOpen(false); }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-6 w-6 ml-auto" 
-            onClick={handleClearSelection}
-            data-testid="button-clear-selection"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+        <TableBulkActions
+          selectedCount={selectedTaskIds.size}
+          onStatusChange={handleBulkStatusChange}
+          onPriorityChange={handleBulkPriorityChange}
+          onDateChange={handleBulkDateChange}
+          onClearSelection={handleClearSelection}
+        />
       )}
       <div className="min-w-max">
         <DndContext 
@@ -595,34 +191,14 @@ export const TaskTableView = memo(function TaskTableView({
           onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
-          <div className={cn("flex sticky z-10 group bg-background", hasSelection ? "top-10" : "top-0")}>
-            <div 
-              className="flex items-center justify-end pr-2 py-2"
-              style={{ width: HEADER_CONTROL_WIDTH }}
-            >
-              <Checkbox
-                checked={allSelected}
-                onCheckedChange={handleSelectAll}
-                className={cn(
-                  "transition-opacity",
-                  allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                )}
-                data-testid="checkbox-select-all"
-              />
-            </div>
-            <div 
-              className="flex-1 grid border-b border-border bg-background"
-              style={{
-                gridTemplateColumns: columns.map(c => c.width).join(" "),
-              }}
-            >
-              <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-                {columns.map((column) => (
-                  <SortableHeader key={column.id} column={column} />
-                ))}
-              </SortableContext>
-            </div>
-          </div>
+          <TableHeader
+            columns={columns}
+            controlWidth={HEADER_CONTROL_WIDTH}
+            allSelected={allSelected}
+            someSelected={someSelected}
+            onSelectAll={handleSelectAll}
+            stickyOffset={hasSelection ? "40px" : "0"}
+          />
           
           {tasks.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
@@ -631,22 +207,20 @@ export const TaskTableView = memo(function TaskTableView({
           ) : (
             <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
               {tasks.map((task) => (
-                <SortableTaskRow 
+                <TaskTableRow 
                   key={task.id} 
                   task={task} 
                   columns={columns}
+                  controlColumnsWidth={CONTROL_COLUMNS_WIDTH}
                   isSelected={selectedTaskIds.has(task.id)}
                   onTitleClick={() => onTaskClick?.(task)}
                   onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
                   onAddTask={onAddTask}
-                  availableAssignees={availableAssignees}
-                  availableClients={availableClients}
                 />
               ))}
             </SortableContext>
           )}
-
         </DndContext>
       </div>
     </div>
