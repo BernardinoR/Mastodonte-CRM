@@ -1,0 +1,197 @@
+<style>
+    /* Variáveis de Cores (Adicione ao seu :root ou arquivo de variáveis) */
+    :root {
+        --bg-table: #121214;      /* Cor de fundo */
+        --bg-hover: #29292e;      /* Cor ao passar o mouse */
+        --border-color: #323238;  /* Cor das linhas */
+        --text-primary: #e1e1e6;  /* Texto principal (Branco suave) */
+        --text-secondary: #a8a8b3;/* Texto secundário (Cinza) */
+        
+        /* Cores das Badges (Fundo transparente + Texto) */
+        --status-todo-bg: rgba(225, 225, 230, 0.1);
+        --status-todo-text: #e1e1e6;
+        
+        --status-progress-bg: rgba(0, 179, 126, 0.15);
+        --status-progress-text: #00b37e;
+
+        --priority-normal-bg: rgba(251, 169, 76, 0.15);
+        --priority-normal-text: #fba94c;
+
+        --priority-high-bg: rgba(235, 87, 87, 0.15);
+        --priority-high-text: #eb5757;
+
+        --priority-low-bg: rgba(99, 179, 237, 0.15);
+        --priority-low-text: #63b3ed;
+    }
+
+    /* Container para permitir rolagem se a tabela for muito larga */
+    .table-container {
+        width: 100%;
+        overflow-x: auto;
+        background-color: var(--bg-table);
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* Estilos Gerais da Tabela */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    /* Cabeçalho */
+    .custom-table th {
+        padding: 12px 16px;
+        color: var(--text-secondary);
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-bottom: 1px solid var(--border-color);
+        font-weight: 600;
+    }
+
+    /* Linhas e Células */
+    .custom-table td {
+        padding: 16px;
+        vertical-align: middle;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Remover borda da última linha */
+    .custom-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+
+    /* Efeito Hover na linha */
+    .custom-table tbody tr {
+        transition: background-color 0.2s;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: var(--bg-hover);
+    }
+
+    /* Destaque para o Título da Tarefa */
+    .task-title {
+        color: var(--text-primary);
+        font-weight: 500;
+        font-size: 0.95rem;
+    }
+
+    /* Estilo das Badges (Etiquetas) */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    /* Variações das Badges */
+    .badge-todo { background-color: var(--status-todo-bg); color: var(--status-todo-text); }
+    .badge-progress { background-color: var(--status-progress-bg); color: var(--status-progress-text); }
+    
+    .badge-priority-normal { background-color: var(--priority-normal-bg); color: var(--priority-normal-text); }
+    .badge-priority-high { background-color: var(--priority-high-bg); color: var(--priority-high-text); }
+    .badge-priority-low { background-color: var(--priority-low-bg); color: var(--priority-low-text); }
+
+    /* Célula de Usuário com Avatar */
+    .user-cell {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .mini-avatar {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background-color: #3b82f6; /* Azul padrão */
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: bold;
+    }
+</style>
+
+<div class="table-container">
+    <table class="custom-table">
+        <thead>
+            <tr>
+                <th style="width: 35%;">Tarefa</th>
+                <th>Status</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th>Prioridade</th>
+                <th>Pessoa</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Item 1 -->
+            <tr>
+                <td class="task-title">Ademar plan fin</td>
+                <td><span class="badge badge-todo">To Do</span></td>
+                <td>Ademar João Gréguer</td>
+                <td>18/11/2025</td>
+                <td><span class="badge badge-priority-normal">Normal</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="mini-avatar">RB</div>
+                        <span>Rafael B.</span>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Item 2 -->
+            <tr>
+                <td class="task-title">Atualizar plano financeiro</td>
+                <td><span class="badge badge-todo">To Do</span></td>
+                <td>Fernanda Carolina</td>
+                <td>14/11/2025</td>
+                <td><span class="badge badge-priority-high">Importante</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="mini-avatar">RB</div>
+                        <span>Rafael B. +1</span>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Item 3 -->
+            <tr>
+                <td class="task-title">Receber documentação da Viva</td>
+                <td><span class="badge badge-todo">To Do</span></td>
+                <td>Israel Schuster</td>
+                <td>19/11/2025</td>
+                <td><span class="badge badge-priority-low">Baixa</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="mini-avatar">RB</div>
+                        <span>Rafael B.</span>
+                    </div>
+                </td>
+            </tr>
+
+            <!-- Item 4 -->
+            <tr>
+                <td class="task-title">REALOCAR MARCOS</td>
+                <td><span class="badge badge-progress">In Progress</span></td>
+                <td>Marcia Mozzato</td>
+                <td>19/01/2025</td>
+                <td><span class="badge badge-priority-high">Urgente</span></td>
+                <td>
+                    <div class="user-cell">
+                        <div class="mini-avatar">RB</div>
+                        <span>Rafael B.</span>
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
