@@ -71,11 +71,13 @@ const SortableHeader = memo(function SortableHeader({
         "flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider select-none",
         isDragging && "opacity-50 bg-accent/20 rounded"
       )}
+      data-testid={`header-column-${column.id}`}
       {...attributes}
     >
       <GripVertical 
         className="w-3 h-3 cursor-grab active:cursor-grabbing text-muted-foreground/50 hover:text-muted-foreground" 
         {...listeners}
+        data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
     </div>
@@ -107,14 +109,22 @@ const PriorityBadge = memo(function PriorityBadge({ priority }: { priority?: Tas
   );
 });
 
-const AssigneeBadge = memo(function AssigneeBadge({ name }: { name: string }) {
-  const initials = name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees: string[] }) {
+  if (assignees.length === 0) return <span className="text-muted-foreground text-xs">-</span>;
+  
+  const firstAssignee = assignees[0];
+  const initials = firstAssignee.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+  const remaining = assignees.length - 1;
+  
   return (
     <div className="flex items-center gap-1.5">
-      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-medium text-white">
+      <div className="w-5 h-5 rounded-full bg-blue-600 flex items-center justify-center text-[9px] font-medium text-white shrink-0">
         {initials}
       </div>
-      <span className="text-xs text-foreground truncate max-w-[120px]">{name}</span>
+      <span className="text-xs text-foreground truncate max-w-[100px]">{firstAssignee}</span>
+      {remaining > 0 && (
+        <span className="text-[10px] text-muted-foreground">+{remaining}</span>
+      )}
     </div>
   );
 });
@@ -157,11 +167,7 @@ const TaskRow = memo(function TaskRow({
       case "priority":
         return <PriorityBadge priority={task.priority} />;
       case "assignee":
-        return task.assignees.length > 0 ? (
-          <AssigneeBadge name={task.assignees[0]} />
-        ) : (
-          <span className="text-muted-foreground text-xs">-</span>
-        );
+        return <AssigneeDisplay assignees={task.assignees} />;
       default:
         return null;
     }
@@ -218,12 +224,8 @@ export const TaskTableView = memo(function TaskTableView({
     }
   };
 
-  const sortedTasks = useMemo(() => {
-    return [...tasks].sort((a, b) => a.order - b.order);
-  }, [tasks]);
-
   return (
-    <div className="w-full bg-card border border-border rounded-lg overflow-hidden">
+    <div className="w-full bg-card border border-border rounded-lg overflow-hidden" data-testid="table-tasks">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -234,6 +236,7 @@ export const TaskTableView = memo(function TaskTableView({
           style={{
             gridTemplateColumns: columns.map(c => c.width).join(" "),
           }}
+          data-testid="table-header"
         >
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
             {columns.map((column) => (
@@ -243,13 +246,13 @@ export const TaskTableView = memo(function TaskTableView({
         </div>
       </DndContext>
 
-      <div className="max-h-[calc(100vh-280px)] overflow-y-auto">
-        {sortedTasks.length === 0 ? (
-          <div className="flex items-center justify-center py-12 text-muted-foreground">
+      <div className="max-h-[calc(100vh-280px)] overflow-y-auto" data-testid="table-body">
+        {tasks.length === 0 ? (
+          <div className="flex items-center justify-center py-12 text-muted-foreground" data-testid="text-empty-table">
             Nenhuma tarefa encontrada
           </div>
         ) : (
-          sortedTasks.map((task) => (
+          tasks.map((task) => (
             <TaskRow 
               key={task.id} 
               task={task} 
