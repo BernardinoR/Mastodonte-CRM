@@ -175,6 +175,18 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
+  const handleBulkClientChange = useCallback((clientName: string | undefined) => {
+    if (selectedTaskIds.size > 0 && onBulkUpdate) {
+      onBulkUpdate(Array.from(selectedTaskIds), { clientName });
+    }
+  }, [selectedTaskIds, onBulkUpdate]);
+
+  const handleBulkAssigneesChange = useCallback((assignees: string[]) => {
+    if (selectedTaskIds.size > 0 && onBulkUpdate) {
+      onBulkUpdate(Array.from(selectedTaskIds), { assignees });
+    }
+  }, [selectedTaskIds, onBulkUpdate]);
+
   // Computed values
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
   const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
@@ -188,6 +200,8 @@ export const TaskTableView = memo(function TaskTableView({
           onStatusChange={handleBulkStatusChange}
           onPriorityChange={handleBulkPriorityChange}
           onDateChange={handleBulkDateChange}
+          onClientChange={handleBulkClientChange}
+          onAssigneesChange={handleBulkAssigneesChange}
           onClearSelection={handleClearSelection}
         />
       )}
@@ -204,7 +218,7 @@ export const TaskTableView = memo(function TaskTableView({
             allSelected={allSelected}
             someSelected={someSelected}
             onSelectAll={handleSelectAll}
-            stickyOffset={hasSelection ? "40px" : "0"}
+            stickyOffset="0"
             onResizeStart={handleResizeStart}
             onResizeMove={handleResizeMove}
             onResizeEnd={handleResizeEnd}
