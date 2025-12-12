@@ -9,16 +9,18 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
 } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
   sortableKeyboardCoordinates,
   horizontalListSortingStrategy,
+  verticalListSortingStrategy,
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, CalendarIcon, User } from "lucide-react";
+import { GripVertical, CalendarIcon, Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,7 +30,6 @@ import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
 import { PriorityBadge as PriorityBadgeShared, StatusBadge as StatusBadgeShared, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import { DateInput } from "@/components/ui/date-input";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
-import { parseLocalDate } from "@/lib/date-utils";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -36,6 +37,8 @@ interface TaskTableViewProps {
   onTaskClick?: (task: Task) => void;
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
+  onAddTask?: () => void;
+  onReorderTasks?: (tasks: Task[]) => void;
   availableAssignees?: string[];
   availableClients?: string[];
 }
@@ -55,6 +58,8 @@ const DEFAULT_COLUMNS: Column[] = [
   { id: "assignee", label: "Pessoa", width: "minmax(160px, 1fr)" },
 ];
 
+const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
+
 const SortableHeader = memo(function SortableHeader({ 
   column 
 }: { 
@@ -67,7 +72,7 @@ const SortableHeader = memo(function SortableHeader({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: column.id });
+  } = useSortable({ id: `col-${column.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -154,27 +159,66 @@ const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees
   );
 });
 
-interface TaskRowProps {
+interface SortableTaskRowProps {
   task: Task;
   columns: Column[];
   isSelected: boolean;
   onTitleClick?: () => void;
   onSelectChange?: (checked: boolean) => void;
   onUpdateTask?: (updates: Partial<Task>) => void;
+  onAddTask?: () => void;
   availableAssignees?: string[];
   availableClients?: string[];
+  isDragging?: boolean;
 }
 
-const TaskRow = memo(function TaskRow({ 
+const SortableTaskRow = memo(function SortableTaskRow(props: SortableTaskRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: `task-${props.task.id}` });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <TaskRowContent 
+        {...props} 
+        dragListeners={listeners}
+        dragAttributes={attributes}
+        isDragging={isDragging}
+      />
+    </div>
+  );
+});
+
+interface TaskRowContentProps extends SortableTaskRowProps {
+  dragListeners?: any;
+  dragAttributes?: any;
+}
+
+const TaskRowContent = memo(function TaskRowContent({ 
   task, 
   columns,
   isSelected,
   onTitleClick,
   onSelectChange,
   onUpdateTask,
+  onAddTask,
   availableAssignees = [],
   availableClients = [],
-}: TaskRowProps) {
+  dragListeners,
+  dragAttributes,
+  isDragging,
+}: TaskRowContentProps) {
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
 
@@ -382,15 +426,38 @@ const TaskRow = memo(function TaskRow({
     <div 
       className={cn(
         "grid border-b border-border group transition-colors duration-200",
-        "hover:bg-muted/50"
+        "hover:bg-muted/50",
+        isDragging && "bg-muted"
       )}
       style={{
-        gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
+        gridTemplateColumns: `${CONTROL_COLUMNS_WIDTH} ${columns.map(c => c.width).join(" ")}`,
       }}
       data-testid={`row-task-${task.id}`}
     >
       <div 
-        className="px-3 py-4 flex items-center justify-center"
+        className="flex items-center justify-center py-3"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onAddTask}
+          className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+          data-testid={`button-add-task-${task.id}`}
+        >
+          <Plus className="w-4 h-4" />
+        </button>
+      </div>
+      <div 
+        className="flex items-center justify-center py-3 cursor-grab active:cursor-grabbing"
+        {...dragListeners}
+        {...dragAttributes}
+      >
+        <GripVertical 
+          className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
+          data-testid={`drag-handle-task-${task.id}`}
+        />
+      </div>
+      <div 
+        className="flex items-center justify-center py-3"
         onClick={(e) => e.stopPropagation()}
       >
         <Checkbox
@@ -406,7 +473,7 @@ const TaskRow = memo(function TaskRow({
       {columns.map((column) => (
         <div 
           key={column.id} 
-          className="px-4 py-4 flex items-center"
+          className="px-4 py-3 flex items-center"
         >
           {renderCell(column.id)}
         </div>
@@ -421,10 +488,13 @@ export const TaskTableView = memo(function TaskTableView({
   onTaskClick,
   onUpdateTask,
   onSelectionChange,
+  onAddTask,
+  onReorderTasks,
   availableAssignees = [],
   availableClients = [],
 }: TaskTableViewProps) {
   const [columns, setColumns] = useState<Column[]>(DEFAULT_COLUMNS);
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -437,18 +507,44 @@ export const TaskTableView = memo(function TaskTableView({
     })
   );
 
-  const columnIds = useMemo(() => columns.map(c => c.id), [columns]);
+  const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
+  const taskIds = useMemo(() => tasks.map(t => `task-${t.id}`), [tasks]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  }, []);
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
+    setActiveId(null);
+    
+    if (!over || active.id === over.id) return;
+
+    const activeIdStr = active.id as string;
+    const overIdStr = over.id as string;
+
+    if (activeIdStr.startsWith("col-") && overIdStr.startsWith("col-")) {
+      const activeColId = activeIdStr.replace("col-", "");
+      const overColId = overIdStr.replace("col-", "");
+      
       setColumns((items) => {
-        const oldIndex = items.findIndex((i) => i.id === active.id);
-        const newIndex = items.findIndex((i) => i.id === over.id);
+        const oldIndex = items.findIndex((i) => i.id === activeColId);
+        const newIndex = items.findIndex((i) => i.id === overColId);
         return arrayMove(items, oldIndex, newIndex);
       });
+    } else if (activeIdStr.startsWith("task-") && overIdStr.startsWith("task-")) {
+      const activeTaskId = activeIdStr.replace("task-", "");
+      const overTaskId = overIdStr.replace("task-", "");
+      
+      const oldIndex = tasks.findIndex((t) => t.id === activeTaskId);
+      const newIndex = tasks.findIndex((t) => t.id === overTaskId);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedTasks = arrayMove([...tasks], oldIndex, newIndex);
+        onReorderTasks?.(reorderedTasks);
+      }
     }
-  };
+  }, [tasks, onReorderTasks]);
 
   const handleSelectTask = useCallback((taskId: string, checked: boolean) => {
     const newSelection = new Set(selectedTaskIds);
@@ -472,21 +568,35 @@ export const TaskTableView = memo(function TaskTableView({
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
   const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
 
+
   return (
     <div className="flex-1 overflow-auto" data-testid="table-view-container">
       <div className="min-w-max">
         <DndContext 
           sensors={sensors} 
           collisionDetection={closestCenter} 
+          onDragStart={handleDragStart}
           onDragEnd={handleDragEnd}
         >
           <div 
             className="grid border-b border-border bg-background sticky top-0 z-10 group"
             style={{
-              gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
+              gridTemplateColumns: `${CONTROL_COLUMNS_WIDTH} ${columns.map(c => c.width).join(" ")}`,
             }}
           >
-            <div className="px-3 py-3 flex items-center justify-center">
+            <div className="flex items-center justify-center py-3">
+              <button
+                onClick={onAddTask}
+                className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground transition-colors"
+                data-testid="button-add-task-header"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex items-center justify-center py-3">
+              <GripVertical className="w-4 h-4 text-muted-foreground/30" />
+            </div>
+            <div className="flex items-center justify-center py-3">
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
@@ -503,27 +613,31 @@ export const TaskTableView = memo(function TaskTableView({
               ))}
             </SortableContext>
           </div>
+          
+          {tasks.length === 0 ? (
+            <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
+              Nenhuma tarefa encontrada
+            </div>
+          ) : (
+            <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
+              {tasks.map((task) => (
+                <SortableTaskRow 
+                  key={task.id} 
+                  task={task} 
+                  columns={columns}
+                  isSelected={selectedTaskIds.has(task.id)}
+                  onTitleClick={() => onTaskClick?.(task)}
+                  onSelectChange={(checked) => handleSelectTask(task.id, checked as boolean)}
+                  onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
+                  onAddTask={onAddTask}
+                  availableAssignees={availableAssignees}
+                  availableClients={availableClients}
+                />
+              ))}
+            </SortableContext>
+          )}
+
         </DndContext>
-        
-        {tasks.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
-            Nenhuma tarefa encontrada
-          </div>
-        ) : (
-          tasks.map((task) => (
-            <TaskRow 
-              key={task.id} 
-              task={task} 
-              columns={columns}
-              isSelected={selectedTaskIds.has(task.id)}
-              onTitleClick={() => onTaskClick?.(task)}
-              onSelectChange={(checked) => handleSelectTask(task.id, checked as boolean)}
-              onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
-              availableAssignees={availableAssignees}
-              availableClients={availableClients}
-            />
-          ))
-        )}
       </div>
     </div>
   );
