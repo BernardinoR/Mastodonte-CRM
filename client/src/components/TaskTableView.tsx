@@ -30,8 +30,8 @@ import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
 import { PriorityBadge as PriorityBadgeShared, StatusBadge as StatusBadgeShared, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import { DateInput } from "@/components/ui/date-input";
-import { ClientSelector } from "@/components/task-editors";
-import { TaskAssigneesPopover, TaskStatusPopover, TaskPriorityPopover } from "@/components/task-popovers";
+import { TaskAssigneesPopover, TaskStatusPopover, TaskPriorityPopover, TaskClientPopover } from "@/components/task-popovers";
+import { useLocation } from "wouter";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -167,6 +167,7 @@ const TaskRowContent = memo(function TaskRowContent({
 }: TaskRowContentProps) {
   const [openPopover, setOpenPopover] = useState<string | null>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const [, navigate] = useLocation();
 
   const handleStatusChange = useCallback((status: TaskStatus) => {
     onUpdateTask?.({ status });
@@ -230,28 +231,17 @@ const TaskRowContent = memo(function TaskRowContent({
       
       case "client":
         return (
-          <Popover open={openPopover === "client"} onOpenChange={(open) => setOpenPopover(open ? "client" : null)}>
-            <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()} className="cursor-pointer">
-                {task.clientName ? (
-                  <span className="text-sm text-muted-foreground truncate hover:text-foreground">{task.clientName}</span>
-                ) : (
-                  <span className="text-muted-foreground text-sm hover:text-foreground">Selecionar</span>
-                )}
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              className={cn("w-64 p-0", UI_CLASSES.popover)} 
-              side="bottom" 
-              align="start"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ClientSelector
-                selectedClient={task.clientName || null}
-                onSelect={handleClientChange}
-              />
-            </PopoverContent>
-          </Popover>
+          <TaskClientPopover
+            id={task.id}
+            clientName={task.clientName || null}
+            isEditing={true}
+            isOpen={openPopover === "client"}
+            onOpenChange={(open) => setOpenPopover(open ? "client" : null)}
+            onClientChange={handleClientChange}
+            onStopPropagation={() => {}}
+            onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
+            variant="modal"
+          />
         );
       
       case "dueDate":
