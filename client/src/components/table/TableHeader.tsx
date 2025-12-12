@@ -121,14 +121,14 @@ export const TableHeader = memo(function TableHeader({
       style={{ top: stickyOffset }}
     >
       <div 
-        className="flex items-center justify-end pr-2 py-2"
+        className="flex items-center justify-end pr-2 py-2 relative z-30"
         style={{ width: controlWidth }}
       >
         <Checkbox
           checked={allSelected}
           onCheckedChange={(checked) => onSelectAll(!!checked)}
           className={cn(
-            "transition-opacity",
+            "transition-opacity cursor-pointer",
             allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           )}
           data-testid="checkbox-select-all"
@@ -136,7 +136,7 @@ export const TableHeader = memo(function TableHeader({
       </div>
       <div 
         ref={gridRef}
-        className="flex-1 grid border-b border-border bg-background relative"
+        className="flex-1 grid border-b border-border bg-background relative overflow-visible"
         style={{
           gridTemplateColumns: columns.map(c => c.width).join(" "),
         }}
