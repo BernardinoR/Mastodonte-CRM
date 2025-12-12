@@ -7,7 +7,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, X, Pencil, User } from "lucide-react";
+import { Calendar as CalendarIcon, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
@@ -17,6 +17,21 @@ import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { UI_CLASSES } from "@/lib/statusConfig";
 import { getAvatarColor, getInitials } from "@/components/ui/task-assignees";
 import type { TaskPriority, TaskStatus } from "@/types/task";
+
+// ============================================
+// Shared styles configuration
+// ============================================
+
+const TRIGGER_STYLES = {
+  base: "inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground transition-colors",
+  card: "text-[13px]",
+  modal: "text-2xl font-semibold text-white leading-tight -ml-2",
+  table: "text-sm text-muted-foreground",
+} as const;
+
+// ============================================
+// TaskDatePopover
+// ============================================
 
 interface TaskDatePopoverProps {
   id: string;
@@ -61,7 +76,7 @@ export const TaskDatePopover = memo(function TaskDatePopover({
     <Popover open={isOpen} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
         <span 
-          className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
+          className={cn(TRIGGER_STYLES.base, TRIGGER_STYLES.card)}
           onClick={handleClick}
           data-testid={`text-date-${id}`}
         >
@@ -93,6 +108,10 @@ export const TaskDatePopover = memo(function TaskDatePopover({
     </Popover>
   );
 });
+
+// ============================================
+// TaskPriorityPopover
+// ============================================
 
 interface TaskPriorityPopoverProps {
   id: string;
@@ -219,6 +238,10 @@ export const TaskPriorityPopover = memo(function TaskPriorityPopover({
   );
 });
 
+// ============================================
+// TaskStatusPopover
+// ============================================
+
 interface TaskStatusPopoverProps {
   id: string;
   status: TaskStatus;
@@ -288,7 +311,7 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
 });
 
 // ============================================
-// TaskClientPopover - Shared client selector
+// TaskClientPopover - Unified client selector
 // ============================================
 
 interface TaskClientPopoverProps {
@@ -340,198 +363,162 @@ export const TaskClientPopover = memo(function TaskClientPopover({
   const isModal = variant === "modal";
   const isTable = variant === "table";
 
+  // No client and not editing (and not table) - render nothing
   if (!clientName && !isEditing && !isTable) return null;
 
-  // Table variant: compact click-to-navigate + hover-to-edit
+  // Shared popover content
+  const renderPopoverContent = (selectedClient: string | null) => (
+    <PopoverContent 
+      className={cn("w-80 p-0", UI_CLASSES.popover)}
+      side="bottom" 
+      align="start" 
+      sideOffset={6}
+      avoidCollisions={true}
+      collisionPadding={8}
+    >
+      <ClientSelector 
+        selectedClient={selectedClient}
+        onSelect={handleClientSelect}
+      />
+    </PopoverContent>
+  );
+
+  // Empty state - show "Selecionar" or "+ Adicionar Cliente"
+  if (!clientName) {
+    const emptyLabel = isTable ? "Selecionar" : isModal ? "Sem cliente" : "+ Adicionar Cliente";
+    const emptyStyles = cn(
+      "inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80 transition-colors",
+      isModal && "text-2xl font-semibold leading-tight -ml-2",
+      isTable && "text-sm"
+    );
+
+    return (
+      <Popover open={isOpen} onOpenChange={onOpenChange}>
+        <PopoverTrigger asChild>
+          <span 
+            className={emptyStyles}
+            onClick={handleClick}
+            data-testid={`text-client-${id}`}
+          >
+            {emptyLabel}
+          </span>
+        </PopoverTrigger>
+        {renderPopoverContent(null)}
+      </Popover>
+    );
+  }
+
+  // Has client - different layouts per variant
+  const triggerStyles = cn(
+    TRIGGER_STYLES.base,
+    isModal ? TRIGGER_STYLES.modal : isTable ? TRIGGER_STYLES.table : TRIGGER_STYLES.card,
+    isTable && "line-clamp-2"
+  );
+
+  // Table variant: click navigates, hover shows edit button
   if (isTable) {
     return (
       <div className="flex items-center gap-1 group">
-        {clientName ? (
-          <>
-            <span 
-              className="text-sm text-muted-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
-              onClick={handleNavigate}
-              data-testid={`text-client-${id}`}
+        <span 
+          className={triggerStyles}
+          onClick={handleNavigate}
+          data-testid={`text-client-${id}`}
+        >
+          {clientName}
+        </span>
+        <Popover open={isOpen} onOpenChange={onOpenChange}>
+          <PopoverTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+              onClick={handleClick}
+              data-testid={`button-edit-client-${id}`}
             >
-              {clientName}
-            </span>
-            <Popover open={isOpen} onOpenChange={onOpenChange}>
-              <PopoverTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                  onClick={handleClick}
-                  data-testid={`button-edit-client-${id}`}
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent 
-                className={cn("w-80 p-0", UI_CLASSES.popover)}
-                side="bottom" 
-                align="start" 
-                sideOffset={6}
-              >
-                <ClientSelector 
-                  selectedClient={clientName}
-                  onSelect={handleClientSelect}
-                />
-              </PopoverContent>
-            </Popover>
-          </>
-        ) : (
-          <Popover open={isOpen} onOpenChange={onOpenChange}>
-            <PopoverTrigger asChild>
-              <span 
-                className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
-                onClick={handleClick}
-                data-testid={`text-client-${id}`}
-              >
-                Selecionar
-              </span>
-            </PopoverTrigger>
-            <PopoverContent 
-              className={cn("w-80 p-0", UI_CLASSES.popover)}
-              side="bottom" 
-              align="start" 
-              sideOffset={6}
-            >
-              <ClientSelector 
-                selectedClient={null}
-                onSelect={handleClientSelect}
-              />
-            </PopoverContent>
-          </Popover>
-        )}
+              <Pencil className="w-3.5 h-3.5" />
+            </Button>
+          </PopoverTrigger>
+          {renderPopoverContent(clientName)}
+        </Popover>
       </div>
     );
   }
 
-  return (
-    <div className={cn(
-      "flex items-center gap-1 group",
-      !isModal && isEditing && "-mx-2"
-    )}>
-      {clientName ? (
-        <div className={cn(
-          "inline-flex items-center gap-1",
-          isEditing && !isModal ? "px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80" : ""
-        )}>
-          {isEditing && !isModal ? (
-            <Popover open={isOpen} onOpenChange={onOpenChange}>
-              <PopoverTrigger asChild>
-                <span 
-                  className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-                  onClick={handleClick}
-                  data-testid={`text-client-${id}`}
-                >
-                  {clientName}
-                </span>
-              </PopoverTrigger>
-              <PopoverContent 
-                className={cn("w-80 p-0", UI_CLASSES.popover)}
-                side="bottom" 
-                align="start" 
-                sideOffset={6} 
-                avoidCollisions={true} 
-                collisionPadding={8}
-              >
-                <ClientSelector 
-                  selectedClient={clientName}
-                  onSelect={handleClientSelect}
-                />
-              </PopoverContent>
-            </Popover>
-          ) : isModal ? (
-            <span 
-              className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-2xl font-semibold text-white leading-tight -ml-2"
-              onClick={handleNavigate}
-              data-testid={`text-client-${id}`}
-            >
-              {clientName}
-            </span>
-          ) : (
-            <span 
-              className="inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground text-[13px]"
-              onClick={handleNavigate}
-              data-testid={`text-client-${id}`}
-            >
-              {clientName}
-            </span>
-          )}
-          {isEditing && !isModal && (
+  // Modal variant: click navigates, hover shows edit button
+  if (isModal) {
+    return (
+      <div className="flex items-center gap-1 group">
+        <span 
+          className={triggerStyles}
+          onClick={handleNavigate}
+          data-testid={`text-client-${id}`}
+        >
+          {clientName}
+        </span>
+        <Popover open={isOpen} onOpenChange={onOpenChange}>
+          <PopoverTrigger asChild>
             <Button
               size="icon"
               variant="ghost"
-              className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-client:inline-flex"
-              onClick={handleClearClient}
-              data-testid={`button-clear-client-${id}`}
+              className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+              data-testid="button-edit-client"
             >
-              <X className="w-3 h-3" />
+              <Pencil className="w-4 h-4" />
             </Button>
-          )}
-          {isModal && (
-            <Popover open={isOpen} onOpenChange={onOpenChange}>
-              <PopoverTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                  data-testid="button-edit-client"
-                >
-                  <Pencil className="w-4 h-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent 
-                className={cn("w-80 p-0", UI_CLASSES.popover)}
-                side="bottom" 
-                align="start" 
-                sideOffset={6}
-              >
-                <ClientSelector 
-                  selectedClient={clientName}
-                  onSelect={handleClientSelect}
-                />
-              </PopoverContent>
-            </Popover>
-          )}
-        </div>
-      ) : isEditing ? (
-        <Popover open={isOpen} onOpenChange={onOpenChange}>
-          <PopoverTrigger asChild>
-            <span 
-              className={cn(
-                "inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80",
-                isModal ? "text-2xl font-semibold leading-tight -ml-2" : ""
-              )}
-              onClick={handleClick}
-              data-testid={`text-client-${id}`}
-            >
-              {isModal ? "Sem cliente" : "+ Adicionar Cliente"}
-            </span>
           </PopoverTrigger>
-          <PopoverContent 
-            className={cn("w-80 p-0", UI_CLASSES.popover)}
-            side="bottom" 
-            align="start" 
-            sideOffset={6} 
-            avoidCollisions={true} 
-            collisionPadding={8}
-          >
-            <ClientSelector 
-              selectedClient={null}
-              onSelect={handleClientSelect}
-            />
-          </PopoverContent>
+          {renderPopoverContent(clientName)}
         </Popover>
-      ) : null}
+      </div>
+    );
+  }
+
+  // Card variant: editing vs read-only
+  if (isEditing) {
+    return (
+      <div className="flex items-center gap-1 group -mx-2">
+        <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full group/edit-client hover:bg-gray-700/80">
+          <Popover open={isOpen} onOpenChange={onOpenChange}>
+            <PopoverTrigger asChild>
+              <span 
+                className={triggerStyles}
+                onClick={handleClick}
+                data-testid={`text-client-${id}`}
+              >
+                {clientName}
+              </span>
+            </PopoverTrigger>
+            {renderPopoverContent(clientName)}
+          </Popover>
+          <Button
+            size="icon"
+            variant="ghost"
+            className="h-4 w-4 text-muted-foreground hover:text-foreground hidden group-hover/edit-client:inline-flex"
+            onClick={handleClearClient}
+            data-testid={`button-clear-client-${id}`}
+          >
+            <X className="w-3 h-3" />
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // Card variant: read-only (click navigates)
+  return (
+    <div className="flex items-center gap-1 group">
+      <span 
+        className={triggerStyles}
+        onClick={handleNavigate}
+        data-testid={`text-client-${id}`}
+      >
+        {clientName}
+      </span>
     </div>
   );
 });
 
 // ============================================
-// TaskAssigneesPopover - Shared assignees selector
+// TaskAssigneesPopover
 // ============================================
 
 interface TaskAssigneesPopoverProps {
