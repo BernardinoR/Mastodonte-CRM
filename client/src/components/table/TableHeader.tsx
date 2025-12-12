@@ -8,6 +8,7 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
+import { ColumnResizeHandle } from "./ColumnResizeHandle";
 
 export interface Column {
   id: string;
@@ -17,10 +18,18 @@ export interface Column {
 
 interface SortableColumnHeaderProps {
   column: Column;
+  showResizeHandle?: boolean;
+  onResizeStart?: (columnId: string, clientX: number) => void;
+  onResizeMove?: (clientX: number) => void;
+  onResizeEnd?: (finalClientX?: number) => void;
 }
 
 const SortableColumnHeader = memo(function SortableColumnHeader({ 
-  column 
+  column,
+  showResizeHandle = true,
+  onResizeStart,
+  onResizeMove,
+  onResizeEnd,
 }: SortableColumnHeaderProps) {
   const {
     attributes,
@@ -41,7 +50,7 @@ const SortableColumnHeader = memo(function SortableColumnHeader({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
+        "relative flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
         "text-muted-foreground/70",
         isDragging && "opacity-50 bg-muted rounded"
       )}
@@ -54,6 +63,14 @@ const SortableColumnHeader = memo(function SortableColumnHeader({
         data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
+      {showResizeHandle && onResizeStart && onResizeMove && onResizeEnd && (
+        <ColumnResizeHandle
+          columnId={column.id}
+          onResizeStart={onResizeStart}
+          onResizeMove={onResizeMove}
+          onResizeEnd={onResizeEnd}
+        />
+      )}
     </div>
   );
 });
@@ -65,6 +82,9 @@ interface TableHeaderProps {
   someSelected: boolean;
   onSelectAll: (checked: boolean) => void;
   stickyOffset?: string;
+  onResizeStart?: (columnId: string, clientX: number) => void;
+  onResizeMove?: (clientX: number) => void;
+  onResizeEnd?: (finalClientX?: number) => void;
 }
 
 export const TableHeader = memo(function TableHeader({
@@ -74,6 +94,9 @@ export const TableHeader = memo(function TableHeader({
   someSelected,
   onSelectAll,
   stickyOffset = "0",
+  onResizeStart,
+  onResizeMove,
+  onResizeEnd,
 }: TableHeaderProps) {
   const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
 
@@ -103,8 +126,15 @@ export const TableHeader = memo(function TableHeader({
         }}
       >
         <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-          {columns.map((column) => (
-            <SortableColumnHeader key={column.id} column={column} />
+          {columns.map((column, index) => (
+            <SortableColumnHeader 
+              key={column.id} 
+              column={column}
+              showResizeHandle={index < columns.length - 1}
+              onResizeStart={onResizeStart}
+              onResizeMove={onResizeMove}
+              onResizeEnd={onResizeEnd}
+            />
           ))}
         </SortableContext>
       </div>

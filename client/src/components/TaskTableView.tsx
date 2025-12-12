@@ -19,6 +19,7 @@ import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { TableHeader, type Column } from "@/components/table/TableHeader";
 import { TableBulkActions } from "@/components/table/TableBulkActions";
 import { TaskTableRow } from "@/components/table/TaskTableRow";
+import { useColumnResize } from "@/hooks/useColumnResize";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -55,7 +56,13 @@ export const TaskTableView = memo(function TaskTableView({
   onAddTask,
   onReorderTasks,
 }: TaskTableViewProps) {
-  const [columns, setColumns] = useState<Column[]>(DEFAULT_COLUMNS);
+  const { 
+    columns, 
+    setColumns, 
+    handleResizeStart, 
+    handleResizeMove, 
+    handleResizeEnd 
+  } = useColumnResize(DEFAULT_COLUMNS);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
@@ -198,6 +205,9 @@ export const TaskTableView = memo(function TaskTableView({
             someSelected={someSelected}
             onSelectAll={handleSelectAll}
             stickyOffset={hasSelection ? "40px" : "0"}
+            onResizeStart={handleResizeStart}
+            onResizeMove={handleResizeMove}
+            onResizeEnd={handleResizeEnd}
           />
           
           {tasks.length === 0 ? (
