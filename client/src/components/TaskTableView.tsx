@@ -52,12 +52,12 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(180px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(200px, 1.5fr)" },
   { id: "status", label: "Status", width: "120px" },
   { id: "client", label: "Cliente", width: "minmax(180px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
   { id: "priority", label: "Prioridade", width: "120px" },
-  { id: "assignee", label: "Responsável", width: "minmax(250px, 2fr)" },
+  { id: "assignee", label: "Responsável", width: "minmax(180px, 1fr)" },
 ];
 
 const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
@@ -140,7 +140,7 @@ const PriorityBadgeTable = memo(function PriorityBadgeTable({ priority }: { prio
 });
 
 const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees: string[] }) {
-  if (assignees.length === 0) return <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground">Atribuir</span>;
+  if (assignees.length === 0) return <span className="text-muted-foreground cursor-pointer hover:text-foreground">Atribuir</span>;
   
   const firstAssignee = assignees[0];
   const initials = firstAssignee.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
@@ -151,10 +151,10 @@ const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees
   
   return (
     <div className="flex items-center gap-2 cursor-pointer">
-      <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+      <div className="w-7 h-7 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
         {initials}
       </div>
-      <span className="text-sm text-muted-foreground truncate">{shortName}</span>
+      <span className="text-foreground truncate">{shortName}</span>
       {remaining > 0 && (
         <span className="text-xs text-muted-foreground">+{remaining}</span>
       )}
