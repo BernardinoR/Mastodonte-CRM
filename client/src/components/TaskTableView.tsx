@@ -31,7 +31,7 @@ import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES } from "@/lib/statusConfig";
 import { PriorityBadge as PriorityBadgeShared, StatusBadge as StatusBadgeShared, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import { DateInput } from "@/components/ui/date-input";
 import { ClientSelector } from "@/components/task-editors";
-import { TaskAssigneesPopover } from "@/components/task-popovers";
+import { TaskAssigneesPopover, TaskStatusPopover, TaskPriorityPopover } from "@/components/task-popovers";
 
 interface TaskTableViewProps {
   tasks: Task[];
@@ -102,41 +102,6 @@ const SortableHeader = memo(function SortableHeader({
       />
       <span>{column.label}</span>
     </div>
-  );
-});
-
-const StatusBadgeTable = memo(function StatusBadgeTable({ status }: { status: TaskStatus }) {
-  const config = STATUS_CONFIG[status];
-  return (
-    <Badge 
-      variant="secondary" 
-      className={cn(
-        "text-xs px-2.5 py-0.5 rounded-xl font-semibold border cursor-pointer",
-        config?.bgColor, 
-        config?.borderColor,
-        config?.textColor
-      )}
-    >
-      {status}
-    </Badge>
-  );
-});
-
-const PriorityBadgeTable = memo(function PriorityBadgeTable({ priority }: { priority?: TaskPriority }) {
-  if (!priority) return <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground">Definir</span>;
-  const config = PRIORITY_CONFIG[priority];
-  return (
-    <Badge 
-      variant="secondary" 
-      className={cn(
-        "text-xs px-2.5 py-0.5 rounded-xl font-semibold border cursor-pointer",
-        config?.bgColor, 
-        config?.borderColor,
-        config?.textColor
-      )}
-    >
-      {priority}
-    </Badge>
   );
 });
 
@@ -253,32 +218,14 @@ const TaskRowContent = memo(function TaskRowContent({
       
       case "status":
         return (
-          <Popover open={openPopover === "status"} onOpenChange={(open) => setOpenPopover(open ? "status" : null)}>
-            <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()}>
-                <StatusBadgeTable status={task.status} />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              className={cn("w-48 p-1", UI_CLASSES.popover)} 
-              side="bottom" 
-              align="start"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <div
-                  key={s}
-                  className={cn(
-                    "px-2 py-1.5 cursor-pointer rounded-md",
-                    task.status === s ? UI_CLASSES.selectedItem : UI_CLASSES.dropdownItem
-                  )}
-                  onClick={() => handleStatusChange(s)}
-                >
-                  <StatusBadgeShared status={s} />
-                </div>
-              ))}
-            </PopoverContent>
-          </Popover>
+          <TaskStatusPopover
+            id={task.id}
+            status={task.status}
+            isOpen={openPopover === "status"}
+            onOpenChange={(open) => setOpenPopover(open ? "status" : null)}
+            onStatusChange={handleStatusChange}
+            onStopPropagation={() => {}}
+          />
         );
       
       case "client":
@@ -339,40 +286,15 @@ const TaskRowContent = memo(function TaskRowContent({
       
       case "priority":
         return (
-          <Popover open={openPopover === "priority"} onOpenChange={(open) => setOpenPopover(open ? "priority" : null)}>
-            <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()}>
-                <PriorityBadgeTable priority={task.priority} />
-              </div>
-            </PopoverTrigger>
-            <PopoverContent 
-              className={cn("w-48 p-1", UI_CLASSES.popover)} 
-              side="bottom" 
-              align="start"
-              onClick={(e) => e.stopPropagation()}
-            >
-              {task.priority && (
-                <div
-                  className={cn("px-2 py-1.5 cursor-pointer rounded-md mb-1", UI_CLASSES.dropdownItem)}
-                  onClick={() => handlePriorityChange("_none")}
-                >
-                  <span className="text-xs text-muted-foreground">Remover prioridade</span>
-                </div>
-              )}
-              {PRIORITY_OPTIONS.map((p) => (
-                <div
-                  key={p}
-                  className={cn(
-                    "px-2 py-1.5 cursor-pointer rounded-md",
-                    task.priority === p ? UI_CLASSES.selectedItem : UI_CLASSES.dropdownItem
-                  )}
-                  onClick={() => handlePriorityChange(p)}
-                >
-                  <PriorityBadgeShared priority={p} />
-                </div>
-              ))}
-            </PopoverContent>
-          </Popover>
+          <TaskPriorityPopover
+            id={task.id}
+            priority={task.priority}
+            isEditing={true}
+            isOpen={openPopover === "priority"}
+            onOpenChange={(open) => setOpenPopover(open ? "priority" : null)}
+            onPriorityChange={handlePriorityChange}
+            onStopPropagation={() => {}}
+          />
         );
       
       case "assignee":
