@@ -5,6 +5,7 @@ import { DragPreview } from "@/components/DragPreview";
 import { FilterBar } from "@/components/FilterBar";
 import { TurboModeOverlay } from "@/components/TurboModeOverlay";
 import { TurboSummaryModal } from "@/components/TurboSummaryModal";
+import { TaskTableView } from "@/components/TaskTableView";
 import { Button } from "@/components/ui/button";
 import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
@@ -65,6 +66,7 @@ export default function Tasks() {
     availableAssignees,
     availableClients,
     resetFilters,
+    filteredTasks,
     todoTasks,
     inProgressTasks,
     doneTasks,
@@ -487,10 +489,10 @@ export default function Tasks() {
       />
 
       {viewMode === "table" ? (
-        <div className="flex flex-col items-center justify-center py-20 text-center">
-          <div className="text-gray-400 text-lg mb-2">Visualização em tabela</div>
-          <div className="text-gray-500 text-sm">Em breve disponível</div>
-        </div>
+        <TaskTableView 
+          tasks={filteredTasks}
+          onTaskClick={(task) => setDetailTaskId(task.id)}
+        />
       ) : (
       <DndContext 
         sensors={sensors} 
