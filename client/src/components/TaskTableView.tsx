@@ -53,12 +53,12 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(100px, 1fr)" },
-  { id: "status", label: "Status", width: "120px" },
-  { id: "client", label: "Cliente", width: "minmax(100px, 1fr)" },
-  { id: "dueDate", label: "Data", width: "110px" },
-  { id: "priority", label: "Prioridade", width: "120px" },
-  { id: "assignee", label: "Responsável", width: "minmax(100px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "auto" },
+  { id: "status", label: "Status", width: "auto" },
+  { id: "client", label: "Cliente", width: "auto" },
+  { id: "dueDate", label: "Data", width: "auto" },
+  { id: "priority", label: "Prioridade", width: "auto" },
+  { id: "assignee", label: "Responsável", width: "auto" },
 ];
 
 const CONTROL_COLUMNS_WIDTH = "32px 24px 32px";
