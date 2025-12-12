@@ -110,7 +110,7 @@ interface SortableTaskRowProps {
   columns: Column[];
   isSelected: boolean;
   onTitleClick?: () => void;
-  onSelectChange?: (checked: boolean) => void;
+  onSelectChange?: (checked: boolean, shiftKey: boolean) => void;
   onUpdateTask?: (updates: Partial<Task>) => void;
   onAddTask?: () => void;
   availableAssignees?: string[];
@@ -357,7 +357,10 @@ const TaskRowContent = memo(function TaskRowContent({
         >
           <Checkbox
             checked={isSelected}
-            onCheckedChange={onSelectChange}
+            onCheckedChange={(checked) => {
+              const event = window.event as MouseEvent | undefined;
+              onSelectChange?.(!!checked, event?.shiftKey ?? false);
+            }}
             className={cn(
               "transition-opacity",
               isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
@@ -454,7 +457,28 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, [tasks, onReorderTasks]);
 
-  const handleSelectTask = useCallback((taskId: string, checked: boolean) => {
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
+
+  const handleSelectTask = useCallback((taskId: string, checked: boolean, shiftKey: boolean = false) => {
+    if (shiftKey && lastSelectedId) {
+      // Range selection
+      const lastIndex = tasks.findIndex(t => t.id === lastSelectedId);
+      const currentIndex = tasks.findIndex(t => t.id === taskId);
+      
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rangeIds = tasks.slice(start, end + 1).map(t => t.id);
+        
+        const newSelection = new Set(selectedTaskIds);
+        rangeIds.forEach(id => newSelection.add(id));
+        onSelectionChange?.(newSelection, taskId);
+        setLastSelectedId(taskId);
+        return;
+      }
+    }
+    
+    // Regular selection
     const newSelection = new Set(selectedTaskIds);
     if (checked) {
       newSelection.add(taskId);
@@ -462,7 +486,8 @@ export const TaskTableView = memo(function TaskTableView({
       newSelection.delete(taskId);
     }
     onSelectionChange?.(newSelection, taskId);
-  }, [selectedTaskIds, onSelectionChange]);
+    setLastSelectedId(taskId);
+  }, [selectedTaskIds, onSelectionChange, lastSelectedId, tasks]);
 
   const handleSelectAll = useCallback((checked: boolean) => {
     if (checked) {
@@ -471,6 +496,7 @@ export const TaskTableView = memo(function TaskTableView({
     } else {
       onSelectionChange?.(new Set());
     }
+    setLastSelectedId(null);
   }, [tasks, onSelectionChange]);
 
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
@@ -479,6 +505,7 @@ export const TaskTableView = memo(function TaskTableView({
 
   const handleClearSelection = useCallback(() => {
     onSelectionChange?.(new Set());
+    setLastSelectedId(null);
   }, [onSelectionChange]);
 
   const handleBulkStatusChange = useCallback((status: TaskStatus) => {
@@ -622,7 +649,7 @@ export const TaskTableView = memo(function TaskTableView({
                   columns={columns}
                   isSelected={selectedTaskIds.has(task.id)}
                   onTitleClick={() => onTaskClick?.(task)}
-                  onSelectChange={(checked) => handleSelectTask(task.id, checked as boolean)}
+                  onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
                   onAddTask={onAddTask}
                   availableAssignees={availableAssignees}
