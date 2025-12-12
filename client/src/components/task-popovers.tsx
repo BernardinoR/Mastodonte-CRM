@@ -300,7 +300,7 @@ interface TaskClientPopoverProps {
   onClientChange: (client: string) => void;
   onStopPropagation?: () => void;
   onNavigate?: (clientName: string) => void;
-  variant?: "card" | "modal";
+  variant?: "card" | "modal" | "table";
 }
 
 export const TaskClientPopover = memo(function TaskClientPopover({
@@ -338,8 +338,75 @@ export const TaskClientPopover = memo(function TaskClientPopover({
   }, [onClientChange]);
 
   const isModal = variant === "modal";
+  const isTable = variant === "table";
 
-  if (!clientName && !isEditing) return null;
+  if (!clientName && !isEditing && !isTable) return null;
+
+  // Table variant: compact click-to-navigate + hover-to-edit
+  if (isTable) {
+    return (
+      <div className="flex items-center gap-1 group">
+        {clientName ? (
+          <>
+            <span 
+              className="text-sm text-muted-foreground hover:text-primary hover:underline cursor-pointer line-clamp-2"
+              onClick={handleNavigate}
+              data-testid={`text-client-${id}`}
+            >
+              {clientName}
+            </span>
+            <Popover open={isOpen} onOpenChange={onOpenChange}>
+              <PopoverTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                  onClick={handleClick}
+                  data-testid={`button-edit-client-${id}`}
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className={cn("w-80 p-0", UI_CLASSES.popover)}
+                side="bottom" 
+                align="start" 
+                sideOffset={6}
+              >
+                <ClientSelector 
+                  selectedClient={clientName}
+                  onSelect={handleClientSelect}
+                />
+              </PopoverContent>
+            </Popover>
+          </>
+        ) : (
+          <Popover open={isOpen} onOpenChange={onOpenChange}>
+            <PopoverTrigger asChild>
+              <span 
+                className="text-sm text-muted-foreground hover:text-foreground cursor-pointer"
+                onClick={handleClick}
+                data-testid={`text-client-${id}`}
+              >
+                Selecionar
+              </span>
+            </PopoverTrigger>
+            <PopoverContent 
+              className={cn("w-80 p-0", UI_CLASSES.popover)}
+              side="bottom" 
+              align="start" 
+              sideOffset={6}
+            >
+              <ClientSelector 
+                selectedClient={null}
+                onSelect={handleClientSelect}
+              />
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={cn(
