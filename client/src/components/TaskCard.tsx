@@ -407,7 +407,7 @@ export const TaskCard = memo(function TaskCard({
                   }
                 }}
                 className={cn(
-                  "font-bold text-xs md:text-sm flex-1 leading-tight",
+                  "font-bold text-[10px] md:text-xs flex-1 leading-tight",
                   isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
                   isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
                   isEditing && status === "Done" && "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
@@ -452,7 +452,7 @@ export const TaskCard = memo(function TaskCard({
               {isCompact && !isEditing && (
                 <div className="flex items-start justify-between gap-2 mb-0.5">
                   <div
-                    className="font-bold text-xs md:text-sm flex-1 leading-none"
+                    className="font-bold text-[10px] md:text-xs flex-1 leading-none"
                     data-testid={`text-tasktitle-${id}`}
                   >
                     {title}
@@ -470,7 +470,7 @@ export const TaskCard = memo(function TaskCard({
               )}
               
               {/* Linha 2: Data - Always clickable */}
-              <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
+              <div className="flex items-center text-[9px] md:text-[10px] font-semibold text-foreground">
                 <TaskDatePopover
                   id={id}
                   dateValue={editedTask.dueDate}
@@ -521,7 +521,7 @@ export const TaskCard = memo(function TaskCard({
               {/* Responsáveis - Hidden in compact mode unless editing */}
               {(!isCompact || isEditing) && (
               <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
-                <div className={cn("text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
+                <div className={cn("text-[9px] md:text-[10px] font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
                   Responsáveis
                 </div>
                 
