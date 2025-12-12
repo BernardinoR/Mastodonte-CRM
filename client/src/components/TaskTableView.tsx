@@ -34,9 +34,9 @@ interface TaskTableViewProps {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(100px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(75px, 1fr)" },
   { id: "status", label: "Status", width: "120px" },
-  { id: "client", label: "Cliente", width: "minmax(100px, 1fr)" },
+  { id: "client", label: "Cliente", width: "minmax(75px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
   { id: "priority", label: "Prioridade", width: "120px" },
   { id: "assignee", label: "Responsável", width: "minmax(100px, 1fr)" },
