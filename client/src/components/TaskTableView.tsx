@@ -80,15 +80,15 @@ const SortableHeader = memo(function SortableHeader({
       style={style}
       className={cn(
         "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
-        "text-[#a8a8b3]",
-        isDragging && "opacity-50 bg-[#29292e] rounded"
+        "text-muted-foreground",
+        isDragging && "opacity-50 bg-muted rounded"
       )}
       data-testid={`header-column-${column.id}`}
       {...attributes}
       {...listeners}
     >
       <GripVertical 
-        className="w-3 h-3 text-[#a8a8b3]/50 hover:text-[#a8a8b3]" 
+        className="w-3 h-3 text-muted-foreground/50 hover:text-muted-foreground" 
         data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
@@ -114,7 +114,7 @@ const StatusBadgeTable = memo(function StatusBadgeTable({ status }: { status: Ta
 });
 
 const PriorityBadgeTable = memo(function PriorityBadgeTable({ priority }: { priority?: TaskPriority }) {
-  if (!priority) return <span className="text-[#a8a8b3] text-sm cursor-pointer hover:text-[#e1e1e6]">Definir</span>;
+  if (!priority) return <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground">Definir</span>;
   const config = PRIORITY_CONFIG[priority];
   return (
     <Badge 
@@ -132,7 +132,7 @@ const PriorityBadgeTable = memo(function PriorityBadgeTable({ priority }: { prio
 });
 
 const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees: string[] }) {
-  if (assignees.length === 0) return <span className="text-[#a8a8b3] text-sm cursor-pointer hover:text-[#e1e1e6]">Atribuir</span>;
+  if (assignees.length === 0) return <span className="text-muted-foreground text-sm cursor-pointer hover:text-foreground">Atribuir</span>;
   
   const firstAssignee = assignees[0];
   const initials = firstAssignee.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
@@ -143,12 +143,12 @@ const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees
   
   return (
     <div className="flex items-center gap-2 cursor-pointer">
-      <div className="w-6 h-6 rounded-full bg-[#64635E] flex items-center justify-center text-[10px] font-bold text-white shrink-0">
+      <div className="w-6 h-6 rounded-full bg-slate-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0">
         {initials}
       </div>
-      <span className="text-sm text-[#a8a8b3] truncate">{shortName}</span>
+      <span className="text-sm text-muted-foreground truncate">{shortName}</span>
       {remaining > 0 && (
-        <span className="text-xs text-[#a8a8b3]">+{remaining}</span>
+        <span className="text-xs text-muted-foreground">+{remaining}</span>
       )}
     </div>
   );
@@ -215,7 +215,7 @@ const TaskRow = memo(function TaskRow({
       case "title":
         return (
           <span 
-            className="text-sm font-medium text-[#e1e1e6] truncate hover:text-primary hover:underline cursor-pointer"
+            className="text-sm font-medium text-foreground truncate hover:text-primary hover:underline cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
               onTitleClick?.();
@@ -262,9 +262,9 @@ const TaskRow = memo(function TaskRow({
             <PopoverTrigger asChild>
               <div onClick={(e) => e.stopPropagation()} className="cursor-pointer">
                 {task.clientName ? (
-                  <span className="text-sm text-[#a8a8b3] truncate hover:text-[#e1e1e6]">{task.clientName}</span>
+                  <span className="text-sm text-muted-foreground truncate hover:text-foreground">{task.clientName}</span>
                 ) : (
-                  <span className="text-[#a8a8b3] text-sm hover:text-[#e1e1e6]">Selecionar</span>
+                  <span className="text-muted-foreground text-sm hover:text-foreground">Selecionar</span>
                 )}
               </div>
             </PopoverTrigger>
@@ -286,9 +286,9 @@ const TaskRow = memo(function TaskRow({
         return (
           <Popover open={openPopover === "dueDate"} onOpenChange={(open) => setOpenPopover(open ? "dueDate" : null)}>
             <PopoverTrigger asChild>
-              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 cursor-pointer hover:text-[#e1e1e6]">
-                <CalendarIcon className="w-3.5 h-3.5 text-[#a8a8b3]" />
-                <span className="text-sm text-[#a8a8b3]">
+              <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+                <CalendarIcon className="w-3.5 h-3.5" />
+                <span className="text-sm">
                   {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
                 </span>
               </div>
@@ -331,7 +331,7 @@ const TaskRow = memo(function TaskRow({
                   className={cn("px-2 py-1.5 cursor-pointer rounded-md mb-1", UI_CLASSES.dropdownItem)}
                   onClick={() => handlePriorityChange("_none")}
                 >
-                  <span className="text-xs text-[#a8a8b3]">Remover prioridade</span>
+                  <span className="text-xs text-muted-foreground">Remover prioridade</span>
                 </div>
               )}
               {PRIORITY_OPTIONS.map((p) => (
@@ -381,8 +381,8 @@ const TaskRow = memo(function TaskRow({
   return (
     <div 
       className={cn(
-        "grid border-b border-[#323238] group transition-colors duration-200",
-        "hover:bg-[#29292e]"
+        "grid border-b border-border group transition-colors duration-200",
+        "hover:bg-muted/50"
       )}
       style={{
         gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
@@ -473,7 +473,7 @@ export const TaskTableView = memo(function TaskTableView({
   const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
 
   return (
-    <div className="flex-1 overflow-auto bg-[#121214]" data-testid="table-view-container">
+    <div className="flex-1 overflow-auto" data-testid="table-view-container">
       <div className="min-w-max">
         <DndContext 
           sensors={sensors} 
@@ -481,7 +481,7 @@ export const TaskTableView = memo(function TaskTableView({
           onDragEnd={handleDragEnd}
         >
           <div 
-            className="grid border-b border-[#323238] bg-[#121214] sticky top-0 z-10 group"
+            className="grid border-b border-border bg-background sticky top-0 z-10 group"
             style={{
               gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
             }}
@@ -506,7 +506,7 @@ export const TaskTableView = memo(function TaskTableView({
         </DndContext>
         
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-[#a8a8b3]" data-testid="text-empty-table">
+          <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
             Nenhuma tarefa encontrada
           </div>
         ) : (
