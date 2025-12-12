@@ -493,9 +493,11 @@ export default function Tasks() {
         <TaskTableView 
           tasks={filteredTasks}
           selectedTaskIds={selectedTaskIds}
-          onTaskClick={(task) => setDetailTaskId(task.id)}
-          onTaskFieldClick={(task) => setDetailTaskId(task.id)}
+          onTaskClick={(task: Task) => setDetailTaskId(task.id)}
+          onUpdateTask={handleUpdateTask}
           onSelectionChange={applySelection}
+          availableAssignees={availableAssignees}
+          availableClients={availableClients}
         />
       ) : (
       <DndContext 

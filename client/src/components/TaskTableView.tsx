@@ -29,8 +29,10 @@ interface TaskTableViewProps {
   tasks: Task[];
   selectedTaskIds: Set<string>;
   onTaskClick?: (task: Task) => void;
-  onTaskFieldClick?: (task: Task, field: string) => void;
+  onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
+  availableAssignees?: string[];
+  availableClients?: string[];
 }
 
 interface Column {
@@ -72,16 +74,16 @@ const SortableHeader = memo(function SortableHeader({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide select-none",
+        "flex items-center gap-1.5 px-4 py-3 text-xs font-semibold uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
         "text-[#a8a8b3]",
         isDragging && "opacity-50 bg-[#29292e] rounded"
       )}
       data-testid={`header-column-${column.id}`}
       {...attributes}
+      {...listeners}
     >
       <GripVertical 
-        className="w-3 h-3 cursor-grab active:cursor-grabbing text-[#a8a8b3]/50 hover:text-[#a8a8b3]" 
-        {...listeners}
+        className="w-3 h-3 text-[#a8a8b3]/50 hover:text-[#a8a8b3]" 
         data-testid={`drag-handle-${column.id}`}
       />
       <span>{column.label}</span>
@@ -152,14 +154,14 @@ const TaskRow = memo(function TaskRow({
   columns,
   isSelected,
   onTitleClick,
-  onFieldClick,
+  onRowClick,
   onSelectChange,
 }: { 
   task: Task; 
   columns: Column[];
   isSelected: boolean;
   onTitleClick?: () => void;
-  onFieldClick?: (field: string) => void;
+  onRowClick?: () => void;
   onSelectChange?: (checked: boolean) => void;
 }) {
   const renderCell = (columnId: string) => {
@@ -203,15 +205,19 @@ const TaskRow = memo(function TaskRow({
   return (
     <div 
       className={cn(
-        "grid border-b border-[#323238] group transition-colors duration-200",
+        "grid border-b border-[#323238] group transition-colors duration-200 cursor-pointer",
         "hover:bg-[#29292e]"
       )}
       style={{
         gridTemplateColumns: `40px ${columns.map(c => c.width).join(" ")}`,
       }}
+      onClick={onRowClick}
       data-testid={`row-task-${task.id}`}
     >
-      <div className="px-3 py-4 flex items-center justify-center">
+      <div 
+        className="px-3 py-4 flex items-center justify-center"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Checkbox
           checked={isSelected}
           onCheckedChange={onSelectChange}
@@ -225,14 +231,8 @@ const TaskRow = memo(function TaskRow({
       {columns.map((column) => (
         <div 
           key={column.id} 
-          className={cn(
-            "px-4 py-4 flex items-center",
-            column.id !== "title" && "cursor-pointer"
-          )}
-          onClick={column.id !== "title" ? (e) => {
-            e.stopPropagation();
-            onFieldClick?.(column.id);
-          } : undefined}
+          className="px-4 py-4 flex items-center"
+          onClick={column.id === "title" ? (e) => e.stopPropagation() : undefined}
         >
           {renderCell(column.id)}
         </div>
@@ -245,9 +245,12 @@ export const TaskTableView = memo(function TaskTableView({
   tasks,
   selectedTaskIds,
   onTaskClick,
-  onTaskFieldClick,
+  onUpdateTask,
   onSelectionChange,
+  availableAssignees = [],
+  availableClients = [],
 }: TaskTableViewProps) {
+  const [editingCell, setEditingCell] = useState<{taskId: string; field: string} | null>(null);
   const [columns, setColumns] = useState<Column[]>(DEFAULT_COLUMNS);
 
   const sensors = useSensors(
@@ -343,7 +346,7 @@ export const TaskTableView = memo(function TaskTableView({
               columns={columns}
               isSelected={selectedTaskIds.has(task.id)}
               onTitleClick={() => onTaskClick?.(task)}
-              onFieldClick={(field) => onTaskFieldClick?.(task, field)}
+              onRowClick={() => onTaskClick?.(task)}
               onSelectChange={(checked) => handleSelectTask(task.id, checked as boolean)}
             />
           ))
