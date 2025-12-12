@@ -82,6 +82,7 @@ export default function Tasks() {
   // Use the task selection hook for multi-select with Shift+click
   const {
     selectedTaskIds,
+    applySelection,
     clearSelection,
     handleSelectTask,
   } = useTaskSelection({ tasks, getTasksByStatus });
@@ -491,7 +492,10 @@ export default function Tasks() {
       {viewMode === "table" ? (
         <TaskTableView 
           tasks={filteredTasks}
+          selectedTaskIds={selectedTaskIds}
           onTaskClick={(task) => setDetailTaskId(task.id)}
+          onTaskFieldClick={(task) => setDetailTaskId(task.id)}
+          onSelectionChange={applySelection}
         />
       ) : (
       <DndContext 

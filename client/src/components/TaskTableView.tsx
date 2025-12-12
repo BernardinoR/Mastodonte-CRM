@@ -18,15 +18,19 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, FileText, User } from "lucide-react";
+import { GripVertical, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG } from "@/lib/statusConfig";
 
 interface TaskTableViewProps {
   tasks: Task[];
+  selectedTaskIds: Set<string>;
   onTaskClick?: (task: Task) => void;
+  onTaskFieldClick?: (task: Task, field: string) => void;
+  onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
 }
 
 interface Column {
@@ -132,20 +136,32 @@ const AssigneeDisplay = memo(function AssigneeDisplay({ assignees }: { assignees
 const TaskRow = memo(function TaskRow({ 
   task, 
   columns,
-  onClick 
+  isSelected,
+  onTitleClick,
+  onFieldClick,
+  onSelectChange,
 }: { 
   task: Task; 
   columns: Column[];
-  onClick?: () => void;
+  isSelected: boolean;
+  onTitleClick?: () => void;
+  onFieldClick?: (field: string) => void;
+  onSelectChange?: (checked: boolean) => void;
 }) {
   const renderCell = (columnId: string) => {
     switch (columnId) {
       case "title":
         return (
-          <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
-            <span className="text-sm text-foreground truncate">{task.title}</span>
-          </div>
+          <span 
+            className="text-sm text-foreground truncate hover:text-primary hover:underline cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onTitleClick?.();
+            }}
+            data-testid={`text-task-title-${task.id}`}
+          >
+            {task.title}
+          </span>
         );
       case "status":
         return <StatusBadge status={task.status} />;
@@ -175,17 +191,34 @@ const TaskRow = memo(function TaskRow({
 
   return (
     <div 
-      className="grid border-b border-border/50 hover-elevate cursor-pointer"
+      className="grid border-b border-border/50 hover-elevate group"
       style={{
-        gridTemplateColumns: columns.map(c => c.width).join(" "),
+        gridTemplateColumns: `36px ${columns.map(c => c.width).join(" ")}`,
       }}
-      onClick={onClick}
       data-testid={`row-task-${task.id}`}
     >
+      <div className="px-2 py-2.5 flex items-center justify-center">
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={onSelectChange}
+          className={cn(
+            "transition-opacity",
+            isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+          )}
+          data-testid={`checkbox-task-${task.id}`}
+        />
+      </div>
       {columns.map((column) => (
         <div 
           key={column.id} 
-          className="px-3 py-2.5 flex items-center"
+          className={cn(
+            "px-3 py-2.5 flex items-center",
+            column.id !== "title" && "cursor-pointer hover:bg-accent/30"
+          )}
+          onClick={column.id !== "title" ? (e) => {
+            e.stopPropagation();
+            onFieldClick?.(column.id);
+          } : undefined}
         >
           {renderCell(column.id)}
         </div>
@@ -196,7 +229,10 @@ const TaskRow = memo(function TaskRow({
 
 export const TaskTableView = memo(function TaskTableView({ 
   tasks,
-  onTaskClick 
+  selectedTaskIds,
+  onTaskClick,
+  onTaskFieldClick,
+  onSelectionChange,
 }: TaskTableViewProps) {
   const [columns, setColumns] = useState<Column[]>(DEFAULT_COLUMNS);
 
@@ -224,6 +260,29 @@ export const TaskTableView = memo(function TaskTableView({
     }
   };
 
+  const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
+  const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const newSelection = new Set(tasks.map(t => t.id));
+      const lastId = tasks.length > 0 ? tasks[tasks.length - 1].id : undefined;
+      onSelectionChange?.(newSelection, lastId);
+    } else {
+      onSelectionChange?.(new Set(), undefined);
+    }
+  };
+
+  const handleSelectTask = (taskId: string, checked: boolean) => {
+    const newSelection = new Set(selectedTaskIds);
+    if (checked) {
+      newSelection.add(taskId);
+    } else {
+      newSelection.delete(taskId);
+    }
+    onSelectionChange?.(newSelection, taskId);
+  };
+
   return (
     <div className="w-full bg-card border border-border rounded-lg overflow-hidden" data-testid="table-tasks">
       <DndContext
@@ -232,12 +291,23 @@ export const TaskTableView = memo(function TaskTableView({
         onDragEnd={handleDragEnd}
       >
         <div 
-          className="grid bg-muted/30 border-b border-border"
+          className="grid bg-muted/30 border-b border-border group"
           style={{
-            gridTemplateColumns: columns.map(c => c.width).join(" "),
+            gridTemplateColumns: `36px ${columns.map(c => c.width).join(" ")}`,
           }}
           data-testid="table-header"
         >
+          <div className="px-2 py-2 flex items-center justify-center">
+            <Checkbox
+              checked={allSelected ? true : someSelected ? "indeterminate" : false}
+              onCheckedChange={handleSelectAll}
+              className={cn(
+                "transition-opacity",
+                allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              )}
+              data-testid="checkbox-select-all"
+            />
+          </div>
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
             {columns.map((column) => (
               <SortableHeader key={column.id} column={column} />
@@ -257,7 +327,10 @@ export const TaskTableView = memo(function TaskTableView({
               key={task.id} 
               task={task} 
               columns={columns}
-              onClick={() => onTaskClick?.(task)}
+              isSelected={selectedTaskIds.has(task.id)}
+              onTitleClick={() => onTaskClick?.(task)}
+              onFieldClick={(field) => onTaskFieldClick?.(task, field)}
+              onSelectChange={(checked) => handleSelectTask(task.id, checked as boolean)}
             />
           ))
         )}

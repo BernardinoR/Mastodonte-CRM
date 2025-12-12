@@ -77,11 +77,21 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
     return selectedTaskIds.has(taskId);
   }, [selectedTaskIds]);
 
+  // Apply selection with optional lastId update (for table view checkboxes)
+  const applySelection = useCallback((newIds: Set<string>, lastId?: string) => {
+    setSelectedTaskIds(newIds);
+    if (lastId !== undefined) {
+      setLastSelectedId(lastId);
+    }
+  }, []);
+
   const selectedCount = selectedTaskIds.size;
   const selectedTasks = tasks.filter(t => selectedTaskIds.has(t.id));
 
   return {
     selectedTaskIds,
+    setSelectedTaskIds,
+    applySelection,
     selectedCount,
     selectedTasks,
     handleSelectTask,
