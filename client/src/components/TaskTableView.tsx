@@ -53,9 +53,9 @@ interface Column {
 }
 
 const DEFAULT_COLUMNS: Column[] = [
-  { id: "title", label: "Tarefa", width: "minmax(150px, 1fr)" },
+  { id: "title", label: "Tarefa", width: "minmax(120px, 1fr)" },
   { id: "status", label: "Status", width: "120px" },
-  { id: "client", label: "Cliente", width: "minmax(180px, 1fr)" },
+  { id: "client", label: "Cliente", width: "minmax(120px, 1fr)" },
   { id: "dueDate", label: "Data", width: "110px" },
   { id: "priority", label: "Prioridade", width: "120px" },
   { id: "assignee", label: "Responsável", width: "minmax(180px, 1fr)" },
@@ -234,7 +234,7 @@ const TaskRowContent = memo(function TaskRowContent({
             <PopoverTrigger asChild>
               <div onClick={(e) => e.stopPropagation()} className="cursor-pointer">
                 {task.clientName ? (
-                  <span className="text-sm text-muted-foreground hover:text-foreground">{task.clientName}</span>
+                  <span className="text-sm text-muted-foreground hover:text-foreground line-clamp-2">{task.clientName}</span>
                 ) : (
                   <span className="text-muted-foreground text-sm hover:text-foreground">Selecionar</span>
                 )}
