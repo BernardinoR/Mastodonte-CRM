@@ -26,7 +26,7 @@ interface TaskTableViewProps {
   selectedTaskIds: Set<string>;
   onTaskClick?: (task: Task) => void;
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
-  onBulkUpdate?: (taskIds: string[], updates: Partial<Task>) => void;
+  onBulkUpdate?: (updates: Partial<Task>) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTask?: () => void;
   onReorderTasks?: (tasks: Task[]) => void;
@@ -159,31 +159,31 @@ export const TaskTableView = memo(function TaskTableView({
   // Bulk action handlers
   const handleBulkStatusChange = useCallback((status: TaskStatus) => {
     if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate(Array.from(selectedTaskIds), { status });
+      onBulkUpdate({ status });
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkPriorityChange = useCallback((priority: TaskPriority | "_none") => {
     if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate(Array.from(selectedTaskIds), { priority: priority === "_none" ? undefined : priority });
+      onBulkUpdate({ priority: priority === "_none" ? undefined : priority });
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkDateChange = useCallback((date: Date | undefined) => {
     if (selectedTaskIds.size > 0 && onBulkUpdate && date) {
-      onBulkUpdate(Array.from(selectedTaskIds), { dueDate: date });
+      onBulkUpdate({ dueDate: date });
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkClientChange = useCallback((clientName: string | undefined) => {
     if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate(Array.from(selectedTaskIds), { clientName });
+      onBulkUpdate({ clientName });
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
   const handleBulkAssigneesChange = useCallback((assignees: string[]) => {
     if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate(Array.from(selectedTaskIds), { assignees });
+      onBulkUpdate({ assignees });
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
