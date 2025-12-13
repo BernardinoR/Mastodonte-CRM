@@ -2,11 +2,12 @@ import { memo, useState, useCallback } from "react";
 import { CalendarIcon, X, Users, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
-import { DateInput } from "@/components/ui/date-input";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
+import { ptBR } from "date-fns/locale";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TableBulkActionsProps {
@@ -136,10 +137,13 @@ export const TableBulkActions = memo(function TableBulkActions({
               Data
             </Button>
           </PopoverTrigger>
-          <PopoverContent className={cn("w-auto p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
-            <DateInput
-              value=""
-              onChange={handleDateSelect}
+          <PopoverContent className={cn("w-auto p-3 z-[60]", UI_CLASSES.popover)} side="top" align="start">
+            <Calendar
+              mode="single"
+              selected={undefined}
+              onSelect={handleDateSelect}
+              locale={ptBR}
+              className="rounded-md"
             />
           </PopoverContent>
         </Popover>
