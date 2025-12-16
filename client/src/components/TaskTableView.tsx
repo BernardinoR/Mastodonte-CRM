@@ -28,6 +28,7 @@ interface TaskTableViewProps {
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
   onBulkUpdate?: (updates: Partial<Task>) => void;
   onBulkAddAssignee?: (assignee: string) => void;
+  onBulkRemoveAssignee?: (assignee: string) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTask?: () => void;
   onReorderTasks?: (tasks: Task[]) => void;
@@ -54,6 +55,7 @@ export const TaskTableView = memo(function TaskTableView({
   onUpdateTask,
   onBulkUpdate,
   onBulkAddAssignee,
+  onBulkRemoveAssignee,
   onSelectionChange,
   onAddTask,
   onReorderTasks,
@@ -183,6 +185,16 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
+  // Compute union of all assignees from selected tasks (shows everyone assigned to at least one task)
+  const selectedAssignees = useMemo(() => {
+    const assigneeSet = new Set<string>();
+    tasks.forEach(task => {
+      if (selectedTaskIds.has(task.id) && task.assignees) {
+        task.assignees.forEach(a => assigneeSet.add(a));
+      }
+    });
+    return Array.from(assigneeSet);
+  }, [tasks, selectedTaskIds]);
 
   // Computed values
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
@@ -194,11 +206,13 @@ export const TaskTableView = memo(function TaskTableView({
       {hasSelection && (
         <TableBulkActions
           selectedCount={selectedTaskIds.size}
+          selectedAssignees={selectedAssignees}
           onStatusChange={handleBulkStatusChange}
           onPriorityChange={handleBulkPriorityChange}
           onDateChange={handleBulkDateChange}
           onClientChange={handleBulkClientChange}
           onAddAssignee={(assignee) => onBulkAddAssignee?.(assignee)}
+          onRemoveAssignee={(assignee) => onBulkRemoveAssignee?.(assignee)}
           onClearSelection={handleClearSelection}
         />
       )}

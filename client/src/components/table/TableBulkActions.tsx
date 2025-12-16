@@ -12,21 +12,25 @@ import type { TaskStatus, TaskPriority } from "@/types/task";
 
 interface TableBulkActionsProps {
   selectedCount: number;
+  selectedAssignees: string[];
   onStatusChange: (status: TaskStatus) => void;
   onPriorityChange: (priority: TaskPriority | "_none") => void;
   onDateChange: (date: Date | undefined) => void;
   onClientChange: (clientName: string | undefined) => void;
   onAddAssignee: (assignee: string) => void;
+  onRemoveAssignee: (assignee: string) => void;
   onClearSelection: () => void;
 }
 
 export const TableBulkActions = memo(function TableBulkActions({
   selectedCount,
+  selectedAssignees,
   onStatusChange,
   onPriorityChange,
   onDateChange,
   onClientChange,
   onAddAssignee,
+  onRemoveAssignee,
   onClearSelection,
 }: TableBulkActionsProps) {
   const [statusOpen, setStatusOpen] = useState(false);
@@ -180,9 +184,9 @@ export const TableBulkActions = memo(function TableBulkActions({
           </PopoverTrigger>
           <PopoverContent className={cn("w-64 p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
             <AssigneeSelector
-              selectedAssignees={[]}
+              selectedAssignees={selectedAssignees}
               onSelect={onAddAssignee}
-              onRemove={() => {}}
+              onRemove={onRemoveAssignee}
             />
           </PopoverContent>
         </Popover>
