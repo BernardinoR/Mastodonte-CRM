@@ -1,5 +1,5 @@
-import { memo, useState, useCallback } from "react";
-import { CalendarIcon, X, Users, Building2 } from "lucide-react";
+import { memo, useState, useCallback, useEffect } from "react";
+import { CalendarIcon, X, Users, Building2, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,6 +34,13 @@ export const TableBulkActions = memo(function TableBulkActions({
   const [dateOpen, setDateOpen] = useState(false);
   const [clientOpen, setClientOpen] = useState(false);
   const [assigneesOpen, setAssigneesOpen] = useState(false);
+  const [bulkAssignees, setBulkAssignees] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!assigneesOpen) {
+      setBulkAssignees([]);
+    }
+  }, [assigneesOpen]);
 
   const handleStatusSelect = useCallback((status: TaskStatus) => {
     onStatusChange(status);
@@ -55,9 +62,20 @@ export const TableBulkActions = memo(function TableBulkActions({
     setClientOpen(false);
   }, [onClientChange]);
 
-  const handleAssigneeAdd = useCallback((assignee: string) => {
-    onAssigneesChange([assignee]);
-  }, [onAssigneesChange]);
+  const handleBulkAssigneeAdd = useCallback((assignee: string) => {
+    setBulkAssignees(prev => prev.includes(assignee) ? prev : [...prev, assignee]);
+  }, []);
+
+  const handleBulkAssigneeRemove = useCallback((assignee: string) => {
+    setBulkAssignees(prev => prev.filter(a => a !== assignee));
+  }, []);
+
+  const handleApplyAssignees = useCallback(() => {
+    if (bulkAssignees.length > 0) {
+      onAssigneesChange(bulkAssignees);
+    }
+    setAssigneesOpen(false);
+  }, [bulkAssignees, onAssigneesChange]);
 
   return (
     <div 
@@ -183,11 +201,25 @@ export const TableBulkActions = memo(function TableBulkActions({
             </Button>
           </PopoverTrigger>
           <PopoverContent className={cn("w-64 p-0 z-[60]", UI_CLASSES.popover)} side="top" align="start">
-            <AssigneeSelector
-              selectedAssignees={[]}
-              onSelect={handleAssigneeAdd}
-              onRemove={() => {}}
-            />
+            <div className="flex flex-col">
+              <AssigneeSelector
+                selectedAssignees={bulkAssignees}
+                onSelect={handleBulkAssigneeAdd}
+                onRemove={handleBulkAssigneeRemove}
+              />
+              <div className="px-3 py-2 border-t border-border">
+                <Button
+                  size="sm"
+                  className="w-full"
+                  onClick={handleApplyAssignees}
+                  disabled={bulkAssignees.length === 0}
+                  data-testid="button-apply-assignees"
+                >
+                  <Check className="w-3.5 h-3.5 mr-1.5" />
+                  Aplicar ({bulkAssignees.length})
+                </Button>
+              </div>
+            </div>
           </PopoverContent>
         </Popover>
       </div>
