@@ -496,6 +496,7 @@ export default function Tasks() {
           onTaskClick={(task: Task) => setDetailTaskId(task.id)}
           onUpdateTask={handleUpdateTask}
           onBulkUpdate={handleBulkUpdate}
+          onBulkAddAssignee={handleBulkAddAssignee}
           onSelectionChange={applySelection}
           onAddTask={() => setNewTaskOpen(true)}
           onReorderTasks={(reorderedTasks) => setTasks(reorderedTasks)}

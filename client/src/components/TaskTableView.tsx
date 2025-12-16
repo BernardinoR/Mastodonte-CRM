@@ -27,6 +27,7 @@ interface TaskTableViewProps {
   onTaskClick?: (task: Task) => void;
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
   onBulkUpdate?: (updates: Partial<Task>) => void;
+  onBulkAddAssignee?: (assignee: string) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTask?: () => void;
   onReorderTasks?: (tasks: Task[]) => void;
@@ -52,6 +53,7 @@ export const TaskTableView = memo(function TaskTableView({
   onTaskClick,
   onUpdateTask,
   onBulkUpdate,
+  onBulkAddAssignee,
   onSelectionChange,
   onAddTask,
   onReorderTasks,
@@ -181,11 +183,6 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, [selectedTaskIds, onBulkUpdate]);
 
-  const handleBulkAssigneesChange = useCallback((assignees: string[]) => {
-    if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate({ assignees });
-    }
-  }, [selectedTaskIds, onBulkUpdate]);
 
   // Computed values
   const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
@@ -201,7 +198,7 @@ export const TaskTableView = memo(function TaskTableView({
           onPriorityChange={handleBulkPriorityChange}
           onDateChange={handleBulkDateChange}
           onClientChange={handleBulkClientChange}
-          onAssigneesChange={handleBulkAssigneesChange}
+          onAddAssignee={(assignee) => onBulkAddAssignee?.(assignee)}
           onClearSelection={handleClearSelection}
         />
       )}
