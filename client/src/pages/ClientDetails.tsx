@@ -64,8 +64,17 @@ interface Meeting {
   consultant: string;
 }
 
+interface WhatsAppGroup {
+  id: string;
+  name: string;
+  purpose: string;
+  link: string | null;
+  createdAt: Date;
+  status: "Ativo" | "Inativo";
+}
 
-const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[] }> = {
+
+const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[]; whatsappGroups: WhatsAppGroup[] }> = {
   "1": {
     client: {
       id: "1",
@@ -90,6 +99,9 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
     meetings: [
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-25'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-20'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    whatsappGroups: [
+      { id: "1", name: "Alessandro | Mastodonte", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/abc123", createdAt: new Date('2023-06-15'), status: "Ativo" },
     ],
   },
   "2": {
@@ -118,6 +130,12 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
       { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
     ],
+    whatsappGroups: [
+      { id: "1", name: "Ademar | Mastodonte & Bradesco", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/def456", createdAt: new Date('2022-12-15'), status: "Ativo" },
+      { id: "2", name: "Ademar | Grieger Holding", purpose: "Assuntos da empresa e holding familiar", link: "https://chat.whatsapp.com/ghi789", createdAt: new Date('2024-03-08'), status: "Ativo" },
+      { id: "3", name: "Ademar & Cláudia | Família", purpose: "Planejamento sucessório com esposa", link: "https://chat.whatsapp.com/jkl012", createdAt: new Date('2025-09-22'), status: "Ativo" },
+      { id: "4", name: "Ademar | Antiga XP", purpose: "Migração de antiga corretora (arquivado)", link: null, createdAt: new Date('2022-10-12'), status: "Inativo" },
+    ],
   },
   "3": {
     client: {
@@ -144,6 +162,9 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-10-28'), consultant: "Rafael Bernardino Silveira" },
     ],
+    whatsappGroups: [
+      { id: "1", name: "Fernanda | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/mno345", createdAt: new Date('2023-03-20'), status: "Ativo" },
+    ],
   },
   "4": {
     client: {
@@ -169,6 +190,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
     meetings: [
       { id: "1", name: "Reunião Inicial", type: "Onboarding", status: "Realizada", date: new Date('2025-10-30'), consultant: "Rafael Bernardino Silveira" },
     ],
+    whatsappGroups: [],
   },
   "5": {
     client: {
@@ -195,6 +217,10 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-18'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Reunião de Estratégia", type: "Especial", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
     ],
+    whatsappGroups: [
+      { id: "1", name: "Israel | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/pqr678", createdAt: new Date('2022-02-15'), status: "Ativo" },
+      { id: "2", name: "Israel | Investimentos", purpose: "Discussões sobre carteira", link: "https://chat.whatsapp.com/stu901", createdAt: new Date('2023-06-10'), status: "Ativo" },
+    ],
   },
   "6": {
     client: {
@@ -220,6 +246,9 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
     meetings: [
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    whatsappGroups: [
+      { id: "1", name: "Marcia | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/vwx234", createdAt: new Date('2022-08-25'), status: "Ativo" },
     ],
   },
 };
@@ -427,6 +456,69 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
   );
 }
 
+function WhatsAppGroupsTable({ groups, clientName }: { groups: WhatsAppGroup[]; clientName: string }) {
+  const statusColors: Record<string, string> = {
+    "Ativo": "bg-[#203828] text-[#6ecf8e]",
+    "Inativo": "bg-[#333333] text-[#a0a0a0]",
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[#333333]">
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome do Grupo</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Finalidade</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Link</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Data Criação</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((group) => (
+            <tr key={group.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors">
+              <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                {group.name}
+              </td>
+              <td className="py-3 px-4 text-foreground">{group.purpose}</td>
+              <td className="py-3 px-4">
+                {group.link ? (
+                  <a 
+                    href={group.link} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-[#2eaadc] hover:underline flex items-center gap-1"
+                    data-testid={`link-whatsapp-group-${group.id}`}
+                  >
+                    Abrir grupo
+                  </a>
+                ) : (
+                  <span className="text-muted-foreground">Arquivado</span>
+                )}
+              </td>
+              <td className="py-3 px-4 text-foreground">
+                {format(group.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+              </td>
+              <td className="py-3 px-4">
+                <Badge className={`${statusColors[group.status]} text-xs`}>
+                  {group.status}
+                </Badge>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div 
+        className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+        data-testid="button-add-whatsapp-group"
+      >
+        + Adicionar grupo
+      </div>
+    </div>
+  );
+}
+
 export default function ClientDetails() {
   const params = useParams<{ id: string }>();
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
@@ -435,7 +527,7 @@ export default function ClientDetails() {
   
   const clientId = params.id || "1";
   const clientData = MOCK_CLIENTS_DATA[clientId] || MOCK_CLIENTS_DATA["1"];
-  const { client, stats, meetings } = clientData;
+  const { client, stats, meetings, whatsappGroups } = clientData;
   
   const clientTasks = getTasksByClient(client.name);
 
@@ -578,10 +670,29 @@ export default function ClientDetails() {
       </div>
 
       {/* Oportunidades, Método, Linha do Tempo, Erros, Pipeline (desabilitados) */}
-      <div className="space-y-4">
+      <div className="space-y-4 mb-8">
         {DISABLED_SECTIONS_BOTTOM.map((section) => (
           <DisabledSection key={section.id} section={section} />
         ))}
+      </div>
+
+      {/* Grupos de WhatsApp */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-4 h-4 text-muted-foreground" />
+            <h2 className="text-base font-semibold text-foreground">Grupos de WhatsApp</h2>
+          </div>
+          <span 
+            className="text-sm text-[#2eaadc] hover:underline cursor-pointer"
+            data-testid="button-new-whatsapp-group"
+          >
+            + Novo grupo
+          </span>
+        </div>
+        <Card className="bg-[#202020] border-[#333333] overflow-hidden">
+          <WhatsAppGroupsTable groups={whatsappGroups} clientName={client.name} />
+        </Card>
       </div>
 
       <NewMeetingDialog
