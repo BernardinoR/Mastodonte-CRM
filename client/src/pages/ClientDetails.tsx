@@ -13,10 +13,7 @@ import {
   BarChart3, 
   Clock, 
   ArrowLeft,
-  ChevronRight,
-  TrendingUp,
   CheckCircle2,
-  Users,
   Lock,
   AlertCircle,
   Lightbulb,
@@ -58,18 +55,20 @@ interface StatCard {
 
 interface Meeting {
   id: string;
-  date: Date;
+  name: string;
   type: string;
-  notes: string;
+  status: "Agendada" | "Realizada" | "Cancelada";
+  date: Date;
+  consultant: string;
 }
 
 interface Task {
   id: string;
   title: string;
   status: "To Do" | "In Progress" | "Done";
-  priority: "Urgente" | "Alta" | "Normal" | "Baixa";
+  priority: "Urgente" | "Importante" | "Normal" | "Baixa";
   dueDate: Date;
-  assignees: string[];
+  responsible: string;
 }
 
 const MOCK_CLIENT: ClientData = {
@@ -95,15 +94,15 @@ const MOCK_STATS: StatCard[] = [
 ];
 
 const MOCK_MEETINGS: Meeting[] = [
-  { id: "1", date: new Date('2025-11-22'), type: "Reunião Mensal", notes: "Política de investimento" },
-  { id: "2", date: new Date('2025-10-15'), type: "Follow-up", notes: "Acompanhamento carteira" },
-  { id: "3", date: new Date('2025-09-10'), type: "Reunião Mensal", notes: "Revisão de metas" },
+  { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), consultant: "Rafael Bernardino Silveira" },
+  { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
+  { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
 ];
 
 const MOCK_TASKS: Task[] = [
-  { id: "1", title: "Revisar carteira de ações", status: "To Do", priority: "Normal", dueDate: new Date('2025-01-25'), assignees: ["Rafael Bernardino Silveira"] },
-  { id: "2", title: "Enviar relatório mensal", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-22'), assignees: ["Rafael Bernardino Silveira", "Maria Santos"] },
-  { id: "3", title: "Atualizar perfil de risco", status: "To Do", priority: "Alta", dueDate: new Date('2025-01-30'), assignees: ["Rafael Bernardino Silveira"] },
+  { id: "1", title: "Preparar relatório anual 2025", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-20'), responsible: "Rafael Bernardino Silveira" },
+  { id: "2", title: "Preparar apresentação de FIIs", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
+  { id: "3", title: "Ademar plan fin", status: "Done", priority: "Importante", dueDate: new Date('2025-11-19'), responsible: "Rafael Bernardino Silveira" },
 ];
 
 const DISABLED_SECTIONS = [
@@ -171,58 +170,122 @@ function DisabledSection({ section }: { section: typeof DISABLED_SECTIONS[0] }) 
   );
 }
 
-function MeetingRow({ meeting }: { meeting: Meeting }) {
+function MeetingsTable({ meetings, onNewMeeting }: { meetings: Meeting[]; onNewMeeting: () => void }) {
+  const typeColors: Record<string, string> = {
+    "Mensal": "bg-[#203828] text-[#6ecf8e]",
+    "Follow-up": "bg-[#422c24] text-[#dcb092]",
+    "Especial": "bg-[#38273f] text-[#d09cdb]",
+  };
+  
+  const statusColors: Record<string, string> = {
+    "Agendada": "bg-[#1c3847] text-[#6db1d4]",
+    "Realizada": "bg-[#203828] text-[#6ecf8e]",
+    "Cancelada": "bg-[#3d2626] text-[#e07a7a]",
+  };
+
   return (
-    <div className="flex items-center gap-4 p-3 hover:bg-[#2c2c2c] rounded-lg transition-colors cursor-pointer">
-      <div className="w-10 h-10 rounded-lg bg-[#1c3847] flex items-center justify-center">
-        <Calendar className="w-5 h-5 text-[#6db1d4]" />
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[#333333]">
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome da Reunião</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Data</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Consultor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {meetings.map((meeting) => (
+            <tr key={meeting.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors cursor-pointer">
+              <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
+                <FileText className="w-4 h-4 text-muted-foreground" />
+                {meeting.name}
+              </td>
+              <td className="py-3 px-4">
+                <Badge className={`${typeColors[meeting.type] || "bg-[#333333] text-[#a0a0a0]"} text-xs`}>
+                  {meeting.type}
+                </Badge>
+              </td>
+              <td className="py-3 px-4">
+                <Badge className={`${statusColors[meeting.status]} text-xs`}>
+                  {meeting.status}
+                </Badge>
+              </td>
+              <td className="py-3 px-4 text-foreground">
+                {format(meeting.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              </td>
+              <td className="py-3 px-4 text-foreground">{meeting.consultant}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div 
+        className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+        onClick={onNewMeeting}
+        data-testid="button-add-meeting-table"
+      >
+        + Agendar nova reunião
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground">{meeting.type}</div>
-        <div className="text-xs text-muted-foreground truncate">{meeting.notes}</div>
-      </div>
-      <div className="text-xs text-muted-foreground">
-        {format(meeting.date, "dd/MM/yyyy", { locale: ptBR })}
-      </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
     </div>
   );
 }
 
-function TaskRow({ task }: { task: Task }) {
-  const statusColors = {
-    "To Do": "bg-[#1c3847] text-[#6db1d4]",
-    "In Progress": "bg-[#4a4528] text-[#e6d96e]",
+function TasksTable({ tasks, onNewTask }: { tasks: Task[]; onNewTask: () => void }) {
+  const statusColors: Record<string, string> = {
+    "To Do": "bg-[#333333] text-[#a0a0a0]",
+    "In Progress": "bg-[#4d331f] text-[#e6b07a]",
     "Done": "bg-[#203828] text-[#6ecf8e]",
   };
   
-  const priorityColors = {
+  const priorityColors: Record<string, string> = {
     "Urgente": "bg-[#3d2626] text-[#e07a7a]",
-    "Alta": "bg-[#4d331f] text-[#e6b07a]",
+    "Importante": "bg-[#38273f] text-[#d09cdb]",
     "Normal": "bg-[#333333] text-[#a0a0a0]",
     "Baixa": "bg-[#1c3847] text-[#6db1d4]",
   };
 
   return (
-    <div className="flex items-center gap-4 p-3 hover:bg-[#2c2c2c] rounded-lg transition-colors cursor-pointer">
-      <div className="w-10 h-10 rounded-lg bg-[#38273f] flex items-center justify-center">
-        <CheckCircle2 className="w-5 h-5 text-[#d09cdb]" />
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-[#333333]">
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tarefa</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Prioridade</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Prazo</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Responsável</th>
+          </tr>
+        </thead>
+        <tbody>
+          {tasks.map((task) => (
+            <tr key={task.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors cursor-pointer">
+              <td className="py-3 px-4 text-foreground font-medium">{task.title}</td>
+              <td className="py-3 px-4">
+                <Badge className={`${statusColors[task.status]} text-xs`}>
+                  {task.status}
+                </Badge>
+              </td>
+              <td className="py-3 px-4">
+                <Badge className={`${priorityColors[task.priority]} text-xs`}>
+                  {task.priority}
+                </Badge>
+              </td>
+              <td className="py-3 px-4 text-foreground">
+                {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
+              </td>
+              <td className="py-3 px-4 text-foreground">{task.responsible}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <div 
+        className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+        onClick={onNewTask}
+        data-testid="button-add-task-table"
+      >
+        + Nova tarefa
       </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-foreground">{task.title}</div>
-        <div className="flex items-center gap-2 mt-1">
-          <Badge className={`${statusColors[task.status]} text-xs px-2 py-0`}>
-            {task.status}
-          </Badge>
-          <Badge className={`${priorityColors[task.priority]} text-xs px-2 py-0`}>
-            {task.priority}
-          </Badge>
-        </div>
-      </div>
-      <div className="text-xs text-muted-foreground">
-        {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
-      </div>
-      <ChevronRight className="w-4 h-4 text-muted-foreground" />
     </div>
   );
 }
@@ -270,7 +333,7 @@ export default function ClientDetails() {
               <MetaItem icon={IdCard} label="CPF" value={client.cpf} />
               <MetaItem icon={Phone} label="Telefone" value={client.phone} />
               <MetaItem icon={Mail} label="Email" value={client.email} />
-              <MetaItem icon={User} label="Advisor" value={client.advisor} />
+              <MetaItem icon={User} label="Consultor" value={client.advisor} />
               <MetaItem icon={Calendar} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
               <MetaItem icon={DollarSign} label="AUM" value={client.aum} highlight />
               <MetaItem icon={BarChart3} label="Perfil de Risco" value={client.riskProfile} />
@@ -338,42 +401,36 @@ export default function ClientDetails() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-[#202020] border-[#333333]">
-          <div className="flex items-center justify-between p-4 border-b border-[#333333]">
+      <div className="space-y-8">
+        <div>
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Calendar className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-base font-semibold text-foreground">Reuniões Recentes</h2>
+              <h2 className="text-base font-semibold text-foreground">Reuniões</h2>
             </div>
-            <Link href="/meetings" className="text-xs text-[#2eaadc] hover:underline flex items-center gap-1">
-              Ver todas
-              <ChevronRight className="w-3 h-3" />
+            <Link href="/meetings" className="text-sm text-[#2eaadc] hover:underline flex items-center gap-1">
+              Ver todas →
             </Link>
           </div>
-          <div className="p-2">
-            {MOCK_MEETINGS.map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
-            ))}
-          </div>
-        </Card>
+          <Card className="bg-[#202020] border-[#333333] overflow-hidden">
+            <MeetingsTable meetings={MOCK_MEETINGS} onNewMeeting={() => setNewMeetingOpen(true)} />
+          </Card>
+        </div>
 
-        <Card className="bg-[#202020] border-[#333333]">
-          <div className="flex items-center justify-between p-4 border-b border-[#333333]">
+        <div>
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-muted-foreground" />
-              <h2 className="text-base font-semibold text-foreground">Tarefas Pendentes</h2>
+              <h2 className="text-base font-semibold text-foreground">Tasks</h2>
             </div>
-            <Link href="/tasks" className="text-xs text-[#2eaadc] hover:underline flex items-center gap-1">
-              Ver todas
-              <ChevronRight className="w-3 h-3" />
+            <Link href="/tasks" className="text-sm text-[#2eaadc] hover:underline flex items-center gap-1">
+              Ver todas →
             </Link>
           </div>
-          <div className="p-2">
-            {MOCK_TASKS.map((task) => (
-              <TaskRow key={task.id} task={task} />
-            ))}
-          </div>
-        </Card>
+          <Card className="bg-[#202020] border-[#333333] overflow-hidden">
+            <TasksTable tasks={MOCK_TASKS} onNewTask={() => setNewTaskOpen(true)} />
+          </Card>
+        </div>
       </div>
 
       <NewMeetingDialog
