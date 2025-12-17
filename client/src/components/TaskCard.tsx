@@ -1,25 +1,7 @@
-import { useState, useRef, useMemo, memo, useCallback, useEffect } from "react";
+import { useState, useRef, memo, useCallback, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DateInput } from "@/components/ui/date-input";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import {
   Popover,
   PopoverContent,
@@ -29,22 +11,15 @@ import {
   ContextMenu,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
-import { AssigneeList, getInitials } from "@/components/ui/task-assignees";
+import { AssigneeList } from "@/components/ui/task-assignees";
 import {
-  CalendarIcon,
   Pencil,
   Trash2,
   Check,
-  Plus,
-  Search,
-  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/lib/date-utils";
 import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { AssigneeSelector } from "@/components/task-editors";
@@ -54,6 +29,7 @@ import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
 import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
+import { TaskCardQuickDetails } from "@/components/task-card/TaskCardQuickDetails";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 
 export interface TaskCardProps {
@@ -228,7 +204,6 @@ export const TaskCard = memo(function TaskCard({
   
   const [showDetails, setShowDetails] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [newNote, setNewNote] = useState("");
   
   const [showReplaceTitleDialog, setShowReplaceTitleDialog] = useState(false);
   const [showAppendTitleDialog, setShowAppendTitleDialog] = useState(false);
@@ -237,11 +212,17 @@ export const TaskCard = memo(function TaskCard({
   const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
   
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
+  const prevEditStateRef = useRef<boolean | null>(null);
 
   // Notify parent when editing state changes (for disabling drag during edit)
   useEffect(() => {
     const isCurrentlyEditing = isEditing || activePopover !== null;
-    onEditStateChange?.(isCurrentlyEditing);
+    
+    // Only notify if state actually changed to prevent loops
+    if (prevEditStateRef.current !== isCurrentlyEditing) {
+      prevEditStateRef.current = isCurrentlyEditing;
+      onEditStateChange?.(isCurrentlyEditing);
+    }
   }, [isEditing, activePopover, onEditStateChange]);
 
   const onReplaceTitleSubmit = useCallback(() => {
@@ -267,15 +248,6 @@ export const TaskCard = memo(function TaskCard({
     onDelete(id);
     setShowDeleteConfirm(false);
   }, [onDelete, id]);
-
-  const handleAddNote = useCallback(() => {
-    if (newNote.trim()) {
-      onUpdate(id, {
-        notes: [...(notes || []), newNote],
-      });
-      setNewNote("");
-    }
-  }, [newNote, onUpdate, id, notes]);
 
   const handleCardClick = useCallback((e: React.MouseEvent) => {
     if (clickTimeoutRef.current) {
@@ -581,71 +553,16 @@ export const TaskCard = memo(function TaskCard({
           onDelete={handleContextDelete}
         />
       </ContextMenu>
-      <Dialog open={showDetails} onOpenChange={setShowDetails}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
-          <DialogHeader className="space-y-0 pb-4">
-            <DialogTitle>{title}</DialogTitle>
-            <Button
-              size="icon"
-              variant="ghost"
-              onClick={() => setShowDeleteConfirm(true)}
-              className="absolute right-4 top-4 text-destructive hover:text-destructive hover:bg-destructive/10"
-              data-testid={`button-modal-delete-${id}`}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            <div className="border-t pt-6">
-              <label className="text-sm font-medium mb-3 block">Descrição</label>
-              <Textarea
-                value={editedTask.description}
-                onChange={(e) => {
-                  setEditedTask({ ...editedTask, description: e.target.value });
-                  onUpdate(id, { description: e.target.value });
-                }}
-                placeholder="Adicione detalhes sobre esta tarefa..."
-                className="min-h-[100px] hover-elevate"
-                data-testid={`textarea-description-${id}`}
-              />
-            </div>
-
-            <div className="border-t pt-6">
-              <h3 className="text-sm font-medium mb-3">Histórico / Notas</h3>
-              {notes && notes.length > 0 ? (
-                <div className="space-y-2 mb-4">
-                  {notes.map((note, index) => (
-                    <div key={index} className="p-3 bg-muted rounded-lg text-sm">
-                      {note}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground mb-4">Nenhuma nota ainda.</p>
-              )}
-              <div className="flex gap-2">
-                <Input
-                  value={newNote}
-                  onChange={(e) => setNewNote(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && !e.shiftKey) {
-                      e.preventDefault();
-                      handleAddNote();
-                    }
-                  }}
-                  placeholder="Adicionar nota..."
-                  className="flex-1"
-                  data-testid={`input-note-${id}`}
-                />
-                <Button onClick={handleAddNote} data-testid={`button-addnote-${id}`}>
-                  Adicionar
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <TaskCardQuickDetails
+        id={id}
+        title={title}
+        description={editedTask.description}
+        notes={notes}
+        open={showDetails}
+        onOpenChange={setShowDetails}
+        onUpdate={onUpdate}
+        onDelete={() => setShowDeleteConfirm(true)}
+      />
       <TaskCardDialogs
         id={id}
         dueDate={dueDate}

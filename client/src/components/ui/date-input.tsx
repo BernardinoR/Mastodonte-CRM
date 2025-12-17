@@ -35,14 +35,21 @@ export function DateInput({
   const [isInvalid, setIsInvalid] = React.useState(false);
   const [displayMonth, setDisplayMonth] = React.useState<Date>(new Date());
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const prevValueRef = React.useRef<string | null>(null);
 
   // Initialize input value and display month from prop
   React.useEffect(() => {
     const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
     
     if (dateValue && isValid(dateValue)) {
-      setInputValue(format(dateValue, "dd/MM/yyyy", { locale: ptBR }));
-      setDisplayMonth(dateValue);
+      const formatted = format(dateValue, "dd/MM/yyyy", { locale: ptBR });
+      
+      // Only update if value actually changed to prevent infinite loops
+      if (prevValueRef.current !== formatted) {
+        prevValueRef.current = formatted;
+        setInputValue(formatted);
+        setDisplayMonth(dateValue);
+      }
     }
   }, [value]);
 

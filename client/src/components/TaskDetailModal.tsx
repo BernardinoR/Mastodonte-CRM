@@ -74,11 +74,24 @@ export function TaskDetailModal({
   
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const prevTaskRef = useRef<{ id: string; title: string; description: string } | null>(null);
 
   useEffect(() => {
     if (task) {
-      setDescription(task.description || "");
-      setTitleValue(task.title || "");
+      const newDesc = task.description || "";
+      const newTitle = task.title || "";
+      
+      // Only update if values actually changed to prevent infinite loops
+      if (
+        !prevTaskRef.current ||
+        prevTaskRef.current.id !== task.id ||
+        prevTaskRef.current.title !== newTitle ||
+        prevTaskRef.current.description !== newDesc
+      ) {
+        prevTaskRef.current = { id: task.id, title: newTitle, description: newDesc };
+        setDescription(newDesc);
+        setTitleValue(newTitle);
+      }
     }
   }, [task]);
 
