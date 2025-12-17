@@ -24,13 +24,15 @@ import { useColumnResize } from "@/hooks/useColumnResize";
 interface TaskTableViewProps {
   tasks: Task[];
   selectedTaskIds: Set<string>;
+  editingTaskId?: string | null;
   onTaskClick?: (task: Task) => void;
   onUpdateTask?: (taskId: string, updates: Partial<Task>) => void;
   onBulkUpdate?: (updates: Partial<Task>) => void;
   onBulkAddAssignee?: (assignee: string) => void;
   onBulkRemoveAssignee?: (assignee: string) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
-  onAddTask?: () => void;
+  onAddTaskAfter?: (afterTaskId: string) => void;
+  onFinishEditing?: (taskId: string) => void;
   onReorderTasks?: (tasks: Task[]) => void;
   availableAssignees?: string[];
   availableClients?: string[];
@@ -51,13 +53,15 @@ const HEADER_CONTROL_WIDTH = "88px";
 export const TaskTableView = memo(function TaskTableView({ 
   tasks,
   selectedTaskIds,
+  editingTaskId,
   onTaskClick,
   onUpdateTask,
   onBulkUpdate,
   onBulkAddAssignee,
   onBulkRemoveAssignee,
   onSelectionChange,
-  onAddTask,
+  onAddTaskAfter,
+  onFinishEditing,
   onReorderTasks,
 }: TaskTableViewProps) {
   const { 
@@ -248,10 +252,12 @@ export const TaskTableView = memo(function TaskTableView({
                   columns={columns}
                   controlColumnsWidth={CONTROL_COLUMNS_WIDTH}
                   isSelected={selectedTaskIds.has(task.id)}
+                  isEditing={editingTaskId === task.id}
                   onTitleClick={() => onTaskClick?.(task)}
                   onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
-                  onAddTask={onAddTask}
+                  onAddTaskAfter={() => onAddTaskAfter?.(task.id)}
+                  onFinishEditing={() => onFinishEditing?.(task.id)}
                 />
               ))}
             </SortableContext>

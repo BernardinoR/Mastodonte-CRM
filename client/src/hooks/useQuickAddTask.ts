@@ -11,6 +11,7 @@ interface UseQuickAddTaskProps {
 interface UseQuickAddTaskReturn {
   handleQuickAdd: (status: TaskStatus) => void;
   handleQuickAddTop: (status: TaskStatus) => void;
+  handleQuickAddAfter: (afterTaskId: string) => void;
 }
 
 function generateUniqueId(existingIds: Set<string>): string {
@@ -95,5 +96,37 @@ export function useQuickAddTask({
     onSetEditingTaskId(newTask.id);
   }, [tasks, onAddTask, onSetEditingTaskId]);
 
-  return { handleQuickAdd, handleQuickAddTop };
+  const handleQuickAddAfter = useCallback((afterTaskId: string) => {
+    const existingIds = new Set(tasks.map(t => t.id));
+    const newId = generateUniqueId(existingIds);
+    
+    const afterTask = tasks.find(t => t.id === afterTaskId);
+    if (!afterTask) return;
+    
+    const defaultAssignee = MOCK_USERS[0]?.name || "";
+    
+    const createdEvent: TaskHistoryEvent = {
+      id: `h-${newId}-created`,
+      type: "created",
+      content: "Tarefa criada",
+      author: defaultAssignee || "Sistema",
+      timestamp: new Date(),
+    };
+    
+    const newTask: Task = {
+      id: newId,
+      title: "",
+      status: afterTask.status,
+      assignees: defaultAssignee ? [defaultAssignee] : [],
+      dueDate: new Date(),
+      order: afterTask.order + 0.5,
+      notes: [],
+      history: [createdEvent],
+    };
+    
+    onAddTask(newTask);
+    onSetEditingTaskId(newTask.id);
+  }, [tasks, onAddTask, onSetEditingTaskId]);
+
+  return { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter };
 }

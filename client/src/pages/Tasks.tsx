@@ -300,7 +300,7 @@ export default function Tasks() {
   }, [setTasksWithHistory]);
 
   // Use the quick add task hook
-  const { handleQuickAdd, handleQuickAddTop } = useQuickAddTask({
+  const { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter } = useQuickAddTask({
     tasks,
     onAddTask: handleAddNewTask,
     onSetEditingTaskId: setEditingTaskId,
@@ -493,13 +493,15 @@ export default function Tasks() {
         <TaskTableView 
           tasks={filteredTasks}
           selectedTaskIds={selectedTaskIds}
+          editingTaskId={editingTaskId}
           onTaskClick={(task: Task) => setDetailTaskId(task.id)}
           onUpdateTask={handleUpdateTask}
           onBulkUpdate={handleBulkUpdate}
           onBulkAddAssignee={handleBulkAddAssignee}
           onBulkRemoveAssignee={handleBulkRemoveAssignee}
           onSelectionChange={applySelection}
-          onAddTask={() => setNewTaskOpen(true)}
+          onAddTaskAfter={handleQuickAddAfter}
+          onFinishEditing={handleFinishEditing}
           onReorderTasks={(reorderedTasks) => setTasks(reorderedTasks)}
           availableAssignees={availableAssignees}
           availableClients={availableClients}

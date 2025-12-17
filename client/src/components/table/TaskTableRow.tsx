@@ -1,4 +1,4 @@
-import { memo, useCallback, useRef } from "react";
+import { memo, useCallback, useRef, useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,11 +19,13 @@ interface TaskTableRowProps {
   task: Task;
   columns: Column[];
   isSelected: boolean;
+  isEditing?: boolean;
   controlColumnsWidth: number;
   onTitleClick?: () => void;
   onSelectChange?: (checked: boolean, shiftKey: boolean) => void;
   onUpdateTask?: (updates: Partial<Task>) => void;
-  onAddTask?: () => void;
+  onAddTaskAfter?: () => void;
+  onFinishEditing?: () => void;
 }
 
 export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps) {
@@ -64,11 +66,13 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   task, 
   columns,
   isSelected,
+  isEditing = false,
   controlColumnsWidth,
   onTitleClick,
   onSelectChange,
   onUpdateTask,
-  onAddTask,
+  onAddTaskAfter,
+  onFinishEditing,
   dragListeners,
   dragAttributes,
   isDragging,
@@ -76,6 +80,42 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   const [, navigate] = useLocation();
   const { openPopover, handleOpenChange, closeAll } = usePopoverState();
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+  const [editingTitle, setEditingTitle] = useState(task.title);
+
+  // Focus title input when entering edit mode
+  useEffect(() => {
+    if (isEditing && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditing]);
+
+  // Sync local title with task title when it changes externally
+  useEffect(() => {
+    setEditingTitle(task.title);
+  }, [task.title]);
+
+  const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (editingTitle.trim()) {
+        onUpdateTask?.({ title: editingTitle.trim() });
+      }
+      onFinishEditing?.();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      setEditingTitle(task.title);
+      onFinishEditing?.();
+    }
+  }, [editingTitle, task.title, onUpdateTask, onFinishEditing]);
+
+  const handleTitleBlur = useCallback(() => {
+    if (editingTitle.trim()) {
+      onUpdateTask?.({ title: editingTitle.trim() });
+    }
+    onFinishEditing?.();
+  }, [editingTitle, onUpdateTask, onFinishEditing]);
 
   const handleStatusChange = useCallback((status: TaskStatus) => {
     onUpdateTask?.({ status });
@@ -112,6 +152,21 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   const renderCell = (columnId: string) => {
     switch (columnId) {
       case "title":
+        if (isEditing) {
+          return (
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onKeyDown={handleTitleKeyDown}
+              onBlur={handleTitleBlur}
+              className="w-full text-sm font-normal text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary rounded px-1 py-0.5"
+              placeholder="Nome da tarefa..."
+              data-testid={`input-task-title-${task.id}`}
+            />
+          );
+        }
         return (
           <span 
             className="text-sm font-normal text-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
@@ -121,7 +176,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             }}
             data-testid={`text-task-title-${task.id}`}
           >
-            {task.title}
+            {task.title || <span className="text-muted-foreground italic">Sem título</span>}
           </span>
         );
       
@@ -233,7 +288,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
           onClick={(e) => e.stopPropagation()}
         >
           <button
-            onClick={onAddTask}
+            onClick={onAddTaskAfter}
             className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
             data-testid={`button-add-task-${task.id}`}
           >
