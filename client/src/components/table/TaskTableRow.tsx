@@ -21,7 +21,8 @@ interface TaskTableRowProps {
   isSelected: boolean;
   isEditing?: boolean;
   controlColumnsWidth: number;
-  onTitleClick?: () => void;
+  onRowClick?: () => void;
+  onStartEditing?: () => void;
   onSelectChange?: (checked: boolean, shiftKey: boolean) => void;
   onUpdateTask?: (updates: Partial<Task>) => void;
   onAddTaskAfter?: () => void;
@@ -68,7 +69,8 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   isSelected,
   isEditing = false,
   controlColumnsWidth,
-  onTitleClick,
+  onRowClick,
+  onStartEditing,
   onSelectChange,
   onUpdateTask,
   onAddTaskAfter,
@@ -161,6 +163,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
               onChange={(e) => setEditingTitle(e.target.value)}
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleBlur}
+              onClick={(e) => e.stopPropagation()}
               className="w-full text-sm font-normal text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary rounded px-1 py-0.5"
               placeholder="Nome da tarefa..."
               data-testid={`input-task-title-${task.id}`}
@@ -172,7 +175,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             className="text-sm font-normal text-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
             onClick={(e) => {
               e.stopPropagation();
-              onTitleClick?.();
+              onStartEditing?.();
             }}
             data-testid={`text-task-title-${task.id}`}
           >
@@ -325,13 +328,14 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
       </div>
       <div 
         className={cn(
-          "flex-1 grid border-b border-border transition-colors duration-200",
+          "flex-1 grid border-b border-border transition-colors duration-200 cursor-pointer",
           !isSelected && "hover:bg-muted/50",
           isDragging && "bg-muted"
         )}
         style={{
           gridTemplateColumns: columns.map(c => c.width).join(" "),
         }}
+        onClick={onRowClick}
       >
         {columns.map((column) => (
           <div 

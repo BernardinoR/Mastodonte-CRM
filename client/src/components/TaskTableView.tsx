@@ -32,6 +32,7 @@ interface TaskTableViewProps {
   onBulkRemoveAssignee?: (assignee: string) => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTaskAfter?: (afterTaskId: string) => void;
+  onStartEditing?: (taskId: string) => void;
   onFinishEditing?: (taskId: string) => void;
   onReorderTasks?: (tasks: Task[]) => void;
   availableAssignees?: string[];
@@ -61,6 +62,7 @@ export const TaskTableView = memo(function TaskTableView({
   onBulkRemoveAssignee,
   onSelectionChange,
   onAddTaskAfter,
+  onStartEditing,
   onFinishEditing,
   onReorderTasks,
 }: TaskTableViewProps) {
@@ -253,7 +255,8 @@ export const TaskTableView = memo(function TaskTableView({
                   controlColumnsWidth={CONTROL_COLUMNS_WIDTH}
                   isSelected={selectedTaskIds.has(task.id)}
                   isEditing={editingTaskId === task.id}
-                  onTitleClick={() => onTaskClick?.(task)}
+                  onRowClick={() => onTaskClick?.(task)}
+                  onStartEditing={() => onStartEditing?.(task.id)}
                   onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
                   onAddTaskAfter={() => onAddTaskAfter?.(task.id)}

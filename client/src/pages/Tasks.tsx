@@ -501,6 +501,7 @@ export default function Tasks() {
           onBulkRemoveAssignee={handleBulkRemoveAssignee}
           onSelectionChange={applySelection}
           onAddTaskAfter={handleQuickAddAfter}
+          onStartEditing={(taskId: string) => setEditingTaskId(taskId)}
           onFinishEditing={handleFinishEditing}
           onReorderTasks={(reorderedTasks) => setTasks(reorderedTasks)}
           availableAssignees={availableAssignees}
