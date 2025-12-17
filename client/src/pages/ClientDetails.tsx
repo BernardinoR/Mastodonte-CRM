@@ -71,43 +71,168 @@ interface Task {
   responsible: string;
 }
 
-const MOCK_CLIENT: ClientData = {
-  id: "1",
-  name: "Ademar João Grieger",
-  initials: "AG",
-  cpf: "***.456.789-**",
-  phone: "+55 (47) 99123-4567",
-  email: "ademar.grieger@email.com",
-  advisor: "Rafael Bernardino Silveira",
-  lastMeeting: new Date('2025-11-22'),
-  aum: "R$ 12.450.000,00",
-  riskProfile: "Moderado / Agressivo",
-  clientSince: "Dezembro de 2022",
-  status: "Ativo",
+const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[]; tasks: Task[] }> = {
+  "1": {
+    client: {
+      id: "1",
+      name: "Ademar João Grieger",
+      initials: "AG",
+      cpf: "***.456.789-**",
+      phone: "+55 (47) 99123-4567",
+      email: "ademar.grieger@email.com",
+      advisor: "Rafael Bernardino Silveira",
+      lastMeeting: new Date('2025-11-22'),
+      aum: "R$ 12.450.000,00",
+      riskProfile: "Moderado / Agressivo",
+      clientSince: "Dezembro de 2022",
+      status: "Ativo",
+    },
+    stats: [
+      { value: "R$ 12,4M", label: "AUM Total", change: "↑ +5.2% este mês", changeType: "positive" },
+      { value: "8", label: "Reuniões em 2025", change: "↑ +2 vs 2024", changeType: "positive" },
+      { value: "15", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
+      { value: "3", label: "Indicações", change: "1 convertida", changeType: "neutral" },
+    ],
+    meetings: [
+      { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), consultant: "Rafael Bernardino Silveira" },
+      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
+      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    tasks: [
+      { id: "1", title: "Preparar relatório anual 2025", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-20'), responsible: "Rafael Bernardino Silveira" },
+      { id: "2", title: "Preparar apresentação de FIIs", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
+      { id: "3", title: "Ademar plan fin", status: "Done", priority: "Importante", dueDate: new Date('2025-11-19'), responsible: "Rafael Bernardino Silveira" },
+    ],
+  },
+  "2": {
+    client: {
+      id: "2",
+      name: "Fernanda Carolina De Faria",
+      initials: "FF",
+      cpf: "***.123.456-**",
+      phone: "+55 (11) 99876-5432",
+      email: "fernanda.faria@email.com",
+      advisor: "Rafael Bernardino Silveira",
+      lastMeeting: new Date('2025-11-15'),
+      aum: "R$ 3.200.000,00",
+      riskProfile: "Conservador",
+      clientSince: "Março de 2023",
+      status: "Ativo",
+    },
+    stats: [
+      { value: "R$ 3,2M", label: "AUM Total", change: "↑ +2.1% este mês", changeType: "positive" },
+      { value: "5", label: "Reuniões em 2025", change: "↑ +1 vs 2024", changeType: "positive" },
+      { value: "8", label: "Tasks Concluídas", change: "87% no prazo", changeType: "positive" },
+      { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
+    ],
+    meetings: [
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), consultant: "Rafael Bernardino Silveira" },
+      { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-10-28'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    tasks: [
+      { id: "1", title: "Atualizar plano financeiro", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-15'), responsible: "Rafael Bernardino Silveira" },
+      { id: "2", title: "Revisar alocação de ativos", status: "In Progress", priority: "Normal", dueDate: new Date('2025-12-20'), responsible: "Maria Santos" },
+    ],
+  },
+  "3": {
+    client: {
+      id: "3",
+      name: "Marcos Roberto Neves Monteiro",
+      initials: "MM",
+      cpf: "***.789.012-**",
+      phone: "+55 (21) 98765-4321",
+      email: "marcos.monteiro@email.com",
+      advisor: "Rafael Bernardino Silveira",
+      lastMeeting: new Date('2025-11-08'),
+      aum: "R$ 8.750.000,00",
+      riskProfile: "Agressivo",
+      clientSince: "Janeiro de 2021",
+      status: "Ativo",
+    },
+    stats: [
+      { value: "R$ 8,7M", label: "AUM Total", change: "↑ +8.3% este mês", changeType: "positive" },
+      { value: "12", label: "Reuniões em 2025", change: "↑ +4 vs 2024", changeType: "positive" },
+      { value: "22", label: "Tasks Concluídas", change: "95% no prazo", changeType: "positive" },
+      { value: "5", label: "Indicações", change: "2 convertidas", changeType: "positive" },
+    ],
+    meetings: [
+      { id: "1", name: "Reunião de Estratégia", type: "Especial", status: "Agendada", date: new Date('2025-12-20'), consultant: "Rafael Bernardino Silveira" },
+      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-08'), consultant: "Rafael Bernardino Silveira" },
+      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-10'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    tasks: [
+      { id: "1", title: "Analisar oportunidades em FIIs", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
+      { id: "2", title: "Preparar proposta de realocação", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-22'), responsible: "Rafael Bernardino Silveira" },
+      { id: "3", title: "Enviar relatório trimestral", status: "Done", priority: "Normal", dueDate: new Date('2025-11-30'), responsible: "Maria Santos" },
+    ],
+  },
+  "4": {
+    client: {
+      id: "4",
+      name: "Marcia Mozzato Ciampi De Andrade",
+      initials: "MA",
+      cpf: "***.234.567-**",
+      phone: "+55 (11) 99988-7766",
+      email: "marcia.mozzato@email.com",
+      advisor: "Rafael Bernardino Silveira",
+      lastMeeting: new Date('2025-11-20'),
+      aum: "R$ 5.100.000,00",
+      riskProfile: "Moderado",
+      clientSince: "Agosto de 2022",
+      status: "Ativo",
+    },
+    stats: [
+      { value: "R$ 5,1M", label: "AUM Total", change: "↑ +3.8% este mês", changeType: "positive" },
+      { value: "6", label: "Reuniões em 2025", change: "Igual a 2024", changeType: "neutral" },
+      { value: "11", label: "Tasks Concluídas", change: "91% no prazo", changeType: "positive" },
+      { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
+    ],
+    meetings: [
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), consultant: "Rafael Bernardino Silveira" },
+      { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    tasks: [
+      { id: "1", title: "REALOCAR MARCOS", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
+      { id: "2", title: "Falar com Marcia", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
+      { id: "3", title: "Macter", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
+    ],
+  },
+  "5": {
+    client: {
+      id: "5",
+      name: "Israel Schuster Da Fonseca",
+      initials: "IF",
+      cpf: "***.567.890-**",
+      phone: "+55 (11) 97654-3210",
+      email: "israel.fonseca@email.com",
+      advisor: "Rafael Bernardino Silveira",
+      lastMeeting: new Date('2025-10-25'),
+      aum: "R$ 2.800.000,00",
+      riskProfile: "Conservador / Moderado",
+      clientSince: "Junho de 2024",
+      status: "Ativo",
+    },
+    stats: [
+      { value: "R$ 2,8M", label: "AUM Total", change: "↑ +1.5% este mês", changeType: "positive" },
+      { value: "3", label: "Reuniões em 2025", change: "Novo cliente", changeType: "neutral" },
+      { value: "5", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
+      { value: "0", label: "Indicações", changeType: "neutral" },
+    ],
+    meetings: [
+      { id: "1", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-25'), consultant: "Rafael Bernardino Silveira" },
+    ],
+    tasks: [
+      { id: "1", title: "Receber documentação da Viva", status: "To Do", priority: "Baixa", dueDate: new Date('2025-11-20'), responsible: "Rafael Bernardino Silveira" },
+    ],
+  },
 };
 
-const MOCK_STATS: StatCard[] = [
-  { value: "R$ 12,4M", label: "AUM Total", change: "↑ +5.2% este mês", changeType: "positive" },
-  { value: "8", label: "Reuniões em 2025", change: "↑ +2 vs 2024", changeType: "positive" },
-  { value: "15", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
-  { value: "3", label: "Indicações", change: "1 convertida", changeType: "neutral" },
-];
-
-const MOCK_MEETINGS: Meeting[] = [
-  { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), consultant: "Rafael Bernardino Silveira" },
-  { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
-  { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
-];
-
-const MOCK_TASKS: Task[] = [
-  { id: "1", title: "Preparar relatório anual 2025", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-20'), responsible: "Rafael Bernardino Silveira" },
-  { id: "2", title: "Preparar apresentação de FIIs", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
-  { id: "3", title: "Ademar plan fin", status: "Done", priority: "Importante", dueDate: new Date('2025-11-19'), responsible: "Rafael Bernardino Silveira" },
-];
-
-const DISABLED_SECTIONS = [
+const DISABLED_SECTIONS_TOP = [
   { id: "farol", title: "Farol", icon: AlertCircle, description: "Indicador de acompanhamento do cliente" },
   { id: "guidance", title: "Guidance", icon: Lightbulb, description: "Orientações para próxima reunião" },
+];
+
+const DISABLED_SECTIONS_BOTTOM = [
   { id: "oportunidades", title: "Oportunidades", icon: Target, description: "Oportunidades identificadas" },
   { id: "metodo", title: "Método (Planejamento)", icon: FileText, description: "Planejamento financeiro" },
   { id: "timeline", title: "Linha do Tempo", icon: History, description: "Histórico de interações" },
@@ -147,7 +272,7 @@ function StatCardComponent({ stat }: { stat: StatCard }) {
   );
 }
 
-function DisabledSection({ section }: { section: typeof DISABLED_SECTIONS[0] }) {
+function DisabledSection({ section }: { section: typeof DISABLED_SECTIONS_TOP[0] }) {
   const Icon = section.icon;
   return (
     <Card className="p-6 bg-[#202020] border-[#333333] opacity-60">
@@ -291,11 +416,13 @@ function TasksTable({ tasks, onNewTask }: { tasks: Task[]; onNewTask: () => void
 }
 
 export default function ClientDetails() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   
-  const client = MOCK_CLIENT;
+  const clientId = params.id || "1";
+  const clientData = MOCK_CLIENTS_DATA[clientId] || MOCK_CLIENTS_DATA["1"];
+  const { client, stats, meetings, tasks } = clientData;
 
   const handleWhatsApp = () => {
     const phone = client.phone.replace(/\D/g, "");
@@ -390,18 +517,20 @@ export default function ClientDetails() {
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {MOCK_STATS.map((stat, index) => (
+        {stats.map((stat, index) => (
           <StatCardComponent key={index} stat={stat} />
         ))}
       </div>
 
+      {/* Farol e Guidance (desabilitados) */}
       <div className="space-y-4 mb-8">
-        {DISABLED_SECTIONS.map((section) => (
+        {DISABLED_SECTIONS_TOP.map((section) => (
           <DisabledSection key={section.id} section={section} />
         ))}
       </div>
 
-      <div className="space-y-8">
+      {/* Reuniões e Tasks */}
+      <div className="space-y-8 mb-8">
         <div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
@@ -413,7 +542,7 @@ export default function ClientDetails() {
             </Link>
           </div>
           <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-            <MeetingsTable meetings={MOCK_MEETINGS} onNewMeeting={() => setNewMeetingOpen(true)} />
+            <MeetingsTable meetings={meetings} onNewMeeting={() => setNewMeetingOpen(true)} />
           </Card>
         </div>
 
@@ -428,9 +557,16 @@ export default function ClientDetails() {
             </Link>
           </div>
           <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-            <TasksTable tasks={MOCK_TASKS} onNewTask={() => setNewTaskOpen(true)} />
+            <TasksTable tasks={tasks} onNewTask={() => setNewTaskOpen(true)} />
           </Card>
         </div>
+      </div>
+
+      {/* Oportunidades, Método, Linha do Tempo, Erros, Pipeline (desabilitados) */}
+      <div className="space-y-4">
+        {DISABLED_SECTIONS_BOTTOM.map((section) => (
+          <DisabledSection key={section.id} section={section} />
+        ))}
       </div>
 
       <NewMeetingDialog
