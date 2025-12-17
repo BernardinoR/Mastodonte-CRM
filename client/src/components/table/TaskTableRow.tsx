@@ -13,6 +13,7 @@ import { UI_CLASSES } from "@/lib/statusConfig";
 import { DateInput } from "@/components/ui/date-input";
 import { TaskStatusPopover, TaskPriorityPopover, TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
+import { BulkEditDropdown } from "@/components/table/BulkEditDropdown";
 import { usePopoverState, type PopoverField } from "@/hooks/usePopoverState";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import type { Column } from "./TableHeader";
@@ -96,6 +97,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [editingTitle, setEditingTitle] = useState(task.title);
+  const [bulkDropdownOpen, setBulkDropdownOpen] = useState(false);
 
   // Check if this task is part of a multi-selection
   const isMultiSelected = isSelected && selectedTaskIds && selectedTaskIds.size > 1;
@@ -307,22 +309,23 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   };
 
   const handleContextStatusChange = useCallback((status: TaskStatus) => {
-    onUpdateTask?.({ status });
-  }, [onUpdateTask]);
+    applyUpdate({ status });
+  }, [applyUpdate]);
 
   const handleContextPriorityChange = useCallback((priority: TaskPriority) => {
-    onUpdateTask?.({ priority });
-  }, [onUpdateTask]);
+    applyUpdate({ priority });
+  }, [applyUpdate]);
 
   const handleContextDateChange = useCallback((date: Date) => {
-    onUpdateTask?.({ dueDate: date });
-  }, [onUpdateTask]);
+    applyUpdate({ dueDate: date });
+  }, [applyUpdate]);
 
   const handleContextClientChange = useCallback((client: string) => {
-    onUpdateTask?.({ clientName: client === "_none" ? undefined : client });
-  }, [onUpdateTask]);
+    applyUpdate({ clientName: client === "_none" ? undefined : client });
+  }, [applyUpdate]);
 
   return (
+    <>
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <div 
@@ -385,7 +388,14 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             style={{
               gridTemplateColumns: columns.map(c => c.width).join(" "),
             }}
-            onClick={onRowClick}
+            onClick={(e) => {
+              if (isMultiSelected) {
+                e.stopPropagation();
+                setBulkDropdownOpen(true);
+              } else {
+                onRowClick?.();
+              }
+            }}
           >
             {columns.map((column) => (
               <div 
@@ -399,7 +409,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
         </div>
       </ContextMenuTrigger>
       <TaskCardContextMenu
-        selectedCount={isSelected ? 1 : 0}
+        selectedCount={isSelected && selectedTaskIds ? selectedTaskIds.size : 1}
         currentDate={format(task.dueDate, "yyyy-MM-dd")}
         currentClient={task.clientName || ""}
         currentAssignees={task.assignees || []}
@@ -411,9 +421,31 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
         onStatusChange={handleContextStatusChange}
         onAddAssignee={handleAssigneeAdd}
         onRemoveAssignee={handleAssigneeRemove}
-        onSetSingleAssignee={(assignee) => onUpdateTask?.({ assignees: [assignee] })}
+        onSetSingleAssignee={(assignee) => applyUpdate({ assignees: [assignee] })}
         onDelete={() => onDeleteTask?.()}
       />
     </ContextMenu>
+    
+    {isMultiSelected && bulkDropdownOpen && (
+      <BulkEditDropdown
+        selectedCount={selectedTaskIds?.size || 0}
+        isOpen={bulkDropdownOpen}
+        onOpenChange={setBulkDropdownOpen}
+        currentDate={format(task.dueDate, "yyyy-MM-dd")}
+        currentClient={task.clientName || ""}
+        currentAssignees={task.assignees || []}
+        onShowReplaceTitleDialog={() => {}}
+        onShowAppendTitleDialog={() => {}}
+        onDateChange={(date) => { handleContextDateChange(date); setBulkDropdownOpen(false); }}
+        onClientChange={(client) => { handleContextClientChange(client); setBulkDropdownOpen(false); }}
+        onPriorityChange={(priority) => { handleContextPriorityChange(priority); setBulkDropdownOpen(false); }}
+        onStatusChange={(status) => { handleContextStatusChange(status); setBulkDropdownOpen(false); }}
+        onAddAssignee={handleAssigneeAdd}
+        onRemoveAssignee={handleAssigneeRemove}
+        onSetSingleAssignee={(assignee) => { applyUpdate({ assignees: [assignee] }); setBulkDropdownOpen(false); }}
+        onDelete={() => { onDeleteTask?.(); setBulkDropdownOpen(false); }}
+      />
+    )}
+    </>
   );
 });
