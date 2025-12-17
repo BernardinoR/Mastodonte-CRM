@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { useState } from "react";
 import { MOCK_USERS } from "@/lib/mock-users";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface NewTaskDialogProps {
   open: boolean;
@@ -16,6 +17,7 @@ interface NewTaskDialogProps {
 }
 
 export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient }: NewTaskDialogProps) {
+  const { clients } = useClients();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -27,9 +29,11 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const selectedClient = clients.find(c => c.id === formData.clientId);
     const taskData = {
       ...formData,
-      assignees: [formData.assignee], // Convert single assignee to array
+      clientName: selectedClient?.name,
+      assignees: [formData.assignee],
     };
     console.log('Task submitted:', taskData);
     onSubmit?.(taskData);
@@ -90,9 +94,11 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
                     <SelectValue placeholder="Selecione o cliente" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Alessandro Cuçulin Mazer</SelectItem>
-                    <SelectItem value="2">Fernanda Carolina De Faria</SelectItem>
-                    <SelectItem value="3">Gustavo Samconi Soares</SelectItem>
+                    {clients.map((client) => (
+                      <SelectItem key={client.id} value={client.id}>
+                        {client.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

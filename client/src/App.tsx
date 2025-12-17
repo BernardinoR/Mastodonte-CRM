@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { TasksProvider } from "@/contexts/TasksContext";
+import { ClientsProvider } from "@/contexts/ClientsContext";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
@@ -68,39 +69,41 @@ function AuthenticatedApp() {
   };
 
   return (
-    <TasksProvider>
-      <SidebarProvider style={style as React.CSSProperties}>
-        <div className="flex h-screen w-full">
-          <AppSidebar />
-          <div className="flex flex-col flex-1 overflow-hidden">
-            <header className="flex items-center justify-between p-3 border-b border-border">
-              <div className="flex flex-wrap items-center gap-1">
-                <SidebarTrigger data-testid="button-sidebar-toggle" />
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  onClick={() => window.history.back()}
-                  data-testid="button-nav-back"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  onClick={() => window.history.forward()}
-                  data-testid="button-nav-forward"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </header>
-            <main className="flex-1 overflow-auto">
-              <AuthenticatedRouter />
-            </main>
+    <ClientsProvider>
+      <TasksProvider>
+        <SidebarProvider style={style as React.CSSProperties}>
+          <div className="flex h-screen w-full">
+            <AppSidebar />
+            <div className="flex flex-col flex-1 overflow-hidden">
+              <header className="flex items-center justify-between p-3 border-b border-border">
+                <div className="flex flex-wrap items-center gap-1">
+                  <SidebarTrigger data-testid="button-sidebar-toggle" />
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => window.history.back()}
+                    data-testid="button-nav-back"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    size="icon" 
+                    variant="ghost" 
+                    onClick={() => window.history.forward()}
+                    data-testid="button-nav-forward"
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </header>
+              <main className="flex-1 overflow-auto">
+                <AuthenticatedRouter />
+              </main>
+            </div>
           </div>
-        </div>
-      </SidebarProvider>
-    </TasksProvider>
+        </SidebarProvider>
+      </TasksProvider>
+    </ClientsProvider>
   );
 }
 

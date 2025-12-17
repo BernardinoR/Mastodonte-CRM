@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback } from "react";
 import {
   ContextMenuContent,
   ContextMenuItem,
@@ -26,6 +26,7 @@ import {
 } from "@/components/task-editors";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface TaskCardContextMenuProps {
   selectedCount: number;
@@ -35,7 +36,7 @@ interface TaskCardContextMenuProps {
   onShowReplaceTitleDialog: () => void;
   onShowAppendTitleDialog: () => void;
   onDateChange: (date: Date) => void;
-  onClientChange: (client: string) => void;
+  onClientChange: (clientId: string, clientName: string) => void;
   onPriorityChange: (priority: TaskPriority) => void;
   onStatusChange: (status: TaskStatus) => void;
   onAddAssignee: (assignee: string) => void;
@@ -60,6 +61,19 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
   onSetSingleAssignee,
   onDelete,
 }: TaskCardContextMenuProps) {
+  const { clients } = useClients();
+  
+  const handleClientSelectWrapper = useCallback((clientName: string) => {
+    if (clientName === "_none") {
+      onClientChange("_none", "");
+    } else {
+      const client = clients.find(c => c.name === clientName);
+      if (client) {
+        onClientChange(client.id, client.name);
+      }
+    }
+  }, [clients, onClientChange]);
+  
   return (
     <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
       {selectedCount > 1 && (
@@ -133,7 +147,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <ContextMenuClientEditor 
             currentClient={currentClient || null}
             isBulk={selectedCount > 1}
-            onSelect={onClientChange}
+            onSelect={handleClientSelectWrapper}
           />
         </ContextMenuSubContent>
       </ContextMenuSub>

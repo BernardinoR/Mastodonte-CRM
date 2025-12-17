@@ -320,7 +320,7 @@ interface TaskClientPopoverProps {
   isEditing?: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  onClientChange: (client: string) => void;
+  onClientChange: (clientId: string, clientName: string) => void;
   onStopPropagation?: () => void;
   onNavigate?: (clientName: string) => void;
   variant?: "card" | "modal" | "table";
@@ -342,8 +342,8 @@ export const TaskClientPopover = memo(function TaskClientPopover({
     onStopPropagation?.();
   }, [onStopPropagation]);
 
-  const handleClientSelect = useCallback((client: string) => {
-    onClientChange(client);
+  const handleClientSelect = useCallback((clientId: string, clientName: string) => {
+    onClientChange(clientId, clientName);
     onOpenChange(false);
   }, [onClientChange, onOpenChange]);
 
@@ -357,7 +357,7 @@ export const TaskClientPopover = memo(function TaskClientPopover({
 
   const handleClearClient = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onClientChange("_none");
+    onClientChange("_none", "");
   }, [onClientChange]);
 
   const isModal = variant === "modal";

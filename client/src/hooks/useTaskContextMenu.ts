@@ -17,7 +17,7 @@ interface UseTaskContextMenuReturn {
   handleContextPriorityChange: (newPriority: TaskPriority) => void;
   handleContextStatusChange: (newStatus: TaskStatus) => void;
   handleContextDelete: () => void;
-  handleContextClientChange: (newClient: string) => void;
+  handleContextClientChange: (clientId: string, clientName: string) => void;
   handleContextDateChange: (newDate: Date) => void;
   handleReplaceTitleSubmit: (newTitleText: string) => void;
   handleAppendTitleSubmit: (appendText: string) => void;
@@ -59,11 +59,19 @@ export function useTaskContextMenu({
     }
   }, [selectedCount, onBulkDelete, onDelete, id]);
 
-  const handleContextClientChange = useCallback((newClient: string) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ clientName: newClient });
+  const handleContextClientChange = useCallback((clientId: string, clientName: string) => {
+    if (clientId === "_none") {
+      if (selectedCount > 1 && onBulkUpdate) {
+        onBulkUpdate({ clientId: undefined, clientName: undefined });
+      } else {
+        onUpdate(id, { clientId: undefined, clientName: undefined });
+      }
     } else {
-      onUpdate(id, { clientName: newClient });
+      if (selectedCount > 1 && onBulkUpdate) {
+        onBulkUpdate({ clientId, clientName });
+      } else {
+        onUpdate(id, { clientId, clientName });
+      }
     }
   }, [selectedCount, onBulkUpdate, onUpdate, id]);
 

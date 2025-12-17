@@ -33,7 +33,7 @@ interface TaskCardContentProps {
   datePopoverContentRef: React.RefObject<HTMLDivElement>;
   clickTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
   onDateChange: (date: Date | undefined) => void;
-  onClientChange: (value: string) => void;
+  onClientChange: (clientId: string, clientName: string) => void;
   onPriorityChange: (value: string) => void;
   onStatusChange: (value: string) => void;
   onAddAssignee: (assignee: string) => void;

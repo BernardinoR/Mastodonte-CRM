@@ -3,24 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Phone, Mail, ExternalLink } from "lucide-react";
 import { Link } from "wouter";
+import type { Client } from "@/types/client";
 
 interface ClientCardProps {
-  id: string;
-  name: string;
-  cpf?: string;
-  email?: string;
-  phone?: string;
-  status: string;
-  folderLink?: string;
+  client: Client;
 }
 
-export function ClientCard({ id, name, cpf, email, phone, status, folderLink }: ClientCardProps) {
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .substring(0, 2)
-    .toUpperCase();
+export function ClientCard({ client }: ClientCardProps) {
+  const { id, name, initials, email, phone, status, folderLink } = client;
 
   const statusColors: Record<string, string> = {
     Ativo: "bg-green-500/10 text-green-500 border-green-500/20",

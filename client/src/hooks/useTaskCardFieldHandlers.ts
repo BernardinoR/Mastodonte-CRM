@@ -12,7 +12,7 @@ interface UseTaskCardFieldHandlersReturn {
   handleDateChange: (date: Date | undefined) => void;
   handlePriorityChange: (value: string) => void;
   handleStatusChange: (value: string) => void;
-  handleClientChange: (value: string) => void;
+  handleClientChange: (clientId: string, clientName: string) => void;
 }
 
 export function useTaskCardFieldHandlers({
@@ -35,8 +35,14 @@ export function useTaskCardFieldHandlers({
     setActivePopover(null);
   }, [handleUpdate, setActivePopover]);
 
-  const handleClientChange = useCallback((value: string) => {
-    handleUpdate("clientName", value === "_none" ? "" : value);
+  const handleClientChange = useCallback((clientId: string, clientName: string) => {
+    if (clientId === "_none") {
+      handleUpdate("clientId", undefined);
+      handleUpdate("clientName", undefined);
+    } else {
+      handleUpdate("clientId", clientId);
+      handleUpdate("clientName", clientName);
+    }
     setActivePopover(null);
   }, [handleUpdate, setActivePopover]);
 

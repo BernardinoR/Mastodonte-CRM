@@ -162,8 +162,12 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
     }
   }, [applyUpdate, closeAll]);
 
-  const handleClientChange = useCallback((clientName: string) => {
-    applyUpdate({ clientName: clientName === "_none" ? undefined : clientName });
+  const handleClientChange = useCallback((clientId: string, clientName: string) => {
+    if (clientId === "_none") {
+      applyUpdate({ clientId: undefined, clientName: undefined });
+    } else {
+      applyUpdate({ clientId, clientName });
+    }
     closeAll();
   }, [applyUpdate, closeAll]);
 
@@ -320,8 +324,12 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
     applyUpdate({ dueDate: date });
   }, [applyUpdate]);
 
-  const handleContextClientChange = useCallback((client: string) => {
-    applyUpdate({ clientName: client === "_none" ? undefined : client });
+  const handleContextClientChange = useCallback((clientId: string, clientName: string) => {
+    if (clientId === "_none") {
+      applyUpdate({ clientId: undefined, clientName: undefined });
+    } else {
+      applyUpdate({ clientId, clientName });
+    }
   }, [applyUpdate]);
 
   return (
@@ -437,7 +445,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
         onShowReplaceTitleDialog={() => {}}
         onShowAppendTitleDialog={() => {}}
         onDateChange={(date) => { handleContextDateChange(date); setBulkDropdownOpen(false); }}
-        onClientChange={(client) => { handleContextClientChange(client); setBulkDropdownOpen(false); }}
+        onClientChange={(clientId, clientName) => { handleContextClientChange(clientId, clientName); setBulkDropdownOpen(false); }}
         onPriorityChange={(priority) => { handleContextPriorityChange(priority); setBulkDropdownOpen(false); }}
         onStatusChange={(status) => { handleContextStatusChange(status); setBulkDropdownOpen(false); }}
         onAddAssignee={handleAssigneeAdd}

@@ -2,18 +2,19 @@ import { useState, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Check, Plus, User } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MOCK_CLIENTS } from "@/lib/mock-data";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface ClientSelectorProps {
   selectedClient: string | null;
-  onSelect: (client: string) => void;
+  onSelect: (clientId: string, clientName: string) => void;
 }
 
 export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps) {
+  const { clients } = useClients();
   const [searchQuery, setSearchQuery] = useState("");
   
-  const filteredClients = MOCK_CLIENTS.filter(client =>
-    client.toLowerCase().includes(searchQuery.toLowerCase()) && client !== selectedClient
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase()) && client.name !== selectedClient
   );
   
   return (
@@ -39,7 +40,10 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
               className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md"
               onClick={(e) => {
                 e.stopPropagation();
-                onSelect(selectedClient);
+                const client = clients.find(c => c.name === selectedClient);
+                if (client) {
+                  onSelect(client.id, client.name);
+                }
               }}
             >
               <Check className="w-4 h-4 text-gray-400" />
@@ -59,16 +63,16 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
       >
         {filteredClients.map((client, index) => (
           <div
-            key={client}
+            key={client.id}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(client);
+              onSelect(client.id, client.name);
             }}
             data-testid={`option-client-${index}`}
           >
             <User className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-foreground flex-1">{client}</span>
+            <span className="text-sm text-foreground flex-1">{client.name}</span>
             <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
@@ -89,6 +93,7 @@ interface ContextMenuClientEditorProps {
 }
 
 export function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: ContextMenuClientEditorProps) {
+  const { clients } = useClients();
   const [searchQuery, setSearchQuery] = useState("");
   const [localClient, setLocalClient] = useState<string | null>(() => currentClient);
   const isLocalUpdate = useRef(false);
@@ -136,15 +141,15 @@ export function ContextMenuClientEditor({ currentClient, onSelect, isBulk = fals
     }, 100);
   };
   
-  const handleLocalSelect = (client: string) => {
+  const handleLocalSelect = (clientName: string) => {
     isLocalUpdate.current = true;
-    setLocalClient(client);
-    pendingUpdatesRef.current.push(client);
+    setLocalClient(clientName);
+    pendingUpdatesRef.current.push(clientName);
     flushPendingUpdates();
   };
   
-  const filteredClients = MOCK_CLIENTS.filter(client =>
-    client.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredClients = clients.filter(client =>
+    client.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   return (
@@ -185,22 +190,22 @@ export function ContextMenuClientEditor({ currentClient, onSelect, isBulk = fals
         onWheel={(e) => e.stopPropagation()}
       >
         {filteredClients.map((client, index) => {
-          const isCurrentClient = client === localClient;
+          const isCurrentClient = client.name === localClient;
           return (
             <div
-              key={client}
+              key={client.id}
               className={cn(
                 "flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors group",
                 isCurrentClient ? "bg-[#2a2a2a]" : "hover:bg-[#2a2a2a]"
               )}
               onClick={(e) => {
                 e.stopPropagation();
-                handleLocalSelect(client);
+                handleLocalSelect(client.name);
               }}
               data-testid={`context-option-client-${index}`}
             >
               <User className="w-4 h-4 text-gray-500" />
-              <span className="text-sm text-foreground flex-1 truncate">{client}</span>
+              <span className="text-sm text-foreground flex-1 truncate">{client.name}</span>
               {isCurrentClient ? (
                 <Check className="w-4 h-4 text-gray-400" />
               ) : (

@@ -10,8 +10,8 @@ interface TasksContextType {
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
   addTask: (task: Task) => void;
-  createTask: (data: { title: string; clientName?: string; priority?: TaskPriority; status?: TaskStatus; assignees?: string[]; dueDate?: Date }) => void;
-  getTasksByClient: (clientName: string) => Task[];
+  createTask: (data: { title: string; clientId?: string; clientName?: string; priority?: TaskPriority; status?: TaskStatus; assignees?: string[]; dueDate?: Date }) => void;
+  getTasksByClient: (clientNameOrId: string) => Task[];
   undo: () => void;
   canUndo: boolean;
 }
@@ -39,6 +39,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   const createTask = useCallback((data: { 
     title: string; 
+    clientId?: string;
     clientName?: string; 
     priority?: TaskPriority; 
     status?: TaskStatus; 
@@ -47,6 +48,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   }) => {
     const newTask = createNewTask({
       title: data.title,
+      clientId: data.clientId,
       clientName: data.clientName,
       priority: data.priority || "Normal",
       status: data.status || "To Do",
@@ -56,9 +58,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     addTask(newTask);
   }, [addTask, tasks]);
 
-  const getTasksByClient = useCallback((clientName: string) => {
+  const getTasksByClient = useCallback((clientNameOrId: string) => {
     return tasks.filter(task => 
-      task.clientName?.toLowerCase() === clientName.toLowerCase()
+      task.clientId === clientNameOrId ||
+      task.clientName?.toLowerCase() === clientNameOrId.toLowerCase()
     );
   }, [tasks]);
 

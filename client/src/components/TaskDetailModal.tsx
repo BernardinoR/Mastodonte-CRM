@@ -13,6 +13,7 @@ import { TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popov
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -60,6 +61,7 @@ export function TaskDetailModal({
   turboActionPerformed = false,
 }: TaskDetailModalProps) {
   const [, navigate] = useLocation();
+  const { getClientById } = useClients();
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -75,6 +77,13 @@ export function TaskDetailModal({
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const prevTaskRef = useRef<{ id: string; title: string; description: string } | null>(null);
+
+  const linkedClient = useMemo(() => {
+    if (task?.clientId) {
+      return getClientById(task.clientId);
+    }
+    return null;
+  }, [task?.clientId, getClientById]);
 
   useEffect(() => {
     if (task) {
@@ -122,14 +131,21 @@ export function TaskDetailModal({
     setEditingTitle(false);
   }, [titleValue, task, onUpdateTask]);
 
-  const handleClientSelect = useCallback((client: string) => {
+  const handleClientSelect = useCallback((clientId: string, clientName: string) => {
     if (!task) return;
-    onUpdateTask(task.id, { clientName: client === "_none" ? undefined : client });
+    if (clientId === "_none") {
+      onUpdateTask(task.id, { clientId: undefined, clientName: undefined });
+    } else {
+      onUpdateTask(task.id, { clientId, clientName });
+    }
     setClientPopoverOpen(false);
   }, [task, onUpdateTask]);
 
   const handleClientClick = useCallback(() => {
-    if (task?.clientName) {
+    if (task?.clientId) {
+      onOpenChange(false);
+      navigate(`/clients/${task.clientId}`);
+    } else if (task?.clientName) {
       onOpenChange(false);
       navigate(`/clients/${encodeURIComponent(task.clientName)}`);
     }
@@ -339,8 +355,8 @@ export function TaskDetailModal({
             </div>
 
             <TaskContactButtons 
-              clientEmail={task.clientEmail} 
-              clientPhone={task.clientPhone} 
+              clientEmail={linkedClient?.email || task.clientEmail} 
+              clientPhone={linkedClient?.phone || task.clientPhone} 
             />
 
             <div className="flex gap-3 mb-8">

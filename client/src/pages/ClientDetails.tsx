@@ -29,229 +29,14 @@ import { Badge } from "@/components/ui/badge";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { useTasks } from "@/contexts/TasksContext";
+import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Task as GlobalTask } from "@/types/task";
+import type { Client, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
 
-interface ClientData {
-  id: string;
-  name: string;
-  initials: string;
-  cpf: string;
-  phone: string;
-  email: string;
-  advisor: string;
-  lastMeeting: Date;
-  aum: string;
-  riskProfile: string;
-  clientSince: string;
-  status: "Ativo" | "Inativo";
-}
-
-interface StatCard {
-  value: string;
-  label: string;
-  change?: string;
-  changeType?: "positive" | "negative" | "neutral";
-}
-
-interface Meeting {
-  id: string;
-  name: string;
-  type: string;
-  status: "Agendada" | "Realizada" | "Cancelada";
-  date: Date;
-  consultant: string;
-}
-
-interface WhatsAppGroup {
-  id: string;
-  name: string;
-  purpose: string;
-  link: string | null;
-  createdAt: Date;
-  status: "Ativo" | "Inativo";
-}
-
-
-const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[]; whatsappGroups: WhatsAppGroup[] }> = {
-  "1": {
-    client: {
-      id: "1",
-      name: "Alessandro Cuçulin Mazer",
-      initials: "AM",
-      cpf: "XXX.XXX.XXX-XX",
-      phone: "+55 (16) 99708-716",
-      email: "mazer.ale@hotmail.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-11-25'),
-      aum: "R$ 2.800.000,00",
-      riskProfile: "Moderado",
-      clientSince: "Junho de 2023",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 2,8M", label: "AUM Total", change: "↑ +3.1% este mês", changeType: "positive" },
-      { value: "4", label: "Reuniões em 2025", change: "↑ +1 vs 2024", changeType: "positive" },
-      { value: "7", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
-      { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-25'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-20'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [
-      { id: "1", name: "Alessandro | Mastodonte", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/abc123", createdAt: new Date('2023-06-15'), status: "Ativo" },
-    ],
-  },
-  "2": {
-    client: {
-      id: "2",
-      name: "Ademar João Gréguer",
-      initials: "AG",
-      cpf: "***.456.789-**",
-      phone: "+55 (47) 99123-4567",
-      email: "ademar.grieger@email.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-11-22'),
-      aum: "R$ 12.450.000,00",
-      riskProfile: "Moderado / Agressivo",
-      clientSince: "Dezembro de 2022",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 12,4M", label: "AUM Total", change: "↑ +5.2% este mês", changeType: "positive" },
-      { value: "8", label: "Reuniões em 2025", change: "↑ +2 vs 2024", changeType: "positive" },
-      { value: "15", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
-      { value: "3", label: "Indicações", change: "1 convertida", changeType: "neutral" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
-      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [
-      { id: "1", name: "Ademar | Mastodonte & Bradesco", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/def456", createdAt: new Date('2022-12-15'), status: "Ativo" },
-      { id: "2", name: "Ademar | Grieger Holding", purpose: "Assuntos da empresa e holding familiar", link: "https://chat.whatsapp.com/ghi789", createdAt: new Date('2024-03-08'), status: "Ativo" },
-      { id: "3", name: "Ademar & Cláudia | Família", purpose: "Planejamento sucessório com esposa", link: "https://chat.whatsapp.com/jkl012", createdAt: new Date('2025-09-22'), status: "Ativo" },
-      { id: "4", name: "Ademar | Antiga XP", purpose: "Migração de antiga corretora (arquivado)", link: null, createdAt: new Date('2022-10-12'), status: "Inativo" },
-    ],
-  },
-  "3": {
-    client: {
-      id: "3",
-      name: "Fernanda Carolina De Faria",
-      initials: "FF",
-      cpf: "***.123.456-**",
-      phone: "+55 (11) 99876-5432",
-      email: "fernanda.faria@email.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-11-15'),
-      aum: "R$ 3.200.000,00",
-      riskProfile: "Conservador",
-      clientSince: "Março de 2023",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 3,2M", label: "AUM Total", change: "↑ +2.1% este mês", changeType: "positive" },
-      { value: "5", label: "Reuniões em 2025", change: "↑ +1 vs 2024", changeType: "positive" },
-      { value: "8", label: "Tasks Concluídas", change: "87% no prazo", changeType: "positive" },
-      { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-10-28'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [
-      { id: "1", name: "Fernanda | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/mno345", createdAt: new Date('2023-03-20'), status: "Ativo" },
-    ],
-  },
-  "4": {
-    client: {
-      id: "4",
-      name: "Gustavo Samconi Soares",
-      initials: "GS",
-      cpf: "***.567.890-**",
-      phone: "+55 (11) 98888-7777",
-      email: "gustavo@example.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-10-30'),
-      aum: "R$ 1.500.000,00",
-      riskProfile: "Conservador",
-      clientSince: "Outubro de 2024",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 1,5M", label: "AUM Total", change: "Novo cliente", changeType: "neutral" },
-      { value: "2", label: "Reuniões em 2025", change: "Cliente novo", changeType: "neutral" },
-      { value: "3", label: "Tasks Concluídas", change: "100% no prazo", changeType: "positive" },
-      { value: "0", label: "Indicações", change: "-", changeType: "neutral" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Inicial", type: "Onboarding", status: "Realizada", date: new Date('2025-10-30'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [],
-  },
-  "5": {
-    client: {
-      id: "5",
-      name: "Israel Schuster Da Fonseca",
-      initials: "IF",
-      cpf: "***.345.678-**",
-      phone: "+55 (11) 97777-6666",
-      email: "israel@example.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-11-18'),
-      aum: "R$ 6.200.000,00",
-      riskProfile: "Agressivo",
-      clientSince: "Fevereiro de 2022",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 6,2M", label: "AUM Total", change: "↑ +7.5% este mês", changeType: "positive" },
-      { value: "9", label: "Reuniões em 2025", change: "↑ +3 vs 2024", changeType: "positive" },
-      { value: "18", label: "Tasks Concluídas", change: "94% no prazo", changeType: "positive" },
-      { value: "4", label: "Indicações", change: "2 convertidas", changeType: "positive" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-18'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião de Estratégia", type: "Especial", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [
-      { id: "1", name: "Israel | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/pqr678", createdAt: new Date('2022-02-15'), status: "Ativo" },
-      { id: "2", name: "Israel | Investimentos", purpose: "Discussões sobre carteira", link: "https://chat.whatsapp.com/stu901", createdAt: new Date('2023-06-10'), status: "Ativo" },
-    ],
-  },
-  "6": {
-    client: {
-      id: "6",
-      name: "Marcia Mozzato Ciampi De Andrade",
-      initials: "MA",
-      cpf: "***.234.567-**",
-      phone: "+55 (11) 96666-5555",
-      email: "marcia@example.com",
-      advisor: "Rafael Bernardino Silveira",
-      lastMeeting: new Date('2025-11-20'),
-      aum: "R$ 5.100.000,00",
-      riskProfile: "Moderado",
-      clientSince: "Agosto de 2022",
-      status: "Ativo",
-    },
-    stats: [
-      { value: "R$ 5,1M", label: "AUM Total", change: "↑ +3.8% este mês", changeType: "positive" },
-      { value: "6", label: "Reuniões em 2025", change: "Igual a 2024", changeType: "neutral" },
-      { value: "11", label: "Tasks Concluídas", change: "91% no prazo", changeType: "positive" },
-      { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
-    ],
-    meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
-    ],
-    whatsappGroups: [
-      { id: "1", name: "Marcia | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/vwx234", createdAt: new Date('2022-08-25'), status: "Ativo" },
-    ],
-  },
-};
+type StatCard = ClientStats;
+type Meeting = ClientMeeting;
 
 const DISABLED_SECTIONS_TOP = [
   { id: "farol", title: "Farol", icon: AlertCircle, description: "Indicador de acompanhamento do cliente" },
@@ -524,9 +309,23 @@ export default function ClientDetails() {
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const { getTasksByClient } = useTasks();
+  const { getFullClientData } = useClients();
   
   const clientId = params.id || "1";
-  const clientData = MOCK_CLIENTS_DATA[clientId] || MOCK_CLIENTS_DATA["1"];
+  const clientData = getFullClientData(clientId) || getFullClientData("1");
+  
+  if (!clientData) {
+    return (
+      <div className="p-6">
+        <Link href="/clients" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <ArrowLeft className="w-4 h-4" />
+          Voltar para Clientes
+        </Link>
+        <div className="text-center text-muted-foreground">Cliente não encontrado</div>
+      </div>
+    );
+  }
+  
   const { client, stats, meetings, whatsappGroups } = clientData;
   
   const clientTasks = getTasksByClient(client.name);
@@ -624,7 +423,7 @@ export default function ClientDetails() {
       </header>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {stats.map((stat, index) => (
+        {stats.map((stat: StatCard, index: number) => (
           <StatCardComponent key={index} stat={stat} />
         ))}
       </div>

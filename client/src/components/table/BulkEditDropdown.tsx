@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef } from "react";
+import { memo, useEffect, useRef, useCallback } from "react";
 import {
   Calendar as CalendarIcon,
   Pencil,
@@ -20,6 +20,7 @@ import {
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
 import { cn } from "@/lib/utils";
 import type { TaskStatus, TaskPriority } from "@/types/task";
+import { useClients } from "@/contexts/ClientsContext";
 
 interface BulkEditDropdownProps {
   selectedCount: number;
@@ -31,7 +32,7 @@ interface BulkEditDropdownProps {
   onShowReplaceTitleDialog: () => void;
   onShowAppendTitleDialog: () => void;
   onDateChange: (date: Date) => void;
-  onClientChange: (client: string) => void;
+  onClientChange: (clientId: string, clientName: string) => void;
   onPriorityChange: (priority: TaskPriority) => void;
   onStatusChange: (status: TaskStatus) => void;
   onAddAssignee: (assignee: string) => void;
@@ -92,7 +93,19 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
   onSetSingleAssignee,
   onDelete,
 }: BulkEditDropdownProps) {
+  const { clients } = useClients();
   const menuRef = useRef<HTMLDivElement>(null);
+  
+  const handleClientSelectWrapper = useCallback((clientName: string) => {
+    if (clientName === "_none") {
+      onClientChange("_none", "");
+    } else {
+      const client = clients.find(c => c.name === clientName);
+      if (client) {
+        onClientChange(client.id, client.name);
+      }
+    }
+  }, [clients, onClientChange]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -166,7 +179,7 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
             <ContextMenuClientEditor 
               currentClient={currentClient || null}
               isBulk={true}
-              onSelect={onClientChange}
+              onSelect={handleClientSelectWrapper}
             />
           </div>
         </SubMenu>

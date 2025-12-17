@@ -92,6 +92,7 @@ export interface TaskHistoryEvent {
 export interface Task {
   id: string;
   title: string;
+  clientId?: string;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
