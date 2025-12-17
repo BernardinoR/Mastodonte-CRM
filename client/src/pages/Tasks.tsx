@@ -25,8 +25,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
-import { INITIAL_TASKS, createNewTask } from "@/lib/mock-data";
-import { useTaskHistory } from "@/hooks/useTaskHistory";
+import { createNewTask } from "@/lib/mock-data";
+import { useTasks } from "@/contexts/TasksContext";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
 import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
@@ -50,8 +50,8 @@ export default function Tasks() {
     "Done": TASKS_PER_PAGE,
   });
   
-  // Use the task history hook for undo functionality (Ctrl+Z)
-  const { tasks, setTasks, setTasksWithHistory } = useTaskHistory(INITIAL_TASKS);
+  // Use the tasks context for global state management
+  const { tasks, setTasks, setTasksWithHistory } = useTasks();
   
   // Use the task filters hook for search, assignee, and priority filtering
   const {

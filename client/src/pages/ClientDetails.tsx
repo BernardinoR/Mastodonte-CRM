@@ -28,8 +28,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
+import { useTasks } from "@/contexts/TasksContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { Task as GlobalTask } from "@/types/task";
 
 interface ClientData {
   id: string;
@@ -62,20 +64,12 @@ interface Meeting {
   consultant: string;
 }
 
-interface Task {
-  id: string;
-  title: string;
-  status: "To Do" | "In Progress" | "Done";
-  priority: "Urgente" | "Importante" | "Normal" | "Baixa";
-  dueDate: Date;
-  responsible: string;
-}
 
-const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[]; tasks: Task[] }> = {
+const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[]; meetings: Meeting[] }> = {
   "1": {
     client: {
       id: "1",
-      name: "Ademar João Grieger",
+      name: "Ademar João Gréguer",
       initials: "AG",
       cpf: "***.456.789-**",
       phone: "+55 (47) 99123-4567",
@@ -98,12 +92,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
       { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
     ],
-    tasks: [
-      { id: "1", title: "Preparar relatório anual 2025", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-20'), responsible: "Rafael Bernardino Silveira" },
-      { id: "2", title: "Preparar apresentação de FIIs", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
-      { id: "3", title: "Ademar plan fin", status: "Done", priority: "Importante", dueDate: new Date('2025-11-19'), responsible: "Rafael Bernardino Silveira" },
-    ],
-  },
+    },
   "2": {
     client: {
       id: "2",
@@ -129,11 +118,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-10-28'), consultant: "Rafael Bernardino Silveira" },
     ],
-    tasks: [
-      { id: "1", title: "Atualizar plano financeiro", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-15'), responsible: "Rafael Bernardino Silveira" },
-      { id: "2", title: "Revisar alocação de ativos", status: "In Progress", priority: "Normal", dueDate: new Date('2025-12-20'), responsible: "Maria Santos" },
-    ],
-  },
+    },
   "3": {
     client: {
       id: "3",
@@ -160,12 +145,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-08'), consultant: "Rafael Bernardino Silveira" },
       { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-10'), consultant: "Rafael Bernardino Silveira" },
     ],
-    tasks: [
-      { id: "1", title: "Analisar oportunidades em FIIs", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-12-18'), responsible: "Rafael Bernardino Silveira" },
-      { id: "2", title: "Preparar proposta de realocação", status: "To Do", priority: "Importante", dueDate: new Date('2025-12-22'), responsible: "Rafael Bernardino Silveira" },
-      { id: "3", title: "Enviar relatório trimestral", status: "Done", priority: "Normal", dueDate: new Date('2025-11-30'), responsible: "Maria Santos" },
-    ],
-  },
+    },
   "4": {
     client: {
       id: "4",
@@ -191,12 +171,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
       { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), consultant: "Rafael Bernardino Silveira" },
       { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
     ],
-    tasks: [
-      { id: "1", title: "REALOCAR MARCOS", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
-      { id: "2", title: "Falar com Marcia", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
-      { id: "3", title: "Macter", status: "In Progress", priority: "Urgente", dueDate: new Date('2025-01-20'), responsible: "Rafael Bernardino Silveira" },
-    ],
-  },
+    },
   "5": {
     client: {
       id: "5",
@@ -221,10 +196,7 @@ const MOCK_CLIENTS_DATA: Record<string, { client: ClientData; stats: StatCard[];
     meetings: [
       { id: "1", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-25'), consultant: "Rafael Bernardino Silveira" },
     ],
-    tasks: [
-      { id: "1", title: "Receber documentação da Viva", status: "To Do", priority: "Baixa", dueDate: new Date('2025-11-20'), responsible: "Rafael Bernardino Silveira" },
-    ],
-  },
+    },
 };
 
 const DISABLED_SECTIONS_TOP = [
@@ -356,7 +328,7 @@ function MeetingsTable({ meetings, onNewMeeting }: { meetings: Meeting[]; onNewM
   );
 }
 
-function TasksTable({ tasks, onNewTask }: { tasks: Task[]; onNewTask: () => void }) {
+function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () => void }) {
   const statusColors: Record<string, string> = {
     "To Do": "bg-[#333333] text-[#a0a0a0]",
     "In Progress": "bg-[#4d331f] text-[#e6b07a]",
@@ -369,6 +341,21 @@ function TasksTable({ tasks, onNewTask }: { tasks: Task[]; onNewTask: () => void
     "Normal": "bg-[#333333] text-[#a0a0a0]",
     "Baixa": "bg-[#1c3847] text-[#6db1d4]",
   };
+
+  if (tasks.length === 0) {
+    return (
+      <div className="p-6 text-center">
+        <p className="text-muted-foreground text-sm mb-3">Nenhuma tarefa encontrada para este cliente</p>
+        <div 
+          className="text-sm text-[#2eaadc] hover:underline cursor-pointer"
+          onClick={onNewTask}
+          data-testid="button-add-task-empty"
+        >
+          + Nova tarefa
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="overflow-x-auto">
@@ -392,14 +379,14 @@ function TasksTable({ tasks, onNewTask }: { tasks: Task[]; onNewTask: () => void
                 </Badge>
               </td>
               <td className="py-3 px-4">
-                <Badge className={`${priorityColors[task.priority]} text-xs`}>
-                  {task.priority}
+                <Badge className={`${priorityColors[task.priority || "Normal"]} text-xs`}>
+                  {task.priority || "Normal"}
                 </Badge>
               </td>
               <td className="py-3 px-4 text-foreground">
                 {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
               </td>
-              <td className="py-3 px-4 text-foreground">{task.responsible}</td>
+              <td className="py-3 px-4 text-foreground">{task.assignees?.join(", ") || "-"}</td>
             </tr>
           ))}
         </tbody>
@@ -419,10 +406,13 @@ export default function ClientDetails() {
   const params = useParams<{ id: string }>();
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const { getTasksByClient } = useTasks();
   
   const clientId = params.id || "1";
   const clientData = MOCK_CLIENTS_DATA[clientId] || MOCK_CLIENTS_DATA["1"];
-  const { client, stats, meetings, tasks } = clientData;
+  const { client, stats, meetings } = clientData;
+  
+  const clientTasks = getTasksByClient(client.name);
 
   const handleWhatsApp = () => {
     const phone = client.phone.replace(/\D/g, "");
@@ -557,7 +547,7 @@ export default function ClientDetails() {
             </Link>
           </div>
           <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-            <TasksTable tasks={tasks} onNewTask={() => setNewTaskOpen(true)} />
+            <TasksTable tasks={clientTasks} onNewTask={() => setNewTaskOpen(true)} />
           </Card>
         </div>
       </div>
