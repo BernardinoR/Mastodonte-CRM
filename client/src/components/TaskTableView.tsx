@@ -260,10 +260,14 @@ export const TaskTableView = memo(function TaskTableView({
                   controlColumnsWidth={CONTROL_COLUMNS_WIDTH}
                   isSelected={selectedTaskIds.has(task.id)}
                   isEditing={editingTaskId === task.id}
+                  selectedTaskIds={selectedTaskIds}
                   onRowClick={() => onTaskClick?.(task)}
                   onStartEditing={() => onStartEditing?.(task.id)}
                   onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
+                  onBulkUpdate={(updates) => onBulkUpdate?.(updates)}
+                  onBulkAddAssignee={(assignee) => onBulkAddAssignee?.(assignee)}
+                  onBulkRemoveAssignee={(assignee) => onBulkRemoveAssignee?.(assignee)}
                   onAddTaskAfter={() => onAddTaskAfter?.(task.id)}
                   onFinishEditing={() => onFinishEditing?.(task.id)}
                   onDeleteTask={() => onDeleteTask?.(task.id)}

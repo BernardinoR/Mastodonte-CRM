@@ -23,10 +23,14 @@ interface TaskTableRowProps {
   isSelected: boolean;
   isEditing?: boolean;
   controlColumnsWidth: number;
+  selectedTaskIds?: Set<string>;
   onRowClick?: () => void;
   onStartEditing?: () => void;
   onSelectChange?: (checked: boolean, shiftKey: boolean) => void;
   onUpdateTask?: (updates: Partial<Task>) => void;
+  onBulkUpdate?: (updates: Partial<Task>) => void;
+  onBulkAddAssignee?: (assignee: string) => void;
+  onBulkRemoveAssignee?: (assignee: string) => void;
   onAddTaskAfter?: () => void;
   onFinishEditing?: () => void;
   onDeleteTask?: () => void;
@@ -72,10 +76,14 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   isSelected,
   isEditing = false,
   controlColumnsWidth,
+  selectedTaskIds,
   onRowClick,
   onStartEditing,
   onSelectChange,
   onUpdateTask,
+  onBulkUpdate,
+  onBulkAddAssignee,
+  onBulkRemoveAssignee,
   onAddTaskAfter,
   onFinishEditing,
   onDeleteTask,
@@ -88,6 +96,18 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const [editingTitle, setEditingTitle] = useState(task.title);
+
+  // Check if this task is part of a multi-selection
+  const isMultiSelected = isSelected && selectedTaskIds && selectedTaskIds.size > 1;
+
+  // Helper to apply update to single task or all selected tasks
+  const applyUpdate = useCallback((updates: Partial<Task>) => {
+    if (isMultiSelected && onBulkUpdate) {
+      onBulkUpdate(updates);
+    } else {
+      onUpdateTask?.(updates);
+    }
+  }, [isMultiSelected, onBulkUpdate, onUpdateTask]);
 
   // Focus title input when entering edit mode
   useEffect(() => {
@@ -124,36 +144,44 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   }, [editingTitle, onUpdateTask, onFinishEditing]);
 
   const handleStatusChange = useCallback((status: TaskStatus) => {
-    onUpdateTask?.({ status });
+    applyUpdate({ status });
     closeAll();
-  }, [onUpdateTask, closeAll]);
+  }, [applyUpdate, closeAll]);
 
   const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    onUpdateTask?.({ priority: priority === "_none" ? undefined : priority });
+    applyUpdate({ priority: priority === "_none" ? undefined : priority });
     closeAll();
-  }, [onUpdateTask, closeAll]);
+  }, [applyUpdate, closeAll]);
 
   const handleDateChange = useCallback((date: Date | undefined) => {
     if (date) {
-      onUpdateTask?.({ dueDate: date });
+      applyUpdate({ dueDate: date });
       closeAll();
     }
-  }, [onUpdateTask, closeAll]);
+  }, [applyUpdate, closeAll]);
 
   const handleClientChange = useCallback((clientName: string) => {
-    onUpdateTask?.({ clientName: clientName === "_none" ? undefined : clientName });
+    applyUpdate({ clientName: clientName === "_none" ? undefined : clientName });
     closeAll();
-  }, [onUpdateTask, closeAll]);
+  }, [applyUpdate, closeAll]);
 
   const handleAssigneeAdd = useCallback((assignee: string) => {
-    const newAssignees = [...task.assignees, assignee];
-    onUpdateTask?.({ assignees: newAssignees });
-  }, [onUpdateTask, task.assignees]);
+    if (isMultiSelected && onBulkAddAssignee) {
+      onBulkAddAssignee(assignee);
+    } else {
+      const newAssignees = [...task.assignees, assignee];
+      onUpdateTask?.({ assignees: newAssignees });
+    }
+  }, [isMultiSelected, onBulkAddAssignee, onUpdateTask, task.assignees]);
 
   const handleAssigneeRemove = useCallback((assignee: string) => {
-    const newAssignees = task.assignees.filter(a => a !== assignee);
-    onUpdateTask?.({ assignees: newAssignees });
-  }, [onUpdateTask, task.assignees]);
+    if (isMultiSelected && onBulkRemoveAssignee) {
+      onBulkRemoveAssignee(assignee);
+    } else {
+      const newAssignees = task.assignees.filter(a => a !== assignee);
+      onUpdateTask?.({ assignees: newAssignees });
+    }
+  }, [isMultiSelected, onBulkRemoveAssignee, onUpdateTask, task.assignees]);
 
   const renderCell = (columnId: string) => {
     switch (columnId) {
