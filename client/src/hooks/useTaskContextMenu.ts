@@ -1,13 +1,13 @@
 import { useCallback } from 'react';
-import type { TaskStatus, TaskPriority } from '@/types/task';
+import type { TaskStatus, TaskPriority, TaskUpdates } from '@/types/task';
 
 interface UseTaskContextMenuParams {
   id: string;
   title: string;
   selectedCount: number;
-  onUpdate: (taskId: string, updates: any) => void;
+  onUpdate: (taskId: string, updates: TaskUpdates) => void;
   onDelete: (taskId: string) => void;
-  onBulkUpdate?: (updates: any) => void;
+  onBulkUpdate?: (updates: TaskUpdates) => void;
   onBulkDelete?: () => void;
   onBulkReplaceTitle?: (newTitle: string) => void;
   onBulkAppendTitle?: (suffix: string) => void;

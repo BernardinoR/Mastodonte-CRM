@@ -1,36 +1,18 @@
-import { useState, useRef, memo, useCallback, useEffect } from "react";
+import { memo, useCallback } from "react";
 import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
-import { Separator } from "@/components/ui/separator";
-import { AssigneeList } from "@/components/ui/task-assignees";
-import {
-  Pencil,
-  Trash2,
-  Check,
-} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
-import { format, startOfDay, isBefore } from "date-fns";
-import { parseLocalDate } from "@/lib/date-utils";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
-import { AssigneeSelector } from "@/components/task-editors";
+import { calculateIsOverdue } from "@/lib/task-utils";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
 import { useTaskAssignees } from "@/hooks/useTaskAssignees";
 import { useTaskContextMenu } from "@/hooks/useTaskContextMenu";
+import { useTaskCardDialogs } from "@/hooks/useTaskCardDialogs";
+import { useTaskCardFieldHandlers } from "@/hooks/useTaskCardFieldHandlers";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
-import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopover } from "@/components/task-popovers";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
-import { TaskCardQuickDetails } from "@/components/task-card/TaskCardQuickDetails";
-import type { TaskStatus, TaskPriority } from "@/types/task";
+import { TaskCardQuickDetails, TaskCardHeader, TaskCardContent } from "@/components/task-card";
+import type { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
 
 export interface TaskCardProps {
   id: string;
@@ -48,11 +30,11 @@ export interface TaskCardProps {
   initialEditMode?: boolean;
   isCompact?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
-  onUpdate: (taskId: string, updates: any) => void;
+  onUpdate: (taskId: string, updates: TaskUpdates) => void;
   onDelete: (taskId: string) => void;
   onFinishEditing?: (taskId: string) => void;
   onOpenDetail?: (taskId: string) => void;
-  onBulkUpdate?: (updates: any) => void;
+  onBulkUpdate?: (updates: TaskUpdates) => void;
   onBulkDelete?: () => void;
   onBulkAppendTitle?: (suffix: string) => void;
   onBulkReplaceTitle?: (newTitle: string) => void;
@@ -62,9 +44,7 @@ export interface TaskCardProps {
   onEditStateChange?: (isEditing: boolean) => void;
 }
 
-// Custom comparison function for React.memo - prevents re-renders during drag
 const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
-  // Always re-render if these core values change
   if (prev.id !== next.id) return false;
   if (prev.title !== next.title) return false;
   if (prev.clientName !== next.clientName) return false;
@@ -78,13 +58,11 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
   if (prev.initialEditMode !== next.initialEditMode) return false;
   if (prev.isCompact !== next.isCompact) return false;
   
-  // Deep compare assignees array
   if (prev.assignees.length !== next.assignees.length) return false;
   for (let i = 0; i < prev.assignees.length; i++) {
     if (prev.assignees[i] !== next.assignees[i]) return false;
   }
   
-  // Deep compare notes array
   const prevNotes = prev.notes || [];
   const nextNotes = next.notes || [];
   if (prevNotes.length !== nextNotes.length) return false;
@@ -92,162 +70,59 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
     if (prevNotes[i] !== nextNotes[i]) return false;
   }
   
-  // Callbacks are stable (via useCallback in parent), so we don't compare them
   return true;
 };
 
 export const TaskCard = memo(function TaskCard({
-  id,
-  title,
-  clientName,
-  priority,
-  status,
-  assignees,
-  dueDate,
-  description,
-  notes,
-  isSelected = false,
-  selectedCount = 0,
-  isDragActive = false,
-  initialEditMode = false,
-  isCompact = false,
-  onSelect,
-  onUpdate,
-  onDelete,
-  onFinishEditing,
-  onOpenDetail,
-  onBulkUpdate,
-  onBulkDelete,
-  onBulkAppendTitle,
-  onBulkReplaceTitle,
-  onBulkAddAssignee,
-  onBulkSetAssignees,
-  onBulkRemoveAssignee,
-  onEditStateChange,
+  id, title, clientName, priority, status, assignees, dueDate, description, notes,
+  isSelected = false, selectedCount = 0, isDragActive = false,
+  initialEditMode = false, isCompact = false,
+  onSelect, onUpdate, onDelete, onFinishEditing, onOpenDetail,
+  onBulkUpdate, onBulkDelete, onBulkAppendTitle, onBulkReplaceTitle,
+  onBulkAddAssignee, onBulkSetAssignees, onBulkRemoveAssignee, onEditStateChange,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
   
   const {
-    isEditing,
-    setIsEditing,
-    editedTask,
-    setEditedTask,
-    activePopover,
-    setActivePopover,
-    cardRef,
-    titleRef,
-    clickTimeoutRef,
-    handleUpdate,
-    handleTitleEdit,
-    handleEditClick,
-    handleCloseEditing,
-    isJustClosedEdit,
-    safeAssignees,
-    stableAssignees,
+    isEditing, editedTask, setEditedTask, activePopover, setActivePopover,
+    cardRef, titleRef, clickTimeoutRef, handleUpdate, handleTitleEdit,
+    handleEditClick, handleCloseEditing, isJustClosedEdit, stableAssignees,
   } = useTaskCardEditing({
-    id,
-    title,
-    clientName,
-    priority,
-    status,
-    assignees,
-    dueDate,
-    description,
-    onUpdate,
-    onFinishEditing,
-    initialEditMode,
+    id, title, clientName, priority, status, assignees, dueDate, description,
+    onUpdate, onFinishEditing, initialEditMode,
   });
   
   const updateAssigneesInEditedTask = useCallback((newAssignees: string[]) => {
     setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
   }, [setEditedTask]);
   
-  const {
-    newAssigneeName,
-    setNewAssigneeName,
-    addAssignee,
-    removeAssignee,
-    handleAddFromInput: handleAddAssignee,
-    handleContextAdd: handleContextAddAssignee,
-    handleContextRemove: handleContextRemoveAssignee,
-    handleContextSetSingle: handleContextSetSingleAssignee,
-  } = useTaskAssignees({
-    taskId: id,
-    assignees: editedTask.assignees,
-    selectedCount,
-    onUpdate,
-    onBulkAddAssignee,
-    onBulkRemoveAssignee,
-    onBulkSetAssignees,
+  const { addAssignee, removeAssignee, handleContextAdd, handleContextRemove, handleContextSetSingle } = useTaskAssignees({
+    taskId: id, assignees: editedTask.assignees, selectedCount, onUpdate,
+    onBulkAddAssignee, onBulkRemoveAssignee, onBulkSetAssignees,
     updateEditedTask: updateAssigneesInEditedTask,
   });
 
   const {
-    handleContextPriorityChange,
-    handleContextStatusChange,
-    handleContextDelete,
-    handleContextClientChange,
-    handleContextDateChange,
-    handleReplaceTitleSubmit,
-    handleAppendTitleSubmit,
+    handleContextPriorityChange, handleContextStatusChange, handleContextDelete,
+    handleContextClientChange, handleContextDateChange, handleReplaceTitleSubmit, handleAppendTitleSubmit,
   } = useTaskContextMenu({
-    id,
-    title,
-    selectedCount,
-    onUpdate,
-    onDelete,
-    onBulkUpdate,
-    onBulkDelete,
-    onBulkReplaceTitle,
-    onBulkAppendTitle,
+    id, title, selectedCount, onUpdate, onDelete, onBulkUpdate, onBulkDelete, onBulkReplaceTitle, onBulkAppendTitle,
   });
   
-  const [showDetails, setShowDetails] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
-  const [showReplaceTitleDialog, setShowReplaceTitleDialog] = useState(false);
-  const [showAppendTitleDialog, setShowAppendTitleDialog] = useState(false);
-  const [newTitleText, setNewTitleText] = useState("");
-  const [appendTitleText, setAppendTitleText] = useState("");
-  const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
-  
-  const datePopoverContentRef = useRef<HTMLDivElement>(null);
-  const prevEditStateRef = useRef<boolean | null>(null);
+  const {
+    showDetails, setShowDetails, showDeleteConfirm, setShowDeleteConfirm,
+    showReplaceTitleDialog, setShowReplaceTitleDialog, showAppendTitleDialog, setShowAppendTitleDialog,
+    showBulkDatePicker, setShowBulkDatePicker, newTitleText, setNewTitleText,
+    appendTitleText, setAppendTitleText, datePopoverContentRef,
+    handleDelete, onReplaceTitleSubmit, onAppendTitleSubmit, onContextDateChange, openDetails,
+  } = useTaskCardDialogs({
+    id, isEditing, activePopover, onDelete, onEditStateChange, onOpenDetail,
+    handleReplaceTitleSubmit, handleAppendTitleSubmit, handleContextDateChange,
+  });
 
-  // Notify parent when editing state changes (for disabling drag during edit)
-  useEffect(() => {
-    const isCurrentlyEditing = isEditing || activePopover !== null;
-    
-    // Only notify if state actually changed to prevent loops
-    if (prevEditStateRef.current !== isCurrentlyEditing) {
-      prevEditStateRef.current = isCurrentlyEditing;
-      onEditStateChange?.(isCurrentlyEditing);
-    }
-  }, [isEditing, activePopover, onEditStateChange]);
-
-  const onReplaceTitleSubmit = useCallback(() => {
-    if (!newTitleText.trim()) return;
-    handleReplaceTitleSubmit(newTitleText);
-    setNewTitleText("");
-    setShowReplaceTitleDialog(false);
-  }, [handleReplaceTitleSubmit, newTitleText]);
-
-  const onAppendTitleSubmit = useCallback(() => {
-    if (!appendTitleText.trim()) return;
-    handleAppendTitleSubmit(appendTitleText);
-    setAppendTitleText("");
-    setShowAppendTitleDialog(false);
-  }, [handleAppendTitleSubmit, appendTitleText]);
-
-  const onContextDateChange = useCallback((newDate: Date) => {
-    handleContextDateChange(newDate);
-    setShowBulkDatePicker(false);
-  }, [handleContextDateChange]);
-
-  const handleDelete = useCallback(() => {
-    onDelete(id);
-    setShowDeleteConfirm(false);
-  }, [onDelete, id]);
+  const { handleDateChange, handlePriorityChange, handleStatusChange, handleClientChange } = useTaskCardFieldHandlers({
+    handleUpdate, setActivePopover,
+  });
 
   const handleCardClick = useCallback((e: React.MouseEvent) => {
     if (clickTimeoutRef.current) {
@@ -262,327 +137,88 @@ export const TaskCard = memo(function TaskCard({
       return;
     }
     
-    if (isEditing) {
-      return;
-    }
+    if (isEditing) return;
     
     const target = e.target as HTMLElement;
-    const isInteractiveElement = 
-      target.closest('button') ||
-      target.closest('[contenteditable]') ||
-      target.closest('[role="combobox"]') ||
-      target.closest('[data-radix-collection-item]');
+    const isInteractive = target.closest('button') || target.closest('[contenteditable]') ||
+      target.closest('[role="combobox"]') || target.closest('[data-radix-collection-item]');
     
-    if (!isInteractiveElement && !isJustClosedEdit()) {
+    if (!isInteractive && !isJustClosedEdit()) {
       clickTimeoutRef.current = setTimeout(() => {
-        if (!isEditing) {
-          if (onOpenDetail) {
-            onOpenDetail(id);
-          } else {
-            setShowDetails(true);
-          }
-        }
+        if (!isEditing) openDetails();
         clickTimeoutRef.current = null;
       }, 250);
     }
-  }, [onSelect, id, isEditing, isJustClosedEdit, onOpenDetail]);
+  }, [onSelect, id, isEditing, isJustClosedEdit, openDetails, clickTimeoutRef]);
 
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) {
-      handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
-    }
-  }, [handleUpdate]);
-
-  const handlePriorityChange = useCallback((value: string) => {
-    handleUpdate("priority", value === "_none" ? "" : value);
-    setActivePopover(null);
-  }, [handleUpdate]);
-
-  const handleStatusChange = useCallback((value: string) => {
-    handleUpdate("status", value);
-    setActivePopover(null);
-  }, [handleUpdate]);
-
-  const handleClientChange = useCallback((value: string) => {
-    handleUpdate("clientName", value === "_none" ? "" : value);
-    setActivePopover(null);
-  }, [handleUpdate]);
-
-  const cancelClickTimeout = useCallback(() => {
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-  }, []);
-
-  // Calculate overdue status for Card border styling
-  const today = startOfDay(new Date());
-  let isOverdue = false;
-  
-  if (isEditing) {
-    // Strict format validation with regex
-    const dateStr = editedTask.dueDate;
-    const isoDateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    
-    if (dateStr && isoDateRegex.test(dateStr)) {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      
-      // Validate month (1-12) and day ranges
-      if (m >= 1 && m <= 12) {
-        const daysInMonth = new Date(y, m, 0).getDate();
-        if (d >= 1 && d <= daysInMonth) {
-          // Valid date - check if overdue
-          const parsed = parseLocalDate(dateStr);
-          isOverdue = isBefore(startOfDay(parsed), today);
-        }
-      }
-    }
-  } else {
-    // In read-only mode, use the validated dueDate prop
-    isOverdue = isBefore(startOfDay(dueDate), today);
-  }
+  const isOverdue = calculateIsOverdue(isEditing, editedTask.dueDate, dueDate);
 
   return (
     <>
       <ContextMenu>
         <ContextMenuTrigger asChild>
           <Card
-              ref={cardRef}
-              className={cn(
-                "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
-                !isEditing && "select-none",
-                isEditing && "ring-2 ring-primary shadow-lg",
-                isSelected && !isEditing && "ring-2 ring-blue-500 shadow-lg",
-                isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
-                status === "To Do" && "bg-[#262626] border-[#363636]",
-                status === "In Progress" && "bg-[#243041] border-[#344151]",
-                status === "Done" && "bg-[rgb(35,43,38)] border-[rgb(45,55,48)]"
-              )}
-              onClick={handleCardClick}
-              onDoubleClick={handleEditClick}
-              data-testid={`card-task-${id}`}
-            >
-          {/* CardHeader only in normal mode or editing */}
-          {(!isCompact || isEditing) && (
-          <CardHeader className="p-3 md:p-4 space-y-1">
-            <div className="flex items-start justify-between gap-2">
-              <div
-                ref={titleRef}
-                contentEditable={isEditing}
-                suppressContentEditableWarning
-                onBlur={handleTitleEdit}
-                onClick={(e) => isEditing && e.stopPropagation()}
-                onKeyDown={(e) => {
-                  if (isEditing && e.key === "Enter") {
-                    e.preventDefault();
-                    (e.target as HTMLDivElement).blur();
-                  }
-                }}
-                className={cn(
-                  "font-bold text-xs md:text-sm flex-1 leading-tight",
-                  isEditing && "cursor-text outline-none rounded px-2 py-1 -mx-2 -my-1 focus:ring-1 focus:ring-blue-500/50",
-                  isEditing && status === "In Progress" && "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
-                  isEditing && status === "Done" && "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
-                  isEditing && status === "To Do" && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]"
-                )}
-                data-testid={`text-tasktitle-${id}`}
-              >
-                {title}
-              </div>
-              <div className="flex gap-1">
-                {isEditing && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={(e) => { e.stopPropagation(); setShowDeleteConfirm(true); }}
-                    data-testid={`button-delete-${id}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                )}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={cn(
-                    "h-8 w-8 shrink-0",
-                    !isEditing && "opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
-                  )}
-                  onClick={isEditing ? (e) => { e.stopPropagation(); handleCloseEditing(); } : handleEditClick}
-                  data-testid={`button-edit-${id}`}
-                >
-                  {isEditing ? <Check className="w-4 h-4" /> : <Pencil className="w-4 h-4" />}
-                </Button>
-              </div>
-            </div>
-            <Separator className="mt-2 bg-[#64635E]" />
-          </CardHeader>
-          )}
+            ref={cardRef}
+            className={cn(
+              "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
+              !isEditing && "select-none",
+              isEditing && "ring-2 ring-primary shadow-lg",
+              isSelected && !isEditing && "ring-2 ring-blue-500 shadow-lg",
+              isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
+              status === "To Do" && "bg-[#262626] border-[#363636]",
+              status === "In Progress" && "bg-[#243041] border-[#344151]",
+              status === "Done" && "bg-[rgb(35,43,38)] border-[rgb(45,55,48)]"
+            )}
+            onClick={handleCardClick}
+            onDoubleClick={handleEditClick}
+            data-testid={`card-task-${id}`}
+          >
+            {(!isCompact || isEditing) && (
+              <TaskCardHeader
+                id={id} title={title} status={status} isEditing={isEditing} isCompact={isCompact}
+                titleRef={titleRef} onTitleEdit={handleTitleEdit} onEditClick={handleEditClick}
+                onCloseEditing={handleCloseEditing} onDeleteClick={() => setShowDeleteConfirm(true)}
+              />
+            )}
 
-          <CardContent className={cn("space-y-2", isCompact && !isEditing ? "p-3 md:p-3" : "p-3 md:p-4 pt-0")}>
-              {/* Compact mode: Title row inside CardContent */}
-              {isCompact && !isEditing && (
-                <div className="flex items-start justify-between gap-2 mb-0.5">
-                  <div
-                    className="font-bold text-xs md:text-sm flex-1 leading-none"
-                    data-testid={`text-tasktitle-${id}`}
-                  >
-                    {title}
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-6 w-6 shrink-0 opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
-                    onClick={handleEditClick}
-                    data-testid={`button-edit-${id}`}
-                  >
-                    <Pencil className="w-3 h-3" />
-                  </Button>
-                </div>
-              )}
-              
-              {/* Linha 2: Data - Always clickable */}
-              <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
-                <TaskDatePopover
-                  id={id}
-                  dateValue={editedTask.dueDate}
-                  isOpen={activePopover === "date"}
-                  onOpenChange={(open) => setActivePopover(open ? "date" : null)}
-                  onDateChange={handleDateChange}
-                  onStopPropagation={cancelClickTimeout}
-                  popoverRef={datePopoverContentRef}
-                />
-              </div>
-              
-              {/* Linha 3: Cliente - Only show if has client or in edit mode */}
-              {(!isCompact || isEditing || clientName) && (
-                <TaskClientPopover
-                  id={id}
-                  clientName={clientName || null}
-                  isEditing={isEditing}
-                  isOpen={activePopover === "client"}
-                  onOpenChange={(open) => setActivePopover(open ? "client" : null)}
-                  onClientChange={handleClientChange}
-                  onStopPropagation={cancelClickTimeout}
-                  onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
-                  variant="card"
-                />
-              )}
-              
-              {/* Linha 4: Prioridade */}
-              <TaskPriorityPopover
-                id={id}
-                priority={priority}
-                isEditing={isEditing}
-                isOpen={activePopover === "priority"}
-                onOpenChange={(open) => setActivePopover(open ? "priority" : null)}
-                onPriorityChange={handlePriorityChange}
-                onStopPropagation={cancelClickTimeout}
-              />
-              
-              {/* Linha 5: Status - Always clickable */}
-              <TaskStatusPopover
-                id={id}
-                status={status}
-                isOpen={activePopover === "status"}
-                onOpenChange={(open) => setActivePopover(open ? "status" : null)}
-                onStatusChange={handleStatusChange}
-                onStopPropagation={cancelClickTimeout}
-              />
-              
-              {/* Responsáveis - Hidden in compact mode unless editing */}
-              {(!isCompact || isEditing) && (
-              <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
-                <div className={cn("text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
-                  Responsáveis
-                </div>
-                
-                <Popover open={activePopover === "assignee"} onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}>
-                  <PopoverTrigger asChild>
-                    <div 
-                      className="cursor-pointer"
-                      onClick={(e: React.MouseEvent) => {
-                        e.stopPropagation();
-                        if (clickTimeoutRef.current) {
-                          clearTimeout(clickTimeoutRef.current);
-                          clickTimeoutRef.current = null;
-                        }
-                      }}
-                    >
-                      <AssigneeList
-                        assignees={stableAssignees}
-                        isEditing={isEditing}
-                        taskId={id}
-                      />
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent 
-                    className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-                    side="bottom" 
-                    align="start" 
-                    sideOffset={6} 
-                    avoidCollisions={true} 
-                    collisionPadding={8}
-                  >
-                    <AssigneeSelector 
-                      selectedAssignees={editedTask.assignees}
-                      onSelect={addAssignee}
-                      onRemove={removeAssignee}
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              )}
-          </CardContent>
-            </Card>
+            <TaskCardContent
+              id={id} title={title} clientName={clientName} priority={priority} status={status}
+              isEditing={isEditing} isCompact={isCompact} editedTask={editedTask}
+              stableAssignees={stableAssignees} activePopover={activePopover}
+              setActivePopover={setActivePopover} datePopoverContentRef={datePopoverContentRef}
+              clickTimeoutRef={clickTimeoutRef} onDateChange={handleDateChange}
+              onClientChange={handleClientChange} onPriorityChange={handlePriorityChange}
+              onStatusChange={handleStatusChange} onAddAssignee={addAssignee}
+              onRemoveAssignee={removeAssignee} onEditClick={handleEditClick} onNavigate={navigate}
+            />
+          </Card>
         </ContextMenuTrigger>
         <TaskCardContextMenu
-          selectedCount={selectedCount}
-          currentDate={editedTask.dueDate}
-          currentClient={editedTask.clientName || ""}
-          currentAssignees={editedTask.assignees || []}
+          selectedCount={selectedCount} currentDate={editedTask.dueDate}
+          currentClient={editedTask.clientName || ""} currentAssignees={editedTask.assignees || []}
           onShowReplaceTitleDialog={() => setShowReplaceTitleDialog(true)}
           onShowAppendTitleDialog={() => setShowAppendTitleDialog(true)}
-          onDateChange={handleContextDateChange}
-          onClientChange={handleContextClientChange}
-          onPriorityChange={handleContextPriorityChange}
-          onStatusChange={handleContextStatusChange}
-          onAddAssignee={handleContextAddAssignee}
-          onRemoveAssignee={handleContextRemoveAssignee}
-          onSetSingleAssignee={handleContextSetSingleAssignee}
-          onDelete={handleContextDelete}
+          onDateChange={handleContextDateChange} onClientChange={handleContextClientChange}
+          onPriorityChange={handleContextPriorityChange} onStatusChange={handleContextStatusChange}
+          onAddAssignee={handleContextAdd} onRemoveAssignee={handleContextRemove}
+          onSetSingleAssignee={handleContextSetSingle} onDelete={handleContextDelete}
         />
       </ContextMenu>
       <TaskCardQuickDetails
-        id={id}
-        title={title}
-        description={editedTask.description}
-        notes={notes}
-        open={showDetails}
-        onOpenChange={setShowDetails}
-        onUpdate={onUpdate}
+        id={id} title={title} description={editedTask.description} notes={notes}
+        open={showDetails} onOpenChange={setShowDetails} onUpdate={onUpdate}
         onDelete={() => setShowDeleteConfirm(true)}
       />
       <TaskCardDialogs
-        id={id}
-        dueDate={dueDate}
-        selectedCount={selectedCount}
-        showDeleteConfirm={showDeleteConfirm}
-        setShowDeleteConfirm={setShowDeleteConfirm}
-        showReplaceTitleDialog={showReplaceTitleDialog}
-        setShowReplaceTitleDialog={setShowReplaceTitleDialog}
-        showAppendTitleDialog={showAppendTitleDialog}
-        setShowAppendTitleDialog={setShowAppendTitleDialog}
-        showBulkDatePicker={showBulkDatePicker}
-        setShowBulkDatePicker={setShowBulkDatePicker}
-        newTitleText={newTitleText}
-        setNewTitleText={setNewTitleText}
-        appendTitleText={appendTitleText}
-        setAppendTitleText={setAppendTitleText}
-        onDelete={handleDelete}
-        onReplaceTitleSubmit={onReplaceTitleSubmit}
-        onAppendTitleSubmit={onAppendTitleSubmit}
-        onContextDateChange={onContextDateChange}
+        id={id} dueDate={dueDate} selectedCount={selectedCount}
+        showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm}
+        showReplaceTitleDialog={showReplaceTitleDialog} setShowReplaceTitleDialog={setShowReplaceTitleDialog}
+        showAppendTitleDialog={showAppendTitleDialog} setShowAppendTitleDialog={setShowAppendTitleDialog}
+        showBulkDatePicker={showBulkDatePicker} setShowBulkDatePicker={setShowBulkDatePicker}
+        newTitleText={newTitleText} setNewTitleText={setNewTitleText}
+        appendTitleText={appendTitleText} setAppendTitleText={setAppendTitleText}
+        onDelete={handleDelete} onReplaceTitleSubmit={onReplaceTitleSubmit}
+        onAppendTitleSubmit={onAppendTitleSubmit} onContextDateChange={onContextDateChange}
       />
     </>
   );

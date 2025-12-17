@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Trash2 } from "lucide-react";
+import type { TaskUpdates } from "@/types/task";
 
 interface TaskCardQuickDetailsProps {
   id: string;
@@ -17,7 +18,7 @@ interface TaskCardQuickDetailsProps {
   notes?: string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onUpdate: (taskId: string, updates: any) => void;
+  onUpdate: (taskId: string, updates: TaskUpdates) => void;
   onDelete: () => void;
 }
 

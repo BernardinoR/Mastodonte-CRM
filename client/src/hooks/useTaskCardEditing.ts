@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { parseLocalDate } from "@/lib/date-utils";
-import type { TaskStatus, TaskPriority } from "@/types/task";
+import type { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
 
 const globalJustClosedEditRef = { current: false };
 let globalCooldownTimeout: NodeJS.Timeout | null = null;
@@ -36,7 +36,7 @@ interface UseTaskCardEditingProps {
   assignees: string[];
   dueDate: Date;
   description?: string;
-  onUpdate: (taskId: string, updates: any) => void;
+  onUpdate: (taskId: string, updates: TaskUpdates) => void;
   onFinishEditing?: (taskId: string) => void;
   initialEditMode?: boolean;
 }
