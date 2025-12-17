@@ -30,11 +30,13 @@ interface TaskTableViewProps {
   onBulkUpdate?: (updates: Partial<Task>) => void;
   onBulkAddAssignee?: (assignee: string) => void;
   onBulkRemoveAssignee?: (assignee: string) => void;
+  onBulkDelete?: () => void;
   onSelectionChange?: (taskIds: Set<string>, lastId?: string) => void;
   onAddTaskAfter?: (afterTaskId: string) => void;
   onStartEditing?: (taskId: string) => void;
   onFinishEditing?: (taskId: string) => void;
   onReorderTasks?: (tasks: Task[]) => void;
+  onDeleteTask?: (taskId: string) => void;
   availableAssignees?: string[];
   availableClients?: string[];
 }
@@ -60,11 +62,13 @@ export const TaskTableView = memo(function TaskTableView({
   onBulkUpdate,
   onBulkAddAssignee,
   onBulkRemoveAssignee,
+  onBulkDelete,
   onSelectionChange,
   onAddTaskAfter,
   onStartEditing,
   onFinishEditing,
   onReorderTasks,
+  onDeleteTask,
 }: TaskTableViewProps) {
   const { 
     columns, 
@@ -219,6 +223,7 @@ export const TaskTableView = memo(function TaskTableView({
           onClientChange={handleBulkClientChange}
           onAddAssignee={(assignee) => onBulkAddAssignee?.(assignee)}
           onRemoveAssignee={(assignee) => onBulkRemoveAssignee?.(assignee)}
+          onDelete={() => onBulkDelete?.()}
           onClearSelection={handleClearSelection}
         />
       )}
@@ -261,6 +266,7 @@ export const TaskTableView = memo(function TaskTableView({
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
                   onAddTaskAfter={() => onAddTaskAfter?.(task.id)}
                   onFinishEditing={() => onFinishEditing?.(task.id)}
+                  onDeleteTask={() => onDeleteTask?.(task.id)}
                 />
               ))}
             </SortableContext>

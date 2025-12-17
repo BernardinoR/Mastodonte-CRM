@@ -1,5 +1,5 @@
 import { memo, useState, useCallback } from "react";
-import { CalendarIcon, X, Users, Building2 } from "lucide-react";
+import { CalendarIcon, X, Users, Building2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
@@ -19,6 +19,7 @@ interface TableBulkActionsProps {
   onClientChange: (clientName: string | undefined) => void;
   onAddAssignee: (assignee: string) => void;
   onRemoveAssignee: (assignee: string) => void;
+  onDelete: () => void;
   onClearSelection: () => void;
 }
 
@@ -31,6 +32,7 @@ export const TableBulkActions = memo(function TableBulkActions({
   onClientChange,
   onAddAssignee,
   onRemoveAssignee,
+  onDelete,
   onClearSelection,
 }: TableBulkActionsProps) {
   const [statusOpen, setStatusOpen] = useState(false);
@@ -193,6 +195,17 @@ export const TableBulkActions = memo(function TableBulkActions({
       </div>
       
       <div className="w-px h-5 bg-border" />
+      
+      <Button 
+        variant="ghost" 
+        size="icon" 
+        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10" 
+        onClick={onDelete}
+        data-testid="button-bulk-delete"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
+        <Trash2 className="w-4 h-4" />
+      </Button>
       
       <Button 
         variant="ghost" 

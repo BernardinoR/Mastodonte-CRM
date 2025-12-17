@@ -7,10 +7,12 @@ import { CSS } from "@dnd-kit/utilities";
 import { GripVertical, CalendarIcon, Plus } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
 import { DateInput } from "@/components/ui/date-input";
 import { TaskStatusPopover, TaskPriorityPopover, TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popovers";
+import { TaskCardContextMenu } from "@/components/task-context-menu";
 import { usePopoverState, type PopoverField } from "@/hooks/usePopoverState";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import type { Column } from "./TableHeader";
@@ -27,6 +29,7 @@ interface TaskTableRowProps {
   onUpdateTask?: (updates: Partial<Task>) => void;
   onAddTaskAfter?: () => void;
   onFinishEditing?: () => void;
+  onDeleteTask?: () => void;
 }
 
 export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps) {
@@ -75,6 +78,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   onUpdateTask,
   onAddTaskAfter,
   onFinishEditing,
+  onDeleteTask,
   dragListeners,
   dragAttributes,
   isDragging,
@@ -274,78 +278,114 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
     }
   };
 
+  const handleContextStatusChange = useCallback((status: TaskStatus) => {
+    onUpdateTask?.({ status });
+  }, [onUpdateTask]);
+
+  const handleContextPriorityChange = useCallback((priority: TaskPriority) => {
+    onUpdateTask?.({ priority });
+  }, [onUpdateTask]);
+
+  const handleContextDateChange = useCallback((date: Date) => {
+    onUpdateTask?.({ dueDate: date });
+  }, [onUpdateTask]);
+
+  const handleContextClientChange = useCallback((client: string) => {
+    onUpdateTask?.({ clientName: client === "_none" ? undefined : client });
+  }, [onUpdateTask]);
+
   return (
-    <div 
-      className={cn(
-        "flex group",
-        isSelected && "bg-primary/10"
-      )}
-      data-testid={`row-task-${task.id}`}
-    >
-      <div 
-        className="flex items-center py-1.5"
-        style={{ width: `${controlColumnsWidth}px` }}
-      >
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
         <div 
-          className="flex items-center justify-center w-8"
-          onClick={(e) => e.stopPropagation()}
+          className={cn(
+            "flex group",
+            isSelected && "bg-primary/10"
+          )}
+          data-testid={`row-task-${task.id}`}
         >
-          <button
-            onClick={onAddTaskAfter}
-            className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-            data-testid={`button-add-task-${task.id}`}
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-        </div>
-        <div 
-          className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing"
-          {...dragListeners}
-          {...dragAttributes}
-        >
-          <GripVertical 
-            className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
-            data-testid={`drag-handle-task-${task.id}`}
-          />
-        </div>
-        <div 
-          className="flex items-center justify-center w-8"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Checkbox
-            checked={isSelected}
-            onCheckedChange={(checked) => {
-              const event = window.event as MouseEvent | undefined;
-              onSelectChange?.(!!checked, event?.shiftKey ?? false);
-            }}
-            className={cn(
-              "transition-opacity",
-              isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-            )}
-            data-testid={`checkbox-task-${task.id}`}
-          />
-        </div>
-      </div>
-      <div 
-        className={cn(
-          "flex-1 grid border-b border-border transition-colors duration-200 cursor-pointer",
-          !isSelected && "hover:bg-muted/50",
-          isDragging && "bg-muted"
-        )}
-        style={{
-          gridTemplateColumns: columns.map(c => c.width).join(" "),
-        }}
-        onClick={onRowClick}
-      >
-        {columns.map((column) => (
           <div 
-            key={column.id} 
-            className="px-3 py-1.5 flex items-center"
+            className="flex items-center py-1.5"
+            style={{ width: `${controlColumnsWidth}px` }}
           >
-            {renderCell(column.id)}
+            <div 
+              className="flex items-center justify-center w-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={onAddTaskAfter}
+                className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                data-testid={`button-add-task-${task.id}`}
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            </div>
+            <div 
+              className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing"
+              {...dragListeners}
+              {...dragAttributes}
+            >
+              <GripVertical 
+                className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
+                data-testid={`drag-handle-task-${task.id}`}
+              />
+            </div>
+            <div 
+              className="flex items-center justify-center w-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={(checked) => {
+                  const event = window.event as MouseEvent | undefined;
+                  onSelectChange?.(!!checked, event?.shiftKey ?? false);
+                }}
+                className={cn(
+                  "transition-opacity",
+                  isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                )}
+                data-testid={`checkbox-task-${task.id}`}
+              />
+            </div>
           </div>
-        ))}
-      </div>
-    </div>
+          <div 
+            className={cn(
+              "flex-1 grid border-b border-border transition-colors duration-200 cursor-pointer",
+              !isSelected && "hover:bg-muted/50",
+              isDragging && "bg-muted"
+            )}
+            style={{
+              gridTemplateColumns: columns.map(c => c.width).join(" "),
+            }}
+            onClick={onRowClick}
+          >
+            {columns.map((column) => (
+              <div 
+                key={column.id} 
+                className="px-3 py-1.5 flex items-center"
+              >
+                {renderCell(column.id)}
+              </div>
+            ))}
+          </div>
+        </div>
+      </ContextMenuTrigger>
+      <TaskCardContextMenu
+        selectedCount={isSelected ? 1 : 0}
+        currentDate={format(task.dueDate, "yyyy-MM-dd")}
+        currentClient={task.clientName || ""}
+        currentAssignees={task.assignees || []}
+        onShowReplaceTitleDialog={() => {}}
+        onShowAppendTitleDialog={() => {}}
+        onDateChange={handleContextDateChange}
+        onClientChange={handleContextClientChange}
+        onPriorityChange={handleContextPriorityChange}
+        onStatusChange={handleContextStatusChange}
+        onAddAssignee={handleAssigneeAdd}
+        onRemoveAssignee={handleAssigneeRemove}
+        onSetSingleAssignee={(assignee) => onUpdateTask?.({ assignees: [assignee] })}
+        onDelete={() => onDeleteTask?.()}
+      />
+    </ContextMenu>
   );
 });
