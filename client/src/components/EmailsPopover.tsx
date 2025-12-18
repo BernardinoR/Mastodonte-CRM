@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
-import { Mail, Plus, Circle, X, Check } from "lucide-react";
+import { Mail, Plus, Circle, X, Check, CheckCircle2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
@@ -145,11 +145,9 @@ export function EmailsPopover({
                 data-testid={`button-set-primary-email-${index}`}
               >
                 {index === primaryEmailIndex ? (
-                  <div className="w-4 h-4 rounded-full bg-[#2eaadc] flex items-center justify-center">
-                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                  </div>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500/70" />
                 ) : (
-                  <Circle className="w-4 h-4 text-muted-foreground/50 hover:text-muted-foreground transition-colors" />
+                  <Circle className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors" />
                 )}
               </button>
               
