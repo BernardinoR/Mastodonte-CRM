@@ -141,3 +141,36 @@ export const getStatusConfig = (status: TaskStatus): StatusConfig => {
 export const getPriorityConfig = (priority: TaskPriority): PriorityConfig => {
   return PRIORITY_CONFIG[priority] || PRIORITY_CONFIG["Normal"];
 };
+
+// Client Status Types and Configuration
+export type ClientStatus = "Ativo" | "Prospect" | "Distrato";
+
+export interface ClientStatusConfig {
+  label: string;
+  bgColor: string;
+  textColor: string;
+}
+
+export const CLIENT_STATUS_CONFIG: Record<ClientStatus, ClientStatusConfig> = {
+  "Ativo": {
+    label: "Ativo",
+    bgColor: "bg-[#203828]",
+    textColor: "text-[#6ecf8e]",
+  },
+  "Prospect": {
+    label: "Prospect",
+    bgColor: "bg-[#2a2a38]",
+    textColor: "text-[#a78bfa]",
+  },
+  "Distrato": {
+    label: "Distrato",
+    bgColor: "bg-[#382020]",
+    textColor: "text-[#f87171]",
+  },
+};
+
+export const CLIENT_STATUS_OPTIONS: ClientStatus[] = ["Ativo", "Prospect", "Distrato"];
+
+export const getClientStatusConfig = (status: ClientStatus): ClientStatusConfig => {
+  return CLIENT_STATUS_CONFIG[status] || CLIENT_STATUS_CONFIG["Ativo"];
+};

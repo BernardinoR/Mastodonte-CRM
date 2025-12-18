@@ -29,6 +29,7 @@ import { Badge } from "@/components/ui/badge";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
+import { ClientStatusBadge } from "@/components/ClientStatusBadge";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
@@ -248,7 +249,7 @@ export default function ClientDetails() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -308,9 +309,10 @@ export default function ClientDetails() {
               <h1 className="text-3xl font-bold text-foreground" data-testid="text-client-name">
                 {client.name}
               </h1>
-              <Badge className="bg-[#203828] text-[#6ecf8e] text-sm font-normal">
-                {client.status}
-              </Badge>
+              <ClientStatusBadge 
+                status={client.status}
+                onStatusChange={(newStatus) => updateClientStatus(client.id, newStatus)}
+              />
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">

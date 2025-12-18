@@ -1,3 +1,5 @@
+import type { ClientStatus } from "@/lib/statusConfig";
+
 export interface Client {
   id: string;
   name: string;
@@ -10,7 +12,7 @@ export interface Client {
   aum: string;
   riskProfile: string;
   clientSince: string;
-  status: "Ativo" | "Inativo" | "Prospect";
+  status: ClientStatus;
   folderLink?: string;
 }
 

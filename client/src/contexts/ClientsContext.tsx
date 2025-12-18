@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
+import type { ClientStatus } from "@/lib/statusConfig";
 
 interface ClientsContextType {
   clients: Client[];
@@ -10,6 +11,7 @@ interface ClientsContextType {
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
   updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
   deleteWhatsAppGroup: (clientId: string, groupId: string) => void;
+  updateClientStatus: (clientId: string, status: ClientStatus) => void;
   dataVersion: number;
 }
 
@@ -258,7 +260,7 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
 };
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
-  const [clients] = useState<Client[]>(INITIAL_CLIENTS);
+  const [clients, setClients] = useState<Client[]>(INITIAL_CLIENTS);
   const [extendedData, setExtendedData] = useState<Record<string, { stats: ClientStats[]; meetings: ClientMeeting[]; whatsappGroups: WhatsAppGroup[] }>>(CLIENT_EXTENDED_DATA);
   const [dataVersion, setDataVersion] = useState(0);
 
@@ -346,6 +348,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateClientStatus = useCallback((clientId: string, status: ClientStatus) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, status } : client
+    ));
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -355,8 +364,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     addWhatsAppGroup,
     updateWhatsAppGroup,
     deleteWhatsAppGroup,
+    updateClientStatus,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
