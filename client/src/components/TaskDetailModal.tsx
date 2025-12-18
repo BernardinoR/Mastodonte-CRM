@@ -355,7 +355,7 @@ export function TaskDetailModal({
             </div>
 
             <TaskContactButtons 
-              clientEmail={linkedClient?.email || task.clientEmail} 
+              clientEmail={linkedClient?.emails?.[linkedClient.primaryEmailIndex] || linkedClient?.emails?.[0] || task.clientEmail} 
               clientPhone={linkedClient?.phone || task.clientPhone} 
             />
 

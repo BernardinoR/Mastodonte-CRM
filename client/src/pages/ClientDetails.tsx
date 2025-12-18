@@ -30,6 +30,7 @@ import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientStatusBadge } from "@/components/ClientStatusBadge";
+import { EmailsPopover } from "@/components/EmailsPopover";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
@@ -261,7 +262,7 @@ export default function ClientDetails() {
   const cpfBlurTimeoutRef = useRef<number | null>(null);
   const phoneBlurTimeoutRef = useRef<number | null>(null);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -508,7 +509,10 @@ export default function ClientDetails() {
   };
 
   const handleEmail = () => {
-    window.open(`mailto:${client.email}`, "_blank");
+    const primaryEmail = client.emails[client.primaryEmailIndex] || client.emails[0];
+    if (primaryEmail) {
+      window.open(`mailto:${primaryEmail}`, "_blank");
+    }
   };
 
   return (
@@ -607,7 +611,14 @@ export default function ClientDetails() {
                   </span>
                 )}
               </div>
-              <MetaItem icon={Mail} label="Email" value={client.email} />
+              <EmailsPopover
+                emails={client.emails}
+                primaryEmailIndex={client.primaryEmailIndex}
+                onAddEmail={(email) => addClientEmail(client.id, email)}
+                onRemoveEmail={(index) => removeClientEmail(client.id, index)}
+                onUpdateEmail={(index, newEmail) => updateClientEmail(client.id, index, newEmail)}
+                onSetPrimaryEmail={(index) => setClientPrimaryEmail(client.id, index)}
+              />
               <MetaItem icon={User} label="Consultor" value={client.advisor} />
               <MetaItem icon={CalendarIcon} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
               <MetaItem icon={MapPin} label="Endereço" value={client.address} />

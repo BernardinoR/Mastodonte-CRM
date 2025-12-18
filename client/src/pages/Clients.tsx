@@ -13,7 +13,7 @@ export default function Clients() {
 
   const filteredClients = clients.filter(client =>
     client.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    client.email?.toLowerCase().includes(searchQuery.toLowerCase())
+    client.emails.some(email => email.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
