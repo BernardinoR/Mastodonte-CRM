@@ -243,10 +243,12 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
   );
 }
 
-function WhatsAppGroupsTable({ groups, clientName, onAddGroup, isAddingExternal, onCancelAddExternal }: { 
+function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdateGroup, isAddingExternal, onCancelAddExternal }: { 
   groups: WhatsAppGroup[]; 
+  clientId: string;
   clientName: string; 
   onAddGroup?: (group: Omit<WhatsAppGroup, 'id'>) => void;
+  onUpdateGroup?: (groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
   isAddingExternal?: boolean;
   onCancelAddExternal?: () => void;
 }) {
@@ -257,6 +259,9 @@ function WhatsAppGroupsTable({ groups, clientName, onAddGroup, isAddingExternal,
   const [newGroupPurpose, setNewGroupPurpose] = useState("");
   const [newGroupLink, setNewGroupLink] = useState("");
   const [newGroupStatus, setNewGroupStatus] = useState<"Ativo" | "Inativo">("Ativo");
+  
+  const [editingField, setEditingField] = useState<{ groupId: string; field: 'name' | 'purpose' | 'link' | 'status' } | null>(null);
+  const [editValue, setEditValue] = useState("");
   
   const statusColors: Record<string, string> = {
     "Ativo": "bg-[#203828] text-[#6ecf8e]",
@@ -299,6 +304,50 @@ function WhatsAppGroupsTable({ groups, clientName, onAddGroup, isAddingExternal,
     handleCancelAddGroup();
   };
 
+  const startEditing = (groupId: string, field: 'name' | 'purpose' | 'link' | 'status', currentValue: string) => {
+    setEditingField({ groupId, field });
+    setEditValue(currentValue);
+  };
+
+  const cancelEditing = () => {
+    setEditingField(null);
+    setEditValue("");
+  };
+
+  const saveEditing = () => {
+    if (!editingField) return;
+    
+    const { groupId, field } = editingField;
+    const value = editValue.trim();
+    
+    if (field === 'name' && !value) {
+      cancelEditing();
+      return;
+    }
+    
+    if (field === 'link') {
+      onUpdateGroup?.(groupId, { link: value || null });
+    } else if (field === 'status') {
+      onUpdateGroup?.(groupId, { status: value as 'Ativo' | 'Inativo' });
+    } else {
+      onUpdateGroup?.(groupId, { [field]: value });
+    }
+    
+    cancelEditing();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveEditing();
+    } else if (e.key === 'Escape') {
+      cancelEditing();
+    }
+  };
+
+  const isEditing = (groupId: string, field: string) => {
+    return editingField?.groupId === groupId && editingField?.field === field;
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -313,34 +362,124 @@ function WhatsAppGroupsTable({ groups, clientName, onAddGroup, isAddingExternal,
         </thead>
         <tbody>
           {visibleGroups.map((group) => (
-            <tr key={group.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors">
-              <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-muted-foreground" />
-                {group.name}
-              </td>
-              <td className="py-3 px-4 text-foreground">{group.purpose}</td>
+            <tr key={group.id} className="border-b border-[#333333] group/row">
               <td className="py-3 px-4">
-                {group.link ? (
-                  <a 
-                    href={group.link} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-[#2eaadc] hover:underline flex items-center gap-1"
-                    data-testid={`link-whatsapp-group-${group.id}`}
-                  >
-                    Abrir grupo
-                  </a>
+                {isEditing(group.id, 'name') ? (
+                  <div className="flex items-center gap-2">
+                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={saveEditing}
+                      className="flex-1 bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
+                      autoFocus
+                      data-testid={`input-edit-group-name-${group.id}`}
+                    />
+                  </div>
                 ) : (
-                  <span className="text-muted-foreground">Arquivado</span>
+                  <div 
+                    className="flex items-center gap-2 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors"
+                    onClick={() => startEditing(group.id, 'name', group.name)}
+                    data-testid={`cell-group-name-${group.id}`}
+                  >
+                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <span className="text-foreground font-medium">{group.name}</span>
+                  </div>
+                )}
+              </td>
+              <td className="py-3 px-4">
+                {isEditing(group.id, 'purpose') ? (
+                  <input
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={saveEditing}
+                    className="w-full bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
+                    autoFocus
+                    data-testid={`input-edit-group-purpose-${group.id}`}
+                  />
+                ) : (
+                  <div 
+                    className="cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
+                    onClick={() => startEditing(group.id, 'purpose', group.purpose)}
+                    data-testid={`cell-group-purpose-${group.id}`}
+                  >
+                    {group.purpose || <span className="text-muted-foreground italic">Sem finalidade</span>}
+                  </div>
+                )}
+              </td>
+              <td className="py-3 px-4">
+                {isEditing(group.id, 'link') ? (
+                  <input
+                    type="text"
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    onBlur={saveEditing}
+                    placeholder="https://chat.whatsapp.com/..."
+                    className="w-full bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                    autoFocus
+                    data-testid={`input-edit-group-link-${group.id}`}
+                  />
+                ) : (
+                  <div className="flex items-center gap-2">
+                    {group.link ? (
+                      <a 
+                        href={group.link} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-[#2eaadc] hover:underline"
+                        data-testid={`link-whatsapp-group-${group.id}`}
+                      >
+                        Abrir grupo
+                      </a>
+                    ) : (
+                      <span className="text-muted-foreground">Arquivado</span>
+                    )}
+                    <button
+                      onClick={() => startEditing(group.id, 'link', group.link || '')}
+                      className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-[#333333] transition-all"
+                      data-testid={`button-edit-group-link-${group.id}`}
+                    >
+                      <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                    </button>
+                  </div>
                 )}
               </td>
               <td className="py-3 px-4 text-foreground">
                 {format(group.createdAt, "dd/MM/yyyy", { locale: ptBR })}
               </td>
               <td className="py-3 px-4">
-                <Badge className={`${statusColors[group.status]} text-xs`}>
-                  {group.status}
-                </Badge>
+                {isEditing(group.id, 'status') ? (
+                  <select
+                    value={editValue}
+                    onChange={(e) => {
+                      setEditValue(e.target.value);
+                      onUpdateGroup?.(group.id, { status: e.target.value as 'Ativo' | 'Inativo' });
+                      cancelEditing();
+                    }}
+                    onBlur={cancelEditing}
+                    className="bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
+                    autoFocus
+                    data-testid={`select-edit-group-status-${group.id}`}
+                  >
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                  </select>
+                ) : (
+                  <div
+                    className="inline-block cursor-pointer"
+                    onClick={() => startEditing(group.id, 'status', group.status)}
+                    data-testid={`cell-group-status-${group.id}`}
+                  >
+                    <Badge className={`${statusColors[group.status]} text-xs hover:opacity-80 transition-opacity`}>
+                      {group.status}
+                    </Badge>
+                  </div>
+                )}
               </td>
             </tr>
           ))}
@@ -447,7 +586,7 @@ export default function ClientDetails() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -642,13 +781,17 @@ export default function ClientDetails() {
         </div>
         <Card className="bg-[#202020] border-[#333333] overflow-hidden">
           <WhatsAppGroupsTable 
-            groups={whatsappGroups} 
+            groups={whatsappGroups}
+            clientId={client.id}
             clientName={client.name}
             isAddingExternal={isAddingWhatsAppGroup}
             onCancelAddExternal={() => setIsAddingWhatsAppGroup(false)}
             onAddGroup={(group) => {
               addWhatsAppGroup(client.id, group);
               setIsAddingWhatsAppGroup(false);
+            }}
+            onUpdateGroup={(groupId, updates) => {
+              updateWhatsAppGroup(client.id, groupId, updates);
             }}
           />
         </Card>

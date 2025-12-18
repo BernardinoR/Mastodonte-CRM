@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
 
 interface ClientsContextType {
@@ -8,6 +8,7 @@ interface ClientsContextType {
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
+  updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
   dataVersion: number;
 }
 
@@ -310,16 +311,37 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateWhatsAppGroup = useCallback((clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId];
+      if (!clientData) return prev;
+      
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          whatsappGroups: clientData.whatsappGroups.map(group =>
+            group.id === groupId ? { ...group, ...updates } : group
+          ),
+        },
+      };
+    });
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const contextValue = useMemo(() => ({
+    clients,
+    getClientById,
+    getClientByName,
+    getFullClientData,
+    getAllClients,
+    addWhatsAppGroup,
+    updateWhatsAppGroup,
+    dataVersion,
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, dataVersion]);
+
   return (
-    <ClientsContext.Provider value={{
-      clients,
-      getClientById,
-      getClientByName,
-      getFullClientData,
-      getAllClients,
-      addWhatsAppGroup,
-      dataVersion,
-    }}>
+    <ClientsContext.Provider value={contextValue}>
       {children}
     </ClientsContext.Provider>
   );
