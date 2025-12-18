@@ -23,12 +23,14 @@ import {
   AlertTriangle,
   GitBranch,
   Check,
-  X
+  X,
+  Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DateInput } from "@/components/ui/date-input";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
@@ -247,12 +249,13 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
   );
 }
 
-function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdateGroup, isAddingExternal, onCancelAddExternal }: { 
+function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdateGroup, onDeleteGroup, isAddingExternal, onCancelAddExternal }: { 
   groups: WhatsAppGroup[]; 
   clientId: string;
   clientName: string; 
   onAddGroup?: (group: Omit<WhatsAppGroup, 'id'>) => void;
   onUpdateGroup?: (groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
+  onDeleteGroup?: (groupId: string) => void;
   isAddingExternal?: boolean;
   onCancelAddExternal?: () => void;
 }) {
@@ -269,6 +272,7 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
   const [datePopoverOpen, setDatePopoverOpen] = useState<string | null>(null);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
   const [newStatusPopoverOpen, setNewStatusPopoverOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{ groupId: string; groupName: string } | null>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
   
   const statusColors: Record<string, string> = {
@@ -375,6 +379,17 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
     return editingField?.groupId === groupId && editingField?.field === field;
   };
 
+  const handleDeleteClick = (groupId: string, groupName: string) => {
+    setDeleteConfirmOpen({ groupId, groupName });
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteConfirmOpen) {
+      onDeleteGroup?.(deleteConfirmOpen.groupId);
+      setDeleteConfirmOpen(null);
+    }
+  };
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -389,7 +404,14 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
         </thead>
         <tbody>
           {visibleGroups.map((group) => (
-            <tr key={group.id} className="border-b border-[#333333] group/row">
+            <tr 
+              key={group.id} 
+              className="border-b border-[#333333] group/row"
+              onContextMenu={(e) => {
+                e.preventDefault();
+                handleDeleteClick(group.id, group.name);
+              }}
+            >
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2 relative">
                   <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -510,47 +532,56 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
                 </Popover>
               </td>
               <td className="py-3 px-4">
-                <Popover open={statusPopoverOpen === group.id} onOpenChange={(open) => setStatusPopoverOpen(open ? group.id : null)}>
-                  <PopoverTrigger asChild>
-                    <div
-                      className="inline-block cursor-pointer"
-                      onClick={(e) => e.stopPropagation()}
-                      data-testid={`cell-group-status-${group.id}`}
-                    >
-                      <Badge className={`${statusColors[group.status]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
-                        {group.status}
-                      </Badge>
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
-                    <div className="w-full">
-                      <div className={`border-b ${UI_CLASSES.border}`}>
-                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-                        <div className="px-3 py-1">
-                          <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
-                            <Badge className={`${statusColors[group.status]} text-xs`}>
-                              {group.status}
-                            </Badge>
+                <div className="flex items-center gap-2">
+                  <Popover open={statusPopoverOpen === group.id} onOpenChange={(open) => setStatusPopoverOpen(open ? group.id : null)}>
+                    <PopoverTrigger asChild>
+                      <div
+                        className="inline-block cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid={`cell-group-status-${group.id}`}
+                      >
+                        <Badge className={`${statusColors[group.status]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                          {group.status}
+                        </Badge>
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+                      <div className="w-full">
+                        <div className={`border-b ${UI_CLASSES.border}`}>
+                          <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                          <div className="px-3 py-1">
+                            <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                              <Badge className={`${statusColors[group.status]} text-xs`}>
+                                {group.status}
+                              </Badge>
+                            </div>
                           </div>
                         </div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                        <div className="pb-1">
+                          {(['Ativo', 'Inativo'] as const).filter(s => s !== group.status).map(s => (
+                            <div
+                              key={s}
+                              className={UI_CLASSES.dropdownItem}
+                              onClick={(e) => { e.stopPropagation(); handleStatusChange(group.id, s); }}
+                            >
+                              <Badge className={`${statusColors[s]} text-xs`}>
+                                {s}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
-                      <div className="pb-1">
-                        {(['Ativo', 'Inativo'] as const).filter(s => s !== group.status).map(s => (
-                          <div
-                            key={s}
-                            className={UI_CLASSES.dropdownItem}
-                            onClick={(e) => { e.stopPropagation(); handleStatusChange(group.id, s); }}
-                          >
-                            <Badge className={`${statusColors[s]} text-xs`}>
-                              {s}
-                            </Badge>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
+                    </PopoverContent>
+                  </Popover>
+                  <button
+                    onClick={() => handleDeleteClick(group.id, group.name)}
+                    className="p-1 rounded hover:bg-[#3a2020] transition-all opacity-0 group-hover/row:opacity-100"
+                    data-testid={`button-delete-group-${group.id}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -697,6 +728,29 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteConfirmOpen} onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}>
+        <AlertDialogContent className="bg-[#252525] border-[#333333]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir grupo?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja excluir o grupo "{deleteConfirmOpen?.groupName}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#333333] border-[#444444] text-foreground hover:bg-[#3a3a3a]">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700"
+              data-testid="button-confirm-delete-group"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
@@ -707,7 +761,7 @@ export default function ClientDetails() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -913,6 +967,9 @@ export default function ClientDetails() {
             }}
             onUpdateGroup={(groupId, updates) => {
               updateWhatsAppGroup(client.id, groupId, updates);
+            }}
+            onDeleteGroup={(groupId) => {
+              deleteWhatsAppGroup(client.id, groupId);
             }}
           />
         </Card>

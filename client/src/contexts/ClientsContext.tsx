@@ -9,6 +9,7 @@ interface ClientsContextType {
   getAllClients: () => Client[];
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
   updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
+  deleteWhatsAppGroup: (clientId: string, groupId: string) => void;
   dataVersion: number;
 }
 
@@ -329,6 +330,22 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const deleteWhatsAppGroup = useCallback((clientId: string, groupId: string) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId];
+      if (!clientData) return prev;
+      
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          whatsappGroups: clientData.whatsappGroups.filter(group => group.id !== groupId),
+        },
+      };
+    });
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -337,8 +354,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     getAllClients,
     addWhatsAppGroup,
     updateWhatsAppGroup,
+    deleteWhatsAppGroup,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
