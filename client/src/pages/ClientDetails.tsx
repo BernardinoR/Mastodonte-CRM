@@ -268,6 +268,7 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
   const [editValue, setEditValue] = useState("");
   const [datePopoverOpen, setDatePopoverOpen] = useState<string | null>(null);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
+  const [newStatusPopoverOpen, setNewStatusPopoverOpen] = useState(false);
   const datePopoverRef = useRef<HTMLDivElement>(null);
   
   const statusColors: Record<string, string> = {
@@ -294,6 +295,7 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
     setNewGroupPurpose("");
     setNewGroupLink("");
     setNewGroupStatus("Ativo");
+    setNewStatusPopoverOpen(false);
   };
 
   const handleSaveGroup = () => {
@@ -553,8 +555,8 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
             </tr>
           ))}
           {isAddingGroup && (
-            <tr className="border-b border-[#333333] bg-[#252525]">
-              <td className="py-2 px-4">
+            <tr className="border-b border-[#333333] group/row">
+              <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                   <input
@@ -562,50 +564,100 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
                     placeholder="Nome do grupo"
                     value={newGroupName}
                     onChange={(e) => setNewGroupName(e.target.value)}
-                    className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && newGroupName.trim()) handleSaveGroup();
+                      if (e.key === 'Escape') handleCancelAddGroup();
+                    }}
+                    className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none flex-1"
                     autoFocus
                     data-testid="input-new-group-name"
                   />
                 </div>
               </td>
-              <td className="py-2 px-4">
+              <td className="py-3 px-4">
                 <input
                   type="text"
-                  placeholder="Finalidade"
+                  placeholder="Finalidade (opcional)"
                   value={newGroupPurpose}
                   onChange={(e) => setNewGroupPurpose(e.target.value)}
-                  className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newGroupName.trim()) handleSaveGroup();
+                    if (e.key === 'Escape') handleCancelAddGroup();
+                  }}
+                  className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none w-full"
                   data-testid="input-new-group-purpose"
                 />
               </td>
-              <td className="py-2 px-4">
+              <td className="py-3 px-4">
                 <input
                   type="text"
-                  placeholder="https://chat.whatsapp.com/..."
+                  placeholder="Link (opcional)"
                   value={newGroupLink}
                   onChange={(e) => setNewGroupLink(e.target.value)}
-                  className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newGroupName.trim()) handleSaveGroup();
+                    if (e.key === 'Escape') handleCancelAddGroup();
+                  }}
+                  className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none w-full"
                   data-testid="input-new-group-link"
                 />
               </td>
-              <td className="py-2 px-4 text-muted-foreground text-sm">
-                Hoje
+              <td className="py-3 px-4">
+                <div className="inline-flex items-center gap-1.5 text-foreground">
+                  <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                  {format(new Date(), "dd/MM/yyyy", { locale: ptBR })}
+                </div>
               </td>
-              <td className="py-2 px-4">
+              <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
-                  <select
-                    value={newGroupStatus}
-                    onChange={(e) => setNewGroupStatus(e.target.value as "Ativo" | "Inativo")}
-                    className="bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-[#2eaadc]"
-                    data-testid="select-new-group-status"
-                  >
-                    <option value="Ativo">Ativo</option>
-                    <option value="Inativo">Inativo</option>
-                  </select>
+                  <Popover open={newStatusPopoverOpen} onOpenChange={setNewStatusPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <div
+                        className="inline-block cursor-pointer"
+                        onClick={(e) => e.stopPropagation()}
+                        data-testid="cell-new-group-status"
+                      >
+                        <Badge className={`${statusColors[newGroupStatus]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                          {newGroupStatus}
+                        </Badge>
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent 
+                      className={`w-40 p-0 ${UI_CLASSES.popover}`}
+                      align="start"
+                    >
+                      <div className="py-1">
+                        <div className={`border-b ${UI_CLASSES.border}`}>
+                          <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                          <div className="px-3 py-1">
+                            <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                              <Badge className={`${statusColors[newGroupStatus]} text-xs`}>
+                                {newGroupStatus}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                        <div className="pb-1">
+                          {(['Ativo', 'Inativo'] as const).filter(s => s !== newGroupStatus).map(s => (
+                            <div
+                              key={s}
+                              className={UI_CLASSES.dropdownItem}
+                              onClick={(e) => { e.stopPropagation(); setNewGroupStatus(s); setNewStatusPopoverOpen(false); }}
+                            >
+                              <Badge className={`${statusColors[s]} text-xs`}>
+                                {s}
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="ghost"
-                    className="h-7 px-2 text-[#6ecf8e] hover:text-[#8ed8a8] hover:bg-[#203828]"
+                    className="h-7 w-7 text-[#6ecf8e] hover:text-[#8ed8a8] hover:bg-[#203828]"
                     onClick={handleSaveGroup}
                     disabled={!newGroupName.trim()}
                     data-testid="button-save-new-group"
@@ -613,9 +665,9 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
                     <Check className="w-4 h-4" />
                   </Button>
                   <Button
-                    size="sm"
+                    size="icon"
                     variant="ghost"
-                    className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
                     onClick={handleCancelAddGroup}
                     data-testid="button-cancel-new-group"
                   >
