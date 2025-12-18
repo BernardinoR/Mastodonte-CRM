@@ -31,6 +31,7 @@ import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientStatusBadge } from "@/components/ClientStatusBadge";
 import { EmailsPopover } from "@/components/EmailsPopover";
+import { AdvisorPopover } from "@/components/AdvisorPopover";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
@@ -262,7 +263,7 @@ export default function ClientDetails() {
   const cpfBlurTimeoutRef = useRef<number | null>(null);
   const phoneBlurTimeoutRef = useRef<number | null>(null);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -619,7 +620,10 @@ export default function ClientDetails() {
                 onUpdateEmail={(index, newEmail) => updateClientEmail(client.id, index, newEmail)}
                 onSetPrimaryEmail={(index) => setClientPrimaryEmail(client.id, index)}
               />
-              <MetaItem icon={User} label="Consultor" value={client.advisor} />
+              <AdvisorPopover
+                currentAdvisor={client.advisor}
+                onAdvisorChange={(advisor) => updateClientAdvisor(client.id, advisor)}
+              />
               <MetaItem icon={CalendarIcon} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
               <MetaItem icon={MapPin} label="Endereço" value={client.address} />
               <MetaItem icon={Hash} label="Código Foundation" value={client.foundationCode} />
