@@ -21,8 +21,7 @@ import {
   FileText,
   History,
   AlertTriangle,
-  GitBranch,
-  Pencil
+  GitBranch
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -381,16 +380,13 @@ export default function ClientDetails() {
                   data-testid="input-client-name"
                 />
               ) : (
-                <div 
-                  className="group flex items-center gap-2 cursor-pointer"
+                <h1 
+                  className="text-3xl font-bold text-foreground cursor-pointer hover:text-[#2eaadc] transition-colors"
                   onClick={startEditingName}
                   data-testid="text-client-name"
                 >
-                  <h1 className="text-3xl font-bold text-foreground">
-                    {client.name}
-                  </h1>
-                  <Pencil className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
+                  {client.name}
+                </h1>
               )}
               <ClientStatusBadge 
                 status={client.status}
