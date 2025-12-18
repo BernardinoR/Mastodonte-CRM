@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
-import { Mail, Plus, Star, X, Check } from "lucide-react";
+import { Mail, Plus, Circle, X, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 
@@ -127,7 +127,7 @@ export function EmailsPopover({
         <div className="p-3 border-b border-[#333333]">
           <h4 className="text-sm font-medium text-foreground">Emails do Cliente</h4>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Clique na estrela para definir o email principal
+            Clique para definir o email principal
           </p>
         </div>
         
@@ -140,15 +140,17 @@ export function EmailsPopover({
               <button
                 type="button"
                 onClick={() => onSetPrimaryEmail(index)}
-                className={`p-1 rounded transition-colors ${
-                  index === primaryEmailIndex 
-                    ? "text-yellow-400" 
-                    : "text-muted-foreground hover:text-yellow-400"
-                }`}
+                className="p-1 rounded transition-colors"
                 title={index === primaryEmailIndex ? "Email principal" : "Definir como principal"}
                 data-testid={`button-set-primary-email-${index}`}
               >
-                <Star className={`w-4 h-4 ${index === primaryEmailIndex ? "fill-current" : ""}`} />
+                {index === primaryEmailIndex ? (
+                  <div className="w-4 h-4 rounded-full bg-[#2eaadc] flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                  </div>
+                ) : (
+                  <Circle className="w-4 h-4 text-muted-foreground/50 hover:text-muted-foreground transition-colors" />
+                )}
               </button>
               
               {editingIndex === index ? (
