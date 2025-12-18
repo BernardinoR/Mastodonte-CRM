@@ -17,6 +17,7 @@ import type { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
 export interface TaskCardProps {
   id: string;
   title: string;
+  clientId?: string;
   clientName?: string;
   priority?: TaskPriority;
   status: TaskStatus;
@@ -47,6 +48,7 @@ export interface TaskCardProps {
 const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
   if (prev.id !== next.id) return false;
   if (prev.title !== next.title) return false;
+  if (prev.clientId !== next.clientId) return false;
   if (prev.clientName !== next.clientName) return false;
   if (prev.priority !== next.priority) return false;
   if (prev.status !== next.status) return false;
@@ -74,7 +76,7 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
 };
 
 export const TaskCard = memo(function TaskCard({
-  id, title, clientName, priority, status, assignees, dueDate, description, notes,
+  id, title, clientId, clientName, priority, status, assignees, dueDate, description, notes,
   isSelected = false, selectedCount = 0, isDragActive = false,
   initialEditMode = false, isCompact = false,
   onSelect, onUpdate, onDelete, onFinishEditing, onOpenDetail,
@@ -182,7 +184,7 @@ export const TaskCard = memo(function TaskCard({
             )}
 
             <TaskCardContent
-              id={id} title={title} clientName={clientName} priority={priority} status={status}
+              id={id} title={title} clientId={clientId} clientName={clientName} priority={priority} status={status}
               isEditing={isEditing} isCompact={isCompact} editedTask={editedTask}
               stableAssignees={stableAssignees} activePopover={activePopover}
               setActivePopover={setActivePopover} datePopoverContentRef={datePopoverContentRef}

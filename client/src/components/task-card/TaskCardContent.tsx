@@ -17,6 +17,7 @@ type PopoverType = "date" | "priority" | "status" | "client" | "assignee" | null
 interface TaskCardContentProps {
   id: string;
   title: string;
+  clientId?: string;
   clientName?: string;
   priority?: TaskPriority;
   status: TaskStatus;
@@ -45,6 +46,7 @@ interface TaskCardContentProps {
 export function TaskCardContent({
   id,
   title,
+  clientId,
   clientName,
   priority,
   status,
@@ -114,13 +116,14 @@ export function TaskCardContent({
       {(!isCompact || isEditing || clientName) && (
         <TaskClientPopover
           id={id}
+          clientId={clientId}
           clientName={clientName || null}
           isEditing={isEditing}
           isOpen={activePopover === "client"}
           onOpenChange={(open) => setActivePopover(open ? "client" : null)}
           onClientChange={onClientChange}
           onStopPropagation={cancelClickTimeout}
-          onNavigate={(name) => onNavigate(`/clients/${encodeURIComponent(name)}`)}
+          onNavigate={(cid) => onNavigate(`/clients/${cid}`)}
           variant="card"
         />
       )}

@@ -237,11 +237,12 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
         return (
           <TaskClientPopover
             id={task.id}
+            clientId={task.clientId}
             clientName={task.clientName || null}
             isOpen={openPopover === "client"}
             onOpenChange={handleOpenChange("client")}
             onClientChange={handleClientChange}
-            onNavigate={(name) => navigate(`/clients/${encodeURIComponent(name)}`)}
+            onNavigate={(clientId) => navigate(`/clients/${clientId}`)}
             variant="table"
           />
         );

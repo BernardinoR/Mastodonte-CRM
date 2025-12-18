@@ -309,10 +309,19 @@ export default function ClientDetails() {
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData } = useClients();
+  const { getFullClientData, getClientByName } = useClients();
   
-  const clientId = params.id || "1";
-  const clientData = getFullClientData(clientId) || getFullClientData("1");
+  const clientIdOrName = params.id || "1";
+  
+  let clientData = getFullClientData(clientIdOrName);
+  
+  if (!clientData) {
+    const decodedName = decodeURIComponent(clientIdOrName);
+    const clientByName = getClientByName(decodedName);
+    if (clientByName) {
+      clientData = getFullClientData(clientByName.id);
+    }
+  }
   
   if (!clientData) {
     return (

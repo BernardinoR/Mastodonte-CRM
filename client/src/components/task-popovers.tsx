@@ -316,18 +316,20 @@ export const TaskStatusPopover = memo(function TaskStatusPopover({
 
 interface TaskClientPopoverProps {
   id: string;
+  clientId?: string | null;
   clientName: string | null;
   isEditing?: boolean;
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onClientChange: (clientId: string, clientName: string) => void;
   onStopPropagation?: () => void;
-  onNavigate?: (clientName: string) => void;
+  onNavigate?: (clientId: string) => void;
   variant?: "card" | "modal" | "table";
 }
 
 export const TaskClientPopover = memo(function TaskClientPopover({
   id,
+  clientId,
   clientName,
   isEditing = true,
   isOpen,
@@ -350,10 +352,14 @@ export const TaskClientPopover = memo(function TaskClientPopover({
   const handleNavigate = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     onStopPropagation?.();
-    if (clientName && onNavigate) {
-      onNavigate(clientName);
+    if (onNavigate) {
+      if (clientId) {
+        onNavigate(clientId);
+      } else if (clientName) {
+        onNavigate(encodeURIComponent(clientName));
+      }
     }
-  }, [clientName, onNavigate, onStopPropagation]);
+  }, [clientId, clientName, onNavigate, onStopPropagation]);
 
   const handleClearClient = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
