@@ -1,5 +1,14 @@
 import type { ClientStatus } from "@/lib/statusConfig";
 
+export interface Address {
+  street: string;
+  complement: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zipCode: string;
+}
+
 export interface Client {
   id: string;
   name: string;
@@ -10,7 +19,7 @@ export interface Client {
   primaryEmailIndex: number;
   advisor: string;
   lastMeeting: Date;
-  address: string;
+  address: Address;
   foundationCode: string;
   clientSince: string;
   status: ClientStatus;

@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
-import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
+import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup, Address } from "@/types/client";
 import type { ClientStatus } from "@/lib/statusConfig";
 
 function deriveInitials(name: string): string {
@@ -36,7 +36,7 @@ interface ClientsContextType {
   updateClientEmail: (clientId: string, emailIndex: number, newEmail: string) => void;
   setClientPrimaryEmail: (clientId: string, emailIndex: number) => void;
   updateClientAdvisor: (clientId: string, advisor: string) => void;
-  updateClientAddress: (clientId: string, address: string) => void;
+  updateClientAddress: (clientId: string, address: Address) => void;
   dataVersion: number;
 }
 
@@ -53,7 +53,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-25'),
-    address: "Campo Bom/RS",
+    address: {
+      street: "Rua das Flores, 123",
+      complement: "Apto 501",
+      neighborhood: "Centro",
+      city: "Campo Bom",
+      state: "RS",
+      zipCode: "93700-000",
+    },
     foundationCode: "FDN-001",
     clientSince: "Junho de 2023",
     status: "Ativo",
@@ -69,7 +76,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-22'),
-    address: "Blumenau/SC",
+    address: {
+      street: "Rua XV de Novembro, 456",
+      complement: "",
+      neighborhood: "Centro",
+      city: "Blumenau",
+      state: "SC",
+      zipCode: "89010-000",
+    },
     foundationCode: "FDN-002",
     clientSince: "Dezembro de 2022",
     status: "Ativo",
@@ -84,7 +98,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-15'),
-    address: "Rio de Janeiro/RJ",
+    address: {
+      street: "Av. Atlântica, 1500",
+      complement: "Cobertura",
+      neighborhood: "Copacabana",
+      city: "Rio de Janeiro",
+      state: "RJ",
+      zipCode: "22021-000",
+    },
     foundationCode: "FDN-003",
     clientSince: "Março de 2021",
     status: "Ativo",
@@ -99,7 +120,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-10-30'),
-    address: "São Paulo/SP",
+    address: {
+      street: "Av. Paulista, 1000",
+      complement: "Sala 2001",
+      neighborhood: "Bela Vista",
+      city: "São Paulo",
+      state: "SP",
+      zipCode: "01310-100",
+    },
     foundationCode: "FDN-004",
     clientSince: "Outubro de 2025",
     status: "Prospect",
@@ -114,7 +142,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-18'),
-    address: "Campinas/SP",
+    address: {
+      street: "Rua Barão de Jaguara, 200",
+      complement: "",
+      neighborhood: "Centro",
+      city: "Campinas",
+      state: "SP",
+      zipCode: "13015-001",
+    },
     foundationCode: "FDN-005",
     clientSince: "Fevereiro de 2022",
     status: "Ativo",
@@ -129,7 +164,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-20'),
-    address: "Santos/SP",
+    address: {
+      street: "Av. Ana Costa, 300",
+      complement: "Bloco B, Apto 12",
+      neighborhood: "Gonzaga",
+      city: "Santos",
+      state: "SP",
+      zipCode: "11060-001",
+    },
     foundationCode: "FDN-006",
     clientSince: "Agosto de 2022",
     status: "Ativo",
@@ -144,7 +186,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-10'),
-    address: "Curitiba/PR",
+    address: {
+      street: "Rua XV de Novembro, 700",
+      complement: "",
+      neighborhood: "Centro",
+      city: "Curitiba",
+      state: "PR",
+      zipCode: "80020-310",
+    },
     foundationCode: "FDN-007",
     clientSince: "Janeiro de 2024",
     status: "Ativo",
@@ -159,7 +208,14 @@ const INITIAL_CLIENTS: Client[] = [
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-05'),
-    address: "Porto Alegre/RS",
+    address: {
+      street: "Av. Ipiranga, 1200",
+      complement: "Casa",
+      neighborhood: "Azenha",
+      city: "Porto Alegre",
+      state: "RS",
+      zipCode: "90160-093",
+    },
     foundationCode: "FDN-008",
     clientSince: "Maio de 2024",
     status: "Ativo",
@@ -472,7 +528,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
-  const updateClientAddress = useCallback((clientId: string, address: string) => {
+  const updateClientAddress = useCallback((clientId: string, address: Address) => {
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, address } : client
     ));
