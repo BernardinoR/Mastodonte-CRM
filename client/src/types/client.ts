@@ -6,7 +6,8 @@ export interface Client {
   initials: string;
   cpf: string;
   phone: string;
-  email: string;
+  emails: string[];
+  primaryEmailIndex: number;
   advisor: string;
   lastMeeting: Date;
   address: string;

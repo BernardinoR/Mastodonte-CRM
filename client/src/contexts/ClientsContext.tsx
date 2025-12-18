@@ -30,6 +30,11 @@ interface ClientsContextType {
   updateClientName: (clientId: string, name: string) => void;
   updateClientCpf: (clientId: string, cpf: string) => void;
   updateClientPhone: (clientId: string, phone: string) => void;
+  updateClientEmails: (clientId: string, emails: string[], primaryEmailIndex: number) => void;
+  addClientEmail: (clientId: string, email: string) => void;
+  removeClientEmail: (clientId: string, emailIndex: number) => void;
+  updateClientEmail: (clientId: string, emailIndex: number, newEmail: string) => void;
+  setClientPrimaryEmail: (clientId: string, emailIndex: number) => void;
   dataVersion: number;
 }
 
@@ -42,7 +47,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "AM",
     cpf: "XXX.XXX.XXX-XX",
     phone: "+55 (16) 99708-716",
-    email: "mazer.ale@hotmail.com",
+    emails: ["mazer.ale@hotmail.com", "alessandro.mazer@empresa.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-25'),
     address: "Campo Bom/RS",
@@ -57,7 +63,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "AG",
     cpf: "***.456.789-**",
     phone: "+55 (47) 99123-4567",
-    email: "ademar.grieger@email.com",
+    emails: ["ademar.grieger@email.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-22'),
     address: "Blumenau/SC",
@@ -71,7 +78,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "FF",
     cpf: "***.123.456-**",
     phone: "+55 (21) 99999-8888",
-    email: "fernanda.faria@email.com",
+    emails: ["fernanda.faria@email.com", "fernanda.trabalho@corp.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-15'),
     address: "Rio de Janeiro/RJ",
@@ -85,7 +93,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "GS",
     cpf: "***.789.012-**",
     phone: "+55 (11) 98888-7777",
-    email: "gustavo@example.com",
+    emails: ["gustavo@example.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-10-30'),
     address: "São Paulo/SP",
@@ -99,7 +108,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "IF",
     cpf: "***.234.567-**",
     phone: "+55 (11) 97777-6666",
-    email: "israel.fonseca@email.com",
+    emails: ["israel.fonseca@email.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-18'),
     address: "Campinas/SP",
@@ -113,7 +123,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "MA",
     cpf: "***.345.678-**",
     phone: "+55 (11) 96666-5555",
-    email: "marcia.andrade@email.com",
+    emails: ["marcia.andrade@email.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-20'),
     address: "Santos/SP",
@@ -127,7 +138,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "RS",
     cpf: "***.567.890-**",
     phone: "+55 (11) 95555-4444",
-    email: "rodrigo.weber@email.com",
+    emails: ["rodrigo.weber@email.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-10'),
     address: "Curitiba/PR",
@@ -141,7 +153,8 @@ const INITIAL_CLIENTS: Client[] = [
     initials: "FS",
     cpf: "***.678.901-**",
     phone: "+55 (11) 94444-3333",
-    email: "fernanda.garcia@email.com",
+    emails: ["fernanda.garcia@email.com"],
+    primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
     lastMeeting: new Date('2025-11-05'),
     address: "Porto Alegre/RS",
@@ -399,6 +412,57 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateClientEmails = useCallback((clientId: string, emails: string[], primaryEmailIndex: number) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, emails, primaryEmailIndex } : client
+    ));
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const addClientEmail = useCallback((clientId: string, email: string) => {
+    setClients(prev => prev.map(client => {
+      if (client.id !== clientId) return client;
+      return { ...client, emails: [...client.emails, email] };
+    }));
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const removeClientEmail = useCallback((clientId: string, emailIndex: number) => {
+    setClients(prev => prev.map(client => {
+      if (client.id !== clientId) return client;
+      if (client.emails.length <= 1) return client;
+      
+      const newEmails = client.emails.filter((_, i) => i !== emailIndex);
+      let newPrimaryIndex = client.primaryEmailIndex;
+      
+      if (emailIndex === client.primaryEmailIndex) {
+        newPrimaryIndex = 0;
+      } else if (emailIndex < client.primaryEmailIndex) {
+        newPrimaryIndex = client.primaryEmailIndex - 1;
+      }
+      
+      return { ...client, emails: newEmails, primaryEmailIndex: newPrimaryIndex };
+    }));
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const updateClientEmail = useCallback((clientId: string, emailIndex: number, newEmail: string) => {
+    setClients(prev => prev.map(client => {
+      if (client.id !== clientId) return client;
+      const newEmails = [...client.emails];
+      newEmails[emailIndex] = newEmail;
+      return { ...client, emails: newEmails };
+    }));
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const setClientPrimaryEmail = useCallback((clientId: string, emailIndex: number) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, primaryEmailIndex: emailIndex } : client
+    ));
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -412,8 +476,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientName,
     updateClientCpf,
     updateClientPhone,
+    updateClientEmails,
+    addClientEmail,
+    removeClientEmail,
+    updateClientEmail,
+    setClientPrimaryEmail,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
