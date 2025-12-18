@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { 
   Phone, 
   Mail, 
-  Calendar, 
+  Calendar as CalendarIcon, 
   Plus, 
   MessageSquare, 
   Edit, 
@@ -28,12 +28,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { DateInput } from "@/components/ui/date-input";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { UI_CLASSES } from "@/lib/statusConfig";
+import { cn } from "@/lib/utils";
 import type { Task as GlobalTask } from "@/types/task";
 import type { Client, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
 
@@ -260,8 +264,11 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
   const [newGroupLink, setNewGroupLink] = useState("");
   const [newGroupStatus, setNewGroupStatus] = useState<"Ativo" | "Inativo">("Ativo");
   
-  const [editingField, setEditingField] = useState<{ groupId: string; field: 'name' | 'purpose' | 'link' | 'status' } | null>(null);
+  const [editingField, setEditingField] = useState<{ groupId: string; field: 'name' | 'purpose' | 'link' } | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [datePopoverOpen, setDatePopoverOpen] = useState<string | null>(null);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
+  const datePopoverRef = useRef<HTMLDivElement>(null);
   
   const statusColors: Record<string, string> = {
     "Ativo": "bg-[#203828] text-[#6ecf8e]",
@@ -304,9 +311,29 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
     handleCancelAddGroup();
   };
 
-  const startEditing = (groupId: string, field: 'name' | 'purpose' | 'link' | 'status', currentValue: string) => {
+  const startEditing = (groupId: string, field: 'name' | 'purpose' | 'link', currentValue: string) => {
     setEditingField({ groupId, field });
     setEditValue(currentValue);
+  };
+
+  const handleDateChange = (groupId: string, date: Date | undefined) => {
+    if (date) {
+      onUpdateGroup?.(groupId, { createdAt: date });
+      setDatePopoverOpen(null);
+    }
+  };
+
+  const handleStatusChange = (groupId: string, status: 'Ativo' | 'Inativo') => {
+    onUpdateGroup?.(groupId, { status });
+    setStatusPopoverOpen(null);
+  };
+
+  const handleInteractOutside = (e: any) => {
+    const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
+    const target = originalTarget || (e.target as HTMLElement);
+    if (datePopoverRef.current?.contains(target) || target?.closest('.rdp')) {
+      e.preventDefault();
+    }
   };
 
   const cancelEditing = () => {
@@ -327,8 +354,6 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
     
     if (field === 'link') {
       onUpdateGroup?.(groupId, { link: value || null });
-    } else if (field === 'status') {
-      onUpdateGroup?.(groupId, { status: value as 'Ativo' | 'Inativo' });
     } else {
       onUpdateGroup?.(groupId, { [field]: value });
     }
@@ -364,68 +389,55 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
           {visibleGroups.map((group) => (
             <tr key={group.id} className="border-b border-[#333333] group/row">
               <td className="py-3 px-4">
-                {isEditing(group.id, 'name') ? (
-                  <div className="flex items-center gap-2">
-                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                <div className="flex items-center gap-2 relative">
+                  <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <span 
+                    className={`text-foreground font-medium cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors ${isEditing(group.id, 'name') ? 'invisible' : ''}`}
+                    onClick={() => startEditing(group.id, 'name', group.name)}
+                    data-testid={`cell-group-name-${group.id}`}
+                  >
+                    {group.name}
+                  </span>
+                  {isEditing(group.id, 'name') && (
                     <input
                       type="text"
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={handleKeyDown}
                       onBlur={saveEditing}
-                      className="flex-1 bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
+                      className="absolute left-6 top-0 bottom-0 right-0 bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium focus:outline-none"
                       autoFocus
                       data-testid={`input-edit-group-name-${group.id}`}
                     />
-                  </div>
-                ) : (
-                  <div 
-                    className="flex items-center gap-2 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors"
-                    onClick={() => startEditing(group.id, 'name', group.name)}
-                    data-testid={`cell-group-name-${group.id}`}
-                  >
-                    <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                    <span className="text-foreground font-medium">{group.name}</span>
-                  </div>
-                )}
+                  )}
+                </div>
               </td>
               <td className="py-3 px-4">
-                {isEditing(group.id, 'purpose') ? (
-                  <input
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={saveEditing}
-                    className="w-full bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
-                    autoFocus
-                    data-testid={`input-edit-group-purpose-${group.id}`}
-                  />
-                ) : (
+                <div className="relative">
                   <div 
-                    className="cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
+                    className={`cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground ${isEditing(group.id, 'purpose') ? 'invisible' : ''}`}
                     onClick={() => startEditing(group.id, 'purpose', group.purpose)}
                     data-testid={`cell-group-purpose-${group.id}`}
                   >
                     {group.purpose || <span className="text-muted-foreground italic">Sem finalidade</span>}
                   </div>
-                )}
+                  {isEditing(group.id, 'purpose') && (
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={saveEditing}
+                      className="absolute inset-0 bg-transparent border-b border-[#2eaadc] text-sm text-foreground focus:outline-none"
+                      autoFocus
+                      data-testid={`input-edit-group-purpose-${group.id}`}
+                    />
+                  )}
+                </div>
               </td>
               <td className="py-3 px-4">
-                {isEditing(group.id, 'link') ? (
-                  <input
-                    type="text"
-                    value={editValue}
-                    onChange={(e) => setEditValue(e.target.value)}
-                    onKeyDown={handleKeyDown}
-                    onBlur={saveEditing}
-                    placeholder="https://chat.whatsapp.com/..."
-                    className="w-full bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-                    autoFocus
-                    data-testid={`input-edit-group-link-${group.id}`}
-                  />
-                ) : (
-                  <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 relative">
+                  <div className={isEditing(group.id, 'link') ? 'invisible' : ''}>
                     {group.link ? (
                       <a 
                         href={group.link} 
@@ -439,47 +451,104 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
                     ) : (
                       <span className="text-muted-foreground">Arquivado</span>
                     )}
-                    <button
-                      onClick={() => startEditing(group.id, 'link', group.link || '')}
-                      className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-[#333333] transition-all"
-                      data-testid={`button-edit-group-link-${group.id}`}
-                    >
-                      <Edit className="w-3.5 h-3.5 text-muted-foreground" />
-                    </button>
                   </div>
-                )}
-              </td>
-              <td className="py-3 px-4 text-foreground">
-                {format(group.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+                  <button
+                    onClick={() => startEditing(group.id, 'link', group.link || '')}
+                    className={`p-1 rounded hover:bg-[#333333] transition-all ${isEditing(group.id, 'link') ? 'invisible' : 'opacity-0 group-hover/row:opacity-100'}`}
+                    data-testid={`button-edit-group-link-${group.id}`}
+                  >
+                    <Edit className="w-3.5 h-3.5 text-muted-foreground" />
+                  </button>
+                  {isEditing(group.id, 'link') && (
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={handleKeyDown}
+                      onBlur={saveEditing}
+                      placeholder="https://..."
+                      className="absolute inset-0 bg-transparent border-b border-[#2eaadc] text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+                      autoFocus
+                      data-testid={`input-edit-group-link-${group.id}`}
+                    />
+                  )}
+                </div>
               </td>
               <td className="py-3 px-4">
-                {isEditing(group.id, 'status') ? (
-                  <select
-                    value={editValue}
-                    onChange={(e) => {
-                      setEditValue(e.target.value);
-                      onUpdateGroup?.(group.id, { status: e.target.value as 'Ativo' | 'Inativo' });
-                      cancelEditing();
-                    }}
-                    onBlur={cancelEditing}
-                    className="bg-[#333333] border border-[#2eaadc] rounded px-2 py-1 text-sm text-foreground focus:outline-none"
-                    autoFocus
-                    data-testid={`select-edit-group-status-${group.id}`}
+                <Popover open={datePopoverOpen === group.id} onOpenChange={(open) => setDatePopoverOpen(open ? group.id : null)}>
+                  <PopoverTrigger asChild>
+                    <div 
+                      className="inline-flex items-center gap-1.5 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
+                      onClick={(e) => e.stopPropagation()}
+                      data-testid={`cell-group-date-${group.id}`}
+                    >
+                      <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                      {format(group.createdAt, "dd/MM/yyyy", { locale: ptBR })}
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent 
+                    ref={datePopoverRef}
+                    className={`w-auto p-0 ${UI_CLASSES.popover}`}
+                    side="bottom" 
+                    align="start" 
+                    sideOffset={6}
+                    onInteractOutside={handleInteractOutside}
+                    onPointerDownOutside={handleInteractOutside}
+                    onFocusOutside={handleInteractOutside}
                   >
-                    <option value="Ativo">Ativo</option>
-                    <option value="Inativo">Inativo</option>
-                  </select>
-                ) : (
-                  <div
-                    className="inline-block cursor-pointer"
-                    onClick={() => startEditing(group.id, 'status', group.status)}
-                    data-testid={`cell-group-status-${group.id}`}
-                  >
-                    <Badge className={`${statusColors[group.status]} text-xs hover:opacity-80 transition-opacity`}>
-                      {group.status}
-                    </Badge>
-                  </div>
-                )}
+                    <DateInput
+                      value={format(group.createdAt, "yyyy-MM-dd")}
+                      onChange={(date) => handleDateChange(group.id, date)}
+                      className="font-semibold"
+                      dataTestId={`input-date-group-${group.id}`}
+                      hideIcon
+                      commitOnInput={false}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </td>
+              <td className="py-3 px-4">
+                <Popover open={statusPopoverOpen === group.id} onOpenChange={(open) => setStatusPopoverOpen(open ? group.id : null)}>
+                  <PopoverTrigger asChild>
+                    <div
+                      className="inline-block cursor-pointer"
+                      onClick={(e) => e.stopPropagation()}
+                      data-testid={`cell-group-status-${group.id}`}
+                    >
+                      <Badge className={`${statusColors[group.status]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                        {group.status}
+                      </Badge>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+                    <div className="w-full">
+                      <div className={`border-b ${UI_CLASSES.border}`}>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                        <div className="px-3 py-1">
+                          <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                            <Badge className={`${statusColors[group.status]} text-xs`}>
+                              {group.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                      <div className="pb-1">
+                        {(['Ativo', 'Inativo'] as const).filter(s => s !== group.status).map(s => (
+                          <div
+                            key={s}
+                            className={UI_CLASSES.dropdownItem}
+                            onClick={(e) => { e.stopPropagation(); handleStatusChange(group.id, s); }}
+                          >
+                            <Badge className={`${statusColors[s]} text-xs`}>
+                              {s}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </td>
             </tr>
           ))}
@@ -656,7 +725,7 @@ export default function ClientDetails() {
               <MetaItem icon={Phone} label="Telefone" value={client.phone} />
               <MetaItem icon={Mail} label="Email" value={client.email} />
               <MetaItem icon={User} label="Consultor" value={client.advisor} />
-              <MetaItem icon={Calendar} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
+              <MetaItem icon={CalendarIcon} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
               <MetaItem icon={DollarSign} label="AUM" value={client.aum} highlight />
               <MetaItem icon={BarChart3} label="Perfil de Risco" value={client.riskProfile} />
               <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
@@ -668,7 +737,7 @@ export default function ClientDetails() {
                 className="bg-[#2eaadc] hover:bg-[#259bc5] text-white"
                 data-testid="button-new-meeting"
               >
-                <Calendar className="w-4 h-4 mr-2" />
+                <CalendarIcon className="w-4 h-4 mr-2" />
                 Agendar Reunião
               </Button>
               <Button 
@@ -729,7 +798,7 @@ export default function ClientDetails() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-muted-foreground" />
+              <CalendarIcon className="w-4 h-4 text-muted-foreground" />
               <h2 className="text-base font-semibold text-foreground">Reuniões</h2>
             </div>
             <Link href="/meetings" className="text-sm text-[#2eaadc] hover:underline flex items-center gap-1">
