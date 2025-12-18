@@ -95,18 +95,18 @@ interface ContextMenuClientEditorProps {
 export function ContextMenuClientEditor({ currentClient, onSelect, isBulk = false }: ContextMenuClientEditorProps) {
   const { clients } = useClients();
   const [searchQuery, setSearchQuery] = useState("");
-  const [localClient, setLocalClient] = useState<string | null>(() => currentClient);
+  const [localClient, setLocalClient] = useState<string | null>(currentClient);
   const isLocalUpdate = useRef(false);
   const isMountedRef = useRef(true);
   const pendingUpdatesRef = useRef<string[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevCurrentClientRef = useRef(currentClient);
   
   useEffect(() => {
-    if (!isLocalUpdate.current) {
-      if (localClient !== currentClient) {
-        setLocalClient(currentClient);
-      }
+    if (prevCurrentClientRef.current !== currentClient && !isLocalUpdate.current) {
+      setLocalClient(currentClient);
     }
+    prevCurrentClientRef.current = currentClient;
     isLocalUpdate.current = false;
   }, [currentClient]);
   

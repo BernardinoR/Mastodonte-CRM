@@ -123,20 +123,20 @@ export function ContextMenuAssigneeEditor({
 }: ContextMenuAssigneeEditorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSetSingle, setShowSetSingle] = useState(false);
-  const [localAssignees, setLocalAssignees] = useState<string[]>(() => currentAssignees || []);
+  const [localAssignees, setLocalAssignees] = useState<string[]>(currentAssignees || []);
   const isLocalUpdate = useRef(false);
   const pendingUpdatesRef = useRef<{type: 'add' | 'remove' | 'setSingle', value: string}[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevCurrentAssigneesRef = useRef(currentAssignees);
   
   useEffect(() => {
-    if (!isLocalUpdate.current) {
-      const propsAssignees = currentAssignees || [];
-      const localKey = localAssignees.join(',');
-      const propsKey = propsAssignees.join(',');
-      if (localKey !== propsKey) {
-        setLocalAssignees(propsAssignees);
-      }
+    const propsKey = (currentAssignees || []).join(',');
+    const prevKey = (prevCurrentAssigneesRef.current || []).join(',');
+    
+    if (prevKey !== propsKey && !isLocalUpdate.current) {
+      setLocalAssignees(currentAssignees || []);
     }
+    prevCurrentAssigneesRef.current = currentAssignees;
     isLocalUpdate.current = false;
   }, [currentAssignees]);
   

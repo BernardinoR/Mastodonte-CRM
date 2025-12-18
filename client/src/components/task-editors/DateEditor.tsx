@@ -27,19 +27,18 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
   const isMountedRef = useRef(true);
   const pendingUpdatesRef = useRef<string[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const prevCurrentDateRef = useRef(currentDate);
   
   useEffect(() => {
-    if (!isLocalUpdate.current) {
+    if (prevCurrentDateRef.current !== currentDate && !isLocalUpdate.current) {
       const dateValue = parseLocalDate(currentDate);
       if (dateValue && isValid(dateValue)) {
-        const newInputValue = format(dateValue, "dd/MM/yyyy", { locale: ptBR });
-        if (inputValue !== newInputValue) {
-          setInputValue(newInputValue);
-          setDisplayMonth(dateValue);
-          pendingUpdatesRef.current = [];
-        }
+        setInputValue(format(dateValue, "dd/MM/yyyy", { locale: ptBR }));
+        setDisplayMonth(dateValue);
+        pendingUpdatesRef.current = [];
       }
     }
+    prevCurrentDateRef.current = currentDate;
     isLocalUpdate.current = false;
   }, [currentDate]);
   
