@@ -10,7 +10,6 @@ import {
   IdCard, 
   User, 
   MapPin,
-  Hash,
   Clock, 
   ArrowLeft,
   CheckCircle2,
@@ -33,6 +32,7 @@ import { ClientStatusBadge } from "@/components/ClientStatusBadge";
 import { EmailsPopover } from "@/components/EmailsPopover";
 import { AdvisorPopover } from "@/components/AdvisorPopover";
 import { AddressPopover } from "@/components/AddressPopover";
+import { FoundationCodeField } from "@/components/FoundationCodeField";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
@@ -264,7 +264,7 @@ export default function ClientDetails() {
   const cpfBlurTimeoutRef = useRef<number | null>(null);
   const phoneBlurTimeoutRef = useRef<number | null>(null);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -630,7 +630,10 @@ export default function ClientDetails() {
                 address={client.address}
                 onAddressChange={(address) => updateClientAddress(client.id, address)}
               />
-              <MetaItem icon={Hash} label="Código Foundation" value={client.foundationCode} />
+              <FoundationCodeField
+                code={client.foundationCode}
+                onCodeChange={(foundationCode) => updateClientFoundationCode(client.id, foundationCode)}
+              />
               <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
             </div>
 

@@ -380,6 +380,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/validate-foundation", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { code } = req.body;
+      
+      if (!code || typeof code !== "string") {
+        return res.status(400).json({ error: "Código Foundation é obrigatório" });
+      }
+      
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(code)) {
+        return res.status(400).json({ error: "Formato de código inválido", valid: false });
+      }
+      
+      const webhookUrl = process.env.N8N_WEBHOOK_URL;
+      if (!webhookUrl) {
+        console.error("N8N_WEBHOOK_URL not configured");
+        return res.status(500).json({ error: "Validação não configurada" });
+      }
+      
+      const response = await fetch(`${webhookUrl}?code=${encodeURIComponent(code)}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!response.ok) {
+        console.error("Webhook error:", response.status, response.statusText);
+        return res.status(502).json({ error: "Erro ao validar código", valid: false });
+      }
+      
+      const result = await response.json();
+      return res.json({ valid: result.valid === true });
+    } catch (error) {
+      console.error("Error validating foundation code:", error);
+      return res.status(500).json({ error: "Erro ao validar código" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

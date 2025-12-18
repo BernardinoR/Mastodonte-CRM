@@ -37,6 +37,7 @@ interface ClientsContextType {
   setClientPrimaryEmail: (clientId: string, emailIndex: number) => void;
   updateClientAdvisor: (clientId: string, advisor: string) => void;
   updateClientAddress: (clientId: string, address: Address) => void;
+  updateClientFoundationCode: (clientId: string, foundationCode: string) => void;
   dataVersion: number;
 }
 
@@ -61,7 +62,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "RS",
       zipCode: "93700-000",
     },
-    foundationCode: "FDN-001",
+    foundationCode: "652e3f56-10e6-4423-a667-fdd711f856f2",
     clientSince: "Junho de 2023",
     status: "Ativo",
     folderLink: "https://vault.repl.ai/file/com.google.drive/id/example",
@@ -84,7 +85,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "SC",
       zipCode: "89010-000",
     },
-    foundationCode: "FDN-002",
+    foundationCode: "a1b2c3d4-5e6f-7890-abcd-ef1234567890",
     clientSince: "Dezembro de 2022",
     status: "Ativo",
   },
@@ -106,7 +107,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "RJ",
       zipCode: "22021-000",
     },
-    foundationCode: "FDN-003",
+    foundationCode: "b2c3d4e5-6f70-8901-bcde-f12345678901",
     clientSince: "Março de 2021",
     status: "Ativo",
   },
@@ -128,7 +129,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "SP",
       zipCode: "01310-100",
     },
-    foundationCode: "FDN-004",
+    foundationCode: "c3d4e5f6-7081-9012-cdef-123456789012",
     clientSince: "Outubro de 2025",
     status: "Prospect",
   },
@@ -150,7 +151,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "SP",
       zipCode: "13015-001",
     },
-    foundationCode: "FDN-005",
+    foundationCode: "d4e5f6a7-8192-0123-defa-234567890123",
     clientSince: "Fevereiro de 2022",
     status: "Ativo",
   },
@@ -172,7 +173,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "SP",
       zipCode: "11060-001",
     },
-    foundationCode: "FDN-006",
+    foundationCode: "e5f6a7b8-9203-1234-efab-345678901234",
     clientSince: "Agosto de 2022",
     status: "Ativo",
   },
@@ -194,7 +195,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "PR",
       zipCode: "80020-310",
     },
-    foundationCode: "FDN-007",
+    foundationCode: "f6a7b8c9-0314-2345-fabc-456789012345",
     clientSince: "Janeiro de 2024",
     status: "Ativo",
   },
@@ -216,7 +217,7 @@ const INITIAL_CLIENTS: Client[] = [
       state: "RS",
       zipCode: "90160-093",
     },
-    foundationCode: "FDN-008",
+    foundationCode: "a7b8c9d0-1425-3456-abcd-567890123456",
     clientSince: "Maio de 2024",
     status: "Ativo",
   },
@@ -535,6 +536,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateClientFoundationCode = useCallback((clientId: string, foundationCode: string) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, foundationCode } : client
+    ));
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -555,8 +563,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setClientPrimaryEmail,
     updateClientAdvisor,
     updateClientAddress,
+    updateClientFoundationCode,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
