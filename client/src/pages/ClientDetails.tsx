@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent, type ChangeEvent } from "react";
 import { useParams, Link } from "wouter";
 import { 
   Phone, 
@@ -250,10 +250,18 @@ export default function ClientDetails() {
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [draftName, setDraftName] = useState("");
+  const [isEditingCpf, setIsEditingCpf] = useState(false);
+  const [draftCpf, setDraftCpf] = useState("");
+  const [isEditingPhone, setIsEditingPhone] = useState(false);
+  const [draftPhone, setDraftPhone] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const cpfInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const blurTimeoutRef = useRef<number | null>(null);
+  const cpfBlurTimeoutRef = useRef<number | null>(null);
+  const phoneBlurTimeoutRef = useRef<number | null>(null);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -341,8 +349,158 @@ export default function ClientDetails() {
       if (blurTimeoutRef.current) {
         clearTimeout(blurTimeoutRef.current);
       }
+      if (cpfBlurTimeoutRef.current) {
+        clearTimeout(cpfBlurTimeoutRef.current);
+      }
+      if (phoneBlurTimeoutRef.current) {
+        clearTimeout(phoneBlurTimeoutRef.current);
+      }
     };
   }, []);
+
+  // CPF mask: XXX.XXX.XXX-XX
+  const formatCpf = (value: string): string => {
+    const digits = value.replace(/\D/g, "").slice(0, 11);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+  };
+
+  // Phone mask: supports Brazilian (+55) and international formats
+  const formatPhone = (value: string): string => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 0) return "";
+    
+    // Brazilian format: +55 (XX) XXXXX-XXXX or +55 (XX) XXXX-XXXX
+    if (digits.startsWith("55") && digits.length >= 3) {
+      const country = "+55";
+      const rest = digits.slice(2);
+      if (rest.length <= 2) return `${country} (${rest}`;
+      const ddd = rest.slice(0, 2);
+      const number = rest.slice(2);
+      if (number.length <= 4) return `${country} (${ddd}) ${number}`;
+      if (number.length <= 8) return `${country} (${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`;
+      // 9 digits (cell phone)
+      return `${country} (${ddd}) ${number.slice(0, 5)}-${number.slice(5, 9)}`;
+    }
+    
+    // International format: +XX XXXX XXXX...
+    if (digits.length <= 2) return `+${digits}`;
+    const countryCode = digits.slice(0, 2);
+    const number = digits.slice(2);
+    if (number.length <= 4) return `+${countryCode} ${number}`;
+    if (number.length <= 8) return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4)}`;
+    return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4, 8)} ${number.slice(8, 12)}`;
+  };
+
+  const startEditingCpf = () => {
+    setDraftCpf(client.cpf);
+    setIsEditingCpf(true);
+  };
+
+  const commitCpfChange = () => {
+    if (cpfBlurTimeoutRef.current) {
+      clearTimeout(cpfBlurTimeoutRef.current);
+      cpfBlurTimeoutRef.current = null;
+    }
+    
+    const formatted = draftCpf.trim();
+    if (formatted && formatted !== client.cpf) {
+      updateClientCpf(client.id, formatted);
+    }
+    setIsEditingCpf(false);
+  };
+
+  const cancelEditingCpf = () => {
+    if (cpfBlurTimeoutRef.current) {
+      clearTimeout(cpfBlurTimeoutRef.current);
+      cpfBlurTimeoutRef.current = null;
+    }
+    setIsEditingCpf(false);
+    setDraftCpf("");
+  };
+
+  const handleCpfChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDraftCpf(formatCpf(e.target.value));
+  };
+
+  const handleCpfKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitCpfChange();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEditingCpf();
+    }
+  };
+
+  const handleCpfBlur = () => {
+    cpfBlurTimeoutRef.current = window.setTimeout(() => {
+      commitCpfChange();
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (isEditingCpf && cpfInputRef.current) {
+      cpfInputRef.current.focus();
+      cpfInputRef.current.select();
+    }
+  }, [isEditingCpf]);
+
+  const startEditingPhone = () => {
+    setDraftPhone(client.phone);
+    setIsEditingPhone(true);
+  };
+
+  const commitPhoneChange = () => {
+    if (phoneBlurTimeoutRef.current) {
+      clearTimeout(phoneBlurTimeoutRef.current);
+      phoneBlurTimeoutRef.current = null;
+    }
+    
+    const formatted = draftPhone.trim();
+    if (formatted && formatted !== client.phone) {
+      updateClientPhone(client.id, formatted);
+    }
+    setIsEditingPhone(false);
+  };
+
+  const cancelEditingPhone = () => {
+    if (phoneBlurTimeoutRef.current) {
+      clearTimeout(phoneBlurTimeoutRef.current);
+      phoneBlurTimeoutRef.current = null;
+    }
+    setIsEditingPhone(false);
+    setDraftPhone("");
+  };
+
+  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setDraftPhone(formatPhone(e.target.value));
+  };
+
+  const handlePhoneKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitPhoneChange();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEditingPhone();
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    phoneBlurTimeoutRef.current = window.setTimeout(() => {
+      commitPhoneChange();
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (isEditingPhone && phoneInputRef.current) {
+      phoneInputRef.current.focus();
+      phoneInputRef.current.select();
+    }
+  }, [isEditingPhone]);
 
   const handleWhatsApp = () => {
     const phone = client.phone.replace(/\D/g, "");
@@ -395,8 +553,60 @@ export default function ClientDetails() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-              <MetaItem icon={IdCard} label="CPF" value={client.cpf} />
-              <MetaItem icon={Phone} label="Telefone" value={client.phone} />
+              {/* CPF - Editable */}
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <IdCard className="w-3.5 h-3.5" />
+                  CPF
+                </span>
+                {isEditingCpf ? (
+                  <input
+                    ref={cpfInputRef}
+                    type="text"
+                    value={draftCpf}
+                    onChange={handleCpfChange}
+                    onKeyDown={handleCpfKeyDown}
+                    onBlur={handleCpfBlur}
+                    className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none"
+                    data-testid="input-client-cpf"
+                  />
+                ) : (
+                  <span 
+                    className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors"
+                    onClick={startEditingCpf}
+                    data-testid="text-client-cpf"
+                  >
+                    {client.cpf}
+                  </span>
+                )}
+              </div>
+              {/* Phone - Editable */}
+              <div className="flex flex-col gap-1">
+                <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5" />
+                  Telefone
+                </span>
+                {isEditingPhone ? (
+                  <input
+                    ref={phoneInputRef}
+                    type="text"
+                    value={draftPhone}
+                    onChange={handlePhoneChange}
+                    onKeyDown={handlePhoneKeyDown}
+                    onBlur={handlePhoneBlur}
+                    className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none"
+                    data-testid="input-client-phone"
+                  />
+                ) : (
+                  <span 
+                    className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors"
+                    onClick={startEditingPhone}
+                    data-testid="text-client-phone"
+                  >
+                    {client.phone}
+                  </span>
+                )}
+              </div>
               <MetaItem icon={Mail} label="Email" value={client.email} />
               <MetaItem icon={User} label="Consultor" value={client.advisor} />
               <MetaItem icon={CalendarIcon} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
