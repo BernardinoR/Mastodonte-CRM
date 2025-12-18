@@ -299,7 +299,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
       const newGroup: WhatsAppGroup = {
         ...group,
-        id: `${Date.now()}`,
+        id: crypto.randomUUID(),
       };
       return {
         ...prev,
