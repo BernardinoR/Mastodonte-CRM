@@ -8,6 +8,7 @@ interface ClientsContextType {
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
+  dataVersion: number;
 }
 
 const ClientsContext = createContext<ClientsContextType | null>(null);
@@ -257,6 +258,7 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
 export function ClientsProvider({ children }: { children: ReactNode }) {
   const [clients] = useState<Client[]>(INITIAL_CLIENTS);
   const [extendedData, setExtendedData] = useState<Record<string, { stats: ClientStats[]; meetings: ClientMeeting[]; whatsappGroups: WhatsAppGroup[] }>>(CLIENT_EXTENDED_DATA);
+  const [dataVersion, setDataVersion] = useState(0);
 
   const getClientById = useCallback((id: string) => {
     return clients.find(c => c.id === id);
@@ -305,6 +307,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         },
       };
     });
+    setDataVersion(v => v + 1);
   }, []);
 
   return (
@@ -315,6 +318,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       getFullClientData,
       getAllClients,
       addWhatsAppGroup,
+      dataVersion,
     }}>
       {children}
     </ClientsContext.Provider>

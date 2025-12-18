@@ -447,7 +447,10 @@ export default function ClientDetails() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, dataVersion } = useClients();
+  
+  // dataVersion is used to trigger re-render when client data changes
+  void dataVersion;
   
   const clientIdOrName = params.id || "1";
   
