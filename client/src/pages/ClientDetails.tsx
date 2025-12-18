@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 import { useParams, Link } from "wouter";
 import { 
   Phone, 
@@ -21,7 +21,8 @@ import {
   FileText,
   History,
   AlertTriangle,
-  GitBranch
+  GitBranch,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -248,8 +249,12 @@ export default function ClientDetails() {
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [draftName, setDraftName] = useState("");
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const blurTimeoutRef = useRef<number | null>(null);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, dataVersion } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, dataVersion } = useClients();
   
   // dataVersion is used to trigger re-render when client data changes
   void dataVersion;
@@ -282,6 +287,64 @@ export default function ClientDetails() {
   
   const clientTasks = getTasksByClient(client.name);
 
+  const startEditingName = () => {
+    setDraftName(client.name);
+    setIsEditingName(true);
+  };
+
+  const commitNameChange = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    
+    const trimmed = draftName.trim();
+    if (trimmed && trimmed !== client.name) {
+      updateClientName(client.id, trimmed);
+    }
+    setIsEditingName(false);
+  };
+
+  const cancelEditingName = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    setIsEditingName(false);
+    setDraftName("");
+  };
+
+  const handleNameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      commitNameChange();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      cancelEditingName();
+    }
+  };
+
+  const handleNameBlur = () => {
+    blurTimeoutRef.current = window.setTimeout(() => {
+      commitNameChange();
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (isEditingName && nameInputRef.current) {
+      nameInputRef.current.focus();
+      nameInputRef.current.select();
+    }
+  }, [isEditingName]);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleWhatsApp = () => {
     const phone = client.phone.replace(/\D/g, "");
     window.open(`https://wa.me/${phone}`, "_blank");
@@ -306,9 +369,29 @@ export default function ClientDetails() {
           
           <div className="flex-1 min-w-[300px]">
             <div className="flex items-center gap-3 flex-wrap mb-2">
-              <h1 className="text-3xl font-bold text-foreground" data-testid="text-client-name">
-                {client.name}
-              </h1>
+              {isEditingName ? (
+                <input
+                  ref={nameInputRef}
+                  type="text"
+                  value={draftName}
+                  onChange={(e) => setDraftName(e.target.value)}
+                  onKeyDown={handleNameKeyDown}
+                  onBlur={handleNameBlur}
+                  className="text-3xl font-bold text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none min-w-[200px]"
+                  data-testid="input-client-name"
+                />
+              ) : (
+                <div 
+                  className="group flex items-center gap-2 cursor-pointer"
+                  onClick={startEditingName}
+                  data-testid="text-client-name"
+                >
+                  <h1 className="text-3xl font-bold text-foreground">
+                    {client.name}
+                  </h1>
+                  <Pencil className="w-5 h-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+              )}
               <ClientStatusBadge 
                 status={client.status}
                 onStatusChange={(newStatus) => updateClientStatus(client.id, newStatus)}
