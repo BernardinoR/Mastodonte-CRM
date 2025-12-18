@@ -399,11 +399,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(500).json({ error: "Validação não configurada" });
       }
       
-      const response = await fetch(`${webhookUrl}?code=${encodeURIComponent(code)}`, {
-        method: "GET",
+      const response = await fetch(webhookUrl, {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ code }),
       });
       
       if (!response.ok) {
