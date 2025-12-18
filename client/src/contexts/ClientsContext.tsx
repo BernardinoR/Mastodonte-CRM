@@ -36,6 +36,7 @@ interface ClientsContextType {
   updateClientEmail: (clientId: string, emailIndex: number, newEmail: string) => void;
   setClientPrimaryEmail: (clientId: string, emailIndex: number) => void;
   updateClientAdvisor: (clientId: string, advisor: string) => void;
+  updateClientAddress: (clientId: string, address: string) => void;
   dataVersion: number;
 }
 
@@ -471,6 +472,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateClientAddress = useCallback((clientId: string, address: string) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, address } : client
+    ));
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -490,8 +498,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientEmail,
     setClientPrimaryEmail,
     updateClientAdvisor,
+    updateClientAddress,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
