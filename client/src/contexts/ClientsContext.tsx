@@ -7,6 +7,7 @@ interface ClientsContextType {
   getClientByName: (name: string) => Client | undefined;
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
+  addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
 }
 
 const ClientsContext = createContext<ClientsContextType | null>(null);
@@ -255,6 +256,7 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
   const [clients] = useState<Client[]>(INITIAL_CLIENTS);
+  const [extendedData, setExtendedData] = useState<Record<string, { stats: ClientStats[]; meetings: ClientMeeting[]; whatsappGroups: WhatsAppGroup[] }>>(CLIENT_EXTENDED_DATA);
 
   const getClientById = useCallback((id: string) => {
     return clients.find(c => c.id === id);
@@ -268,8 +270,8 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     const client = clients.find(c => c.id === id);
     if (!client) return undefined;
     
-    const extendedData = CLIENT_EXTENDED_DATA[id];
-    if (!extendedData) {
+    const data = extendedData[id];
+    if (!data) {
       return {
         client,
         stats: [],
@@ -280,13 +282,30 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     
     return {
       client,
-      ...extendedData,
+      ...data,
     };
-  }, [clients]);
+  }, [clients, extendedData]);
 
   const getAllClients = useCallback(() => {
     return clients;
   }, [clients]);
+
+  const addWhatsAppGroup = useCallback((clientId: string, group: Omit<WhatsAppGroup, 'id'>) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
+      const newGroup: WhatsAppGroup = {
+        ...group,
+        id: `${Date.now()}`,
+      };
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          whatsappGroups: [...clientData.whatsappGroups, newGroup],
+        },
+      };
+    });
+  }, []);
 
   return (
     <ClientsContext.Provider value={{
@@ -295,6 +314,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       getClientByName,
       getFullClientData,
       getAllClients,
+      addWhatsAppGroup,
     }}>
       {children}
     </ClientsContext.Provider>

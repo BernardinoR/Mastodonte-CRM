@@ -21,7 +21,9 @@ import {
   FileText,
   History,
   AlertTriangle,
-  GitBranch
+  GitBranch,
+  Check,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -241,10 +243,60 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
   );
 }
 
-function WhatsAppGroupsTable({ groups, clientName }: { groups: WhatsAppGroup[]; clientName: string }) {
+function WhatsAppGroupsTable({ groups, clientName, onAddGroup, isAddingExternal, onCancelAddExternal }: { 
+  groups: WhatsAppGroup[]; 
+  clientName: string; 
+  onAddGroup?: (group: Omit<WhatsAppGroup, 'id'>) => void;
+  isAddingExternal?: boolean;
+  onCancelAddExternal?: () => void;
+}) {
+  const [visibleCount, setVisibleCount] = useState(5);
+  const [isAddingInternal, setIsAddingInternal] = useState(false);
+  const isAddingGroup = isAddingExternal || isAddingInternal;
+  const [newGroupName, setNewGroupName] = useState("");
+  const [newGroupPurpose, setNewGroupPurpose] = useState("");
+  const [newGroupLink, setNewGroupLink] = useState("");
+  const [newGroupStatus, setNewGroupStatus] = useState<"Ativo" | "Inativo">("Ativo");
+  
   const statusColors: Record<string, string> = {
     "Ativo": "bg-[#203828] text-[#6ecf8e]",
     "Inativo": "bg-[#333333] text-[#a0a0a0]",
+  };
+
+  const visibleGroups = groups.slice(0, visibleCount);
+  const hasMore = groups.length > visibleCount;
+  const remainingCount = groups.length - visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 5);
+  };
+
+  const handleStartAddGroup = () => {
+    setIsAddingInternal(true);
+  };
+
+  const handleCancelAddGroup = () => {
+    setIsAddingInternal(false);
+    onCancelAddExternal?.();
+    setNewGroupName("");
+    setNewGroupPurpose("");
+    setNewGroupLink("");
+    setNewGroupStatus("Ativo");
+  };
+
+  const handleSaveGroup = () => {
+    if (!newGroupName.trim()) return;
+    
+    const newGroup: Omit<WhatsAppGroup, 'id'> = {
+      name: newGroupName.trim(),
+      purpose: newGroupPurpose.trim(),
+      link: newGroupLink.trim() || null,
+      status: newGroupStatus,
+      createdAt: new Date(),
+    };
+    
+    onAddGroup?.(newGroup);
+    handleCancelAddGroup();
   };
 
   return (
@@ -260,7 +312,7 @@ function WhatsAppGroupsTable({ groups, clientName }: { groups: WhatsAppGroup[]; 
           </tr>
         </thead>
         <tbody>
-          {groups.map((group) => (
+          {visibleGroups.map((group) => (
             <tr key={group.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors">
               <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-muted-foreground" />
@@ -292,13 +344,98 @@ function WhatsAppGroupsTable({ groups, clientName }: { groups: WhatsAppGroup[]; 
               </td>
             </tr>
           ))}
+          {isAddingGroup && (
+            <tr className="border-b border-[#333333] bg-[#252525]">
+              <td className="py-2 px-4">
+                <div className="flex items-center gap-2">
+                  <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Nome do grupo"
+                    value={newGroupName}
+                    onChange={(e) => setNewGroupName(e.target.value)}
+                    className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                    autoFocus
+                    data-testid="input-new-group-name"
+                  />
+                </div>
+              </td>
+              <td className="py-2 px-4">
+                <input
+                  type="text"
+                  placeholder="Finalidade"
+                  value={newGroupPurpose}
+                  onChange={(e) => setNewGroupPurpose(e.target.value)}
+                  className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                  data-testid="input-new-group-purpose"
+                />
+              </td>
+              <td className="py-2 px-4">
+                <input
+                  type="text"
+                  placeholder="https://chat.whatsapp.com/..."
+                  value={newGroupLink}
+                  onChange={(e) => setNewGroupLink(e.target.value)}
+                  className="w-full bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-[#2eaadc]"
+                  data-testid="input-new-group-link"
+                />
+              </td>
+              <td className="py-2 px-4 text-muted-foreground text-sm">
+                Hoje
+              </td>
+              <td className="py-2 px-4">
+                <div className="flex items-center gap-2">
+                  <select
+                    value={newGroupStatus}
+                    onChange={(e) => setNewGroupStatus(e.target.value as "Ativo" | "Inativo")}
+                    className="bg-[#333333] border border-[#444444] rounded px-2 py-1 text-sm text-foreground focus:outline-none focus:border-[#2eaadc]"
+                    data-testid="select-new-group-status"
+                  >
+                    <option value="Ativo">Ativo</option>
+                    <option value="Inativo">Inativo</option>
+                  </select>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-[#6ecf8e] hover:text-[#8ed8a8] hover:bg-[#203828]"
+                    onClick={handleSaveGroup}
+                    disabled={!newGroupName.trim()}
+                    data-testid="button-save-new-group"
+                  >
+                    <Check className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 px-2 text-muted-foreground hover:text-foreground"
+                    onClick={handleCancelAddGroup}
+                    data-testid="button-cancel-new-group"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              </td>
+            </tr>
+          )}
         </tbody>
       </table>
-      <div 
-        className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
-        data-testid="button-add-whatsapp-group"
-      >
-        + Adicionar grupo
+      <div className="flex items-center justify-between">
+        <div 
+          className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+          onClick={handleStartAddGroup}
+          data-testid="button-add-whatsapp-group"
+        >
+          + Adicionar grupo
+        </div>
+        {hasMore && (
+          <div 
+            className="py-3 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+            onClick={handleLoadMore}
+            data-testid="button-load-more-groups"
+          >
+            Carregar mais +{Math.min(5, remainingCount)}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -308,8 +445,9 @@ export default function ClientDetails() {
   const params = useParams<{ id: string }>();
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
+  const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const { getTasksByClient } = useTasks();
-  const { getFullClientData, getClientByName } = useClients();
+  const { getFullClientData, getClientByName, addWhatsAppGroup } = useClients();
   
   const clientIdOrName = params.id || "1";
   
@@ -493,13 +631,23 @@ export default function ClientDetails() {
           </div>
           <span 
             className="text-sm text-[#2eaadc] hover:underline cursor-pointer"
+            onClick={() => setIsAddingWhatsAppGroup(true)}
             data-testid="button-new-whatsapp-group"
           >
             + Novo grupo
           </span>
         </div>
         <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-          <WhatsAppGroupsTable groups={whatsappGroups} clientName={client.name} />
+          <WhatsAppGroupsTable 
+            groups={whatsappGroups} 
+            clientName={client.name}
+            isAddingExternal={isAddingWhatsAppGroup}
+            onCancelAddExternal={() => setIsAddingWhatsAppGroup(false)}
+            onAddGroup={(group) => {
+              addWhatsAppGroup(client.id, group);
+              setIsAddingWhatsAppGroup(false);
+            }}
+          />
         </Card>
       </div>
 
