@@ -9,8 +9,8 @@ import {
   Edit, 
   IdCard, 
   User, 
-  DollarSign, 
-  BarChart3, 
+  MapPin,
+  Hash,
   Clock, 
   ArrowLeft,
   CheckCircle2,
@@ -321,8 +321,8 @@ export default function ClientDetails() {
               <MetaItem icon={Mail} label="Email" value={client.email} />
               <MetaItem icon={User} label="Consultor" value={client.advisor} />
               <MetaItem icon={CalendarIcon} label="Última Reunião" value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} />
-              <MetaItem icon={DollarSign} label="AUM" value={client.aum} highlight />
-              <MetaItem icon={BarChart3} label="Perfil de Risco" value={client.riskProfile} />
+              <MetaItem icon={MapPin} label="Endereço" value={client.address} />
+              <MetaItem icon={Hash} label="Código Foundation" value={client.foundationCode} />
               <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
             </div>
 

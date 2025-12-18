@@ -9,8 +9,8 @@ export interface Client {
   email: string;
   advisor: string;
   lastMeeting: Date;
-  aum: string;
-  riskProfile: string;
+  address: string;
+  foundationCode: string;
   clientSince: string;
   status: ClientStatus;
   folderLink?: string;
