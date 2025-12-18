@@ -381,7 +381,7 @@ export default function ClientDetails() {
                 />
               ) : (
                 <h1 
-                  className="text-3xl font-bold text-foreground cursor-pointer hover:text-[#2eaadc] transition-colors"
+                  className="text-3xl font-bold text-foreground cursor-pointer px-2 py-1 -mx-2 -my-1 rounded-md hover:bg-[#2c2c2c] transition-colors"
                   onClick={startEditingName}
                   data-testid="text-client-name"
                 >
