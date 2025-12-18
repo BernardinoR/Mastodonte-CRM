@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { useAuth } from "@clerk/clerk-react";
 
 interface FoundationCodeFieldProps {
   code: string;
@@ -23,6 +24,7 @@ export function FoundationCodeField({
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>("idle");
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { getToken } = useAuth();
 
   useEffect(() => {
     if (isEditing && inputRef.current) {
@@ -38,7 +40,13 @@ export function FoundationCodeField({
 
   const validateMutation = useMutation({
     mutationFn: async (codeToValidate: string) => {
-      const response = await apiRequest("POST", "/api/validate-foundation", { code: codeToValidate });
+      const token = await getToken();
+      const response = await apiRequest(
+        "POST", 
+        "/api/validate-foundation", 
+        { code: codeToValidate },
+        { "Authorization": `Bearer ${token}` }
+      );
       return response.json();
     },
     onSuccess: (data) => {
