@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { 
   Phone, 
@@ -274,6 +274,66 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
   const [newStatusPopoverOpen, setNewStatusPopoverOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{ groupId: string; groupName: string } | null>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const newGroupRowRef = useRef<HTMLTableRowElement>(null);
+  const newStatusPopoverOpenRef = useRef(false);
+  const newGroupNameRef = useRef(newGroupName);
+  const newGroupPurposeRef = useRef(newGroupPurpose);
+  const newGroupLinkRef = useRef(newGroupLink);
+  const newGroupStatusRef = useRef(newGroupStatus);
+  
+  newStatusPopoverOpenRef.current = newStatusPopoverOpen;
+  newGroupNameRef.current = newGroupName;
+  newGroupPurposeRef.current = newGroupPurpose;
+  newGroupLinkRef.current = newGroupLink;
+  newGroupStatusRef.current = newGroupStatus;
+  
+  const isSavingRef = useRef(false);
+  const commitNewGroupRef = useRef(() => {
+    if (!newGroupNameRef.current.trim()) return;
+    if (isSavingRef.current) return;
+    
+    isSavingRef.current = true;
+    
+    const newGroup: Omit<WhatsAppGroup, 'id'> = {
+      name: newGroupNameRef.current.trim(),
+      purpose: newGroupPurposeRef.current.trim(),
+      link: newGroupLinkRef.current.trim() || null,
+      status: newGroupStatusRef.current,
+      createdAt: new Date(),
+    };
+    
+    if (onAddGroup) {
+      onAddGroup(newGroup);
+    }
+    setNewGroupName("");
+    setNewGroupPurpose("");
+    setNewGroupLink("");
+    setNewGroupStatus("Ativo");
+    setIsAddingInternal(false);
+    if (onCancelAddExternal) onCancelAddExternal();
+    
+    setTimeout(() => { isSavingRef.current = false; }, 100);
+  });
+  
+  useEffect(() => {
+    if (!isAddingGroup) return;
+    
+    const handleClickOutside = (e: MouseEvent) => {
+      if (newStatusPopoverOpenRef.current) return;
+      
+      const target = e.target as Node;
+      const isInsideRow = newGroupRowRef.current?.contains(target);
+      const isInsidePopover = document.querySelector('[data-radix-popper-content-wrapper]')?.contains(target);
+      
+      if (!isInsideRow && !isInsidePopover && newGroupNameRef.current.trim()) {
+        commitNewGroupRef.current();
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isAddingGroup]);
+  
   
   const statusColors: Record<string, string> = {
     "Ativo": "bg-[#203828] text-[#6ecf8e]",
@@ -586,7 +646,21 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
             </tr>
           ))}
           {isAddingGroup && (
-            <tr className="border-b border-[#333333] group/row">
+            <tr 
+              ref={newGroupRowRef}
+              tabIndex={-1}
+              className="border-b border-[#333333] group/row"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && newGroupName.trim()) {
+                  e.preventDefault();
+                  handleSaveGroup();
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault();
+                  handleCancelAddGroup();
+                }
+              }}
+            >
               <td className="py-3 px-4">
                 <div className="flex items-center gap-2">
                   <MessageSquare className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -685,25 +759,13 @@ function WhatsAppGroupsTable({ groups, clientId, clientName, onAddGroup, onUpdat
                       </div>
                     </PopoverContent>
                   </Popover>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-[#6ecf8e] hover:text-[#8ed8a8] hover:bg-[#203828]"
-                    onClick={handleSaveGroup}
-                    disabled={!newGroupName.trim()}
-                    data-testid="button-save-new-group"
-                  >
-                    <Check className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  <button
                     onClick={handleCancelAddGroup}
+                    className="p-1 rounded hover:bg-[#3a2020] transition-all opacity-0 group-hover/row:opacity-100"
                     data-testid="button-cancel-new-group"
                   >
-                    <X className="w-4 h-4" />
-                  </Button>
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
                 </div>
               </td>
             </tr>
