@@ -27,6 +27,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
@@ -253,6 +254,7 @@ export default function ClientDetails() {
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
+  const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [draftName, setDraftName] = useState("");
   const [isEditingCpf, setIsEditingCpf] = useState(false);
@@ -577,10 +579,17 @@ export default function ClientDetails() {
     }
   }, [isEditingPhone, isBulkEditing]);
 
-  const handleWhatsApp = () => {
-    const phone = client.phone.replace(/\D/g, "");
-    window.open(`https://wa.me/${phone}`, "_blank");
+  const handleWhatsApp = (phone?: string, isGroup?: boolean) => {
+    if (isGroup && phone) {
+      window.open(phone, "_blank");
+    } else {
+      const clientPhone = (phone || client.phone).replace(/\D/g, "");
+      window.open(`https://wa.me/${clientPhone}`, "_blank");
+    }
   };
+
+  const activeWhatsAppGroups = whatsappGroups.filter(g => g.status === "Ativo" && g.link);
+  const hasWhatsAppGroups = activeWhatsAppGroups.length > 0;
 
   const handleEmail = () => {
     const primaryEmail = client.emails[client.primaryEmailIndex] || client.emails[0];
@@ -727,15 +736,68 @@ export default function ClientDetails() {
                 <Plus className="w-4 h-4 mr-2" />
                 Nova Task
               </Button>
-              <Button 
-                variant="outline" 
-                onClick={handleWhatsApp}
-                className="border-[#333333] hover:bg-[#2c2c2c]"
-                data-testid="button-whatsapp"
-              >
-                <MessageSquare className="w-4 h-4 mr-2" />
-                WhatsApp
-              </Button>
+              {hasWhatsAppGroups ? (
+                <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      className="border-[#333333] hover:bg-[#2c2c2c]"
+                      data-testid="button-whatsapp"
+                    >
+                      <MessageSquare className="w-4 h-4 mr-2" />
+                      WhatsApp
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-2 bg-[#202020] border-[#333333]" align="start">
+                    <div className="flex flex-col gap-1">
+                      <button
+                        onClick={() => {
+                          handleWhatsApp();
+                          setWhatsappPopoverOpen(false);
+                        }}
+                        className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#2c2c2c] transition-colors text-left w-full"
+                        data-testid="whatsapp-personal"
+                      >
+                        <Phone className="w-4 h-4 text-muted-foreground" />
+                        <div className="flex flex-col">
+                          <span className="text-sm font-medium text-foreground">Pessoal</span>
+                          <span className="text-xs text-muted-foreground">{client.phone}</span>
+                        </div>
+                      </button>
+                      {activeWhatsAppGroups.length > 0 && (
+                        <div className="border-t border-[#333333] my-1" />
+                      )}
+                      {activeWhatsAppGroups.map((group) => (
+                        <button
+                          key={group.id}
+                          onClick={() => {
+                            handleWhatsApp(group.link!, true);
+                            setWhatsappPopoverOpen(false);
+                          }}
+                          className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-[#2c2c2c] transition-colors text-left w-full"
+                          data-testid={`whatsapp-group-${group.id}`}
+                        >
+                          <MessageSquare className="w-4 h-4 text-muted-foreground" />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-foreground">{group.name}</span>
+                            <span className="text-xs text-muted-foreground">{group.purpose}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <Button 
+                  variant="outline" 
+                  onClick={() => handleWhatsApp()}
+                  className="border-[#333333] hover:bg-[#2c2c2c]"
+                  data-testid="button-whatsapp"
+                >
+                  <MessageSquare className="w-4 h-4 mr-2" />
+                  WhatsApp
+                </Button>
+              )}
               <Button 
                 variant="outline" 
                 onClick={handleEmail}
