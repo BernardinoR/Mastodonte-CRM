@@ -135,6 +135,7 @@ export const TableHeader = memo(function TableHeader({
             allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           )}
           data-testid="checkbox-select-all"
+          data-no-dnd="true"
         />
       </div>
       <div 
