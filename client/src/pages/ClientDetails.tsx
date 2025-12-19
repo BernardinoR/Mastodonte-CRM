@@ -20,7 +20,9 @@ import {
   FileText,
   History,
   AlertTriangle,
-  GitBranch
+  GitBranch,
+  Check,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -257,6 +259,7 @@ export default function ClientDetails() {
   const [draftCpf, setDraftCpf] = useState("");
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [draftPhone, setDraftPhone] = useState("");
+  const [isBulkEditing, setIsBulkEditing] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const cpfInputRef = useRef<HTMLInputElement>(null);
   const phoneInputRef = useRef<HTMLInputElement>(null);
@@ -309,6 +312,39 @@ export default function ClientDetails() {
     setIsEditingName(true);
     setIsEditingCpf(true);
     setIsEditingPhone(true);
+    setIsBulkEditing(true);
+  };
+
+  const commitAllChanges = () => {
+    const trimmedName = draftName.trim();
+    if (trimmedName && trimmedName !== client.name) {
+      updateClientName(client.id, trimmedName);
+    }
+    
+    const trimmedCpf = draftCpf.trim();
+    if (trimmedCpf && trimmedCpf !== client.cpf) {
+      updateClientCpf(client.id, trimmedCpf);
+    }
+    
+    const trimmedPhone = draftPhone.trim();
+    if (trimmedPhone && trimmedPhone !== client.phone) {
+      updateClientPhone(client.id, trimmedPhone);
+    }
+    
+    setIsEditingName(false);
+    setIsEditingCpf(false);
+    setIsEditingPhone(false);
+    setIsBulkEditing(false);
+  };
+
+  const cancelAllChanges = () => {
+    setIsEditingName(false);
+    setIsEditingCpf(false);
+    setIsEditingPhone(false);
+    setIsBulkEditing(false);
+    setDraftName("");
+    setDraftCpf("");
+    setDraftPhone("");
   };
 
   const commitNameChange = () => {
@@ -336,14 +372,23 @@ export default function ClientDetails() {
   const handleNameKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      commitNameChange();
+      if (isBulkEditing) {
+        commitAllChanges();
+      } else {
+        commitNameChange();
+      }
     } else if (e.key === "Escape") {
       e.preventDefault();
-      cancelEditingName();
+      if (isBulkEditing) {
+        cancelAllChanges();
+      } else {
+        cancelEditingName();
+      }
     }
   };
 
   const handleNameBlur = () => {
+    if (isBulkEditing) return;
     blurTimeoutRef.current = window.setTimeout(() => {
       commitNameChange();
     }, 150);
@@ -440,25 +485,34 @@ export default function ClientDetails() {
   const handleCpfKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      commitCpfChange();
+      if (isBulkEditing) {
+        commitAllChanges();
+      } else {
+        commitCpfChange();
+      }
     } else if (e.key === "Escape") {
       e.preventDefault();
-      cancelEditingCpf();
+      if (isBulkEditing) {
+        cancelAllChanges();
+      } else {
+        cancelEditingCpf();
+      }
     }
   };
 
   const handleCpfBlur = () => {
+    if (isBulkEditing) return;
     cpfBlurTimeoutRef.current = window.setTimeout(() => {
       commitCpfChange();
     }, 150);
   };
 
   useEffect(() => {
-    if (isEditingCpf && cpfInputRef.current) {
+    if (isEditingCpf && cpfInputRef.current && !isBulkEditing) {
       cpfInputRef.current.focus();
       cpfInputRef.current.select();
     }
-  }, [isEditingCpf]);
+  }, [isEditingCpf, isBulkEditing]);
 
   const startEditingPhone = () => {
     setDraftPhone(client.phone);
@@ -494,25 +548,34 @@ export default function ClientDetails() {
   const handlePhoneKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      commitPhoneChange();
+      if (isBulkEditing) {
+        commitAllChanges();
+      } else {
+        commitPhoneChange();
+      }
     } else if (e.key === "Escape") {
       e.preventDefault();
-      cancelEditingPhone();
+      if (isBulkEditing) {
+        cancelAllChanges();
+      } else {
+        cancelEditingPhone();
+      }
     }
   };
 
   const handlePhoneBlur = () => {
+    if (isBulkEditing) return;
     phoneBlurTimeoutRef.current = window.setTimeout(() => {
       commitPhoneChange();
     }, 150);
   };
 
   useEffect(() => {
-    if (isEditingPhone && phoneInputRef.current) {
+    if (isEditingPhone && phoneInputRef.current && !isBulkEditing) {
       phoneInputRef.current.focus();
       phoneInputRef.current.select();
     }
-  }, [isEditingPhone]);
+  }, [isEditingPhone, isBulkEditing]);
 
   const handleWhatsApp = () => {
     const phone = client.phone.replace(/\D/g, "");
@@ -682,15 +745,37 @@ export default function ClientDetails() {
                 <Mail className="w-4 h-4 mr-2" />
                 Enviar Email
               </Button>
-              <Button 
-                variant="outline"
-                className="border-[#333333] hover:bg-[#2c2c2c]"
-                onClick={handleEditClient}
-                data-testid="button-edit"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar Cliente
-              </Button>
+              {isBulkEditing ? (
+                <>
+                  <Button 
+                    variant="outline"
+                    className="border-[#333333] hover:bg-[#2c2c2c]"
+                    onClick={cancelAllChanges}
+                    data-testid="button-cancel-edit"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancelar
+                  </Button>
+                  <Button 
+                    className="bg-[#2eaadc] hover:bg-[#259bc5] text-white"
+                    onClick={commitAllChanges}
+                    data-testid="button-save-edit"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Salvar
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  variant="outline"
+                  className="border-[#333333] hover:bg-[#2c2c2c]"
+                  onClick={handleEditClient}
+                  data-testid="button-edit"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar Cliente
+                </Button>
+              )}
             </div>
           </div>
         </div>
