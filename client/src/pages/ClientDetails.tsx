@@ -302,6 +302,15 @@ export default function ClientDetails() {
     setIsEditingName(true);
   };
 
+  const handleEditClient = () => {
+    setDraftName(client.name);
+    setDraftCpf(client.cpf);
+    setDraftPhone(client.phone);
+    setIsEditingName(true);
+    setIsEditingCpf(true);
+    setIsEditingPhone(true);
+  };
+
   const commitNameChange = () => {
     if (blurTimeoutRef.current) {
       clearTimeout(blurTimeoutRef.current);
@@ -676,6 +685,7 @@ export default function ClientDetails() {
               <Button 
                 variant="outline"
                 className="border-[#333333] hover:bg-[#2c2c2c]"
+                onClick={handleEditClient}
                 data-testid="button-edit"
               >
                 <Edit className="w-4 h-4 mr-2" />
