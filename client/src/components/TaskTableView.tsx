@@ -8,7 +8,46 @@ import {
   useSensors,
   DragEndEvent,
   DragStartEvent,
+  PointerSensorOptions,
 } from "@dnd-kit/core";
+
+class SmartPointerSensor extends PointerSensor {
+  static activators = [
+    {
+      eventName: 'onPointerDown' as const,
+      handler: ({ nativeEvent: event }: { nativeEvent: PointerEvent }, { onActivation }: PointerSensorOptions) => {
+        if (
+          !event.isPrimary ||
+          event.button !== 0 ||
+          isInteractiveElement(event.target as Element)
+        ) {
+          return false;
+        }
+        onActivation?.({ event });
+        return true;
+      },
+    },
+  ];
+}
+
+function isInteractiveElement(element: Element | null): boolean {
+  if (!element) return false;
+  
+  if (element.closest('[data-no-dnd="true"]')) {
+    return true;
+  }
+  
+  const interactiveElements = ['button', 'input', 'textarea', 'select', 'option', 'a'];
+  if (interactiveElements.includes(element.tagName.toLowerCase())) {
+    return true;
+  }
+  
+  if (element.getAttribute('role') === 'button' || element.getAttribute('role') === 'checkbox') {
+    return true;
+  }
+  
+  return false;
+}
 import {
   arrayMove,
   SortableContext,
@@ -81,7 +120,7 @@ export const TaskTableView = memo(function TaskTableView({
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(SmartPointerSensor, {
       activationConstraint: { distance: 5 },
     }),
     useSensor(KeyboardSensor, {
