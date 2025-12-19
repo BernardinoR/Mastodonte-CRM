@@ -581,7 +581,7 @@ export default function ClientDetails() {
 
   const handleWhatsApp = (phone?: string, isGroup?: boolean) => {
     if (isGroup && phone) {
-      window.open(phone, "_blank");
+      window.location.href = phone;
     } else {
       const clientPhone = (phone || client.phone).replace(/\D/g, "");
       window.location.href = `whatsapp://send?phone=${clientPhone}`;
