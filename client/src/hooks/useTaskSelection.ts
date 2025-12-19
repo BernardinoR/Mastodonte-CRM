@@ -73,6 +73,23 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
     setLastSelectedId(null);
   }, []);
 
+  const selectAll = useCallback((taskList?: Task[]) => {
+    const targetTasks = taskList ?? tasks;
+    setSelectedTaskIds(new Set(targetTasks.map(t => t.id)));
+    setLastSelectedId(null);
+  }, [tasks]);
+
+  const toggleSelectAll = useCallback((taskList?: Task[]) => {
+    const targetTasks = taskList ?? tasks;
+    const allSelected = targetTasks.length > 0 && targetTasks.every(t => selectedTaskIds.has(t.id));
+    if (allSelected) {
+      setSelectedTaskIds(new Set());
+    } else {
+      setSelectedTaskIds(new Set(targetTasks.map(t => t.id)));
+    }
+    setLastSelectedId(null);
+  }, [tasks, selectedTaskIds]);
+
   const isSelected = useCallback((taskId: string) => {
     return selectedTaskIds.has(taskId);
   }, [selectedTaskIds]);
@@ -96,6 +113,8 @@ export function useTaskSelection({ tasks, getTasksByStatus }: UseTaskSelectionPr
     selectedTasks,
     handleSelectTask,
     clearSelection,
+    selectAll,
+    toggleSelectAll,
     isSelected,
   };
 }
