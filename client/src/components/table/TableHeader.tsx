@@ -124,16 +124,14 @@ export const TableHeader = memo(function TableHeader({
         className="flex items-center justify-end pr-2 py-2 relative z-30"
         style={{ width: controlWidth }}
         data-no-dnd="true"
-        onClick={(e) => {
-          e.stopPropagation();
-          e.preventDefault();
-          onSelectAll(!allSelected);
-        }}
       >
         <Checkbox
           checked={allSelected}
+          onCheckedChange={(checked) => {
+            onSelectAll(checked === true);
+          }}
           className={cn(
-            "transition-opacity cursor-pointer pointer-events-none",
+            "transition-opacity cursor-pointer",
             allSelected || someSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           )}
           data-testid="checkbox-select-all"
