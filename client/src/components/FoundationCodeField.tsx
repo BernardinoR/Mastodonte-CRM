@@ -1,7 +1,6 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Hash, Check, X, Loader2, RefreshCw } from "lucide-react";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
@@ -23,6 +22,7 @@ export function FoundationCodeField({
   const [draftCode, setDraftCode] = useState(code);
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>("idle");
   const inputRef = useRef<HTMLInputElement>(null);
+  const blurTimeoutRef = useRef<number | null>(null);
   const { toast } = useToast();
   const { getToken } = useAuth();
 
@@ -37,6 +37,14 @@ export function FoundationCodeField({
     setDraftCode(code);
     setValidationStatus("idle");
   }, [code]);
+
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const validateMutation = useMutation({
     mutationFn: async (codeToValidate: string) => {
@@ -81,26 +89,41 @@ export function FoundationCodeField({
     setValidationStatus("idle");
   };
 
-  const handleSave = () => {
+  const commitChange = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
+    
     const trimmed = draftCode.trim();
-    if (trimmed && trimmed !== code) {
+    if (trimmed !== code) {
       onCodeChange(trimmed);
       setValidationStatus("idle");
     }
     setIsEditing(false);
   };
 
-  const handleCancel = () => {
-    setDraftCode(code);
+  const cancelEditing = () => {
+    if (blurTimeoutRef.current) {
+      clearTimeout(blurTimeoutRef.current);
+      blurTimeoutRef.current = null;
+    }
     setIsEditing(false);
+    setDraftCode(code);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
-      handleCancel();
+      cancelEditing();
     } else if (e.key === "Enter") {
-      handleSave();
+      commitChange();
     }
+  };
+
+  const handleBlur = () => {
+    blurTimeoutRef.current = window.setTimeout(() => {
+      commitChange();
+    }, 150);
   };
 
   const handleValidate = () => {
@@ -119,11 +142,11 @@ export function FoundationCodeField({
   const renderValidationIcon = () => {
     switch (validationStatus) {
       case "loading":
-        return <Loader2 className="w-5 h-5 text-gray-400 animate-spin" />;
+        return <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />;
       case "valid":
-        return <Check className="w-5 h-5 text-emerald-500" />;
+        return <Check className="w-4 h-4 text-emerald-500" />;
       case "invalid":
-        return <X className="w-5 h-5 text-red-500" />;
+        return <X className="w-4 h-4 text-red-500" />;
       default:
         return null;
     }
@@ -137,38 +160,21 @@ export function FoundationCodeField({
       </span>
       <div className="flex items-center gap-2">
         {isEditing ? (
-          <div className="flex items-center gap-1.5 flex-1">
-            <Input
-              ref={inputRef}
-              value={draftCode}
-              onChange={(e) => setDraftCode(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ex: 652e3f56-10e6-4423-a667-fdd711f856f2"
-              className="h-7 px-2 py-1 bg-[#1a1a1a] border-[#333333] text-foreground text-sm flex-1"
-              data-testid="input-foundation-code"
-            />
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleCancel}
-              className="h-7 w-7 p-0 text-gray-400 hover:text-foreground"
-              data-testid="button-cancel-foundation"
-            >
-              <X className="w-3.5 h-3.5" />
-            </Button>
-            <Button
-              size="sm"
-              onClick={handleSave}
-              className="h-7 px-2 bg-[#2eaadc] hover:bg-[#259bc5] text-white"
-              data-testid="button-save-foundation"
-            >
-              <Check className="w-3.5 h-3.5" />
-            </Button>
-          </div>
+          <input
+            ref={inputRef}
+            type="text"
+            value={draftCode}
+            onChange={(e) => setDraftCode(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            placeholder="UUID do Foundation"
+            className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none flex-1 min-w-0"
+            data-testid="input-foundation-code"
+          />
         ) : (
           <>
             <span 
-              className="text-xs font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors truncate max-w-[180px]"
+              className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors truncate max-w-[180px]"
               onClick={handleStartEditing}
               title={code || "Não informado"}
               data-testid="text-foundation-code"
