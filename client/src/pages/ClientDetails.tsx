@@ -579,11 +579,13 @@ export default function ClientDetails() {
     }
   }, [isEditingPhone, isBulkEditing]);
 
-  const handleWhatsApp = (phone?: string, isGroup?: boolean) => {
-    if (isGroup && phone) {
-      window.location.href = phone;
+  const handleWhatsApp = (link?: string, isGroup?: boolean) => {
+    if (isGroup && link) {
+      // Extrai o código do grupo do link (ex: https://chat.whatsapp.com/AbCdEfGhIjKlMnO -> AbCdEfGhIjKlMnO)
+      const groupCode = link.replace(/^https?:\/\/chat\.whatsapp\.com\//, "");
+      window.location.href = `whatsapp://chat/?code=${groupCode}`;
     } else {
-      const clientPhone = (phone || client.phone).replace(/\D/g, "");
+      const clientPhone = client.phone.replace(/\D/g, "");
       window.location.href = `whatsapp://send?phone=${clientPhone}`;
     }
   };
