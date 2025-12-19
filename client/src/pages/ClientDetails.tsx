@@ -585,7 +585,7 @@ export default function ClientDetails() {
   const handleEmail = () => {
     const primaryEmail = client.emails[client.primaryEmailIndex] || client.emails[0];
     if (primaryEmail) {
-      window.open(`mailto:${primaryEmail}`, "_blank");
+      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}`, "_blank");
     }
   };
 
