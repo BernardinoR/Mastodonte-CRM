@@ -245,7 +245,6 @@ export const TaskTableView = memo(function TaskTableView({
             onResizeMove={handleResizeMove}
             onResizeEnd={handleResizeEnd}
           />
-          
           {tasks.length === 0 ? (
             <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
               Nenhuma tarefa encontrada
