@@ -125,6 +125,7 @@ export const TableHeader = memo(function TableHeader({
         style={{ width: controlWidth }}
         data-no-dnd="true"
         onPointerDownCapture={(e) => e.stopPropagation()}
+        onClickCapture={(e) => e.stopPropagation()}
       >
         <Checkbox
           checked={allSelected}
