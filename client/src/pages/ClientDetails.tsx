@@ -584,7 +584,7 @@ export default function ClientDetails() {
       window.open(phone, "_blank");
     } else {
       const clientPhone = (phone || client.phone).replace(/\D/g, "");
-      window.open(`https://wa.me/${clientPhone}`, "_blank");
+      window.location.href = `whatsapp://send?phone=${clientPhone}`;
     }
   };
 
