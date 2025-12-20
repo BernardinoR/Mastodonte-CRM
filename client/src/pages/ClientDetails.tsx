@@ -29,7 +29,6 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
-import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientStatusBadge } from "@/components/ClientStatusBadge";
 import { EmailsPopover } from "@/components/EmailsPopover";
@@ -40,8 +39,9 @@ import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { Task as GlobalTask } from "@/types/task";
+import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task";
 import type { ClientStats, ClientMeeting } from "@/types/client";
+import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 
 type StatCard = ClientStats;
 type Meeting = ClientMeeting;
@@ -175,7 +175,53 @@ function MeetingsTable({ meetings, onNewMeeting }: { meetings: Meeting[]; onNewM
   );
 }
 
-function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () => void }) {
+interface InlineTaskProps {
+  isAddingTask: boolean;
+  newTaskTitle: string;
+  setNewTaskTitle: (value: string) => void;
+  newTaskPriority: TaskPriority;
+  setNewTaskPriority: (value: TaskPriority) => void;
+  newTaskStatus: TaskStatus;
+  setNewTaskStatus: (value: TaskStatus) => void;
+  priorityPopoverOpen: boolean;
+  setPriorityPopoverOpen: (value: boolean) => void;
+  statusPopoverOpen: boolean;
+  setStatusPopoverOpen: (value: boolean) => void;
+  setNewTaskRowRef: (element: HTMLTableRowElement | null) => void;
+  handleStartAddTask: () => void;
+  handleNewTaskRowBlur: (e: React.FocusEvent) => void;
+  handleKeyDown: (e: React.KeyboardEvent) => void;
+  handleCancelAddTask: () => void;
+  handleSaveTask: () => void;
+}
+
+function TasksTable({ 
+  tasks, 
+  inlineProps 
+}: { 
+  tasks: GlobalTask[]; 
+  inlineProps: InlineTaskProps;
+}) {
+  const {
+    isAddingTask,
+    newTaskTitle,
+    setNewTaskTitle,
+    newTaskPriority,
+    setNewTaskPriority,
+    newTaskStatus,
+    setNewTaskStatus,
+    priorityPopoverOpen,
+    setPriorityPopoverOpen,
+    statusPopoverOpen,
+    setStatusPopoverOpen,
+    setNewTaskRowRef,
+    handleStartAddTask,
+    handleNewTaskRowBlur,
+    handleKeyDown,
+    handleCancelAddTask,
+    handleSaveTask,
+  } = inlineProps;
+
   const statusColors: Record<string, string> = {
     "To Do": "bg-[#333333] text-[#a0a0a0]",
     "In Progress": "bg-[#4d331f] text-[#e6b07a]",
@@ -189,13 +235,114 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
     "Baixa": "bg-[#1c3847] text-[#6db1d4]",
   };
 
-  if (tasks.length === 0) {
+  const statusOptions: TaskStatus[] = ["To Do", "In Progress", "Done"];
+  const priorityOptions: TaskPriority[] = ["Urgente", "Importante", "Normal", "Baixa"];
+
+  const renderInlineAddRow = () => (
+    <tr
+      ref={setNewTaskRowRef}
+      tabIndex={-1}
+      className="border-b border-[#333333] group/row"
+      onBlur={handleNewTaskRowBlur}
+      onKeyDown={handleKeyDown}
+    >
+      <td className="py-3 px-4">
+        <input
+          type="text"
+          placeholder="Nome da tarefa"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none w-full"
+          autoFocus
+          data-testid="input-new-task-title"
+        />
+      </td>
+      <td className="py-3 px-4">
+        <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button className={`${statusColors[newTaskStatus]} text-xs px-2 py-1 rounded-md cursor-pointer`}>
+              {newTaskStatus}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-32 p-1 bg-[#202020] border-[#333333]" align="start">
+            <div className="flex flex-col gap-1">
+              {statusOptions.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => {
+                    setNewTaskStatus(status);
+                    setStatusPopoverOpen(false);
+                  }}
+                  className={`${statusColors[status]} text-xs px-2 py-1 rounded-md text-left hover:opacity-80`}
+                  data-testid={`option-status-${status}`}
+                >
+                  {status}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </td>
+      <td className="py-3 px-4">
+        <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
+          <PopoverTrigger asChild>
+            <button className={`${priorityColors[newTaskPriority]} text-xs px-2 py-1 rounded-md cursor-pointer`}>
+              {newTaskPriority}
+            </button>
+          </PopoverTrigger>
+          <PopoverContent className="w-32 p-1 bg-[#202020] border-[#333333]" align="start">
+            <div className="flex flex-col gap-1">
+              {priorityOptions.map((priority) => (
+                <button
+                  key={priority}
+                  onClick={() => {
+                    setNewTaskPriority(priority);
+                    setPriorityPopoverOpen(false);
+                  }}
+                  className={`${priorityColors[priority]} text-xs px-2 py-1 rounded-md text-left hover:opacity-80`}
+                  data-testid={`option-priority-${priority}`}
+                >
+                  {priority}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </td>
+      <td className="py-3 px-4 text-muted-foreground text-sm">
+        Hoje
+      </td>
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-sm">-</span>
+          <div className="flex gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+            <button
+              onClick={handleSaveTask}
+              className="p-1 hover:bg-[#2c2c2c] rounded text-[#2eaadc]"
+              data-testid="button-save-new-task"
+            >
+              <Check className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleCancelAddTask}
+              className="p-1 hover:bg-[#2c2c2c] rounded text-muted-foreground"
+              data-testid="button-cancel-new-task"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      </td>
+    </tr>
+  );
+
+  if (tasks.length === 0 && !isAddingTask) {
     return (
       <div className="p-6 text-center">
         <p className="text-muted-foreground text-sm mb-3">Nenhuma tarefa encontrada para este cliente</p>
         <div 
           className="text-sm text-[#2eaadc] hover:underline cursor-pointer"
-          onClick={onNewTask}
+          onClick={handleStartAddTask}
           data-testid="button-add-task-empty"
         >
           + Nova tarefa
@@ -236,15 +383,18 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
               <td className="py-3 px-4 text-foreground">{task.assignees?.join(", ") || "-"}</td>
             </tr>
           ))}
+          {isAddingTask && renderInlineAddRow()}
         </tbody>
       </table>
-      <div 
-        className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
-        onClick={onNewTask}
-        data-testid="button-add-task-table"
-      >
-        + Nova tarefa
-      </div>
+      {!isAddingTask && (
+        <div 
+          className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+          onClick={handleStartAddTask}
+          data-testid="button-add-task-table"
+        >
+          + Nova tarefa
+        </div>
+      )}
     </div>
   );
 }
@@ -252,7 +402,6 @@ function TasksTable({ tasks, onNewTask }: { tasks: GlobalTask[]; onNewTask: () =
 export default function ClientDetails() {
   const params = useParams<{ id: string }>();
   const [newMeetingOpen, setNewMeetingOpen] = useState(false);
-  const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
@@ -301,6 +450,11 @@ export default function ClientDetails() {
   const { client, stats, meetings, whatsappGroups } = clientData;
   
   const clientTasks = getTasksByClient(client.name);
+
+  const inlineTaskProps = useInlineClientTasks({
+    clientId: client.id,
+    clientName: client.name,
+  });
 
   const startEditingName = () => {
     setDraftName(client.name);
@@ -731,7 +885,7 @@ export default function ClientDetails() {
               </Button>
               <Button 
                 variant="outline" 
-                onClick={() => setNewTaskOpen(true)}
+                onClick={inlineTaskProps.handleStartAddTask}
                 className="border-[#333333] hover:bg-[#2c2c2c]"
                 data-testid="button-new-task"
               >
@@ -886,7 +1040,7 @@ export default function ClientDetails() {
             </Link>
           </div>
           <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-            <TasksTable tasks={clientTasks} onNewTask={() => setNewTaskOpen(true)} />
+            <TasksTable tasks={clientTasks} inlineProps={inlineTaskProps} />
           </Card>
         </div>
       </div>
@@ -941,12 +1095,6 @@ export default function ClientDetails() {
         onSubmit={(data) => console.log('New meeting:', data)}
       />
 
-      <NewTaskDialog
-        open={newTaskOpen}
-        onOpenChange={setNewTaskOpen}
-        preSelectedClient={client.id}
-        onSubmit={(data) => console.log('New task:', data)}
-      />
     </div>
   );
 }
