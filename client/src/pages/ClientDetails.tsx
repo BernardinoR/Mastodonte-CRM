@@ -183,13 +183,8 @@ interface InlineTaskProps {
   setNewTaskPriority: (value: TaskPriority) => void;
   newTaskStatus: TaskStatus;
   setNewTaskStatus: (value: TaskStatus) => void;
-  priorityPopoverOpen: boolean;
-  setPriorityPopoverOpen: (value: boolean) => void;
-  statusPopoverOpen: boolean;
-  setStatusPopoverOpen: (value: boolean) => void;
   setNewTaskRowRef: (element: HTMLTableRowElement | null) => void;
   handleStartAddTask: () => void;
-  handleNewTaskRowBlur: (e: React.FocusEvent) => void;
   handleKeyDown: (e: React.KeyboardEvent) => void;
   handleCancelAddTask: () => void;
   handleSaveTask: () => void;
@@ -210,13 +205,8 @@ function TasksTable({
     setNewTaskPriority,
     newTaskStatus,
     setNewTaskStatus,
-    priorityPopoverOpen,
-    setPriorityPopoverOpen,
-    statusPopoverOpen,
-    setStatusPopoverOpen,
     setNewTaskRowRef,
     handleStartAddTask,
-    handleNewTaskRowBlur,
     handleKeyDown,
     handleCancelAddTask,
     handleSaveTask,
@@ -243,7 +233,6 @@ function TasksTable({
       ref={setNewTaskRowRef}
       tabIndex={-1}
       className="border-b border-[#333333] group/row"
-      onBlur={handleNewTaskRowBlur}
       onKeyDown={handleKeyDown}
     >
       <td className="py-3 px-4">
@@ -258,56 +247,32 @@ function TasksTable({
         />
       </td>
       <td className="py-3 px-4">
-        <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button className={`${statusColors[newTaskStatus]} text-xs px-2 py-1 rounded-md cursor-pointer`}>
-              {newTaskStatus}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-32 p-1 bg-[#202020] border-[#333333]" align="start">
-            <div className="flex flex-col gap-1">
-              {statusOptions.map((status) => (
-                <button
-                  key={status}
-                  onClick={() => {
-                    setNewTaskStatus(status);
-                    setStatusPopoverOpen(false);
-                  }}
-                  className={`${statusColors[status]} text-xs px-2 py-1 rounded-md text-left hover:opacity-80`}
-                  data-testid={`option-status-${status}`}
-                >
-                  {status}
-                </button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <select
+          value={newTaskStatus}
+          onChange={(e) => setNewTaskStatus(e.target.value as TaskStatus)}
+          className={`${statusColors[newTaskStatus]} text-xs px-2 py-1 rounded-md cursor-pointer bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-[#2eaadc]`}
+          data-testid="select-new-task-status"
+        >
+          {statusOptions.map((status) => (
+            <option key={status} value={status} className="bg-[#202020]">
+              {status}
+            </option>
+          ))}
+        </select>
       </td>
       <td className="py-3 px-4">
-        <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
-          <PopoverTrigger asChild>
-            <button className={`${priorityColors[newTaskPriority]} text-xs px-2 py-1 rounded-md cursor-pointer`}>
-              {newTaskPriority}
-            </button>
-          </PopoverTrigger>
-          <PopoverContent className="w-32 p-1 bg-[#202020] border-[#333333]" align="start">
-            <div className="flex flex-col gap-1">
-              {priorityOptions.map((priority) => (
-                <button
-                  key={priority}
-                  onClick={() => {
-                    setNewTaskPriority(priority);
-                    setPriorityPopoverOpen(false);
-                  }}
-                  className={`${priorityColors[priority]} text-xs px-2 py-1 rounded-md text-left hover:opacity-80`}
-                  data-testid={`option-priority-${priority}`}
-                >
-                  {priority}
-                </button>
-              ))}
-            </div>
-          </PopoverContent>
-        </Popover>
+        <select
+          value={newTaskPriority}
+          onChange={(e) => setNewTaskPriority(e.target.value as TaskPriority)}
+          className={`${priorityColors[newTaskPriority]} text-xs px-2 py-1 rounded-md cursor-pointer bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-[#2eaadc]`}
+          data-testid="select-new-task-priority"
+        >
+          {priorityOptions.map((priority) => (
+            <option key={priority} value={priority} className="bg-[#202020]">
+              {priority}
+            </option>
+          ))}
+        </select>
       </td>
       <td className="py-3 px-4 text-muted-foreground text-sm">
         Hoje
@@ -315,7 +280,7 @@ function TasksTable({
       <td className="py-3 px-4">
         <div className="flex items-center gap-2">
           <span className="text-muted-foreground text-sm">-</span>
-          <div className="flex gap-1 opacity-0 group-hover/row:opacity-100 transition-opacity">
+          <div className="flex gap-1">
             <button
               onClick={handleSaveTask}
               className="p-1 hover:bg-[#2c2c2c] rounded text-[#2eaadc]"
@@ -435,6 +400,17 @@ export default function ClientDetails() {
     }
   }
   
+  // Extract client info before hooks to satisfy React's rules of hooks
+  const clientId = clientData?.client.id || "";
+  const clientName = clientData?.client.name || "";
+  
+  const clientTasks = getTasksByClient(clientName);
+
+  const inlineTaskProps = useInlineClientTasks({
+    clientId,
+    clientName,
+  });
+  
   if (!clientData) {
     return (
       <div className="p-6">
@@ -448,13 +424,6 @@ export default function ClientDetails() {
   }
   
   const { client, stats, meetings, whatsappGroups } = clientData;
-  
-  const clientTasks = getTasksByClient(client.name);
-
-  const inlineTaskProps = useInlineClientTasks({
-    clientId: client.id,
-    clientName: client.name,
-  });
 
   const startEditingName = () => {
     setDraftName(client.name);

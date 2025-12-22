@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 import { useTasks } from "@/contexts/TasksContext";
 
@@ -18,9 +18,11 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
 
   const isSavingRef = useRef(false);
   const newTaskRowElementRef = useRef<HTMLTableRowElement | null>(null);
-  const blurTimeoutRef = useRef<number | null>(null);
-  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState(false);
-  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+  const newTaskTitleRef = useRef(newTaskTitle);
+
+  useEffect(() => {
+    newTaskTitleRef.current = newTaskTitle;
+  }, [newTaskTitle]);
 
   const setNewTaskRowRef = useCallback((element: HTMLTableRowElement | null) => {
     newTaskRowElementRef.current = element;
@@ -30,18 +32,17 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewTaskTitle("");
     setNewTaskPriority("Normal");
     setNewTaskStatus("To Do");
-    setPriorityPopoverOpen(false);
-    setStatusPopoverOpen(false);
   }, []);
 
   const commitNewTask = useCallback(() => {
-    if (!newTaskTitle.trim()) return;
+    const title = newTaskTitleRef.current;
+    if (!title.trim()) return;
     if (isSavingRef.current) return;
 
     isSavingRef.current = true;
 
     createTask({
-      title: newTaskTitle.trim(),
+      title: title.trim(),
       clientId,
       clientName,
       priority: newTaskPriority,
@@ -56,17 +57,13 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setTimeout(() => {
       isSavingRef.current = false;
     }, 100);
-  }, [newTaskTitle, newTaskPriority, newTaskStatus, clientId, clientName, createTask, resetNewTaskForm]);
+  }, [newTaskPriority, newTaskStatus, clientId, clientName, createTask, resetNewTaskForm]);
 
   const handleStartAddTask = useCallback(() => {
     setIsAddingTask(true);
   }, []);
 
   const handleCancelAddTask = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
     setIsAddingTask(false);
     resetNewTaskForm();
   }, [resetNewTaskForm]);
@@ -75,31 +72,8 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     commitNewTask();
   }, [commitNewTask]);
 
-  const handleNewTaskRowBlur = useCallback((e: React.FocusEvent) => {
-    if (priorityPopoverOpen || statusPopoverOpen) return;
-    if (!newTaskRowElementRef.current) return;
-    
-    const relatedTarget = e.relatedTarget as Node | null;
-    const isInsideRow = newTaskRowElementRef.current.contains(relatedTarget);
-    const isInsidePopover = relatedTarget?.parentElement?.closest('[data-radix-popper-content-wrapper]');
-    
-    if (!isInsideRow && !isInsidePopover) {
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
-      blurTimeoutRef.current = window.setTimeout(() => {
-        if (newTaskTitle.trim() && !isSavingRef.current) {
-          commitNewTask();
-        } else if (!newTaskTitle.trim()) {
-          handleCancelAddTask();
-        }
-        blurTimeoutRef.current = null;
-      }, 150);
-    }
-  }, [priorityPopoverOpen, statusPopoverOpen, newTaskTitle, commitNewTask, handleCancelAddTask]);
-
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTaskTitle.trim()) {
+    if (e.key === 'Enter' && newTaskTitleRef.current.trim()) {
       e.preventDefault();
       commitNewTask();
     }
@@ -107,7 +81,7 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
       e.preventDefault();
       handleCancelAddTask();
     }
-  }, [newTaskTitle, commitNewTask, handleCancelAddTask]);
+  }, [commitNewTask, handleCancelAddTask]);
 
   return {
     isAddingTask,
@@ -118,17 +92,11 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     newTaskStatus,
     setNewTaskStatus,
 
-    priorityPopoverOpen,
-    setPriorityPopoverOpen,
-    statusPopoverOpen,
-    setStatusPopoverOpen,
-
     setNewTaskRowRef,
 
     handleStartAddTask,
     handleCancelAddTask,
     handleSaveTask,
-    handleNewTaskRowBlur,
     handleKeyDown,
   };
 }
