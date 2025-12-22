@@ -191,11 +191,28 @@ interface InlineTaskProps {
   setNewTaskPriority: (value: TaskPriority) => void;
   newTaskStatus: TaskStatus;
   setNewTaskStatus: (value: TaskStatus) => void;
+  newTaskDueDate: Date;
+  setNewTaskDueDate: (value: Date) => void;
+  newTaskAssignees: string[];
+  setNewTaskAssignees: (value: string[]) => void;
+  newStatusPopoverOpen: boolean;
+  setNewStatusPopoverOpen: (value: boolean) => void;
+  newPriorityPopoverOpen: boolean;
+  setNewPriorityPopoverOpen: (value: boolean) => void;
+  newDatePopoverOpen: boolean;
+  setNewDatePopoverOpen: (value: boolean) => void;
+  newAssigneePopoverOpen: boolean;
+  setNewAssigneePopoverOpen: (value: boolean) => void;
   setNewTaskRowRef: (element: HTMLTableRowElement | null) => void;
   handleStartAddTask: () => void;
   handleKeyDown: (e: React.KeyboardEvent) => void;
   handleCancelAddTask: () => void;
   handleSaveTask: () => void;
+  handleNewStatusChange: (status: TaskStatus) => void;
+  handleNewPriorityChange: (priority: TaskPriority) => void;
+  handleNewDateChange: (date: Date) => void;
+  handleNewAddAssignee: (assignee: string) => void;
+  handleNewRemoveAssignee: (assignee: string) => void;
 }
 
 function TasksTable({ 
@@ -210,14 +227,27 @@ function TasksTable({
     newTaskTitle,
     setNewTaskTitle,
     newTaskPriority,
-    setNewTaskPriority,
     newTaskStatus,
-    setNewTaskStatus,
+    newTaskDueDate,
+    newTaskAssignees,
+    newStatusPopoverOpen,
+    setNewStatusPopoverOpen,
+    newPriorityPopoverOpen,
+    setNewPriorityPopoverOpen,
+    newDatePopoverOpen,
+    setNewDatePopoverOpen,
+    newAssigneePopoverOpen,
+    setNewAssigneePopoverOpen,
     setNewTaskRowRef,
     handleStartAddTask,
     handleKeyDown,
     handleCancelAddTask,
     handleSaveTask,
+    handleNewStatusChange,
+    handleNewPriorityChange,
+    handleNewDateChange,
+    handleNewAddAssignee,
+    handleNewRemoveAssignee,
   } = inlineProps;
 
   const {
@@ -244,13 +274,13 @@ function TasksTable({
 
   const statusColors: Record<string, string> = {
     "To Do": "bg-[#333333] text-[#a0a0a0]",
-    "In Progress": "bg-[#4d331f] text-[#e6b07a]",
+    "In Progress": "bg-[#243041] text-[#6db1d4]",
     "Done": "bg-[#203828] text-[#6ecf8e]",
   };
   
   const priorityColors: Record<string, string> = {
     "Urgente": "bg-[#3d2626] text-[#e07a7a]",
-    "Importante": "bg-[#38273f] text-[#d09cdb]",
+    "Importante": "bg-[#422c24] text-[#dcb092]",
     "Normal": "bg-[#333333] text-[#a0a0a0]",
     "Baixa": "bg-[#1c3847] text-[#6db1d4]",
   };
@@ -277,39 +307,144 @@ function TasksTable({
         />
       </td>
       <td className="py-3 px-4">
-        <select
-          value={newTaskStatus}
-          onChange={(e) => setNewTaskStatus(e.target.value as TaskStatus)}
-          className={`${statusColors[newTaskStatus]} text-xs px-2 py-1 rounded-md cursor-pointer bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-[#2eaadc]`}
-          data-testid="select-new-task-status"
-        >
-          {statusOptions.map((status) => (
-            <option key={status} value={status} className="bg-[#202020]">
-              {status}
-            </option>
-          ))}
-        </select>
+        <Popover open={newStatusPopoverOpen} onOpenChange={setNewStatusPopoverOpen}>
+          <PopoverTrigger asChild>
+            <div className="inline-block cursor-pointer" data-testid="select-new-task-status">
+              <Badge className={`${statusColors[newTaskStatus]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                {newTaskStatus}
+              </Badge>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+            <div className="w-full">
+              <div className={`border-b ${UI_CLASSES.border}`}>
+                <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                <div className="px-3 py-1">
+                  <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                    <Badge className={`${statusColors[newTaskStatus]} text-xs`}>
+                      {newTaskStatus}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+              <div className="pb-1">
+                {statusOptions.filter(s => s !== newTaskStatus).map(s => (
+                  <div
+                    key={s}
+                    className={UI_CLASSES.dropdownItem}
+                    onClick={() => handleNewStatusChange(s)}
+                    data-testid={`option-new-task-status-${s}`}
+                  >
+                    <Badge className={`${statusColors[s]} text-xs`}>
+                      {s}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </td>
       <td className="py-3 px-4">
-        <select
-          value={newTaskPriority}
-          onChange={(e) => setNewTaskPriority(e.target.value as TaskPriority)}
-          className={`${priorityColors[newTaskPriority]} text-xs px-2 py-1 rounded-md cursor-pointer bg-transparent border-0 focus:outline-none focus:ring-1 focus:ring-[#2eaadc]`}
-          data-testid="select-new-task-priority"
-        >
-          {priorityOptions.map((priority) => (
-            <option key={priority} value={priority} className="bg-[#202020]">
-              {priority}
-            </option>
-          ))}
-        </select>
+        <Popover open={newPriorityPopoverOpen} onOpenChange={setNewPriorityPopoverOpen}>
+          <PopoverTrigger asChild>
+            <div className="inline-block cursor-pointer" data-testid="select-new-task-priority">
+              <Badge className={`${priorityColors[newTaskPriority]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                {newTaskPriority}
+              </Badge>
+            </div>
+          </PopoverTrigger>
+          <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+            <div className="w-full">
+              <div className={`border-b ${UI_CLASSES.border}`}>
+                <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                <div className="px-3 py-1">
+                  <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                    <Badge className={`${priorityColors[newTaskPriority]} text-xs`}>
+                      {newTaskPriority}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+              <div className="pb-1">
+                {priorityOptions.filter(p => p !== newTaskPriority).map(p => (
+                  <div
+                    key={p}
+                    className={UI_CLASSES.dropdownItem}
+                    onClick={() => handleNewPriorityChange(p)}
+                    data-testid={`option-new-task-priority-${p}`}
+                  >
+                    <Badge className={`${priorityColors[p]} text-xs`}>
+                      {p}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </td>
-      <td className="py-3 px-4 text-muted-foreground text-sm">
-        Hoje
+      <td className="py-3 px-4">
+        <Popover open={newDatePopoverOpen} onOpenChange={setNewDatePopoverOpen}>
+          <PopoverTrigger asChild>
+            <span 
+              className="text-foreground text-sm cursor-pointer hover:text-[#2eaadc] transition-colors"
+              data-testid="select-new-task-date"
+            >
+              {format(newTaskDueDate, "dd/MM/yyyy", { locale: ptBR })}
+            </span>
+          </PopoverTrigger>
+          <PopoverContent className={`w-auto p-3 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+            <DateInput
+              value={newTaskDueDate}
+              onChange={(date) => {
+                if (date) handleNewDateChange(date);
+              }}
+            />
+          </PopoverContent>
+        </Popover>
       </td>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">-</span>
+          <Popover open={newAssigneePopoverOpen} onOpenChange={setNewAssigneePopoverOpen}>
+            <PopoverTrigger asChild>
+              <div
+                className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
+                data-testid="select-new-task-assignee"
+              >
+                {newTaskAssignees.length === 0 ? (
+                  <span className="text-muted-foreground text-sm">+ Responsável</span>
+                ) : (
+                  <>
+                    <div className="flex -space-x-2 flex-shrink-0">
+                      {newTaskAssignees.slice(0, 3).map((assignee, idx) => (
+                        <Avatar
+                          key={idx}
+                          className={`w-6 h-6 ${UI_CLASSES.avatarBorder} ${getAvatarColor(idx)}`}
+                        >
+                          <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
+                            {getInitials(assignee)}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    </div>
+                    {newTaskAssignees.length > 3 && (
+                      <span className="text-muted-foreground text-xs">+{newTaskAssignees.length - 3}</span>
+                    )}
+                  </>
+                )}
+              </div>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+              <AssigneeSelector
+                selectedAssignees={newTaskAssignees}
+                onSelect={(assignee) => handleNewAddAssignee(assignee)}
+                onRemove={(assignee) => handleNewRemoveAssignee(assignee)}
+              />
+            </PopoverContent>
+          </Popover>
           <div className="flex gap-1">
             <button
               onClick={handleSaveTask}

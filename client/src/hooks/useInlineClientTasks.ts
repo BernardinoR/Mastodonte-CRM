@@ -15,6 +15,13 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskPriority, setNewTaskPriority] = useState<TaskPriority>("Normal");
   const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>("To Do");
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date>(new Date());
+  const [newTaskAssignees, setNewTaskAssignees] = useState<string[]>([]);
+  
+  const [newStatusPopoverOpen, setNewStatusPopoverOpen] = useState(false);
+  const [newPriorityPopoverOpen, setNewPriorityPopoverOpen] = useState(false);
+  const [newDatePopoverOpen, setNewDatePopoverOpen] = useState(false);
+  const [newAssigneePopoverOpen, setNewAssigneePopoverOpen] = useState(false);
 
   const isSavingRef = useRef(false);
   const newTaskRowElementRef = useRef<HTMLTableRowElement | null>(null);
@@ -32,6 +39,12 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewTaskTitle("");
     setNewTaskPriority("Normal");
     setNewTaskStatus("To Do");
+    setNewTaskDueDate(new Date());
+    setNewTaskAssignees([]);
+    setNewStatusPopoverOpen(false);
+    setNewPriorityPopoverOpen(false);
+    setNewDatePopoverOpen(false);
+    setNewAssigneePopoverOpen(false);
   }, []);
 
   const commitNewTask = useCallback(() => {
@@ -47,8 +60,8 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
       clientName,
       priority: newTaskPriority,
       status: newTaskStatus,
-      assignees: [],
-      dueDate: new Date(),
+      assignees: newTaskAssignees,
+      dueDate: newTaskDueDate,
     });
 
     resetNewTaskForm();
@@ -57,11 +70,35 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setTimeout(() => {
       isSavingRef.current = false;
     }, 100);
-  }, [newTaskPriority, newTaskStatus, clientId, clientName, createTask, resetNewTaskForm]);
+  }, [newTaskPriority, newTaskStatus, newTaskAssignees, newTaskDueDate, clientId, clientName, createTask, resetNewTaskForm]);
+
+  const handleNewStatusChange = useCallback((status: TaskStatus) => {
+    setNewTaskStatus(status);
+    setNewStatusPopoverOpen(false);
+  }, []);
+
+  const handleNewPriorityChange = useCallback((priority: TaskPriority) => {
+    setNewTaskPriority(priority);
+    setNewPriorityPopoverOpen(false);
+  }, []);
+
+  const handleNewDateChange = useCallback((date: Date) => {
+    setNewTaskDueDate(date);
+    setNewDatePopoverOpen(false);
+  }, []);
+
+  const handleNewAddAssignee = useCallback((assignee: string) => {
+    setNewTaskAssignees(prev => prev.includes(assignee) ? prev : [...prev, assignee]);
+  }, []);
+
+  const handleNewRemoveAssignee = useCallback((assignee: string) => {
+    setNewTaskAssignees(prev => prev.filter(a => a !== assignee));
+  }, []);
 
   const handleStartAddTask = useCallback(() => {
+    resetNewTaskForm();
     setIsAddingTask(true);
-  }, []);
+  }, [resetNewTaskForm]);
 
   const handleCancelAddTask = useCallback(() => {
     setIsAddingTask(false);
@@ -91,6 +128,19 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewTaskPriority,
     newTaskStatus,
     setNewTaskStatus,
+    newTaskDueDate,
+    setNewTaskDueDate,
+    newTaskAssignees,
+    setNewTaskAssignees,
+
+    newStatusPopoverOpen,
+    setNewStatusPopoverOpen,
+    newPriorityPopoverOpen,
+    setNewPriorityPopoverOpen,
+    newDatePopoverOpen,
+    setNewDatePopoverOpen,
+    newAssigneePopoverOpen,
+    setNewAssigneePopoverOpen,
 
     setNewTaskRowRef,
 
@@ -98,5 +148,10 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     handleCancelAddTask,
     handleSaveTask,
     handleKeyDown,
+    handleNewStatusChange,
+    handleNewPriorityChange,
+    handleNewDateChange,
+    handleNewAddAssignee,
+    handleNewRemoveAssignee,
   };
 }

@@ -84,12 +84,12 @@ export const STATUS_CONFIG: Record<TaskStatus, StatusConfig> = {
   "In Progress": {
     label: "In Progress",
     labelPt: "Em Progresso",
-    bgColor: "bg-[rgb(64,97,145)]",
-    borderColor: "border-[rgb(64,97,145)]",
+    bgColor: "bg-[#243041]",
+    borderColor: "border-[#344151]",
     textColor: "text-white",
-    dotColor: "bg-[rgb(66,129,220)]",
-    columnBorderColor: "border-t-[rgb(64,97,145)]",
-    cardBgRgb: "rgba(64, 97, 145, 0.08)",
+    dotColor: "bg-blue-500",
+    columnBorderColor: "border-t-[#344151]",
+    cardBgRgb: "rgba(36, 48, 65, 0.08)",
   },
   "Done": {
     label: "Done",

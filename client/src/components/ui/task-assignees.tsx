@@ -12,6 +12,19 @@ export const getInitials = (name: string): string => {
     .toUpperCase();
 };
 
+export const abbreviateName = (fullName: string): string => {
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length <= 2) return fullName;
+  
+  const firstName = parts[0];
+  const lastName = parts[parts.length - 1];
+  const middleNames = parts.slice(1, -1);
+  
+  const abbreviatedMiddle = middleNames.map(name => `${name[0].toUpperCase()}.`).join(' ');
+  
+  return `${firstName} ${abbreviatedMiddle} ${lastName}`;
+};
+
 export const getAvatarColor = (index: number): string => {
   const colors = ["bg-slate-600", "bg-slate-500", "bg-slate-400", "bg-slate-700", "bg-slate-300"];
   return colors[index % colors.length];
@@ -46,7 +59,7 @@ export const AssigneeBadge = memo(function AssigneeBadge({
       </Avatar>
       {showName && (
         <span className={cn(nameSize, "font-normal")}>
-          {name}
+          {abbreviateName(name)}
         </span>
       )}
     </div>
