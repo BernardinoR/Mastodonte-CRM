@@ -51,6 +51,7 @@ import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task"
 import type { ClientStats, ClientMeeting } from "@/types/client";
 import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 import { useInlineTaskEdit } from "@/hooks/useInlineTaskEdit";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 type StatCard = ClientStats;
 type Meeting = ClientMeeting;
@@ -488,14 +489,14 @@ function TasksTable({
   return (
     <>
       <div className="overflow-x-auto">
-        <table className="w-full text-sm">
+        <table className="w-full text-sm table-fixed">
           <thead>
             <tr className="border-b border-[#333333]">
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tarefa</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Prioridade</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Prazo</th>
-              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Responsável</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[280px]">Tarefa</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[100px]">Status</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[100px]">Prioridade</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[110px]">Prazo</th>
+              <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[180px]">Responsável</th>
             </tr>
           </thead>
           <tbody>
@@ -745,9 +746,13 @@ export default function ClientDetails() {
   
   const clientTasks = getTasksByClient(clientName);
 
+  const { data: currentUserData } = useCurrentUser();
+  const currentUserName = currentUserData?.user?.name || currentUserData?.user?.email || "";
+
   const inlineTaskProps = useInlineClientTasks({
     clientId,
     clientName,
+    defaultAssignee: currentUserName,
   });
   
   if (!clientData) {

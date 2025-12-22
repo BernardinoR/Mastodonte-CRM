@@ -5,10 +5,11 @@ import { useTasks } from "@/contexts/TasksContext";
 export interface UseInlineClientTasksOptions {
   clientId: string;
   clientName: string;
+  defaultAssignee?: string;
 }
 
 export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
-  const { clientId, clientName } = options;
+  const { clientId, clientName, defaultAssignee } = options;
   const { createTask } = useTasks();
 
   const [isAddingTask, setIsAddingTask] = useState(false);
@@ -31,6 +32,12 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     newTaskTitleRef.current = newTaskTitle;
   }, [newTaskTitle]);
 
+  useEffect(() => {
+    if (isAddingTask && defaultAssignee && newTaskAssignees.length === 0) {
+      setNewTaskAssignees([defaultAssignee]);
+    }
+  }, [isAddingTask, defaultAssignee, newTaskAssignees.length]);
+
   const setNewTaskRowRef = useCallback((element: HTMLTableRowElement | null) => {
     newTaskRowElementRef.current = element;
   }, []);
@@ -40,12 +47,12 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewTaskPriority("Normal");
     setNewTaskStatus("To Do");
     setNewTaskDueDate(new Date());
-    setNewTaskAssignees([]);
+    setNewTaskAssignees(defaultAssignee ? [defaultAssignee] : []);
     setNewStatusPopoverOpen(false);
     setNewPriorityPopoverOpen(false);
     setNewDatePopoverOpen(false);
     setNewAssigneePopoverOpen(false);
-  }, []);
+  }, [defaultAssignee]);
 
   const commitNewTask = useCallback(() => {
     const title = newTaskTitleRef.current;
