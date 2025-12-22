@@ -45,7 +45,8 @@ import { useClients } from "@/contexts/ClientsContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { getAvatarColor, getInitials } from "@/components/ui/task-assignees";
+import { abbreviateName } from "@/components/ui/task-assignees";
+import { TaskDetailModal } from "@/components/TaskDetailModal";
 import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task";
 import type { ClientStats, ClientMeeting } from "@/types/client";
 import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
@@ -272,6 +273,23 @@ function TasksTable({
     handleInteractOutside,
   } = useInlineTaskEdit();
 
+  const { updateTask } = useTasks();
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId) : null;
+
+  const handleRowClick = (taskId: string, e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    if (
+      target.closest('[data-popover-trigger]') || 
+      target.closest('button') || 
+      target.closest('[role="dialog"]') ||
+      target.closest('[data-radix-popper-content-wrapper]')
+    ) {
+      return;
+    }
+    setDetailTaskId(taskId);
+  };
+
   const statusColors: Record<string, string> = {
     "To Do": "bg-[#333333] text-[#a0a0a0]",
     "In Progress": "bg-[#243041] text-[#6db1d4]",
@@ -417,23 +435,9 @@ function TasksTable({
                 {newTaskAssignees.length === 0 ? (
                   <span className="text-muted-foreground text-sm">+ Responsável</span>
                 ) : (
-                  <>
-                    <div className="flex -space-x-2 flex-shrink-0">
-                      {newTaskAssignees.slice(0, 3).map((assignee, idx) => (
-                        <Avatar
-                          key={idx}
-                          className={`w-6 h-6 ${UI_CLASSES.avatarBorder} ${getAvatarColor(idx)}`}
-                        >
-                          <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
-                            {getInitials(assignee)}
-                          </AvatarFallback>
-                        </Avatar>
-                      ))}
-                    </div>
-                    {newTaskAssignees.length > 3 && (
-                      <span className="text-muted-foreground text-xs">+{newTaskAssignees.length - 3}</span>
-                    )}
-                  </>
+                  <span className="text-foreground text-sm">
+                    {newTaskAssignees.map(a => abbreviateName(a)).join(", ")}
+                  </span>
                 )}
               </div>
             </PopoverTrigger>
@@ -496,11 +500,15 @@ function TasksTable({
           </thead>
           <tbody>
             {tasks.map((task) => (
-              <tr key={task.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row">
+              <tr 
+                key={task.id} 
+                className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer"
+                onClick={(e) => handleRowClick(task.id, e)}
+              >
                 <td className="py-3 px-4 text-foreground font-medium">{task.title}</td>
                 <td className="py-3 px-4">
                   <Popover open={statusPopoverOpen === task.id} onOpenChange={(open) => setStatusPopoverOpen(open ? task.id : null)}>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger asChild data-popover-trigger>
                       <div className="inline-block cursor-pointer" data-testid={`cell-task-status-${task.id}`}>
                         <Badge className={`${statusColors[task.status]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
                           {task.status}
@@ -540,7 +548,7 @@ function TasksTable({
                 </td>
                 <td className="py-3 px-4">
                   <Popover open={priorityPopoverOpen === task.id} onOpenChange={(open) => setPriorityPopoverOpen(open ? task.id : null)}>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger asChild data-popover-trigger>
                       <div className="inline-block cursor-pointer" data-testid={`cell-task-priority-${task.id}`}>
                         <Badge className={`${priorityColors[task.priority || "Normal"]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
                           {task.priority || "Normal"}
@@ -580,7 +588,7 @@ function TasksTable({
                 </td>
                 <td className="py-3 px-4">
                   <Popover open={datePopoverOpen === task.id} onOpenChange={(open) => setDatePopoverOpen(open ? task.id : null)}>
-                    <PopoverTrigger asChild>
+                    <PopoverTrigger asChild data-popover-trigger>
                       <div
                         className="inline-flex items-center gap-1.5 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
                         data-testid={`cell-task-date-${task.id}`}
@@ -613,7 +621,7 @@ function TasksTable({
                 <td className="py-3 px-4">
                   <div className="flex items-center gap-2">
                     <Popover open={assigneePopoverOpen === task.id} onOpenChange={(open) => setAssigneePopoverOpen(open ? task.id : null)}>
-                      <PopoverTrigger asChild>
+                      <PopoverTrigger asChild data-popover-trigger>
                         <div
                           className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
                           data-testid={`cell-task-assignee-${task.id}`}
@@ -621,23 +629,9 @@ function TasksTable({
                           {(task.assignees?.length || 0) === 0 ? (
                             <span className="text-muted-foreground text-sm">+ Responsável</span>
                           ) : (
-                            <>
-                              <div className="flex -space-x-2 flex-shrink-0">
-                                {task.assignees?.slice(0, 3).map((assignee, idx) => (
-                                  <Avatar
-                                    key={idx}
-                                    className={`w-6 h-6 ${UI_CLASSES.avatarBorder} ${getAvatarColor(idx)}`}
-                                  >
-                                    <AvatarFallback className="bg-transparent text-white font-medium text-[11px]">
-                                      {getInitials(assignee)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                ))}
-                              </div>
-                              {(task.assignees?.length || 0) > 3 && (
-                                <span className="text-muted-foreground text-xs">+{(task.assignees?.length || 0) - 3}</span>
-                              )}
-                            </>
+                            <span className="text-foreground text-sm">
+                              {task.assignees?.map(a => abbreviateName(a)).join(", ")}
+                            </span>
                           )}
                         </div>
                       </PopoverTrigger>
@@ -696,6 +690,15 @@ function TasksTable({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {detailTask && (
+        <TaskDetailModal
+          task={detailTask}
+          open={true}
+          onOpenChange={(open) => !open && setDetailTaskId(null)}
+          onUpdateTask={(taskId, updates) => updateTask(taskId, updates)}
+        />
+      )}
     </>
   );
 }
