@@ -57,7 +57,7 @@ export const TaskDatePopover = memo(function TaskDatePopover({
     onStopPropagation();
   }, [onStopPropagation]);
 
-  const handleInteractOutside = useCallback((e: any) => {
+  const handleInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
     const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
     const target = originalTarget || (e.target as HTMLElement);
     if (popoverRef?.current?.contains(target) || target?.closest('.rdp')) {

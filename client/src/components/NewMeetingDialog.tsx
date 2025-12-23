@@ -6,10 +6,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 
+export interface NewMeetingFormData {
+  clientId: string;
+  date: string;
+  type: string;
+  notes: string;
+}
+
 interface NewMeetingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: NewMeetingFormData) => void;
   preSelectedClient?: string;
 }
 

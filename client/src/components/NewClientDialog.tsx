@@ -5,10 +5,19 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useState } from "react";
 
+export interface NewClientFormData {
+  name: string;
+  cpf: string;
+  email: string;
+  phone: string;
+  status: string;
+  folderLink: string;
+}
+
 interface NewClientDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: NewClientFormData) => void;
 }
 
 export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialogProps) {

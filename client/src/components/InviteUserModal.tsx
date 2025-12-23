@@ -118,7 +118,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       resetForm();
       onOpenChange(false);
     },
-    onError: async (error: any) => {
+    onError: async (error: Error) => {
       let errorMessage = "Falha ao enviar convite";
       try {
         if (error?.message) {
@@ -126,7 +126,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
           errorMessage = parsed.error || errorMessage;
         }
       } catch {
-        // Use default error message
+        errorMessage = error.message || errorMessage;
       }
       toast({ title: errorMessage, variant: "destructive" });
     },

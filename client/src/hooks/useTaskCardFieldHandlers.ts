@@ -4,7 +4,7 @@ import { format } from "date-fns";
 type PopoverType = "date" | "priority" | "status" | "client" | "assignee" | null;
 
 interface UseTaskCardFieldHandlersProps {
-  handleUpdate: (field: string, value: any) => void;
+  handleUpdate: (field: string, value: string | undefined) => void;
   setActivePopover: (popover: PopoverType) => void;
 }
 

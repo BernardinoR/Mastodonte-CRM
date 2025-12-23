@@ -66,8 +66,8 @@ export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps)
 });
 
 interface TaskTableRowContentProps extends TaskTableRowProps {
-  dragListeners?: any;
-  dragAttributes?: any;
+  dragListeners?: ReturnType<typeof useSortable>['listeners'];
+  dragAttributes?: ReturnType<typeof useSortable>['attributes'];
   isDragging?: boolean;
 }
 

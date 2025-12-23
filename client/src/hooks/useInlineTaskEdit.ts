@@ -55,7 +55,7 @@ export function useInlineTaskEdit() {
     }
   }, [deleteConfirmOpen, deleteTask]);
 
-  const handleInteractOutside = useCallback((e: any) => {
+  const handleInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
     const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
     const target = originalTarget || (e.target as HTMLElement);
     if (datePopoverRef.current?.contains(target) || target?.closest('.rdp')) {

@@ -51,7 +51,7 @@ interface UseTaskCardEditingReturn {
   cardRef: React.RefObject<HTMLDivElement>;
   titleRef: React.RefObject<HTMLDivElement>;
   clickTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  handleUpdate: (field: string, value: any) => void;
+  handleUpdate: (field: string, value: string | string[] | TaskStatus | TaskPriority) => void;
   handleSave: () => void;
   handleTitleEdit: (e: React.FocusEvent<HTMLDivElement>) => void;
   handleEditClick: (e: React.MouseEvent) => void;
@@ -164,7 +164,7 @@ export function useTaskCardEditing({
     lastSavedRef.current = { ...data };
   }, [id, onUpdate, dueDate]);
 
-  const handleUpdate = useCallback((field: string, value: any) => {
+  const handleUpdate = useCallback((field: string, value: string | string[] | TaskStatus | TaskPriority) => {
     setEditedTask(prev => {
       const updated = { ...prev, [field]: value };
       latestDraftRef.current = updated;

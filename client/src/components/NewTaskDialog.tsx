@@ -9,10 +9,20 @@ import { useState } from "react";
 import { MOCK_USERS } from "@/lib/mock-users";
 import { useClients } from "@/contexts/ClientsContext";
 
+export interface NewTaskFormData {
+  title: string;
+  description: string;
+  clientId: string;
+  clientName?: string;
+  priority: string;
+  assignees: string[];
+  dueDate: string;
+}
+
 interface NewTaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit?: (data: any) => void;
+  onSubmit?: (data: NewTaskFormData) => void;
   preSelectedClient?: string;
 }
 
