@@ -1,17 +1,6 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { 
-  ArrowLeft,
-  Lock,
-  AlertCircle,
-  Lightbulb,
-  Target,
-  FileText,
-  History,
-  AlertTriangle,
-  GitBranch,
-  MessageSquare
-} from "lucide-react";
+import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { NewMeetingDialog } from "@/components/NewMeetingDialog";
@@ -22,21 +11,9 @@ import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@/lib/clientSections";
 
-const DISABLED_SECTIONS_TOP = [
-  { id: "farol", title: "Farol", icon: AlertCircle, description: "Indicador de acompanhamento do cliente" },
-  { id: "guidance", title: "Guidance", icon: Lightbulb, description: "Orientações para próxima reunião" },
-];
-
-const DISABLED_SECTIONS_BOTTOM = [
-  { id: "oportunidades", title: "Oportunidades", icon: Target, description: "Oportunidades identificadas" },
-  { id: "metodo", title: "Método (Planejamento)", icon: FileText, description: "Planejamento financeiro" },
-  { id: "timeline", title: "Linha do Tempo", icon: History, description: "Histórico de interações" },
-  { id: "erros", title: "Erros e Ocorrências", icon: AlertTriangle, description: "Registro de erros e ocorrências" },
-  { id: "pipeline", title: "Pipeline de Indicações", icon: GitBranch, description: "Gestão de indicações" },
-];
-
-function DisabledSection({ section }: { section: typeof DISABLED_SECTIONS_TOP[0] }) {
+function DisabledSection({ section }: { section: DisabledSectionConfig }) {
   const Icon = section.icon;
   return (
     <Card className="p-6 bg-[#202020] border-[#333333] opacity-60">

@@ -174,3 +174,35 @@ export const CLIENT_STATUS_OPTIONS: ClientStatus[] = ["Ativo", "Prospect", "Dist
 export const getClientStatusConfig = (status: ClientStatus): ClientStatusConfig => {
   return CLIENT_STATUS_CONFIG[status] || CLIENT_STATUS_CONFIG["Ativo"];
 };
+
+// Badge color classes for inline use (consolidated from multiple components)
+export const TASK_STATUS_BADGE_COLORS: Record<TaskStatus, string> = {
+  "To Do": "bg-[#333333] text-[#a0a0a0]",
+  "In Progress": "bg-[#243041] text-[#6db1d4]",
+  "Done": "bg-[#203828] text-[#6ecf8e]",
+};
+
+export const TASK_PRIORITY_BADGE_COLORS: Record<TaskPriority, string> = {
+  "Urgente": "bg-[#3d2626] text-[#e07a7a]",
+  "Importante": "bg-[#422c24] text-[#dcb092]",
+  "Normal": "bg-[#333333] text-[#a0a0a0]",
+  "Baixa": "bg-[#1c3847] text-[#6db1d4]",
+};
+
+export const MEETING_STATUS_BADGE_COLORS: Record<string, string> = {
+  "Agendada": "bg-[#243041] text-[#6db1d4]",
+  "Realizada": "bg-[#203828] text-[#6ecf8e]",
+  "Cancelada": "bg-[#3d2626] text-[#e07a7a]",
+};
+
+export const getTaskStatusBadgeColor = (status: TaskStatus): string => {
+  return TASK_STATUS_BADGE_COLORS[status] || TASK_STATUS_BADGE_COLORS["To Do"];
+};
+
+export const getTaskPriorityBadgeColor = (priority: TaskPriority): string => {
+  return TASK_PRIORITY_BADGE_COLORS[priority] || TASK_PRIORITY_BADGE_COLORS["Normal"];
+};
+
+export const getMeetingStatusBadgeColor = (status: string): string => {
+  return MEETING_STATUS_BADGE_COLORS[status] || MEETING_STATUS_BADGE_COLORS["Agendada"];
+};

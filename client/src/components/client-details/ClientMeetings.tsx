@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { MEETING_STATUS_BADGE_COLORS } from "@/lib/statusConfig";
 
 interface Meeting {
   id: string;
@@ -25,11 +26,7 @@ const typeColors: Record<string, string> = {
   "Especial": "bg-[#38273f] text-[#d09cdb]",
 };
 
-const statusColors: Record<string, string> = {
-  "Agendada": "bg-[#1c3847] text-[#6db1d4]",
-  "Realizada": "bg-[#203828] text-[#6ecf8e]",
-  "Cancelada": "bg-[#3d2626] text-[#e07a7a]",
-};
+const statusColors = MEETING_STATUS_BADGE_COLORS;
 
 export function ClientMeetings({ meetings, onNewMeeting }: ClientMeetingsProps) {
   return (

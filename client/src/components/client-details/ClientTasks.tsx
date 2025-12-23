@@ -16,7 +16,7 @@ import { AssigneeSelector } from "@/components/task-editors";
 import { useTasks } from "@/contexts/TasksContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { UI_CLASSES } from "@/lib/statusConfig";
+import { UI_CLASSES, TASK_STATUS_BADGE_COLORS, TASK_PRIORITY_BADGE_COLORS } from "@/lib/statusConfig";
 import { abbreviateName } from "@/components/ui/task-assignees";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task";
@@ -28,18 +28,8 @@ export interface ClientTasksProps {
   inlineProps: ReturnType<typeof useInlineClientTasks>;
 }
 
-const statusColors: Record<string, string> = {
-  "To Do": "bg-[#333333] text-[#a0a0a0]",
-  "In Progress": "bg-[#243041] text-[#6db1d4]",
-  "Done": "bg-[#203828] text-[#6ecf8e]",
-};
-
-const priorityColors: Record<string, string> = {
-  "Urgente": "bg-[#3d2626] text-[#e07a7a]",
-  "Importante": "bg-[#422c24] text-[#dcb092]",
-  "Normal": "bg-[#333333] text-[#a0a0a0]",
-  "Baixa": "bg-[#1c3847] text-[#6db1d4]",
-};
+const statusColors = TASK_STATUS_BADGE_COLORS;
+const priorityColors = TASK_PRIORITY_BADGE_COLORS;
 
 const statusOptions: TaskStatus[] = ["To Do", "In Progress", "Done"];
 const priorityOptions: TaskPriority[] = ["Urgente", "Importante", "Normal", "Baixa"];
