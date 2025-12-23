@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Phone, Mail, ExternalLink, Edit, Archive, Plus } from "lucide-react";
+import { CLIENT_STATUS_OUTLINE_COLORS } from "@/lib/statusConfig";
 
 interface ClientProfileProps {
   name: string;
@@ -41,12 +42,6 @@ export function ClientProfile({
     .substring(0, 2)
     .toUpperCase();
 
-  const statusColors: Record<string, string> = {
-    Ativo: "bg-green-500/10 text-green-500 border-green-500/20",
-    Inativo: "bg-gray-500/10 text-gray-500 border-gray-500/20",
-    Prospect: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  };
-
   return (
     <div className="space-y-6">
       <Card>
@@ -58,7 +53,7 @@ export function ClientProfile({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-2 flex-wrap">
                 <h1 className="text-2xl font-semibold" data-testid="text-clientname">{name}</h1>
-                <Badge variant="outline" className={`${statusColors[status] || ""}`}>
+                <Badge variant="outline" className={`${CLIENT_STATUS_OUTLINE_COLORS[status] || ""}`}>
                   {status}
                 </Badge>
               </div>

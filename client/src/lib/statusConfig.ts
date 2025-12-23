@@ -206,3 +206,15 @@ export const getTaskPriorityBadgeColor = (priority: TaskPriority): string => {
 export const getMeetingStatusBadgeColor = (status: string): string => {
   return MEETING_STATUS_BADGE_COLORS[status] || MEETING_STATUS_BADGE_COLORS["Agendada"];
 };
+
+// Client status colors for outline badges (used in ClientCard, ClientProfile)
+export const CLIENT_STATUS_OUTLINE_COLORS: Record<string, string> = {
+  "Ativo": "bg-green-500/10 text-green-500 border-green-500/20",
+  "Prospect": "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  "Distrato": "bg-red-500/10 text-red-500 border-red-500/20",
+  "Inativo": "bg-gray-500/10 text-gray-500 border-gray-500/20",
+};
+
+export const getClientStatusOutlineColor = (status: string): string => {
+  return CLIENT_STATUS_OUTLINE_COLORS[status] || "";
+};

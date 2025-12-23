@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Phone, Mail, ExternalLink } from "lucide-react";
 import { useLocation } from "wouter";
 import type { Client } from "@/types/client";
+import { CLIENT_STATUS_OUTLINE_COLORS } from "@/lib/statusConfig";
 
 interface ClientCardProps {
   client: Client;
@@ -13,12 +14,6 @@ export function ClientCard({ client }: ClientCardProps) {
   const { id, name, initials, emails, phone, status, folderLink } = client;
   const email = emails[client.primaryEmailIndex] || emails[0];
   const [, setLocation] = useLocation();
-
-  const statusColors: Record<string, string> = {
-    Ativo: "bg-green-500/10 text-green-500 border-green-500/20",
-    Prospect: "bg-purple-500/10 text-purple-500 border-purple-500/20",
-    Distrato: "bg-red-500/10 text-red-500 border-red-500/20",
-  };
 
   const handleCardClick = () => {
     setLocation(`/clients/${id}`);
@@ -45,7 +40,7 @@ export function ClientCard({ client }: ClientCardProps) {
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-medium text-base truncate" data-testid={`text-clientname-${id}`}>{name}</h3>
-              <Badge variant="outline" className={`text-xs ${statusColors[status] || ""}`}>
+              <Badge variant="outline" className={`text-xs ${CLIENT_STATUS_OUTLINE_COLORS[status] || ""}`}>
                 {status}
               </Badge>
             </div>
