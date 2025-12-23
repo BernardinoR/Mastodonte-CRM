@@ -160,14 +160,16 @@ export default function ClientDetails() {
         onUpdateStatus={(status) => updateClientStatus(client.id, status)}
       />
 
-      <ClientMetaStats 
-        stats={stats.map(s => ({
-          label: s.label,
-          value: s.value,
-          change: s.change || "",
-          positive: s.changeType === "positive"
-        }))} 
-      />
+      <div className="mb-8">
+        <ClientMetaStats 
+          stats={stats.map(s => ({
+            label: s.label,
+            value: s.value,
+            change: s.change || "",
+            positive: s.changeType === "positive"
+          }))} 
+        />
+      </div>
 
       <div className="space-y-4 mb-8">
         {DISABLED_SECTIONS_TOP.map((section) => (
