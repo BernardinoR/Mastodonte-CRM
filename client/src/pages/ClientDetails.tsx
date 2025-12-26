@@ -3,13 +3,13 @@ import { useParams, Link } from "wouter";
 import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { NewMeetingDialog } from "@/components/NewMeetingDialog";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientHeader, ClientMetaStats, ClientMeetings, ClientTasks } from "@/components/client-details";
 import { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
+import { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@/lib/clientSections";
 
@@ -38,7 +38,6 @@ function DisabledSection({ section }: { section: DisabledSectionConfig }) {
 
 export default function ClientDetails() {
   const params = useParams<{ id: string }>();
-  const [newMeetingOpen, setNewMeetingOpen] = useState(false);
   const [isAddingWhatsAppGroup, setIsAddingWhatsAppGroup] = useState(false);
   
   const { getTasksByClient } = useTasks();
@@ -90,6 +89,12 @@ export default function ClientDetails() {
     defaultAssignee: currentUserName,
   });
 
+  const inlineMeetingProps = useInlineClientMeetings({
+    clientId,
+    clientName,
+    defaultConsultant: currentUserName,
+  });
+
   const editingState = useClientHeaderEditing({
     clientId,
     clientName: clientData?.client.name || "",
@@ -125,7 +130,7 @@ export default function ClientDetails() {
         client={client}
         whatsappGroups={whatsappGroups}
         editingState={editingState}
-        onNewMeeting={() => setNewMeetingOpen(true)}
+        onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
         onNewTask={inlineTaskProps.handleStartAddTask}
         onAddEmail={(email) => addClientEmail(client.id, email)}
         onRemoveEmail={(index) => removeClientEmail(client.id, index)}
@@ -157,7 +162,8 @@ export default function ClientDetails() {
       <div className="space-y-8 mb-8">
         <ClientMeetings 
           meetings={meetings} 
-          onNewMeeting={() => setNewMeetingOpen(true)} 
+          onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
+          inlineProps={inlineMeetingProps}
         />
 
         <ClientTasks 
@@ -206,13 +212,6 @@ export default function ClientDetails() {
           />
         </Card>
       </div>
-
-      <NewMeetingDialog
-        open={newMeetingOpen}
-        onOpenChange={setNewMeetingOpen}
-        preSelectedClient={client.id}
-        onSubmit={(data) => console.log('New meeting:', data)}
-      />
     </div>
   );
 }

@@ -38,6 +38,7 @@ interface ClientsContextType {
   updateClientAdvisor: (clientId: string, advisor: string) => void;
   updateClientAddress: (clientId: string, address: Address) => void;
   updateClientFoundationCode: (clientId: string, foundationCode: string) => void;
+  addClientMeeting: (clientId: string, meeting: Omit<ClientMeeting, 'id'>) => void;
   dataVersion: number;
 }
 
@@ -543,6 +544,24 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const addClientMeeting = useCallback((clientId: string, meeting: Omit<ClientMeeting, 'id'>) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
+      const newMeeting: ClientMeeting = {
+        ...meeting,
+        id: crypto.randomUUID(),
+      };
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          meetings: [...clientData.meetings, newMeeting],
+        },
+      };
+    });
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -564,8 +583,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientAdvisor,
     updateClientAddress,
     updateClientFoundationCode,
+    addClientMeeting,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
