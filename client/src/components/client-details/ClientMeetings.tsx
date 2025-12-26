@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { Calendar as CalendarIcon, FileText, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -52,6 +53,16 @@ function MeetingsTable({
   inlineProps: ReturnType<typeof useInlineClientMeetings>;
   clientId: string;
 }) {
+  const [visibleCount, setVisibleCount] = useState(5);
+
+  const visibleMeetings = meetings.slice(0, visibleCount);
+  const hasMore = meetings.length > visibleCount;
+  const remainingCount = meetings.length - visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 5);
+  };
+
   const {
     isAddingMeeting,
     newMeetingName,
@@ -299,7 +310,7 @@ function MeetingsTable({
           </tr>
         </thead>
         <tbody>
-          {meetings.map((meeting) => (
+          {visibleMeetings.map((meeting) => (
             <tr key={meeting.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer">
               <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
@@ -447,15 +458,27 @@ function MeetingsTable({
           {isAddingMeeting && renderInlineAddRow()}
         </tbody>
       </table>
-      {!isAddingMeeting && (
-        <div 
-          className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
-          onClick={handleStartAddMeeting}
-          data-testid="button-add-meeting-table"
-        >
-          + Agendar nova reunião
-        </div>
-      )}
+      <div className="flex items-center justify-between">
+        {!isAddingMeeting && (
+          <div 
+            className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+            onClick={handleStartAddMeeting}
+            data-testid="button-add-meeting-table"
+          >
+            + Agendar nova reunião
+          </div>
+        )}
+        {isAddingMeeting && <div />}
+        {hasMore && (
+          <div
+            className="py-3 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+            onClick={handleLoadMore}
+            data-testid="button-load-more-meetings"
+          >
+            Carregar mais +{Math.min(5, remainingCount)}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

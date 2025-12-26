@@ -39,6 +39,16 @@ function TasksTable({
   tasks: GlobalTask[]; 
   inlineProps: ReturnType<typeof useInlineClientTasks>;
 }) {
+  const [visibleCount, setVisibleCount] = useState(5);
+
+  const visibleTasks = tasks.slice(0, visibleCount);
+  const hasMore = tasks.length > visibleCount;
+  const remainingCount = tasks.length - visibleCount;
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 5);
+  };
+
   const {
     isAddingTask,
     newTaskTitle,
@@ -307,7 +317,7 @@ function TasksTable({
             </tr>
           </thead>
           <tbody>
-            {tasks.map((task) => (
+            {visibleTasks.map((task) => (
               <tr 
                 key={task.id} 
                 className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer"
@@ -465,15 +475,27 @@ function TasksTable({
             {isAddingTask && renderInlineAddRow()}
           </tbody>
         </table>
-        {!isAddingTask && (
-          <div 
-            className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
-            onClick={handleStartAddTask}
-            data-testid="button-add-task-table"
-          >
-            + Nova tarefa
-          </div>
-        )}
+        <div className="flex items-center justify-between">
+          {!isAddingTask && (
+            <div 
+              className="py-3 px-4 text-sm text-[#2eaadc] hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+              onClick={handleStartAddTask}
+              data-testid="button-add-task-table"
+            >
+              + Nova tarefa
+            </div>
+          )}
+          {isAddingTask && <div />}
+          {hasMore && (
+            <div
+              className="py-3 px-4 text-sm text-muted-foreground hover:text-foreground hover:bg-[#2c2c2c] cursor-pointer transition-colors"
+              onClick={handleLoadMore}
+              data-testid="button-load-more-tasks"
+            >
+              Carregar mais +{Math.min(5, remainingCount)}
+            </div>
+          )}
+        </div>
       </div>
 
       <AlertDialog open={!!deleteConfirmOpen} onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}>
