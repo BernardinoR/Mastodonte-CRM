@@ -92,7 +92,7 @@ export default function ClientDetails() {
   const inlineMeetingProps = useInlineClientMeetings({
     clientId,
     clientName,
-    defaultConsultant: currentUserName,
+    defaultAssignee: currentUserName,
   });
 
   const editingState = useClientHeaderEditing({
@@ -160,10 +160,11 @@ export default function ClientDetails() {
       </div>
 
       <div className="space-y-8 mb-8">
-        <ClientMeetings 
-          meetings={meetings} 
+        <ClientMeetings
+          meetings={meetings}
           onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
           inlineProps={inlineMeetingProps}
+          clientId={clientId}
         />
 
         <ClientTasks 

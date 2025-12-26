@@ -1,14 +1,16 @@
 import { Link } from "wouter";
-import { Calendar as CalendarIcon, FileText, Check, X } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { DateInput } from "@/components/ui/date-input";
+import { AssigneeSelector } from "@/components/task-editors";
+import { abbreviateName } from "@/components/ui/task-assignees";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MEETING_STATUS_BADGE_COLORS, UI_CLASSES } from "@/lib/statusConfig";
 import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
+import { useInlineMeetingEdit } from "@/hooks/useInlineMeetingEdit";
 
 interface Meeting {
   id: string;
@@ -16,13 +18,14 @@ interface Meeting {
   date: Date;
   type: string;
   status: string;
-  consultant: string;
+  assignees: string[];
 }
 
 interface ClientMeetingsProps {
   meetings: Meeting[];
   onNewMeeting: () => void;
   inlineProps: ReturnType<typeof useInlineClientMeetings>;
+  clientId: string;
 }
 
 const typeColors: Record<string, string> = {
@@ -42,10 +45,12 @@ const statusOptions: ("Agendada" | "Realizada" | "Cancelada")[] = ["Agendada", "
 
 function MeetingsTable({ 
   meetings, 
-  inlineProps 
+  inlineProps,
+  clientId,
 }: { 
   meetings: Meeting[]; 
   inlineProps: ReturnType<typeof useInlineClientMeetings>;
+  clientId: string;
 }) {
   const {
     isAddingMeeting,
@@ -54,15 +59,15 @@ function MeetingsTable({
     newMeetingType,
     newMeetingDate,
     newMeetingStatus,
-    newMeetingConsultant,
+    newMeetingAssignees,
     newTypePopoverOpen,
     setNewTypePopoverOpen,
     newStatusPopoverOpen,
     setNewStatusPopoverOpen,
     newDatePopoverOpen,
     setNewDatePopoverOpen,
-    newConsultantPopoverOpen,
-    setNewConsultantPopoverOpen,
+    newAssigneePopoverOpen,
+    setNewAssigneePopoverOpen,
     setNewMeetingRowRef,
     handleStartAddMeeting,
     handleKeyDown,
@@ -71,8 +76,30 @@ function MeetingsTable({
     handleNewTypeChange,
     handleNewStatusChange,
     handleNewDateChange,
-    handleNewConsultantChange,
+    handleNewAddAssignee,
+    handleNewRemoveAssignee,
+    newDatePopoverRef,
+    handleNewDatePopoverInteractOutside,
+    handleNewMeetingRowBlur,
   } = inlineProps;
+
+  const {
+    typePopoverOpen,
+    setTypePopoverOpen,
+    statusPopoverOpen,
+    setStatusPopoverOpen,
+    datePopoverOpen,
+    setDatePopoverOpen,
+    assigneePopoverOpen,
+    setAssigneePopoverOpen,
+    datePopoverRef,
+    handleTypeChange,
+    handleStatusChange,
+    handleDateChange,
+    handleAddAssignee,
+    handleRemoveAssignee,
+    handleInteractOutside,
+  } = useInlineMeetingEdit();
 
   const renderInlineAddRow = () => (
     <tr
@@ -80,6 +107,7 @@ function MeetingsTable({
       tabIndex={-1}
       className="border-b border-[#333333] group/row"
       onKeyDown={handleKeyDown}
+      onBlur={handleNewMeetingRowBlur}
     >
       <td className="py-3 px-4">
         <input
@@ -175,67 +203,69 @@ function MeetingsTable({
       <td className="py-3 px-4">
         <Popover open={newDatePopoverOpen} onOpenChange={setNewDatePopoverOpen}>
           <PopoverTrigger asChild>
-            <span 
-              className="text-foreground text-sm cursor-pointer hover:text-[#2eaadc] transition-colors"
+            <div
+              className="inline-flex items-center gap-1.5 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
               data-testid="select-new-meeting-date"
             >
+              <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
               {format(newMeetingDate, "dd/MM/yyyy", { locale: ptBR })}
-            </span>
+            </div>
           </PopoverTrigger>
-          <PopoverContent className={`w-auto p-3 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+          <PopoverContent
+            ref={newDatePopoverRef}
+            className={`w-auto p-0 ${UI_CLASSES.popover}`}
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            onInteractOutside={handleNewDatePopoverInteractOutside}
+            onPointerDownOutside={handleNewDatePopoverInteractOutside}
+            onFocusOutside={handleNewDatePopoverInteractOutside}
+          >
             <DateInput
-              value={newMeetingDate}
+              value={format(newMeetingDate, "yyyy-MM-dd")}
               onChange={(date) => {
                 if (date) handleNewDateChange(date);
               }}
+              className="font-semibold"
+              dataTestId="input-date-new-meeting"
+              hideIcon
+              commitOnInput={false}
             />
           </PopoverContent>
         </Popover>
       </td>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2">
-          <Popover open={newConsultantPopoverOpen} onOpenChange={setNewConsultantPopoverOpen}>
+          <Popover open={newAssigneePopoverOpen} onOpenChange={setNewAssigneePopoverOpen}>
             <PopoverTrigger asChild>
               <div
                 className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
-                data-testid="select-new-meeting-consultant"
+                data-testid="select-new-meeting-assignees"
               >
-                <span className="text-foreground text-sm">
-                  {newMeetingConsultant}
-                </span>
+                {newMeetingAssignees.length === 0 ? (
+                  <span className="text-muted-foreground text-sm">+ Responsável</span>
+                ) : (
+                  <span className="text-foreground text-sm">
+                    {newMeetingAssignees.map(a => abbreviateName(a)).join(", ")}
+                  </span>
+                )}
               </div>
             </PopoverTrigger>
             <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-              <div className="max-h-52 overflow-y-auto">
-                {MOCK_RESPONSIBLES.map((consultant) => (
-                  <div
-                    key={consultant.id}
-                    className={UI_CLASSES.dropdownItem}
-                    onClick={() => handleNewConsultantChange(consultant.name)}
-                    data-testid={`option-consultant-${consultant.id}`}
-                  >
-                    <span className="text-sm text-foreground">{consultant.name}</span>
-                  </div>
-                ))}
-              </div>
+              <AssigneeSelector
+                selectedAssignees={newMeetingAssignees}
+                onSelect={(assignee) => handleNewAddAssignee(assignee)}
+                onRemove={(assignee) => handleNewRemoveAssignee(assignee)}
+              />
             </PopoverContent>
           </Popover>
-          <div className="flex gap-1">
-            <button
-              onClick={handleSaveMeeting}
-              className="p-1 hover:bg-[#2c2c2c] rounded text-[#2eaadc]"
-              data-testid="button-save-new-meeting"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleCancelAddMeeting}
-              className="p-1 hover:bg-[#2c2c2c] rounded text-muted-foreground"
-              data-testid="button-cancel-new-meeting"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={handleCancelAddMeeting}
+            className="p-1 rounded hover:bg-[#3a2020] transition-all opacity-0 group-hover/row:opacity-100"
+            data-testid="button-cancel-new-meeting"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+          </button>
         </div>
       </td>
     </tr>
@@ -258,37 +288,160 @@ function MeetingsTable({
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm table-fixed">
         <thead>
           <tr className="border-b border-[#333333]">
-            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Nome da Reunião</th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Tipo</th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Status</th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Data</th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide">Consultor</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[280px]">Nome da Reunião</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[100px]">Tipo</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[100px]">Status</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[110px]">Data</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wide w-[180px]">Responsáveis</th>
           </tr>
         </thead>
         <tbody>
           {meetings.map((meeting) => (
-            <tr key={meeting.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors cursor-pointer">
+            <tr key={meeting.id} className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer">
               <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
                 <FileText className="w-4 h-4 text-muted-foreground" />
                 {meeting.name}
               </td>
               <td className="py-3 px-4">
-                <Badge className={`${typeColors[meeting.type] || "bg-[#333333] text-[#a0a0a0]"} text-xs`}>
-                  {meeting.type}
-                </Badge>
+                <Popover open={typePopoverOpen === meeting.id} onOpenChange={(open) => setTypePopoverOpen(open ? meeting.id : null)}>
+                  <PopoverTrigger asChild data-popover-trigger>
+                    <div className="inline-block cursor-pointer" data-testid={`cell-meeting-type-${meeting.id}`}>
+                      <Badge className={`${typeColors[meeting.type] || "bg-[#333333] text-[#a0a0a0]"} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                        {meeting.type}
+                      </Badge>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className={`w-56 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+                    <div className="w-full">
+                      <div className={`border-b ${UI_CLASSES.border}`}>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                        <div className="px-3 py-1">
+                          <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                            <Badge className={`${typeColors[meeting.type] || "bg-[#333333] text-[#a0a0a0]"} text-xs`}>
+                              {meeting.type}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                      <div className="pb-1">
+                        {typeOptions.filter(t => t !== meeting.type).map(t => (
+                          <div
+                            key={t}
+                            className={UI_CLASSES.dropdownItem}
+                            onClick={() => handleTypeChange(clientId, meeting.id, t)}
+                            data-testid={`option-meeting-type-${meeting.id}-${t}`}
+                          >
+                            <Badge className={`${typeColors[t] || "bg-[#333333] text-[#a0a0a0]"} text-xs`}>
+                              {t}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </td>
               <td className="py-3 px-4">
-                <Badge className={`${statusColors[meeting.status]} text-xs`}>
-                  {meeting.status}
-                </Badge>
+                <Popover open={statusPopoverOpen === meeting.id} onOpenChange={(open) => setStatusPopoverOpen(open ? meeting.id : null)}>
+                  <PopoverTrigger asChild data-popover-trigger>
+                    <div className="inline-block cursor-pointer" data-testid={`cell-meeting-status-${meeting.id}`}>
+                      <Badge className={`${statusColors[meeting.status]} text-xs cursor-pointer hover:opacity-80 transition-opacity`}>
+                        {meeting.status}
+                      </Badge>
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className={`w-44 p-0 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+                    <div className="w-full">
+                      <div className={`border-b ${UI_CLASSES.border}`}>
+                        <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                        <div className="px-3 py-1">
+                          <div className={`flex items-center gap-2 px-2 py-1.5 rounded-md ${UI_CLASSES.selectedItem}`}>
+                            <Badge className={`${statusColors[meeting.status]} text-xs`}>
+                              {meeting.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                      <div className="pb-1">
+                        {statusOptions.filter(s => s !== meeting.status).map(s => (
+                          <div
+                            key={s}
+                            className={UI_CLASSES.dropdownItem}
+                            onClick={() => handleStatusChange(clientId, meeting.id, s)}
+                            data-testid={`option-meeting-status-${meeting.id}-${s}`}
+                          >
+                            <Badge className={`${statusColors[s]} text-xs`}>
+                              {s}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </td>
-              <td className="py-3 px-4 text-foreground">
-                {format(meeting.date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              <td className="py-3 px-4">
+                <Popover open={datePopoverOpen === meeting.id} onOpenChange={(open) => setDatePopoverOpen(open ? meeting.id : null)}>
+                  <PopoverTrigger asChild data-popover-trigger>
+                    <div
+                      className="inline-flex items-center gap-1.5 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
+                      data-testid={`cell-meeting-date-${meeting.id}`}
+                    >
+                      <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
+                      {format(meeting.date, "dd/MM/yyyy", { locale: ptBR })}
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    ref={datePopoverRef}
+                    className={`w-auto p-0 ${UI_CLASSES.popover}`}
+                    side="bottom"
+                    align="start"
+                    sideOffset={6}
+                    onInteractOutside={handleInteractOutside}
+                    onPointerDownOutside={handleInteractOutside}
+                    onFocusOutside={handleInteractOutside}
+                  >
+                    <DateInput
+                      value={format(meeting.date, "yyyy-MM-dd")}
+                      onChange={(date) => handleDateChange(clientId, meeting.id, date)}
+                      className="font-semibold"
+                      dataTestId={`input-date-meeting-${meeting.id}`}
+                      hideIcon
+                      commitOnInput={false}
+                    />
+                  </PopoverContent>
+                </Popover>
               </td>
-              <td className="py-3 px-4 text-foreground">{meeting.consultant}</td>
+              <td className="py-3 px-4">
+                <Popover open={assigneePopoverOpen === meeting.id} onOpenChange={(open) => setAssigneePopoverOpen(open ? meeting.id : null)}>
+                  <PopoverTrigger asChild data-popover-trigger>
+                    <div
+                      className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
+                      data-testid={`cell-meeting-assignees-${meeting.id}`}
+                    >
+                      {(meeting.assignees?.length || 0) === 0 ? (
+                        <span className="text-muted-foreground text-sm">+ Responsável</span>
+                      ) : (
+                        <span className="text-foreground text-sm">
+                          {meeting.assignees.map(a => abbreviateName(a)).join(", ")}
+                        </span>
+                      )}
+                    </div>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                    <AssigneeSelector
+                      selectedAssignees={meeting.assignees || []}
+                      onSelect={(assignee) => handleAddAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
+                      onRemove={(assignee) => handleRemoveAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </td>
             </tr>
           ))}
           {isAddingMeeting && renderInlineAddRow()}
@@ -307,7 +460,7 @@ function MeetingsTable({
   );
 }
 
-export function ClientMeetings({ meetings, onNewMeeting, inlineProps }: ClientMeetingsProps) {
+export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }: ClientMeetingsProps) {
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -320,7 +473,7 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps }: ClientMe
         </Link>
       </div>
       <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-        <MeetingsTable meetings={meetings} inlineProps={inlineProps} />
+        <MeetingsTable meetings={meetings} inlineProps={inlineProps} clientId={clientId} />
       </Card>
     </div>
   );

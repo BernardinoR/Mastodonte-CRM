@@ -39,7 +39,7 @@ export interface ClientMeeting {
   type: string;
   status: "Agendada" | "Realizada" | "Cancelada";
   date: Date;
-  consultant: string;
+  assignees: string[];
 }
 
 export interface WhatsAppGroup {

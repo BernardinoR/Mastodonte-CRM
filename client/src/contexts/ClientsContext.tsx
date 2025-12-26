@@ -39,6 +39,8 @@ interface ClientsContextType {
   updateClientAddress: (clientId: string, address: Address) => void;
   updateClientFoundationCode: (clientId: string, foundationCode: string) => void;
   addClientMeeting: (clientId: string, meeting: Omit<ClientMeeting, 'id'>) => void;
+  updateClientMeeting: (clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, 'id'>>) => void;
+  deleteClientMeeting: (clientId: string, meetingId: string) => void;
   dataVersion: number;
 }
 
@@ -233,8 +235,8 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-25'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-20'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-25'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-20'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Alessandro | Mastodonte", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/abc123", createdAt: new Date('2023-06-15'), status: "Ativo" },
@@ -248,9 +250,9 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "3", label: "Indicações", change: "1 convertida", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), consultant: "Rafael Bernardino Silveira" },
-      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Ademar | Mastodonte & Bradesco", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/def456", createdAt: new Date('2022-12-15'), status: "Ativo" },
@@ -267,8 +269,8 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-11-08'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Follow-up Investimentos", type: "Follow-up", status: "Realizada", date: new Date('2025-11-08'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Fernanda | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/mno345", createdAt: new Date('2021-03-20'), status: "Ativo" },
@@ -282,7 +284,7 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "0", label: "Indicações", change: "-", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião de Prospecção", type: "Especial", status: "Realizada", date: new Date('2025-10-30'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião de Prospecção", type: "Especial", status: "Realizada", date: new Date('2025-10-30'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Gustavo | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/xyz789", createdAt: new Date('2025-10-30'), status: "Ativo" },
@@ -296,8 +298,8 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "4", label: "Indicações", change: "2 convertidas", changeType: "positive" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-18'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião de Estratégia", type: "Especial", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-18'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Reunião de Estratégia", type: "Especial", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Israel | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/pqr678", createdAt: new Date('2022-02-15'), status: "Ativo" },
@@ -312,8 +314,8 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Marcia | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/vwx234", createdAt: new Date('2022-08-25'), status: "Ativo" },
@@ -327,8 +329,8 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-10'), consultant: "Rafael Bernardino Silveira" },
-      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-15'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-10'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-15'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Rodrigo | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/yza567", createdAt: new Date('2024-01-15'), status: "Ativo" },
@@ -342,7 +344,7 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "0", label: "Indicações", change: "-", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-05'), consultant: "Rafael Bernardino Silveira" },
+      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Fernanda G. | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/bcd890", createdAt: new Date('2024-05-10'), status: "Ativo" },
@@ -562,6 +564,40 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  const updateClientMeeting = useCallback((clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, 'id'>>) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId];
+      if (!clientData) return prev;
+      
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          meetings: clientData.meetings.map(meeting =>
+            meeting.id === meetingId ? { ...meeting, ...updates } : meeting
+          ),
+        },
+      };
+    });
+    setDataVersion(v => v + 1);
+  }, []);
+
+  const deleteClientMeeting = useCallback((clientId: string, meetingId: string) => {
+    setExtendedData(prev => {
+      const clientData = prev[clientId];
+      if (!clientData) return prev;
+      
+      return {
+        ...prev,
+        [clientId]: {
+          ...clientData,
+          meetings: clientData.meetings.filter(meeting => meeting.id !== meetingId),
+        },
+      };
+    });
+    setDataVersion(v => v + 1);
+  }, []);
+
   const contextValue = useMemo(() => ({
     clients,
     getClientById,
@@ -584,8 +620,10 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientAddress,
     updateClientFoundationCode,
     addClientMeeting,
+    updateClientMeeting,
+    deleteClientMeeting,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>

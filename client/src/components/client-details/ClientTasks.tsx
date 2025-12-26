@@ -3,8 +3,6 @@ import { Link } from "wouter";
 import { 
   Calendar as CalendarIcon, 
   CheckCircle2,
-  Check,
-  X,
   Trash2
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -61,12 +59,14 @@ function TasksTable({
     handleStartAddTask,
     handleKeyDown,
     handleCancelAddTask,
-    handleSaveTask,
     handleNewStatusChange,
     handleNewPriorityChange,
     handleNewDateChange,
     handleNewAddAssignee,
     handleNewRemoveAssignee,
+    handleNewTaskRowBlur,
+    newDatePopoverRef,
+    handleNewDatePopoverInteractOutside,
   } = inlineProps;
 
   const {
@@ -114,6 +114,7 @@ function TasksTable({
       tabIndex={-1}
       className="border-b border-[#333333] group/row"
       onKeyDown={handleKeyDown}
+      onBlur={handleNewTaskRowBlur}
     >
       <td className="py-3 px-4">
         <input
@@ -209,19 +210,33 @@ function TasksTable({
       <td className="py-3 px-4">
         <Popover open={newDatePopoverOpen} onOpenChange={setNewDatePopoverOpen}>
           <PopoverTrigger asChild>
-            <span 
-              className="text-foreground text-sm cursor-pointer hover:text-[#2eaadc] transition-colors"
+            <div
+              className="inline-flex items-center gap-1.5 cursor-pointer rounded px-1 -mx-1 py-0.5 hover:bg-[#2c2c2c] transition-colors text-foreground"
               data-testid="select-new-task-date"
             >
+              <CalendarIcon className="w-3.5 h-3.5 text-muted-foreground" />
               {format(newTaskDueDate, "dd/MM/yyyy", { locale: ptBR })}
-            </span>
+            </div>
           </PopoverTrigger>
-          <PopoverContent className={`w-auto p-3 ${UI_CLASSES.popover}`} side="bottom" align="start" sideOffset={6}>
+          <PopoverContent
+            ref={newDatePopoverRef}
+            className={`w-auto p-0 ${UI_CLASSES.popover}`}
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            onInteractOutside={handleNewDatePopoverInteractOutside}
+            onPointerDownOutside={handleNewDatePopoverInteractOutside}
+            onFocusOutside={handleNewDatePopoverInteractOutside}
+          >
             <DateInput
-              value={newTaskDueDate}
+              value={format(newTaskDueDate, "yyyy-MM-dd")}
               onChange={(date) => {
                 if (date) handleNewDateChange(date);
               }}
+              className="font-semibold"
+              dataTestId="input-date-new-task"
+              hideIcon
+              commitOnInput={false}
             />
           </PopoverContent>
         </Popover>
@@ -251,22 +266,13 @@ function TasksTable({
               />
             </PopoverContent>
           </Popover>
-          <div className="flex gap-1">
-            <button
-              onClick={handleSaveTask}
-              className="p-1 hover:bg-[#2c2c2c] rounded text-[#2eaadc]"
-              data-testid="button-save-new-task"
-            >
-              <Check className="w-4 h-4" />
-            </button>
-            <button
-              onClick={handleCancelAddTask}
-              className="p-1 hover:bg-[#2c2c2c] rounded text-muted-foreground"
-              data-testid="button-cancel-new-task"
-            >
-              <X className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={handleCancelAddTask}
+            className="p-1 rounded hover:bg-[#3a2020] transition-all opacity-0 group-hover/row:opacity-100"
+            data-testid="button-cancel-new-task"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+          </button>
         </div>
       </td>
     </tr>

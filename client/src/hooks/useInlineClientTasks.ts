@@ -27,6 +27,7 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
   const isSavingRef = useRef(false);
   const newTaskRowElementRef = useRef<HTMLTableRowElement | null>(null);
   const newTaskTitleRef = useRef(newTaskTitle);
+  const newDatePopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     newTaskTitleRef.current = newTaskTitle;
@@ -94,6 +95,14 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewDatePopoverOpen(false);
   }, []);
 
+  const handleNewDatePopoverInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
+    const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
+    const target = originalTarget || (e.target as HTMLElement);
+    if (newDatePopoverRef.current?.contains(target) || target?.closest('.rdp')) {
+      e.preventDefault();
+    }
+  }, []);
+
   const handleNewAddAssignee = useCallback((assignee: string) => {
     setNewTaskAssignees(prev => prev.includes(assignee) ? prev : [...prev, assignee]);
   }, []);
@@ -127,6 +136,28 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     }
   }, [commitNewTask, handleCancelAddTask]);
 
+  const handleNewTaskRowBlur = useCallback((e: React.FocusEvent) => {
+    // Verificar se algum popover está aberto
+    if (newStatusPopoverOpen || newPriorityPopoverOpen || 
+        newDatePopoverOpen || newAssigneePopoverOpen) {
+      return;
+    }
+    
+    const relatedTarget = e.relatedTarget as Node | null;
+    const isInsideRow = newTaskRowElementRef.current?.contains(relatedTarget);
+    const isInsidePopover = relatedTarget?.parentElement?.closest('[data-radix-popper-content-wrapper]');
+    
+    if (!isInsideRow && !isInsidePopover) {
+      setTimeout(() => {
+        // Usar ref em vez de state para evitar dependências desnecessárias
+        if (newTaskTitleRef.current.trim() && !isSavingRef.current) {
+          commitNewTask();
+        }
+      }, 150);
+    }
+  }, [newStatusPopoverOpen, newPriorityPopoverOpen, newDatePopoverOpen, 
+      newAssigneePopoverOpen, commitNewTask]);
+
   return {
     isAddingTask,
     newTaskTitle,
@@ -150,6 +181,7 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewAssigneePopoverOpen,
 
     setNewTaskRowRef,
+    newDatePopoverRef,
 
     handleStartAddTask,
     handleCancelAddTask,
@@ -160,5 +192,7 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     handleNewDateChange,
     handleNewAddAssignee,
     handleNewRemoveAssignee,
+    handleNewTaskRowBlur,
+    handleNewDatePopoverInteractOutside,
   };
 }
