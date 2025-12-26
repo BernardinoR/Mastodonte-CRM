@@ -61,7 +61,7 @@ export function TaskDetailModal({
   turboActionPerformed = false,
 }: TaskDetailModalProps) {
   const [, navigate] = useLocation();
-  const { getClientById } = useClients();
+  const { getFullClientData } = useClients();
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -78,12 +78,15 @@ export function TaskDetailModal({
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const prevTaskRef = useRef<{ id: string; title: string; description: string } | null>(null);
 
-  const linkedClient = useMemo(() => {
+  const linkedClientData = useMemo(() => {
     if (task?.clientId) {
-      return getClientById(task.clientId);
+      return getFullClientData(task.clientId);
     }
     return null;
-  }, [task?.clientId, getClientById]);
+  }, [task?.clientId, getFullClientData]);
+
+  const linkedClient = linkedClientData?.client;
+  const whatsappGroups = linkedClientData?.whatsappGroups || [];
 
   useEffect(() => {
     if (task) {
@@ -356,7 +359,8 @@ export function TaskDetailModal({
 
             <TaskContactButtons 
               clientEmail={linkedClient?.emails?.[linkedClient.primaryEmailIndex] || linkedClient?.emails?.[0] || task.clientEmail} 
-              clientPhone={linkedClient?.phone || task.clientPhone} 
+              clientPhone={linkedClient?.phone || task.clientPhone}
+              whatsappGroups={whatsappGroups}
             />
 
             <div className="flex gap-3 mb-8">
