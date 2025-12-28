@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon, FileText, Trash2 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { DateInput } from "@/components/ui/date-input";
 import { AssigneeSelector } from "@/components/task-editors";
 import { abbreviateName } from "@/components/ui/task-assignees";
@@ -103,14 +104,18 @@ function MeetingsTable({
     setDatePopoverOpen,
     assigneePopoverOpen,
     setAssigneePopoverOpen,
+    deleteConfirmOpen,
+    setDeleteConfirmOpen,
     datePopoverRef,
     handleTypeChange,
     handleStatusChange,
     handleDateChange,
     handleAddAssignee,
     handleRemoveAssignee,
+    handleDeleteClick,
+    handleConfirmDelete,
     handleInteractOutside,
-  } = useInlineMeetingEdit();
+  } = useInlineMeetingEdit(clientId);
 
   const renderInlineAddRow = () => (
     <tr
@@ -429,29 +434,38 @@ function MeetingsTable({
                 </Popover>
               </td>
               <td className="py-3 px-4">
-                <Popover open={assigneePopoverOpen === meeting.id} onOpenChange={(open) => setAssigneePopoverOpen(open ? meeting.id : null)}>
-                  <PopoverTrigger asChild data-popover-trigger>
-                    <div
-                      className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
-                      data-testid={`cell-meeting-assignees-${meeting.id}`}
-                    >
-                      {(meeting.assignees?.length || 0) === 0 ? (
-                        <span className="text-muted-foreground text-sm">+ Responsável</span>
-                      ) : (
-                        <span className="text-foreground text-sm">
-                          {meeting.assignees.map(a => abbreviateName(a)).join(", ")}
-                        </span>
-                      )}
-                    </div>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-                    <AssigneeSelector
-                      selectedAssignees={meeting.assignees || []}
-                      onSelect={(assignee) => handleAddAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
-                      onRemove={(assignee) => handleRemoveAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <div className="flex items-center gap-2">
+                  <Popover open={assigneePopoverOpen === meeting.id} onOpenChange={(open) => setAssigneePopoverOpen(open ? meeting.id : null)}>
+                    <PopoverTrigger asChild data-popover-trigger>
+                      <div
+                        className="inline-flex items-center gap-2 rounded-md cursor-pointer transition-colors hover:bg-[#2c2c2c] px-1 py-0.5"
+                        data-testid={`cell-meeting-assignees-${meeting.id}`}
+                      >
+                        {(meeting.assignees?.length || 0) === 0 ? (
+                          <span className="text-muted-foreground text-sm">+ Responsável</span>
+                        ) : (
+                          <span className="text-foreground text-sm">
+                            {meeting.assignees.map(a => abbreviateName(a)).join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                      <AssigneeSelector
+                        selectedAssignees={meeting.assignees || []}
+                        onSelect={(assignee) => handleAddAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
+                        onRemove={(assignee) => handleRemoveAssignee(clientId, meeting.id, meeting.assignees || [], assignee)}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <button
+                    onClick={() => handleDeleteClick(meeting.id, meeting.name)}
+                    className="p-1 rounded hover:bg-[#3a2020] transition-all opacity-0 group-hover/row:opacity-100"
+                    data-testid={`button-delete-meeting-${meeting.id}`}
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
@@ -479,6 +493,29 @@ function MeetingsTable({
           </div>
         )}
       </div>
+
+      <AlertDialog open={!!deleteConfirmOpen} onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}>
+        <AlertDialogContent className="bg-[#252525] border-[#333333]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir reunião?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja excluir a reunião "{deleteConfirmOpen?.meetingName}"? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-[#333333] border-[#444444] text-foreground hover:bg-[#3a3a3a]">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700"
+              data-testid="button-confirm-delete-meeting"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

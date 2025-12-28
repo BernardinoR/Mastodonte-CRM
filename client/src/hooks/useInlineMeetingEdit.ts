@@ -1,13 +1,14 @@
 import { useState, useRef, useCallback } from "react";
 import { useClients } from "@/contexts/ClientsContext";
 
-export function useInlineMeetingEdit() {
+export function useInlineMeetingEdit(clientId?: string) {
   const { updateClientMeeting, deleteClientMeeting } = useClients();
 
   const [typePopoverOpen, setTypePopoverOpen] = useState<string | null>(null);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
   const [datePopoverOpen, setDatePopoverOpen] = useState<string | null>(null);
   const [assigneePopoverOpen, setAssigneePopoverOpen] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{ meetingId: string; meetingName: string } | null>(null);
 
   const datePopoverRef = useRef<HTMLDivElement>(null);
 
@@ -38,6 +39,17 @@ export function useInlineMeetingEdit() {
     updateClientMeeting(clientId, meetingId, { assignees: currentAssignees.filter(a => a !== assignee) });
   }, [updateClientMeeting]);
 
+  const handleDeleteClick = useCallback((meetingId: string, meetingName: string) => {
+    setDeleteConfirmOpen({ meetingId, meetingName });
+  }, []);
+
+  const handleConfirmDelete = useCallback(() => {
+    if (deleteConfirmOpen && clientId) {
+      deleteClientMeeting(clientId, deleteConfirmOpen.meetingId);
+      setDeleteConfirmOpen(null);
+    }
+  }, [deleteConfirmOpen, clientId, deleteClientMeeting]);
+
   const handleInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
     const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
     const target = originalTarget || (e.target as HTMLElement);
@@ -55,6 +67,8 @@ export function useInlineMeetingEdit() {
     setDatePopoverOpen,
     assigneePopoverOpen,
     setAssigneePopoverOpen,
+    deleteConfirmOpen,
+    setDeleteConfirmOpen,
     datePopoverRef,
 
     handleTypeChange,
@@ -62,6 +76,8 @@ export function useInlineMeetingEdit() {
     handleDateChange,
     handleAddAssignee,
     handleRemoveAssignee,
+    handleDeleteClick,
+    handleConfirmDelete,
     handleInteractOutside,
   };
 }
