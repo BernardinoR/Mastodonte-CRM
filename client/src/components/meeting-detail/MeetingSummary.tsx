@@ -286,11 +286,33 @@ export function MeetingSummary({
   // Render edit mode
   return (
     <div className="space-y-4">
-      <EditableSectionTitle
-        icon={<FileText className="w-[18px] h-[18px]" />}
-        title="Resumo da Reunião"
-        isEditing={true}
-      />
+      <div className="flex items-center justify-between">
+        <EditableSectionTitle
+          icon={<FileText className="w-[18px] h-[18px]" />}
+          title="Resumo da Reunião"
+          isEditing={true}
+        />
+        <button
+          type="button"
+          onClick={toggleContextSection}
+          className={cn(
+            "inline-flex items-center gap-2 px-4 py-2.5 bg-[#252525] border border-[#333333] rounded-lg text-[#888888] text-[0.8125rem] font-medium cursor-pointer transition-all hover:bg-[#333333] hover:text-[#ededed] hover:border-[#444444]",
+            showContext && "bg-[#2d2640] border-[#a78bfa] text-[#a78bfa]"
+          )}
+        >
+          {showContext ? (
+            <>
+              <Check className="w-3.5 h-3.5" />
+              Contexto Ativado
+            </>
+          ) : (
+            <>
+              <User className="w-3.5 h-3.5" />
+              Adicionar Contexto do Cliente
+            </>
+          )}
+        </button>
+      </div>
 
       {/* Summary Container */}
       <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
@@ -337,30 +359,6 @@ export function MeetingSummary({
           >
             <Plus className="w-3 h-3" />
             Adicionar tag
-          </button>
-        </div>
-
-        {/* Action Button */}
-        <div className="px-6 py-4 border-t border-[#2a2a2a] flex gap-3">
-          <button
-            type="button"
-            onClick={toggleContextSection}
-            className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 bg-[#252525] border border-[#333333] rounded-lg text-[#888888] text-[0.8125rem] font-medium cursor-pointer transition-all hover:bg-[#333333] hover:text-[#ededed] hover:border-[#444444]",
-              showContext && "bg-[#2d2640] border-[#a78bfa] text-[#a78bfa]"
-            )}
-          >
-            {showContext ? (
-              <>
-                <Check className="w-3.5 h-3.5" />
-                Contexto Ativado
-              </>
-            ) : (
-              <>
-                <User className="w-3.5 h-3.5" />
-                Adicionar Contexto do Cliente
-              </>
-            )}
           </button>
         </div>
       </div>

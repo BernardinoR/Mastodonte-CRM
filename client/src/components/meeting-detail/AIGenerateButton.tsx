@@ -106,52 +106,34 @@ export function AIGenerateButton({
         align="end"
         sideOffset={8}
         className={cn(
-          "w-auto min-w-[520px] max-w-[600px] p-0",
+          "w-auto min-w-[680px] max-w-[800px] p-0",
           "bg-[#0d0d0d]/98 backdrop-blur-xl",
           "border border-white/10 rounded-xl",
           "shadow-2xl shadow-purple-500/10"
         )}
       >
-        <div className="p-4">
+        <div className="p-6">
           {/* Header */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-[#7c3aed] to-[#6366f1] flex items-center justify-center">
-                <Sparkles className="w-4 h-4 text-white" />
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#7c3aed] to-[#6366f1] flex items-center justify-center">
+                <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="text-sm font-semibold text-white">Gerar com IA</span>
+              <span className="text-base font-semibold text-white">Gerar com IA</span>
             </div>
             <button
               onClick={() => setIsOpen(false)}
-              className="w-6 h-6 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/10 transition-all"
+              className="w-7 h-7 rounded-md flex items-center justify-center text-[#666] hover:text-white hover:bg-white/10 transition-all"
             >
-              <X className="w-4 h-4" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
-          {/* Horizontal layout */}
-          <div className="flex items-stretch gap-3">
-            {/* Input area */}
-            <div className="flex-1 relative">
-              <textarea
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                placeholder="Descreva a reunião para a IA processar..."
-                className={cn(
-                  "w-full h-[80px] px-4 py-3 rounded-lg resize-none",
-                  "bg-[#1a1a1a]/80 border border-white/5",
-                  "text-sm text-white placeholder:text-[#555]",
-                  "focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/20",
-                  "transition-all duration-200"
-                )}
-              />
-              <div className="absolute bottom-2 right-2 text-[10px] text-[#444]">
-                {inputText.length} caracteres
-              </div>
-            </div>
-
-            {/* Options chips */}
-            <div className="flex flex-col gap-2 justify-center">
+          {/* Reorganized layout: chips on left, input and button on right */}
+          <div className="flex items-start gap-6">
+            {/* Options chips - Left aligned */}
+            <div className="flex flex-col gap-3 min-w-[140px]">
+              <span className="text-sm font-medium text-[#888] mb-1">O que gerar:</span>
               {options.map((option) => {
                 const isSelected = selectedOptions.has(option.id);
                 return (
@@ -159,7 +141,7 @@ export function AIGenerateButton({
                     key={option.id}
                     onClick={() => toggleOption(option.id)}
                     className={cn(
-                      "flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 text-left",
                       isSelected
                         ? "bg-gradient-to-r from-[#7c3aed]/30 to-[#6366f1]/30 border border-purple-500/50 text-purple-300"
                         : "bg-white/5 border border-white/10 text-[#888] hover:border-white/20 hover:text-white"
@@ -171,46 +153,74 @@ export function AIGenerateButton({
                     )}>
                       {option.icon}
                     </div>
-                    <span>{option.shortLabel}</span>
+                    <span className="flex-1">{option.shortLabel}</span>
                     {isSelected && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-400 ml-1" />
+                      <div className="w-2 h-2 rounded-full bg-purple-400" />
                     )}
                   </button>
                 );
               })}
             </div>
 
-            {/* Generate button */}
-            <div className="flex items-center">
-              <button
-                onClick={handleGenerate}
-                disabled={!canGenerate}
-                className={cn(
-                  "h-full px-5 rounded-lg flex flex-col items-center justify-center gap-1 transition-all duration-300",
-                  "min-w-[70px]",
-                  canGenerate
-                    ? "bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white hover:from-[#6d28d9] hover:to-[#4f46e5] shadow-lg shadow-purple-500/30"
-                    : "bg-white/5 text-[#555] cursor-not-allowed"
-                )}
-              >
-                {isLoading ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <>
-                    <Sparkles className={cn(
-                      "w-5 h-5",
-                      canGenerate && "animate-pulse"
-                    )} />
-                    <span className="text-xs font-semibold">Gerar</span>
-                  </>
-                )}
-              </button>
+            {/* Input and Generate button - Right side */}
+            <div className="flex-1 flex flex-col gap-4">
+              {/* Input area */}
+              <div className="relative">
+                <label className="block text-sm font-medium text-[#888] mb-2">
+                  Descreva a reunião para a IA processar:
+                </label>
+                <textarea
+                  value={inputText}
+                  onChange={(e) => setInputText(e.target.value)}
+                  placeholder="Ex: Reunião com Márcia sobre situação financeira da empresa, dificuldades de caixa, viagens planejadas para janeiro..."
+                  className={cn(
+                    "w-full h-[120px] px-4 py-3 rounded-lg resize-none",
+                    "bg-[#1a1a1a]/80 border border-white/5",
+                    "text-base text-white placeholder:text-[#555]",
+                    "focus:outline-none focus:border-purple-500/50 focus:ring-2 focus:ring-purple-500/20",
+                    "transition-all duration-200"
+                  )}
+                />
+                <div className="absolute bottom-3 right-3 text-xs text-[#555]">
+                  {inputText.length} caracteres
+                </div>
+              </div>
+
+              {/* Generate button */}
+              <div className="flex justify-end">
+                <button
+                  onClick={handleGenerate}
+                  disabled={!canGenerate}
+                  className={cn(
+                    "px-6 py-3 rounded-lg flex items-center gap-2 transition-all duration-300",
+                    "text-base font-semibold",
+                    canGenerate
+                      ? "bg-gradient-to-br from-[#7c3aed] to-[#6366f1] text-white hover:from-[#6d28d9] hover:to-[#4f46e5] shadow-lg shadow-purple-500/30"
+                      : "bg-white/5 text-[#555] cursor-not-allowed"
+                  )}
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Gerando...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className={cn(
+                        "w-5 h-5",
+                        canGenerate && "animate-pulse"
+                      )} />
+                      <span>Gerar</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
           {/* Selected info */}
-          <div className="mt-3 pt-3 border-t border-white/5 flex items-center justify-between">
-            <span className="text-[10px] text-[#555] uppercase tracking-wider">
+          <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
+            <span className="text-xs text-[#666]">
               {selectedOptions.size === 3
                 ? "Gerando tudo"
                 : `Gerando: ${Array.from(selectedOptions)
@@ -219,7 +229,7 @@ export function AIGenerateButton({
             </span>
             <button
               onClick={() => setSelectedOptions(new Set(["summary", "agenda", "decisions"]))}
-              className="text-[10px] text-purple-400 hover:text-purple-300 transition-colors"
+              className="text-xs text-purple-400 hover:text-purple-300 transition-colors font-medium"
             >
               Selecionar tudo
             </button>

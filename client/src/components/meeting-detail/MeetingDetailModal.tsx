@@ -219,12 +219,18 @@ export function MeetingDetailModal({
                 </div>
               </div>
             </div>
-            <button 
-              onClick={handleClose}
-              className="w-9 h-9 rounded-lg flex items-center justify-center text-[#8c8c8c] hover:bg-[#252730] hover:text-[#ededed] transition-all"
-            >
-              <X className="w-[18px] h-[18px]" />
-            </button>
+            <div className="flex items-center gap-3">
+              <AIGenerateButton
+                onGenerate={handleAIGenerate}
+                isLoading={isAILoading}
+              />
+              <button 
+                onClick={handleClose}
+                className="w-9 h-9 rounded-lg flex items-center justify-center text-[#8c8c8c] hover:bg-[#252730] hover:text-[#ededed] transition-all"
+              >
+                <X className="w-[18px] h-[18px]" />
+              </button>
+            </div>
           </div>
 
           {/* Meta Info Bar */}
@@ -298,14 +304,6 @@ export function MeetingDetailModal({
 
           {/* Modal Body - Scrollable */}
           <div className="flex-1 overflow-y-auto p-8 space-y-8">
-            {/* AI Generate Button - Top Right */}
-            <div className="flex justify-end -mt-2 mb-2">
-              <AIGenerateButton
-                onGenerate={handleAIGenerate}
-                isLoading={isAILoading}
-              />
-            </div>
-
             <MeetingSummary 
               summary={localMeeting.summary}
               clientName={localMeeting.clientName}
