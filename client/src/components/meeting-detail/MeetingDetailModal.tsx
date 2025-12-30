@@ -1,19 +1,17 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { 
   FileText, 
   X, 
   Calendar, 
   Clock, 
   Video, 
-  Timer,
-  Edit2,
-  Eye
+  Timer
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
@@ -21,7 +19,9 @@ import { MeetingDecisions } from "./MeetingDecisions";
 import { MeetingTasks } from "./MeetingTasks";
 import { MeetingParticipants } from "./MeetingParticipants";
 import { MeetingAttachments } from "./MeetingAttachments";
-import type { MeetingDetail, MeetingClientContext, MeetingHighlight } from "@/types/meeting";
+import { AIGenerateButton, type GenerateOption } from "./AIGenerateButton";
+import { useAISummary, type AIResponse } from "@/hooks/useAISummary";
+import type { MeetingDetail, MeetingClientContext, MeetingHighlight, MeetingAgendaItem, MeetingDecision } from "@/types/meeting";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;
@@ -52,31 +52,30 @@ export function MeetingDetailModal({
   onOpenChange,
   onUpdateMeeting,
 }: MeetingDetailModalProps) {
-  const [isEditingSummary, setIsEditingSummary] = useState(false);
   const [localMeeting, setLocalMeeting] = useState<MeetingDetail | null>(meeting);
+  const { isLoading: isAILoading, processWithAI } = useAISummary();
 
   // Update local meeting when prop changes
   if (meeting && localMeeting?.id !== meeting.id) {
     setLocalMeeting(meeting);
-    setIsEditingSummary(false);
   }
 
-  if (!meeting || !localMeeting) return null;
-
-  const handleSaveSummary = (data: {
+  // Handle summary update
+  const handleSummaryUpdate = useCallback((data: {
     summary: string;
     clientContext: MeetingClientContext;
     highlights: MeetingHighlight[];
   }) => {
-    // Update local state
-    setLocalMeeting({
+    if (!localMeeting) return;
+    
+    const updated = {
       ...localMeeting,
       summary: data.summary,
       clientContext: data.clientContext,
       highlights: data.highlights,
-    });
-
-    // Call parent update if provided
+    };
+    setLocalMeeting(updated);
+    
     if (onUpdateMeeting) {
       onUpdateMeeting(localMeeting.id, {
         summary: data.summary,
@@ -84,19 +83,102 @@ export function MeetingDetailModal({
         highlights: data.highlights,
       });
     }
+  }, [localMeeting, onUpdateMeeting]);
 
-    // Exit edit mode
-    setIsEditingSummary(false);
-  };
+  // Handle agenda update
+  const handleAgendaUpdate = useCallback((agenda: MeetingAgendaItem[]) => {
+    if (!localMeeting) return;
+    
+    const updated = { ...localMeeting, agenda };
+    setLocalMeeting(updated);
+    
+    if (onUpdateMeeting) {
+      onUpdateMeeting(localMeeting.id, { agenda });
+    }
+  }, [localMeeting, onUpdateMeeting]);
 
-  const handleCancelEdit = () => {
-    setIsEditingSummary(false);
+  // Handle decisions update
+  const handleDecisionsUpdate = useCallback((decisions: MeetingDecision[]) => {
+    if (!localMeeting) return;
+    
+    const updated = { ...localMeeting, decisions };
+    setLocalMeeting(updated);
+    
+    if (onUpdateMeeting) {
+      onUpdateMeeting(localMeeting.id, { decisions });
+    }
+  }, [localMeeting, onUpdateMeeting]);
+
+  // Handle AI generation
+  const handleAIGenerate = useCallback(async (text: string, options: GenerateOption[]) => {
+    if (!localMeeting) return;
+
+    const result = await processWithAI(
+      text,
+      localMeeting.clientName,
+      format(localMeeting.date, "yyyy-MM-dd"),
+      options
+    );
+
+    if (result) {
+      applyAIResult(result, options);
+    }
+  }, [localMeeting, processWithAI]);
+
+  // Apply AI result to sections
+  const applyAIResult = (result: AIResponse, options: GenerateOption[]) => {
+    if (!localMeeting) return;
+
+    // Apply to summary section via window method
+    if (options.includes("summary") && result.summary) {
+      const applySummary = (window as any).__applySummaryAIData;
+      if (applySummary) {
+        applySummary({
+          summary: result.summary,
+          clientContext: result.clientContext,
+          highlights: result.highlights,
+        });
+      }
+    }
+
+    // Apply to agenda section via window method
+    if (options.includes("agenda") && result.agenda) {
+      const applyAgenda = (window as any).__applyAgendaAIData;
+      if (applyAgenda) {
+        const formattedAgenda = result.agenda.map((item, index) => ({
+          id: crypto.randomUUID(),
+          number: index + 1,
+          title: item.title,
+          status: item.status,
+          subitems: item.subitems.map(sub => ({
+            id: crypto.randomUUID(),
+            title: sub.title,
+            description: sub.description,
+          })),
+        }));
+        applyAgenda(formattedAgenda);
+      }
+    }
+
+    // Apply to decisions section via window method
+    if (options.includes("decisions") && result.decisions) {
+      const applyDecisions = (window as any).__applyDecisionsAIData;
+      if (applyDecisions) {
+        const formattedDecisions = result.decisions.map(d => ({
+          id: crypto.randomUUID(),
+          content: d.content,
+          type: d.type,
+        }));
+        applyDecisions(formattedDecisions);
+      }
+    }
   };
 
   const handleClose = () => {
-    setIsEditingSummary(false);
     onOpenChange(false);
   };
+
+  if (!meeting || !localMeeting) return null;
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -134,11 +216,6 @@ export function MeetingDetailModal({
                   <Badge className="bg-[#2d2640] text-[#a78bfa] text-xs">
                     Cliente: {localMeeting.clientName}
                   </Badge>
-                  {isEditingSummary && (
-                    <Badge className="bg-[#422c24] text-[#f59e0b] text-xs">
-                      Modo Edição
-                    </Badge>
-                  )}
                 </div>
               </div>
             </div>
@@ -221,30 +298,37 @@ export function MeetingDetailModal({
 
           {/* Modal Body - Scrollable */}
           <div className="flex-1 overflow-y-auto p-8 space-y-8">
+            {/* AI Generate Button - Top Right */}
+            <div className="flex justify-end -mt-2 mb-2">
+              <AIGenerateButton
+                onGenerate={handleAIGenerate}
+                isLoading={isAILoading}
+              />
+            </div>
+
             <MeetingSummary 
               summary={localMeeting.summary}
               clientName={localMeeting.clientName}
               clientContext={localMeeting.clientContext}
               highlights={localMeeting.highlights}
-              meetingDate={localMeeting.date}
-              isEditing={isEditingSummary}
-              onSave={handleSaveSummary}
-              onCancelEdit={handleCancelEdit}
+              onUpdate={handleSummaryUpdate}
             />
 
-            {!isEditingSummary && (
-              <>
-                <MeetingAgenda agenda={localMeeting.agenda} />
+            <MeetingAgenda 
+              agenda={localMeeting.agenda}
+              onUpdate={handleAgendaUpdate}
+            />
 
-                <MeetingDecisions decisions={localMeeting.decisions} />
+            <MeetingDecisions 
+              decisions={localMeeting.decisions}
+              onUpdate={handleDecisionsUpdate}
+            />
 
-                <MeetingTasks tasks={localMeeting.linkedTasks} />
+            <MeetingTasks tasks={localMeeting.linkedTasks} />
 
-                <MeetingParticipants participants={localMeeting.participants} />
+            <MeetingParticipants participants={localMeeting.participants} />
 
-                <MeetingAttachments attachments={localMeeting.attachments} />
-              </>
-            )}
+            <MeetingAttachments attachments={localMeeting.attachments} />
           </div>
 
           {/* Modal Footer */}
@@ -255,23 +339,6 @@ export function MeetingDetailModal({
             >
               Fechar
             </button>
-            {isEditingSummary ? (
-              <button 
-                onClick={handleCancelEdit}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#333333] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#444444] transition-all"
-              >
-                <Eye className="w-4 h-4" />
-                Voltar para Visualização
-              </button>
-            ) : (
-              <button 
-                onClick={() => setIsEditingSummary(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c3aed] rounded-lg text-white text-sm font-medium hover:bg-[#6d28d9] transition-all"
-              >
-                <Edit2 className="w-4 h-4" />
-                Editar Reunião
-              </button>
-            )}
           </div>
         </div>
       </DialogContent>

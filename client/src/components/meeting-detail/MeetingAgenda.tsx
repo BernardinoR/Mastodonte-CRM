@@ -1,17 +1,28 @@
-import { useState } from "react";
-import { ClipboardList, ChevronRight, Plus } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ClipboardList, ChevronRight, Plus, Trash2, Check, X, GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import type { MeetingAgendaItem } from "@/types/meeting";
+import { EditableSectionTitle } from "./EditableSectionTitle";
+import type { MeetingAgendaItem, MeetingAgendaSubitem } from "@/types/meeting";
 
 interface MeetingAgendaProps {
   agenda: MeetingAgendaItem[];
+  onUpdate?: (agenda: MeetingAgendaItem[]) => void;
 }
 
-export function MeetingAgenda({ agenda }: MeetingAgendaProps) {
+export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
+  const [isEditing, setIsEditing] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(
     new Set(agenda.length > 0 ? [agenda[0].id] : [])
   );
+  const [editableAgenda, setEditableAgenda] = useState<MeetingAgendaItem[]>(agenda);
+
+  // Reset editable agenda when prop changes
+  useEffect(() => {
+    if (!isEditing) {
+      setEditableAgenda(agenda);
+    }
+  }, [agenda, isEditing]);
 
   const toggleItem = (id: string) => {
     setExpandedItems(prev => {
@@ -25,56 +36,242 @@ export function MeetingAgenda({ agenda }: MeetingAgendaProps) {
     });
   };
 
+  const handleStartEditing = () => {
+    setEditableAgenda(agenda);
+    setIsEditing(true);
+  };
+
+  const handleCancel = () => {
+    setEditableAgenda(agenda);
+    setIsEditing(false);
+  };
+
+  const handleSave = () => {
+    if (onUpdate) {
+      onUpdate(editableAgenda);
+    }
+    setIsEditing(false);
+  };
+
+  // Add new agenda item
+  const addAgendaItem = () => {
+    const newItem: MeetingAgendaItem = {
+      id: crypto.randomUUID(),
+      number: editableAgenda.length + 1,
+      title: "",
+      status: "discussed",
+      subitems: [],
+    };
+    setEditableAgenda([...editableAgenda, newItem]);
+    setExpandedItems(prev => new Set([...prev, newItem.id]));
+  };
+
+  // Update agenda item
+  const updateAgendaItem = (id: string, updates: Partial<MeetingAgendaItem>) => {
+    setEditableAgenda(prev =>
+      prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+    );
+  };
+
+  // Remove agenda item
+  const removeAgendaItem = (id: string) => {
+    setEditableAgenda(prev => {
+      const filtered = prev.filter(item => item.id !== id);
+      // Renumber items
+      return filtered.map((item, index) => ({
+        ...item,
+        number: index + 1,
+      }));
+    });
+  };
+
+  // Add subitem
+  const addSubitem = (agendaId: string) => {
+    setEditableAgenda(prev =>
+      prev.map(item => {
+        if (item.id === agendaId) {
+          return {
+            ...item,
+            subitems: [
+              ...item.subitems,
+              {
+                id: crypto.randomUUID(),
+                title: "",
+                description: "",
+              },
+            ],
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Update subitem
+  const updateSubitem = (
+    agendaId: string,
+    subitemId: string,
+    updates: Partial<MeetingAgendaSubitem>
+  ) => {
+    setEditableAgenda(prev =>
+      prev.map(item => {
+        if (item.id === agendaId) {
+          return {
+            ...item,
+            subitems: item.subitems.map(sub =>
+              sub.id === subitemId ? { ...sub, ...updates } : sub
+            ),
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Remove subitem
+  const removeSubitem = (agendaId: string, subitemId: string) => {
+    setEditableAgenda(prev =>
+      prev.map(item => {
+        if (item.id === agendaId) {
+          return {
+            ...item,
+            subitems: item.subitems.filter(sub => sub.id !== subitemId),
+          };
+        }
+        return item;
+      })
+    );
+  };
+
+  // Apply AI-generated data
+  const applyAIData = (data: MeetingAgendaItem[]) => {
+    setEditableAgenda(data);
+    setIsEditing(true);
+  };
+
+  // Expose applyAIData method
+  useEffect(() => {
+    (window as any).__applyAgendaAIData = applyAIData;
+    return () => {
+      delete (window as any).__applyAgendaAIData;
+    };
+  }, []);
+
+  const displayAgenda = isEditing ? editableAgenda : agenda;
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <ClipboardList className="w-[18px] h-[18px] text-[#8c8c8c]" />
-          <h2 className="text-sm font-semibold text-[#ededed]">Pauta da Reunião</h2>
-        </div>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-transparent border border-dashed border-[#333333] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#1c3847] hover:border-[#2eaadc] transition-all">
-          <Plus className="w-3.5 h-3.5" />
-          Adicionar
-        </button>
+        <EditableSectionTitle
+          icon={<ClipboardList className="w-[18px] h-[18px]" />}
+          title="Pauta da Reunião"
+          isEditing={isEditing}
+          onEditClick={handleStartEditing}
+        />
+        {isEditing && (
+          <button
+            onClick={addAgendaItem}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1c3847] border border-[#2eaadc] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#234a5c] transition-all"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Adicionar Item
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
-        {agenda.map((item) => {
+        {displayAgenda.map((item) => {
           const isExpanded = expandedItems.has(item.id);
           return (
             <div 
               key={item.id}
-              className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden"
+              className={cn(
+                "bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden",
+                isEditing && "border-[#333333]"
+              )}
             >
               <div 
-                className="flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-[#202020] transition-colors"
-                onClick={() => toggleItem(item.id)}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-[#202020] transition-colors",
+                  isEditing && "cursor-default"
+                )}
+                onClick={() => !isEditing && toggleItem(item.id)}
               >
+                {isEditing && (
+                  <GripVertical className="w-4 h-4 text-[#555] cursor-grab" />
+                )}
                 <div className="w-6 h-6 bg-[#252730] border border-[#363842] rounded-md flex items-center justify-center text-xs font-semibold text-[#8c8c8c] flex-shrink-0">
                   {item.number}
                 </div>
-                <span className="flex-1 text-sm font-medium text-[#ededed]">
-                  {item.title}
-                </span>
-                <Badge 
-                  className={cn(
-                    "text-[0.6875rem]",
-                    item.status === "discussed" 
-                      ? "bg-[#203828] text-[#6ecf8e]" 
-                      : "bg-[#243041] text-[#6db1d4]"
-                  )}
-                >
-                  {item.status === "discussed" ? "Discutido" : "Ação Pendente"}
-                </Badge>
-                <ChevronRight 
-                  className={cn(
-                    "w-4 h-4 text-[#8c8c8c] transition-transform",
-                    isExpanded && "rotate-90"
-                  )} 
-                />
+                {isEditing ? (
+                  <input
+                    type="text"
+                    value={item.title}
+                    onChange={(e) => updateAgendaItem(item.id, { title: e.target.value })}
+                    placeholder="Título do item da pauta..."
+                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-[#ededed] placeholder:text-[#555]"
+                  />
+                ) : (
+                  <span className="flex-1 text-sm font-medium text-[#ededed]">
+                    {item.title}
+                  </span>
+                )}
+                {isEditing ? (
+                  <select
+                    value={item.status}
+                    onChange={(e) =>
+                      updateAgendaItem(item.id, {
+                        status: e.target.value as "discussed" | "action_pending",
+                      })
+                    }
+                    className="bg-[#252730] border border-[#363842] rounded-md px-2 py-1 text-xs text-[#8c8c8c] outline-none"
+                  >
+                    <option value="discussed">Discutido</option>
+                    <option value="action_pending">Ação Pendente</option>
+                  </select>
+                ) : (
+                  <Badge 
+                    className={cn(
+                      "text-[0.6875rem]",
+                      item.status === "discussed" 
+                        ? "bg-[#203828] text-[#6ecf8e]" 
+                        : "bg-[#243041] text-[#6db1d4]"
+                    )}
+                  >
+                    {item.status === "discussed" ? "Discutido" : "Ação Pendente"}
+                  </Badge>
+                )}
+                {isEditing ? (
+                  <button
+                    onClick={() => removeAgendaItem(item.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-md text-[#666] hover:text-red-500 hover:bg-red-500/10 transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <ChevronRight 
+                    className={cn(
+                      "w-4 h-4 text-[#8c8c8c] transition-transform",
+                      isExpanded && "rotate-90"
+                    )} 
+                  />
+                )}
+                {isEditing && (
+                  <button
+                    onClick={() => toggleItem(item.id)}
+                    className="w-7 h-7 flex items-center justify-center rounded-md text-[#666] hover:text-white hover:bg-white/10 transition-all"
+                  >
+                    <ChevronRight 
+                      className={cn(
+                        "w-4 h-4 transition-transform",
+                        isExpanded && "rotate-90"
+                      )} 
+                    />
+                  </button>
+                )}
               </div>
 
-              {isExpanded && item.subitems.length > 0 && (
+              {isExpanded && (
                 <div className="px-4 pb-4 pl-[52px]">
                   {item.subitems.map((subitem, index) => (
                     <div 
@@ -85,23 +282,86 @@ export function MeetingAgenda({ agenda }: MeetingAgendaProps) {
                       )}
                     >
                       <div className="w-1.5 h-1.5 bg-[#4281dc] rounded-full mt-[7px] flex-shrink-0" />
-                      <div className="flex-1">
-                        <div className="text-[0.8125rem] text-[#ededed] mb-1">
-                          {subitem.title}
+                      {isEditing ? (
+                        <div className="flex-1 space-y-2">
+                          <input
+                            type="text"
+                            value={subitem.title}
+                            onChange={(e) =>
+                              updateSubitem(item.id, subitem.id, { title: e.target.value })
+                            }
+                            placeholder="Título do sub-item..."
+                            className="w-full bg-transparent border-none outline-none text-[0.8125rem] text-[#ededed] placeholder:text-[#555]"
+                          />
+                          <textarea
+                            value={subitem.description}
+                            onChange={(e) =>
+                              updateSubitem(item.id, subitem.id, {
+                                description: e.target.value,
+                              })
+                            }
+                            placeholder="Descrição..."
+                            rows={2}
+                            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-md px-3 py-2 text-xs text-[#8c8c8c] placeholder:text-[#555] outline-none resize-none"
+                          />
                         </div>
-                        <div className="text-xs text-[#8c8c8c] leading-[1.5]">
-                          {subitem.description}
+                      ) : (
+                        <div className="flex-1">
+                          <div className="text-[0.8125rem] text-[#ededed] mb-1">
+                            {subitem.title}
+                          </div>
+                          <div className="text-xs text-[#8c8c8c] leading-[1.5]">
+                            {subitem.description}
+                          </div>
                         </div>
-                      </div>
+                      )}
+                      {isEditing && (
+                        <button
+                          onClick={() => removeSubitem(item.id, subitem.id)}
+                          className="w-6 h-6 flex items-center justify-center rounded-md text-[#666] hover:text-red-500 hover:bg-red-500/10 transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   ))}
+                  {isEditing && (
+                    <button
+                      onClick={() => addSubitem(item.id)}
+                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-xs hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888] transition-all"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Adicionar sub-item
+                    </button>
+                  )}
                 </div>
               )}
             </div>
           );
         })}
       </div>
+
+      {/* Save/Cancel buttons */}
+      {isEditing && (
+        <div className="flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={handleCancel}
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#252730] border border-[#363842] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#2a2d38] hover:border-[#4a4f5c] transition-all"
+          >
+            <X className="w-4 h-4" />
+            Cancelar
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#10b981] border-none rounded-lg text-white text-sm font-medium hover:bg-[#059669] transition-all"
+          >
+            <Check className="w-4 h-4" />
+            Salvar Pauta
+          </button>
+        </div>
+      )}
     </div>
   );
 }
-
