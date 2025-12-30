@@ -1,5 +1,37 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { FileText, User, AlertCircle, Home, Plane, CreditCard, Building, AlertTriangle, Truck, Briefcase, Heart, Star, Target, Check, Plus, X } from "lucide-react";
+import { 
+  FileText, 
+  User, 
+  Users,
+  AlertCircle, 
+  Home, 
+  Plane, 
+  CreditCard, 
+  Building, 
+  AlertTriangle, 
+  Truck, 
+  Briefcase, 
+  Heart, 
+  Star, 
+  Target, 
+  Check, 
+  Plus, 
+  X,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  Car,
+  Shield,
+  PiggyBank,
+  BarChart,
+  Info,
+  CheckCircle,
+  Clock,
+  Timer,
+  Lock,
+  Settings
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
@@ -19,7 +51,9 @@ interface MeetingSummaryProps {
   }) => void;
 }
 
+// Icon map with both kebab-case and PascalCase support
 const iconMap: Record<string, React.ElementType> = {
+  // Kebab-case (internal format)
   "alert-circle": AlertCircle,
   "home": Home,
   "plane": Plane,
@@ -31,7 +65,77 @@ const iconMap: Record<string, React.ElementType> = {
   "heart": Heart,
   "star": Star,
   "target": Target,
+  "dollar-sign": DollarSign,
+  "trending-up": TrendingUp,
+  "trending-down": TrendingDown,
+  "calendar": Calendar,
+  "car": Car,
+  "shield": Shield,
+  "piggy-bank": PiggyBank,
+  "bar-chart": BarChart,
+  "user": User,
+  "users": Users,
+  "info": Info,
+  "check-circle": CheckCircle,
+  "clock": Clock,
+  "timer": Timer,
+  "lock": Lock,
+  "settings": Settings,
+  "file-text": FileText,
+  // PascalCase (AI format)
+  "AlertCircle": AlertCircle,
+  "Home": Home,
+  "Plane": Plane,
+  "CreditCard": CreditCard,
+  "Building": Building,
+  "AlertTriangle": AlertTriangle,
+  "Truck": Truck,
+  "Briefcase": Briefcase,
+  "Heart": Heart,
+  "Star": Star,
+  "Target": Target,
+  "DollarSign": DollarSign,
+  "TrendingUp": TrendingUp,
+  "TrendingDown": TrendingDown,
+  "Calendar": Calendar,
+  "Car": Car,
+  "Shield": Shield,
+  "PiggyBank": PiggyBank,
+  "BarChart": BarChart,
+  "User": User,
+  "Users": Users,
+  "Info": Info,
+  "CheckCircle": CheckCircle,
+  "Clock": Clock,
+  "Timer": Timer,
+  "Lock": Lock,
+  "Settings": Settings,
+  "FileText": FileText,
 };
+
+// Helper function to convert PascalCase to kebab-case
+function pascalToKebab(str: string): string {
+  return str
+    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+    .toLowerCase();
+}
+
+// Get icon component from name (supports both PascalCase and kebab-case)
+function getIconFromName(iconName: string): React.ElementType {
+  // Try direct lookup first
+  if (iconMap[iconName]) {
+    return iconMap[iconName];
+  }
+  
+  // Try converting PascalCase to kebab-case
+  const kebabCase = pascalToKebab(iconName);
+  if (iconMap[kebabCase]) {
+    return iconMap[kebabCase];
+  }
+  
+  // Fallback to AlertCircle
+  return AlertCircle;
+}
 
 export function MeetingSummary({ 
   summary, 
@@ -174,9 +278,6 @@ export function MeetingSummary({
   }) => {
     if (data.summary) {
       setSummaryHtml(data.summary);
-      if (editorRef.current) {
-        editorRef.current.innerHTML = data.summary;
-      }
     }
 
     if (data.clientContext?.points?.length) {
@@ -200,6 +301,9 @@ export function MeetingSummary({
         }))
       );
     }
+
+    // Activate edit mode to show the updated data
+    setIsEditing(true);
   };
 
   // Set initial content when entering edit mode
@@ -242,7 +346,7 @@ export function MeetingSummary({
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {clientContext.points.map((point) => {
-                  const IconComponent = iconMap[point.icon] || AlertCircle;
+                  const IconComponent = getIconFromName(point.icon);
                   return (
                     <div 
                       key={point.id}
@@ -263,7 +367,7 @@ export function MeetingSummary({
           {highlights.length > 0 && (
             <div className="mt-5 pt-5 border-t border-[#2a2a2a] flex flex-wrap gap-2.5">
               {highlights.map((highlight) => {
-                const IconComponent = iconMap[highlight.icon] || Building;
+                const IconComponent = getIconFromName(highlight.icon);
                 return (
                   <span 
                     key={highlight.id}

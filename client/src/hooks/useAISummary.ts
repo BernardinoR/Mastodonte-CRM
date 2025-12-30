@@ -102,7 +102,12 @@ export function useAISummary(): UseAISummaryReturn {
           throw new Error(`Erro na requisição: ${response.status} ${response.statusText}`);
         }
 
-        const data = await response.json();
+        let data = await response.json();
+
+        // Handle array response (n8n sometimes returns array)
+        if (Array.isArray(data)) {
+          data = data[0];
+        }
 
         // Validate response structure based on what was requested
         const hasRequestedData =
