@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +9,8 @@ import {
   Clock, 
   Video, 
   Timer,
-  Edit2
+  Edit2,
+  Eye
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -19,12 +21,13 @@ import { MeetingDecisions } from "./MeetingDecisions";
 import { MeetingTasks } from "./MeetingTasks";
 import { MeetingParticipants } from "./MeetingParticipants";
 import { MeetingAttachments } from "./MeetingAttachments";
-import type { MeetingDetail } from "@/types/meeting";
+import type { MeetingDetail, MeetingClientContext, MeetingHighlight } from "@/types/meeting";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onUpdateMeeting?: (meetingId: string, updates: Partial<MeetingDetail>) => void;
 }
 
 const typeColors: Record<string, string> = {
@@ -46,12 +49,57 @@ const statusColors: Record<string, string> = {
 export function MeetingDetailModal({ 
   meeting, 
   open, 
-  onOpenChange 
+  onOpenChange,
+  onUpdateMeeting,
 }: MeetingDetailModalProps) {
-  if (!meeting) return null;
+  const [isEditingSummary, setIsEditingSummary] = useState(false);
+  const [localMeeting, setLocalMeeting] = useState<MeetingDetail | null>(meeting);
+
+  // Update local meeting when prop changes
+  if (meeting && localMeeting?.id !== meeting.id) {
+    setLocalMeeting(meeting);
+    setIsEditingSummary(false);
+  }
+
+  if (!meeting || !localMeeting) return null;
+
+  const handleSaveSummary = (data: {
+    summary: string;
+    clientContext: MeetingClientContext;
+    highlights: MeetingHighlight[];
+  }) => {
+    // Update local state
+    setLocalMeeting({
+      ...localMeeting,
+      summary: data.summary,
+      clientContext: data.clientContext,
+      highlights: data.highlights,
+    });
+
+    // Call parent update if provided
+    if (onUpdateMeeting) {
+      onUpdateMeeting(localMeeting.id, {
+        summary: data.summary,
+        clientContext: data.clientContext,
+        highlights: data.highlights,
+      });
+    }
+
+    // Exit edit mode
+    setIsEditingSummary(false);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingSummary(false);
+  };
+
+  const handleClose = () => {
+    setIsEditingSummary(false);
+    onOpenChange(false);
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent 
         hideCloseButton
         className={cn(
@@ -60,8 +108,8 @@ export function MeetingDetailModal({
         )}
       >
         <VisuallyHidden>
-          <DialogTitle>{meeting.name}</DialogTitle>
-          <DialogDescription>Detalhes da reunião {meeting.name}</DialogDescription>
+          <DialogTitle>{localMeeting.name}</DialogTitle>
+          <DialogDescription>Detalhes da reunião {localMeeting.name}</DialogDescription>
         </VisuallyHidden>
         
         <div className="flex flex-col h-full max-h-[90vh]">
@@ -73,24 +121,29 @@ export function MeetingDetailModal({
               </div>
               <div>
                 <h1 className="text-[1.375rem] font-semibold text-white mb-2.5">
-                  {meeting.name}
+                  {localMeeting.name}
                 </h1>
                 <div className="flex gap-2 flex-wrap">
-                  <Badge className={cn(typeColors[meeting.type] || "bg-[#333333] text-[#a0a0a0]", "text-xs")}>
-                    ● {meeting.type}
+                  <Badge className={cn(typeColors[localMeeting.type] || "bg-[#333333] text-[#a0a0a0]", "text-xs")}>
+                    ● {localMeeting.type}
                   </Badge>
-                  <Badge className={cn(statusColors[meeting.status], "text-xs flex items-center gap-1.5")}>
+                  <Badge className={cn(statusColors[localMeeting.status], "text-xs flex items-center gap-1.5")}>
                     <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                    {meeting.status}
+                    {localMeeting.status}
                   </Badge>
                   <Badge className="bg-[#2d2640] text-[#a78bfa] text-xs">
-                    Cliente: {meeting.clientName}
+                    Cliente: {localMeeting.clientName}
                   </Badge>
+                  {isEditingSummary && (
+                    <Badge className="bg-[#422c24] text-[#f59e0b] text-xs">
+                      Modo Edição
+                    </Badge>
+                  )}
                 </div>
               </div>
             </div>
             <button 
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               className="w-9 h-9 rounded-lg flex items-center justify-center text-[#8c8c8c] hover:bg-[#252730] hover:text-[#ededed] transition-all"
             >
               <X className="w-[18px] h-[18px]" />
@@ -106,7 +159,7 @@ export function MeetingDetailModal({
                   Data
                 </span>
                 <span className="text-sm font-medium text-[#ededed]">
-                  {format(meeting.date, "dd MMM yyyy", { locale: ptBR })}
+                  {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
                 </span>
               </div>
             </div>
@@ -120,7 +173,7 @@ export function MeetingDetailModal({
                   Horário
                 </span>
                 <span className="text-sm font-medium text-[#ededed]">
-                  {meeting.startTime} - {meeting.endTime}
+                  {localMeeting.startTime} - {localMeeting.endTime}
                 </span>
               </div>
             </div>
@@ -134,7 +187,7 @@ export function MeetingDetailModal({
                   Local
                 </span>
                 <span className="text-sm font-medium text-[#ededed]">
-                  {meeting.location}
+                  {localMeeting.location}
                 </span>
               </div>
             </div>
@@ -148,7 +201,7 @@ export function MeetingDetailModal({
                   Duração
                 </span>
                 <span className="text-sm font-medium text-[#ededed]">
-                  {meeting.duration}
+                  {localMeeting.duration}
                 </span>
               </div>
             </div>
@@ -158,10 +211,10 @@ export function MeetingDetailModal({
                 Responsável:
               </span>
               <div className="w-8 h-8 bg-[#2563eb] rounded-full flex items-center justify-center text-xs font-semibold text-white">
-                {meeting.responsible.initials}
+                {localMeeting.responsible.initials}
               </div>
               <span className="text-sm font-medium text-[#ededed]">
-                {meeting.responsible.name}
+                {localMeeting.responsible.name}
               </span>
             </div>
           </div>
@@ -169,39 +222,59 @@ export function MeetingDetailModal({
           {/* Modal Body - Scrollable */}
           <div className="flex-1 overflow-y-auto p-8 space-y-8">
             <MeetingSummary 
-              summary={meeting.summary}
-              clientName={meeting.clientName}
-              clientContext={meeting.clientContext}
-              highlights={meeting.highlights}
+              summary={localMeeting.summary}
+              clientName={localMeeting.clientName}
+              clientContext={localMeeting.clientContext}
+              highlights={localMeeting.highlights}
+              meetingDate={localMeeting.date}
+              isEditing={isEditingSummary}
+              onSave={handleSaveSummary}
+              onCancelEdit={handleCancelEdit}
             />
 
-            <MeetingAgenda agenda={meeting.agenda} />
+            {!isEditingSummary && (
+              <>
+                <MeetingAgenda agenda={localMeeting.agenda} />
 
-            <MeetingDecisions decisions={meeting.decisions} />
+                <MeetingDecisions decisions={localMeeting.decisions} />
 
-            <MeetingTasks tasks={meeting.linkedTasks} />
+                <MeetingTasks tasks={localMeeting.linkedTasks} />
 
-            <MeetingParticipants participants={meeting.participants} />
+                <MeetingParticipants participants={localMeeting.participants} />
 
-            <MeetingAttachments attachments={meeting.attachments} />
+                <MeetingAttachments attachments={localMeeting.attachments} />
+              </>
+            )}
           </div>
 
           {/* Modal Footer */}
           <div className="px-8 py-4 bg-[#171717] border-t border-[#333333] flex items-center justify-end gap-3">
             <button 
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               className="px-4 py-2.5 bg-[#252730] border border-[#363842] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#2a2d38] hover:border-[#4a4f5c] transition-all"
             >
               Fechar
             </button>
-            <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c3aed] rounded-lg text-white text-sm font-medium hover:bg-[#6d28d9] transition-all">
-              <Edit2 className="w-4 h-4" />
-              Editar Reunião
-            </button>
+            {isEditingSummary ? (
+              <button 
+                onClick={handleCancelEdit}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#333333] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#444444] transition-all"
+              >
+                <Eye className="w-4 h-4" />
+                Voltar para Visualização
+              </button>
+            ) : (
+              <button 
+                onClick={() => setIsEditingSummary(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#7c3aed] rounded-lg text-white text-sm font-medium hover:bg-[#6d28d9] transition-all"
+              >
+                <Edit2 className="w-4 h-4" />
+                Editar Reunião
+              </button>
+            )}
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
 }
-

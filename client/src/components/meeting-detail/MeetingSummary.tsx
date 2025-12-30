@@ -1,11 +1,20 @@
-import { FileText, User, AlertCircle, Home, Plane, CreditCard, Building, AlertTriangle, Truck } from "lucide-react";
+import { FileText, User, AlertCircle, Home, Plane, CreditCard, Building, AlertTriangle, Truck, Briefcase, Heart, Star, Target } from "lucide-react";
 import type { MeetingClientContext, MeetingHighlight } from "@/types/meeting";
+import { MeetingSummaryEditor } from "./MeetingSummaryEditor";
 
 interface MeetingSummaryProps {
   summary: string;
   clientName: string;
   clientContext: MeetingClientContext;
   highlights: MeetingHighlight[];
+  meetingDate: Date;
+  isEditing?: boolean;
+  onSave?: (data: {
+    summary: string;
+    clientContext: MeetingClientContext;
+    highlights: MeetingHighlight[];
+  }) => void;
+  onCancelEdit?: () => void;
 }
 
 const iconMap: Record<string, React.ElementType> = {
@@ -16,14 +25,38 @@ const iconMap: Record<string, React.ElementType> = {
   "building": Building,
   "alert-triangle": AlertTriangle,
   "truck": Truck,
+  "briefcase": Briefcase,
+  "heart": Heart,
+  "star": Star,
+  "target": Target,
 };
 
 export function MeetingSummary({ 
   summary, 
   clientName, 
   clientContext, 
-  highlights 
+  highlights,
+  meetingDate,
+  isEditing = false,
+  onSave,
+  onCancelEdit,
 }: MeetingSummaryProps) {
+  // Render editor when in editing mode
+  if (isEditing && onSave && onCancelEdit) {
+    return (
+      <MeetingSummaryEditor
+        clientName={clientName}
+        meetingDate={meetingDate}
+        initialSummary={summary}
+        initialClientContext={clientContext}
+        initialHighlights={highlights}
+        onSave={onSave}
+        onCancel={onCancelEdit}
+      />
+    );
+  }
+
+  // Render view mode
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2.5">
@@ -86,4 +119,3 @@ export function MeetingSummary({
     </div>
   );
 }
-
