@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useMemo, type ReactNode } from "react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup, Address } from "@/types/client";
 import type { ClientStatus } from "@/lib/statusConfig";
+import type { MeetingDetail } from "@/types/meeting";
 
 function deriveInitials(name: string): string {
   const trimmed = name.trim();
@@ -23,6 +24,7 @@ interface ClientsContextType {
   getClientByName: (name: string) => Client | undefined;
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
+  getMeetingDetail: (clientId: string, meetingId: string) => MeetingDetail | undefined;
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
   updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
   deleteWhatsAppGroup: (clientId: string, groupId: string) => void;
@@ -314,8 +316,9 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
       { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-20'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "1", name: "Reunião de Acompanhamento - Setembro", type: "Mensal", status: "Realizada", date: new Date('2025-09-18'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "2", name: "Reunião Mensal - Agosto", type: "Mensal", status: "Realizada", date: new Date('2025-08-15'), assignees: ["Rafael Bernardino Silveira"] },
+      { id: "3", name: "Follow-up Previdência", type: "Follow-up", status: "Realizada", date: new Date('2025-07-10'), assignees: ["Rafael Bernardino Silveira"] },
     ],
     whatsappGroups: [
       { id: "1", name: "Marcia | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/vwx234", createdAt: new Date('2022-08-25'), status: "Ativo" },
@@ -348,6 +351,150 @@ const CLIENT_EXTENDED_DATA: Record<string, { stats: ClientStats[]; meetings: Cli
     ],
     whatsappGroups: [
       { id: "1", name: "Fernanda G. | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/bcd890", createdAt: new Date('2024-05-10'), status: "Ativo" },
+    ],
+  },
+};
+
+// Detailed meeting data for specific meetings
+export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
+  // Márcia's September meeting - full example
+  "6-1": {
+    id: "1",
+    name: "Reunião de Acompanhamento - Setembro",
+    type: "Mensal",
+    status: "Realizada",
+    date: new Date('2025-09-18'),
+    startTime: "10:00",
+    endTime: "11:15",
+    duration: "1h 15min",
+    location: "Google Meet",
+    assignees: ["Rafael Bernardino Silveira"],
+    responsible: {
+      name: "Rafael",
+      initials: "RF",
+    },
+    clientName: "Márcia",
+    summary: `Foi discutida a <strong>situação financeira da empresa</strong> e as dificuldades de caixa diante de atrasos de clientes e custos com obras, além da importância da <strong>gestão de milhas</strong> para economizar em viagens. Rafael apresentou o desempenho das <strong>carteiras de investimento</strong> e as estratégias de realocação, pontos sobre <strong>consórcios e crédito para caminhões</strong>, além de orientações sobre compra de dólar e conta Wise.`,
+    clientContext: {
+      points: [
+        { id: "1", icon: "alert-circle", text: "Período desafiador nas finanças devido a obras e atrasos de clientes. Preocupação com saúde e custos adicionais." },
+        { id: "2", icon: "home", text: "Desafios com reforma em andamento e necessidade de troca de fornecedores durante o processo." },
+        { id: "3", icon: "plane", text: "Gosta de viajar com frequência e planeja viagem para janeiro/fevereiro do próximo ano." },
+        { id: "4", icon: "credit-card", text: "Preza pela praticidade nas transações bancárias. Ajustando número de contas para facilitar controle." },
+      ],
+    },
+    highlights: [
+      { id: "1", icon: "building", text: "Fluxo de caixa apertado", type: "normal" },
+      { id: "2", icon: "plane", text: "Viagem Jan/Fev", type: "normal" },
+      { id: "3", icon: "truck", text: "Renovação de frota", type: "normal" },
+      { id: "4", icon: "alert-triangle", text: "Atenção: Banco Master", type: "warning" },
+    ],
+    agenda: [
+      {
+        id: "1",
+        number: 1,
+        title: "Situação Financeira e Fluxo de Caixa",
+        status: "discussed",
+        subitems: [
+          { id: "1-1", title: "Dificuldades de caixa atuais", description: "Empresa enfrentando atrasos de recebimentos de clientes, impactando o fluxo de caixa mensal." },
+          { id: "1-2", title: "Custos com obras", description: "Reforma em andamento gerando custos extras. Necessidade de troca de fornecedores durante o processo." },
+          { id: "1-3", title: "Preocupações adicionais", description: "Questões de saúde e custos relacionados sendo monitorados." },
+        ],
+      },
+      {
+        id: "2",
+        number: 2,
+        title: "Desempenho das Carteiras de Investimento",
+        status: "discussed",
+        subitems: [
+          { id: "2-1", title: "Análise de performance", description: "Rafael apresentou o desempenho atual das carteiras e rentabilidade no período." },
+          { id: "2-2", title: "Estratégias de realocação", description: "Discussão sobre oportunidades de realocação para melhorar rentabilidade." },
+          { id: "2-3", title: "Carteira do Reinaldo", description: "Pendente recebimento da carteira para análise e sugestão de realocações mais rentáveis no Itaú." },
+        ],
+      },
+      {
+        id: "3",
+        number: 3,
+        title: "Consórcios e Crédito para Renovação de Frota",
+        status: "action_pending",
+        subitems: [
+          { id: "3-1", title: "Consórcio misto", description: "Cotação pode gerar economia relevante, especialmente com garantia em investimentos existentes." },
+          { id: "3-2", title: "Crédito para caminhões", description: "Avaliar melhores opções de financiamento para renovação da frota da empresa." },
+        ],
+      },
+      {
+        id: "4",
+        number: 4,
+        title: "Gestão de Milhas e Planejamento de Viagens",
+        status: "discussed",
+        subitems: [
+          { id: "4-1", title: "Serviço de concierge", description: "Potencial para reduzir custos de viagens dado a frequência de viagens da Márcia." },
+          { id: "4-2", title: "Viagem planejada", description: "Márcia planeja viagem para janeiro/fevereiro - oportunidade para uso do concierge." },
+        ],
+      },
+      {
+        id: "5",
+        number: 5,
+        title: "Otimização Bancária e Cartões",
+        status: "action_pending",
+        subitems: [
+          { id: "5-1", title: "Consolidação de contas", description: "Redução do número de contas para simplificar gestão e melhorar acúmulo de pontos/milhas." },
+          { id: "5-2", title: "Cartão C6", description: "Pontuação atual abaixo do esperado. Solicitar aumento para 3 ou 3,5 pontos + sala VIP ilimitada." },
+          { id: "5-3", title: "Conta Wise e Dólar", description: "Orientações sobre compra de dólar e uso da conta Wise para viagens internacionais." },
+        ],
+      },
+    ],
+    decisions: [
+      { id: "1", content: "Cotação de <strong>consórcio misto</strong> pode gerar economia relevante, principalmente com garantia em investimentos", type: "normal" },
+      { id: "2", content: "Serviço de <strong>concierge de milhas e viagens</strong> tem potencial para reduzir custos, dada a frequência de viagens", type: "normal" },
+      { id: "3", content: "<strong>Redução de contas bancárias</strong> pode simplificar a gestão financeira e melhorar o acúmulo de pontos/milhas", type: "normal" },
+      { id: "4", content: "Pontuação do <strong>cartão C6 abaixo do esperado</strong> - solicitar upgrade para potencializar benefícios", type: "normal" },
+      { id: "5", content: "<strong>Atenção ao cenário de crédito</strong> e desempenho do Banco Master - monitorar exposição", type: "warning" },
+    ],
+    linkedTasks: [
+      {
+        id: "1",
+        title: "Verificar e solicitar aumento da pontuação do cartão C6 de Márcia para 3 ou 3,5 pontos e sala VIP ilimitada",
+        dueDate: new Date('2025-09-25'),
+        assignee: "Rafael",
+        priority: "Importante",
+        completed: false,
+      },
+      {
+        id: "2",
+        title: "Preparar comparativo das diferentes possibilidades de consórcio e crédito para renovação de frota",
+        dueDate: new Date('2025-09-30'),
+        assignee: "Rafael",
+        priority: "Importante",
+        completed: false,
+      },
+      {
+        id: "3",
+        title: "Apresentar serviço de concierge de viagens/milhas e viabilizar contato com o serviço",
+        dueDate: new Date('2025-10-05'),
+        assignee: "Rafael",
+        priority: "Normal",
+        completed: false,
+      },
+      {
+        id: "4",
+        title: "Receber carteira de investimentos do Reinaldo e sugerir realocações mais rentáveis no Itaú",
+        dueDate: new Date('2025-10-10'),
+        assignee: "Rafael",
+        priority: "Normal",
+        completed: false,
+      },
+    ],
+    participants: [
+      { id: "1", name: "Márcia", role: "Cliente", avatarColor: "#a78bfa", initials: "MA" },
+      { id: "2", name: "Rafael", role: "Consultor de Investimentos", avatarColor: "#2563eb", initials: "RF" },
+      { id: "3", name: "Reinaldo", role: "Mencionado", avatarColor: "#10b981", initials: "RE" },
+    ],
+    attachments: [
+      { id: "1", name: "Relatório_Carteira_Setembro.pdf", type: "pdf", size: "2.4 MB", addedAt: new Date('2025-09-18') },
+      { id: "2", name: "Comparativo_Consórcios.xlsx", type: "excel", size: "856 KB", addedAt: new Date('2025-09-20') },
+      { id: "3", name: "Proposta_C6_Upgrade.docx", type: "doc", size: "320 KB", addedAt: new Date('2025-09-19') },
+      { id: "4", name: "Concierge_Milhas_Apresentação.pdf", type: "pdf", size: "1.8 MB", addedAt: new Date('2025-09-18') },
     ],
   },
 };
@@ -388,6 +535,11 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   const getAllClients = useCallback(() => {
     return clients;
   }, [clients]);
+
+  const getMeetingDetail = useCallback((clientId: string, meetingId: string): MeetingDetail | undefined => {
+    const key = `${clientId}-${meetingId}`;
+    return MEETING_DETAILS_DATA[key];
+  }, []);
 
   const addWhatsAppGroup = useCallback((clientId: string, group: Omit<WhatsAppGroup, 'id'>) => {
     setExtendedData(prev => {
@@ -604,6 +756,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     getClientByName,
     getFullClientData,
     getAllClients,
+    getMeetingDetail,
     addWhatsAppGroup,
     updateWhatsAppGroup,
     deleteWhatsAppGroup,
@@ -623,7 +776,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientMeeting,
     deleteClientMeeting,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
