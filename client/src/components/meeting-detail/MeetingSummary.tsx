@@ -325,11 +325,14 @@ export function MeetingSummary({
   if (!isEditing) {
     return (
       <div className="space-y-4">
-        <EditableSectionTitle
-          icon={<FileText className="w-[18px] h-[18px]" />}
-          title="Resumo da Reunião"
-          onEditClick={handleStartEditing}
-        />
+        <div className="flex items-center justify-between">
+          <EditableSectionTitle
+            icon={<FileText className="w-[18px] h-[18px]" />}
+            title="Resumo da Reunião"
+            isEditing={false}
+            onEditClick={handleStartEditing}
+          />
+        </div>
 
         <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[10px] p-6">
           <p 
