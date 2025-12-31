@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2, Check, X } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingDecision } from "@/types/meeting";
@@ -25,17 +25,12 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
     setIsEditing(true);
   };
 
-  const handleCancel = () => {
-    setEditableDecisions(decisions);
-    setIsEditing(false);
-  };
-
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (onUpdate) {
       onUpdate(editableDecisions);
     }
     setIsEditing(false);
-  };
+  }, [editableDecisions, onUpdate]);
 
   // Add new decision
   const addDecision = () => {
@@ -75,16 +70,39 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
 
   const displayDecisions = isEditing ? editableDecisions : decisions;
 
+  // Ref for click outside detection
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-save when clicking outside
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const modal = document.querySelector('[role="dialog"]');
+      if (
+        sectionRef.current &&
+        !sectionRef.current.contains(e.target as Node) &&
+        modal?.contains(e.target as Node)
+      ) {
+        handleSave();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isEditing, handleSave]);
+
   if (displayDecisions.length === 0 && !isEditing) return null;
 
   return (
-    <div className="space-y-4">
+    <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
           icon={<Zap className="w-[18px] h-[18px]" />}
           title="Decisões e Pontos de Atenção"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
+          onSave={handleSave}
           iconClassName="text-[#a78bfa]"
         />
         {isEditing && (
@@ -170,28 +188,6 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
           </div>
         )}
       </div>
-
-      {/* Save/Cancel buttons */}
-      {isEditing && (
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#252730] border border-[#363842] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#2a2d38] hover:border-[#4a4f5c] transition-all"
-          >
-            <X className="w-4 h-4" />
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#10b981] border-none rounded-lg text-white text-sm font-medium hover:bg-[#059669] transition-all"
-          >
-            <Check className="w-4 h-4" />
-            Salvar Decisões
-          </button>
-        </div>
-      )}
     </div>
   );
 }

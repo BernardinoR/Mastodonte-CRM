@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { ClipboardList, ChevronRight, Plus, Trash2, Check, X, GripVertical } from "lucide-react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { ClipboardList, ChevronRight, Plus, Trash2, GripVertical } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
@@ -41,17 +41,12 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
     setIsEditing(true);
   };
 
-  const handleCancel = () => {
-    setEditableAgenda(agenda);
-    setIsEditing(false);
-  };
-
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     if (onUpdate) {
       onUpdate(editableAgenda);
     }
     setIsEditing(false);
-  };
+  }, [editableAgenda, onUpdate]);
 
   // Add new agenda item
   const addAgendaItem = () => {
@@ -63,7 +58,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
       subitems: [],
     };
     setEditableAgenda([...editableAgenda, newItem]);
-    setExpandedItems(prev => new Set([...prev, newItem.id]));
+    setExpandedItems(prev => new Set(Array.from(prev).concat(newItem.id)));
   };
 
   // Update agenda item
@@ -159,14 +154,37 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
 
   const displayAgenda = isEditing ? editableAgenda : agenda;
 
+  // Ref for click outside detection
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-save when clicking outside
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const modal = document.querySelector('[role="dialog"]');
+      if (
+        sectionRef.current &&
+        !sectionRef.current.contains(e.target as Node) &&
+        modal?.contains(e.target as Node)
+      ) {
+        handleSave();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isEditing, handleSave]);
+
   return (
-    <div className="space-y-4">
+    <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
           icon={<ClipboardList className="w-[18px] h-[18px]" />}
           title="Pauta da Reunião"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
+          onSave={handleSave}
         />
         {isEditing && (
           <button
@@ -340,28 +358,6 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
           );
         })}
       </div>
-
-      {/* Save/Cancel buttons */}
-      {isEditing && (
-        <div className="flex justify-end gap-3">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#252730] border border-[#363842] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#2a2d38] hover:border-[#4a4f5c] transition-all"
-          >
-            <X className="w-4 h-4" />
-            Cancelar
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#10b981] border-none rounded-lg text-white text-sm font-medium hover:bg-[#059669] transition-all"
-          >
-            <Check className="w-4 h-4" />
-            Salvar Pauta
-          </button>
-        </div>
-      )}
     </div>
   );
 }

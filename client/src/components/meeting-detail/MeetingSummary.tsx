@@ -242,7 +242,7 @@ export function MeetingSummary({
   };
 
   // Save changes
-  const handleSave = () => {
+  const handleSave = useCallback(() => {
     const newClientContext: MeetingClientContext = {
       points: contextCards
         .filter((c) => c.text.trim())
@@ -268,7 +268,7 @@ export function MeetingSummary({
       });
     }
     setIsEditing(false);
-  };
+  }, [contextCards, tags, summaryHtml, onUpdate]);
 
   // Apply AI-generated data
   const applyAIData = (data: {
@@ -320,6 +320,28 @@ export function MeetingSummary({
       delete (window as any).__applySummaryAIData;
     };
   }, []);
+
+  // Ref for click outside detection
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Auto-save when clicking outside
+  useEffect(() => {
+    if (!isEditing) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const modal = document.querySelector('[role="dialog"]');
+      if (
+        sectionRef.current &&
+        !sectionRef.current.contains(e.target as Node) &&
+        modal?.contains(e.target as Node)
+      ) {
+        handleSave();
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isEditing, handleSave]);
 
   // Render view mode
   if (!isEditing) {
@@ -392,12 +414,13 @@ export function MeetingSummary({
 
   // Render edit mode
   return (
-    <div className="space-y-4">
+    <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
           icon={<FileText className="w-[18px] h-[18px]" />}
           title="Resumo da Reunião"
           isEditing={true}
+          onSave={handleSave}
         />
         <button
           type="button"
@@ -468,26 +491,6 @@ export function MeetingSummary({
             Adicionar tag
           </button>
         </div>
-      </div>
-
-      {/* Save/Cancel buttons */}
-      <div className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#252730] border border-[#363842] rounded-lg text-[#ededed] text-sm font-medium hover:bg-[#2a2d38] hover:border-[#4a4f5c] transition-all"
-        >
-          <X className="w-4 h-4" />
-          Cancelar
-        </button>
-        <button
-          type="button"
-          onClick={handleSave}
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#10b981] border-none rounded-lg text-white text-sm font-medium hover:bg-[#059669] transition-all"
-        >
-          <Check className="w-4 h-4" />
-          Salvar Resumo
-        </button>
       </div>
 
       {/* Tag Modal */}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Edit2 } from "lucide-react";
+import { Edit2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface EditableSectionTitleProps {
@@ -7,6 +7,7 @@ interface EditableSectionTitleProps {
   title: string;
   isEditing?: boolean;
   onEditClick?: () => void;
+  onSave?: () => void;
   className?: string;
   iconClassName?: string;
 }
@@ -16,6 +17,7 @@ export function EditableSectionTitle({
   title,
   isEditing = false,
   onEditClick,
+  onSave,
   className,
   iconClassName,
 }: EditableSectionTitleProps) {
@@ -51,12 +53,19 @@ export function EditableSectionTitle({
         <span className="text-xs text-[#a78bfa] font-medium">Editar</span>
       </div>
 
-      {/* Editing indicator */}
+      {/* Editing indicator with save button */}
       {isEditing && (
-        <div className="ml-auto flex items-center gap-1.5">
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSave?.();
+          }}
+          className="ml-auto flex items-center gap-2 px-2.5 py-1 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 transition-all duration-200 group/save"
+        >
           <div className="w-1.5 h-1.5 rounded-full bg-[#a78bfa] animate-pulse" />
           <span className="text-xs text-[#a78bfa] font-medium">Editando</span>
-        </div>
+          <Check className="w-4 h-4 text-emerald-500 group-hover/save:scale-110 transition-transform" />
+        </button>
       )}
     </div>
   );
