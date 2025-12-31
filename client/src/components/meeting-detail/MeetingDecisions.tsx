@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2 } from "lucide-react";
+import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingDecision } from "@/types/meeting";
@@ -102,17 +102,29 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
           title="Decisões e Pontos de Atenção"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
-          onSave={handleSave}
           iconClassName="text-[#a78bfa]"
         />
         {isEditing && (
-          <button
-            onClick={addDecision}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2d2640] border border-[#a78bfa] rounded-md text-[#a78bfa] text-[0.8125rem] font-medium hover:bg-[#3d3650] transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Adicionar
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Botão Check para salvar */}
+            <button
+              type="button"
+              onClick={handleSave}
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+              title="Salvar alterações"
+            >
+              <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+            </button>
+            
+            {/* Botão Adicionar */}
+            <button
+              onClick={addDecision}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2d2640] border border-[#a78bfa] rounded-md text-[#a78bfa] text-[0.8125rem] font-medium hover:bg-[#3d3650] transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Adicionar
+            </button>
+          </div>
         )}
       </div>
 

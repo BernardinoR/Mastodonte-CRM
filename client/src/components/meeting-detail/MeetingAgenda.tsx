@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ClipboardList, ChevronRight, Plus, Trash2, GripVertical } from "lucide-react";
+import { ClipboardList, ChevronRight, Plus, Trash2, GripVertical, Check } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
@@ -184,16 +184,28 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
           title="Pauta da Reunião"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
-          onSave={handleSave}
         />
         {isEditing && (
-          <button
-            onClick={addAgendaItem}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1c3847] border border-[#2eaadc] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#234a5c] transition-all"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Adicionar Item
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Botão Check para salvar */}
+            <button
+              type="button"
+              onClick={handleSave}
+              className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+              title="Salvar alterações"
+            >
+              <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+            </button>
+            
+            {/* Botão Adicionar */}
+            <button
+              onClick={addAgendaItem}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1c3847] border border-[#2eaadc] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#234a5c] transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Adicionar Item
+            </button>
+          </div>
         )}
       </div>
 

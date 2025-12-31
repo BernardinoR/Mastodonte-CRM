@@ -420,28 +420,42 @@ export function MeetingSummary({
           icon={<FileText className="w-[18px] h-[18px]" />}
           title="Resumo da Reunião"
           isEditing={true}
-          onSave={handleSave}
         />
-        <button
-          type="button"
-          onClick={toggleContextSection}
-          className={cn(
-            "inline-flex items-center gap-2 px-4 py-2.5 bg-[#252525] border border-[#333333] rounded-lg text-[#888888] text-[0.8125rem] font-medium cursor-pointer transition-all hover:bg-[#333333] hover:text-[#ededed] hover:border-[#444444]",
-            showContext && "bg-[#2d2640] border-[#a78bfa] text-[#a78bfa]"
-          )}
-        >
-          {showContext ? (
-            <>
-              <Check className="w-3.5 h-3.5" />
-              Contexto Ativado
-            </>
-          ) : (
-            <>
-              <User className="w-3.5 h-3.5" />
-              Adicionar Contexto do Cliente
-            </>
-          )}
-        </button>
+        
+        {/* Botões à direita */}
+        <div className="flex items-center gap-3">
+          {/* Botão Check para salvar */}
+          <button
+            type="button"
+            onClick={handleSave}
+            className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+            title="Salvar alterações"
+          >
+            <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+          </button>
+          
+          {/* Botão Contexto */}
+          <button
+            type="button"
+            onClick={toggleContextSection}
+            className={cn(
+              "inline-flex items-center gap-2 px-4 py-2.5 bg-[#252525] border border-[#333333] rounded-lg text-[#888888] text-[0.8125rem] font-medium cursor-pointer transition-all hover:bg-[#333333] hover:text-[#ededed] hover:border-[#444444]",
+              showContext && "bg-[#2d2640] border-[#a78bfa] text-[#a78bfa]"
+            )}
+          >
+            {showContext ? (
+              <>
+                <Check className="w-3.5 h-3.5" />
+                Contexto Ativado
+              </>
+            ) : (
+              <>
+                <User className="w-3.5 h-3.5" />
+                Adicionar Contexto do Cliente
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Summary Container */}
