@@ -17,7 +17,7 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
 
   const [isAddingMeeting, setIsAddingMeeting] = useState(false);
   const [newMeetingName, setNewMeetingName] = useState("");
-  const [newMeetingType, setNewMeetingType] = useState("Reunião Mensal");
+  const [newMeetingType, setNewMeetingType] = useState("Mensal");
   const [newMeetingDate, setNewMeetingDate] = useState<Date>(new Date());
   const [newMeetingStatus, setNewMeetingStatus] = useState<"Agendada" | "Realizada" | "Cancelada">("Agendada");
   const [newMeetingAssignees, setNewMeetingAssignees] = useState<string[]>([]);
@@ -48,7 +48,7 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
 
   const resetNewMeetingForm = useCallback(() => {
     setNewMeetingName("");
-    setNewMeetingType("Reunião Mensal");
+    setNewMeetingType("Mensal");
     setNewMeetingDate(new Date());
     setNewMeetingStatus("Agendada");
     setNewMeetingAssignees(defaultAssigneeName ? [defaultAssigneeName] : []);

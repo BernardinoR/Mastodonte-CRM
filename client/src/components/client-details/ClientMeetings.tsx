@@ -34,18 +34,13 @@ interface ClientMeetingsProps {
 }
 
 const typeColors: Record<string, string> = {
-  "Reunião Mensal": "bg-[#203828] text-[#6ecf8e]",
-  "Reunião Anual": "bg-[#203828] text-[#6ecf8e]",
-  "Política de Investimento": "bg-[#422c24] text-[#dcb092]",
-  "Patrimônio Previdencial": "bg-[#38273f] text-[#d09cdb]",
   "Mensal": "bg-[#203828] text-[#6ecf8e]",
-  "Follow-up": "bg-[#422c24] text-[#dcb092]",
-  "Especial": "bg-[#38273f] text-[#d09cdb]",
+  "Esporádica": "bg-[#422c24] text-[#dcb092]",
 };
 
 const statusColors = MEETING_STATUS_BADGE_COLORS;
 
-const typeOptions = ["Reunião Mensal", "Reunião Anual", "Política de Investimento", "Patrimônio Previdencial"];
+const typeOptions = ["Mensal", "Esporádica"];
 const statusOptions: ("Agendada" | "Realizada" | "Cancelada")[] = ["Agendada", "Realizada", "Cancelada"];
 
 function MeetingsTable({ 
