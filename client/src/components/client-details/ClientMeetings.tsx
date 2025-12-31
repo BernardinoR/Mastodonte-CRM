@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar as CalendarIcon, FileText, Trash2 } from "lucide-react";
+import { Calendar as CalendarIcon, FileText, Trash2, Pencil } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -60,6 +60,10 @@ function MeetingsTable({
   onMeetingClick: (meeting: Meeting) => void;
 }) {
   const [visibleCount, setVisibleCount] = useState(5);
+  
+  // Estados para edição inline do nome
+  const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
 
   const visibleMeetings = meetings.slice(0, visibleCount);
   const hasMore = meetings.length > visibleCount;
@@ -122,14 +126,46 @@ function MeetingsTable({
     handleInteractOutside,
   } = useInlineMeetingEdit(clientId);
 
+  const { updateClientMeeting } = useClients();
+
+  // Handlers para edição inline do nome
+  const handleStartEditName = (meeting: Meeting, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingMeetingId(meeting.id);
+    setEditingName(meeting.name);
+  };
+
+  const handleSaveName = (meetingId: string) => {
+    if (editingName.trim() && editingName !== meetings.find(m => m.id === meetingId)?.name) {
+      updateClientMeeting(clientId, meetingId, { name: editingName.trim() });
+    }
+    setEditingMeetingId(null);
+    setEditingName("");
+  };
+
+  const handleCancelEditName = () => {
+    setEditingMeetingId(null);
+    setEditingName("");
+  };
+
+  const handleNameKeyDown = (e: React.KeyboardEvent, meetingId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveName(meetingId);
+    } else if (e.key === "Escape") {
+      handleCancelEditName();
+    }
+  };
+
   const handleRowClick = (e: React.MouseEvent, meeting: Meeting) => {
     // Don't open modal if clicking on a popover trigger or interactive element
     const target = e.target as HTMLElement;
     const isPopoverTrigger = target.closest('[data-popover-trigger]');
     const isButton = target.closest('button');
     const isPopoverContent = target.closest('[data-radix-popper-content-wrapper]');
+    const isInput = target.closest('input');
     
-    if (isPopoverTrigger || isButton || isPopoverContent) {
+    if (isPopoverTrigger || isButton || isPopoverContent || isInput || editingMeetingId) {
       return;
     }
     
@@ -340,9 +376,34 @@ function MeetingsTable({
               className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer"
               onClick={(e) => handleRowClick(e, meeting)}
             >
-              <td className="py-3 px-4 text-foreground font-medium flex items-center gap-2">
-                <FileText className="w-4 h-4 text-muted-foreground" />
-                {meeting.name}
+              <td className="py-3 px-4">
+                <div className="flex items-center gap-2 group/name">
+                  <FileText className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                  {editingMeetingId === meeting.id ? (
+                    <input
+                      type="text"
+                      value={editingName}
+                      onChange={(e) => setEditingName(e.target.value)}
+                      onBlur={() => handleSaveName(meeting.id)}
+                      onKeyDown={(e) => handleNameKeyDown(e, meeting.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      autoFocus
+                      className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none w-full"
+                      data-testid={`input-meeting-name-${meeting.id}`}
+                    />
+                  ) : (
+                    <>
+                      <span className="text-foreground font-medium">{meeting.name}</span>
+                      <button
+                        onClick={(e) => handleStartEditName(meeting, e)}
+                        className="p-1 rounded hover:bg-[#3a3a3a] transition-all opacity-0 group-hover/name:opacity-100"
+                        data-testid={`button-edit-meeting-name-${meeting.id}`}
+                      >
+                        <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </td>
               <td className="py-3 px-4">
                 <Popover open={typePopoverOpen === meeting.id} onOpenChange={(open) => setTypePopoverOpen(open ? meeting.id : null)}>

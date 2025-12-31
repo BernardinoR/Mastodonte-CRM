@@ -3,7 +3,8 @@ import { Link } from "wouter";
 import { 
   Calendar as CalendarIcon, 
   CheckCircle2,
-  Trash2
+  Trash2,
+  Pencil
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,6 +41,10 @@ function TasksTable({
   inlineProps: ReturnType<typeof useInlineClientTasks>;
 }) {
   const [visibleCount, setVisibleCount] = useState(5);
+  
+  // Estados para edição inline do título
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [editingTitle, setEditingTitle] = useState("");
 
   const visibleTasks = tasks.slice(0, visibleCount);
   const hasMore = tasks.length > visibleCount;
@@ -105,13 +110,44 @@ function TasksTable({
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId) : null;
 
+  // Handlers para edição inline do título
+  const handleStartEditTitle = (task: GlobalTask, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTaskId(task.id);
+    setEditingTitle(task.title);
+  };
+
+  const handleSaveTitle = (taskId: string) => {
+    if (editingTitle.trim() && editingTitle !== tasks.find(t => t.id === taskId)?.title) {
+      updateTask(taskId, { title: editingTitle.trim() });
+    }
+    setEditingTaskId(null);
+    setEditingTitle("");
+  };
+
+  const handleCancelEditTitle = () => {
+    setEditingTaskId(null);
+    setEditingTitle("");
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent, taskId: string) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSaveTitle(taskId);
+    } else if (e.key === "Escape") {
+      handleCancelEditTitle();
+    }
+  };
+
   const handleRowClick = (taskId: string, e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (
       target.closest('[data-popover-trigger]') || 
       target.closest('button') || 
       target.closest('[role="dialog"]') ||
-      target.closest('[data-radix-popper-content-wrapper]')
+      target.closest('[data-radix-popper-content-wrapper]') ||
+      target.closest('input') ||
+      editingTaskId
     ) {
       return;
     }
@@ -323,7 +359,34 @@ function TasksTable({
                 className="border-b border-[#333333] hover:bg-[#2c2c2c] transition-colors group/row cursor-pointer"
                 onClick={(e) => handleRowClick(task.id, e)}
               >
-                <td className="py-3 px-4 text-foreground font-medium">{task.title}</td>
+                <td className="py-3 px-4">
+                  <div className="flex items-center gap-2 group/title">
+                    {editingTaskId === task.id ? (
+                      <input
+                        type="text"
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={() => handleSaveTitle(task.id)}
+                        onKeyDown={(e) => handleTitleKeyDown(e, task.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                        className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none w-full"
+                        data-testid={`input-task-title-${task.id}`}
+                      />
+                    ) : (
+                      <>
+                        <span className="text-foreground font-medium">{task.title}</span>
+                        <button
+                          onClick={(e) => handleStartEditTitle(task, e)}
+                          className="p-1 rounded hover:bg-[#3a3a3a] transition-all opacity-0 group-hover/title:opacity-100"
+                          data-testid={`button-edit-task-title-${task.id}`}
+                        >
+                          <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </td>
                 <td className="py-3 px-4">
                   <Popover open={statusPopoverOpen === task.id} onOpenChange={(open) => setStatusPopoverOpen(open ? task.id : null)}>
                     <PopoverTrigger asChild data-popover-trigger>
