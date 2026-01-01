@@ -4,7 +4,8 @@ import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
-import { ClientHeader, ClientMetaStats, ClientMeetings, ClientTasks } from "@/components/client-details";
+import { ClientHeader, ClientMeetings, ClientTasks } from "@/components/client-details";
+import { TasksCompletedCard } from "@/components/client-details/TasksCompletedCard";
 import { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
@@ -143,14 +144,41 @@ export default function ClientDetails() {
       />
 
       <div className="mb-8">
-        <ClientMetaStats 
-          stats={stats.map(s => ({
-            label: s.label,
-            value: s.value,
-            change: s.change || "",
-            positive: s.changeType === "positive"
-          }))} 
-        />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {stats
+            .filter(s => s.label.toLowerCase() !== "tasks concluídas")
+            .map((stat, index) => (
+              <Card 
+                key={`${stat.label}-${index}`} 
+                className="p-4 bg-[#202020] border-[#333333]"
+                data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <div 
+                  className="text-2xl font-bold text-foreground" 
+                  data-testid={`text-stat-value-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {stat.value}
+                </div>
+                <div 
+                  className="text-xs text-muted-foreground mt-1" 
+                  data-testid={`text-stat-label-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {stat.label}
+                </div>
+                {stat.change && (
+                  <div 
+                    className={`text-xs mt-2 ${
+                      stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
+                    }`}
+                    data-testid={`text-stat-change-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {stat.change}
+                  </div>
+                )}
+              </Card>
+            ))}
+          <TasksCompletedCard tasks={clientTasks} />
+        </div>
       </div>
 
       <div className="space-y-4 mb-8">

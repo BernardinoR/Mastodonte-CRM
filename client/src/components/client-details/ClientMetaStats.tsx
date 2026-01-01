@@ -10,9 +10,14 @@ interface ClientMetaStatsProps {
 }
 
 export function ClientMetaStats({ stats }: ClientMetaStatsProps) {
+  // Filtrar o card de "Tasks Concluídas" - agora é um componente separado
+  const filteredStats = stats.filter(stat => 
+    stat.label.toLowerCase() !== "tasks concluídas"
+  );
+  
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-      {stats.map((stat, index) => (
+      {filteredStats.map((stat, index) => (
         <Card 
           key={`${stat.label}-${index}`} 
           className="p-4 bg-[#202020] border-[#333333]"
