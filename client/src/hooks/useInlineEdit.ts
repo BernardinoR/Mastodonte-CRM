@@ -1,136 +1,111 @@
-import { useState, useRef, useEffect, useCallback, type KeyboardEvent, type ChangeEvent } from "react";
+import { useState, useCallback } from "react";
 
-interface UseInlineEditOptions {
-  initialValue: string;
-  onCommit: (value: string) => void;
-  formatValue?: (value: string) => string;
-  blurCommitDelay?: number;
-  suppressBlurCommit?: boolean;
+/**
+ * Hook genérico para edição inline de campos de texto
+ * 
+ * @example
+ * ```tsx
+ * const inlineEdit = useInlineEdit({
+ *   onSave: (id, name) => updateMeeting(id, { name }),
+ *   getId: (meeting) => meeting.id,
+ *   getValue: (meeting) => meeting.name,
+ * });
+ * 
+ * // No componente
+ * {inlineEdit.isEditing(item.id) ? (
+ *   <input
+ *     value={inlineEdit.editingValue}
+ *     onChange={(e) => inlineEdit.setEditingValue(e.target.value)}
+ *     onBlur={inlineEdit.save}
+ *     onKeyDown={inlineEdit.handleKeyDown}
+ *   />
+ * ) : (
+ *   <span onClick={(e) => inlineEdit.startEdit(item, e)}>{item.name}</span>
+ * )}
+ * ```
+ */
+export interface UseInlineEditOptions<T> {
+  /** Callback chamado ao salvar a edição */
+  onSave: (id: string, value: string) => void;
+  /** Função para extrair o ID do item */
+  getId: (item: T) => string;
+  /** Função para extrair o valor inicial do item */
+  getValue: (item: T) => string;
+  /** Callback opcional chamado após cancelar a edição */
+  onCancel?: () => void;
 }
 
-interface UseInlineEditReturn {
-  isEditing: boolean;
-  draftValue: string;
-  inputRef: React.RefObject<HTMLInputElement>;
-  startEditing: () => void;
-  setDraftValue: (value: string) => void;
-  handleChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  handleKeyDown: (e: KeyboardEvent<HTMLInputElement>) => void;
-  handleBlur: () => void;
-  handleFocus: () => void;
-  commit: () => void;
+export interface UseInlineEditReturn<T> {
+  /** ID do item sendo editado, ou null se não estiver editando */
+  editingId: string | null;
+  /** Valor atual do campo de edição */
+  editingValue: string;
+  /** Setter para o valor de edição */
+  setEditingValue: (value: string) => void;
+  /** Inicia a edição de um item */
+  startEdit: (item: T, e?: React.MouseEvent) => void;
+  /** Salva a edição atual */
+  save: () => void;
+  /** Cancela a edição atual */
   cancel: () => void;
-  setIsEditing: (value: boolean) => void;
+  /** Handler para eventos de teclado (Enter para salvar, Escape para cancelar) */
+  handleKeyDown: (e: React.KeyboardEvent) => void;
+  /** Verifica se um item específico está sendo editado */
+  isEditing: (id: string) => boolean;
 }
 
-export function useInlineEdit({
-  initialValue,
-  onCommit,
-  formatValue,
-  blurCommitDelay = 150,
-  suppressBlurCommit = false,
-}: UseInlineEditOptions): UseInlineEditReturn {
-  const [isEditing, setIsEditing] = useState(false);
-  const [draftValue, setDraftValue] = useState(initialValue);
-  const inputRef = useRef<HTMLInputElement>(null);
-  const blurTimeoutRef = useRef<number | null>(null);
-  const hasFocusedRef = useRef(false);
+export function useInlineEdit<T>({
+  onSave,
+  getId,
+  getValue,
+  onCancel,
+}: UseInlineEditOptions<T>): UseInlineEditReturn<T> {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState("");
 
-  useEffect(() => {
-    setDraftValue(initialValue);
-  }, [initialValue]);
-
-  useEffect(() => {
-    if (isEditing && inputRef.current && !hasFocusedRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-      hasFocusedRef.current = true;
+  const startEdit = useCallback((item: T, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
     }
-    if (!isEditing) {
-      hasFocusedRef.current = false;
-    }
-  }, [isEditing]);
+    setEditingId(getId(item));
+    setEditingValue(getValue(item));
+  }, [getId, getValue]);
 
-  useEffect(() => {
-    return () => {
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  const startEditing = useCallback(() => {
-    setDraftValue(initialValue);
-    setIsEditing(true);
-    hasFocusedRef.current = false;
-  }, [initialValue]);
-
-  const commit = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
+  const save = useCallback(() => {
+    if (editingId && editingValue.trim()) {
+      onSave(editingId, editingValue.trim());
     }
-    
-    const trimmed = draftValue.trim();
-    if (trimmed !== initialValue) {
-      onCommit(trimmed);
-    }
-    setIsEditing(false);
-  }, [draftValue, initialValue, onCommit]);
+    setEditingId(null);
+    setEditingValue("");
+  }, [editingId, editingValue, onSave]);
 
   const cancel = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-    setIsEditing(false);
-    setDraftValue(initialValue);
-  }, [initialValue]);
+    setEditingId(null);
+    setEditingValue("");
+    onCancel?.();
+  }, [onCancel]);
 
-  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = formatValue ? formatValue(e.target.value) : e.target.value;
-    setDraftValue(newValue);
-  }, [formatValue]);
-
-  const handleKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      commit();
-    } else if (e.key === "Escape") {
+      save();
+    }
+    if (e.key === "Escape") {
       e.preventDefault();
       cancel();
     }
-  }, [commit, cancel]);
+  }, [save, cancel]);
 
-  const handleFocus = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    if (suppressBlurCommit) {
-      return;
-    }
-    
-    blurTimeoutRef.current = window.setTimeout(() => {
-      commit();
-    }, blurCommitDelay);
-  }, [suppressBlurCommit, blurCommitDelay, commit]);
+  const isEditing = useCallback((id: string) => editingId === id, [editingId]);
 
   return {
-    isEditing,
-    draftValue,
-    inputRef,
-    startEditing,
-    setDraftValue,
-    handleChange,
-    handleKeyDown,
-    handleBlur,
-    handleFocus,
-    commit,
+    editingId,
+    editingValue,
+    setEditingValue,
+    startEdit,
+    save,
     cancel,
-    setIsEditing,
+    handleKeyDown,
+    isEditing,
   };
 }

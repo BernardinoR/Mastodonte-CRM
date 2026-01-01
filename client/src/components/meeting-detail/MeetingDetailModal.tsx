@@ -22,6 +22,7 @@ import { MeetingAttachments } from "./MeetingAttachments";
 import { AIGenerateButton, type GenerateOption } from "./AIGenerateButton";
 import { useAISummary, type AIResponse } from "@/hooks/useAISummary";
 import type { MeetingDetail, MeetingClientContext, MeetingHighlight, MeetingAgendaItem, MeetingDecision } from "@/types/meeting";
+import { MEETING_TYPE_COLORS, MEETING_STATUS_COLORS, MEETING_FALLBACK_COLOR } from "@shared/config/meetingConfig";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;
@@ -30,16 +31,9 @@ interface MeetingDetailModalProps {
   onUpdateMeeting?: (meetingId: string, updates: Partial<MeetingDetail>) => void;
 }
 
-const typeColors: Record<string, string> = {
-  "Mensal": "bg-[#203828] text-[#6ecf8e]",
-  "Esporádica": "bg-[#422c24] text-[#dcb092]",
-};
-
-const statusColors: Record<string, string> = {
-  "Agendada": "bg-[#243041] text-[#6db1d4]",
-  "Realizada": "bg-[#203828] text-[#6ecf8e]",
-  "Cancelada": "bg-[#3d2626] text-[#e07a7a]",
-};
+// Usar constantes centralizadas
+const typeColors = MEETING_TYPE_COLORS;
+const statusColors = MEETING_STATUS_COLORS;
 
 export function MeetingDetailModal({ 
   meeting, 

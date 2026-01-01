@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ClientMeeting } from "@/types/client";
 import { useClients } from "@/contexts/ClientsContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { MEETING_TYPE_OPTIONS, MEETING_STATUS_OPTIONS, type MeetingStatus } from "@shared/config/meetingConfig";
 
 export interface UseInlineClientMeetingsOptions {
   clientId: string;
@@ -17,9 +18,9 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
 
   const [isAddingMeeting, setIsAddingMeeting] = useState(false);
   const [newMeetingName, setNewMeetingName] = useState("");
-  const [newMeetingType, setNewMeetingType] = useState("Mensal");
+  const [newMeetingType, setNewMeetingType] = useState(MEETING_TYPE_OPTIONS[0]);
   const [newMeetingDate, setNewMeetingDate] = useState<Date>(new Date());
-  const [newMeetingStatus, setNewMeetingStatus] = useState<"Agendada" | "Realizada" | "Cancelada">("Agendada");
+  const [newMeetingStatus, setNewMeetingStatus] = useState<MeetingStatus>(MEETING_STATUS_OPTIONS[0]);
   const [newMeetingAssignees, setNewMeetingAssignees] = useState<string[]>([]);
   
   const [newTypePopoverOpen, setNewTypePopoverOpen] = useState(false);
@@ -48,9 +49,9 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
 
   const resetNewMeetingForm = useCallback(() => {
     setNewMeetingName("");
-    setNewMeetingType("Mensal");
+    setNewMeetingType(MEETING_TYPE_OPTIONS[0]);
     setNewMeetingDate(new Date());
-    setNewMeetingStatus("Agendada");
+    setNewMeetingStatus(MEETING_STATUS_OPTIONS[0]);
     setNewMeetingAssignees(defaultAssigneeName ? [defaultAssigneeName] : []);
     setNewTypePopoverOpen(false);
     setNewStatusPopoverOpen(false);
