@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientHeader, ClientMeetings, ClientTasks } from "@/components/client-details";
 import { TasksCompletedCard } from "@/components/client-details/TasksCompletedCard";
+import { MeetingsCard } from "@/components/client-details/MeetingsCard";
 import { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
@@ -146,7 +147,10 @@ export default function ClientDetails() {
       <div className="mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats
-            .filter(s => s.label.toLowerCase() !== "tasks concluídas")
+            .filter(s => {
+              const labelLower = s.label.toLowerCase();
+              return labelLower !== "tasks concluídas" && !labelLower.includes("reuniões");
+            })
             .map((stat, index) => (
               <Card 
                 key={`${stat.label}-${index}`} 
@@ -177,6 +181,7 @@ export default function ClientDetails() {
                 )}
               </Card>
             ))}
+          <MeetingsCard meetings={meetings} />
           <TasksCompletedCard tasks={clientTasks} />
         </div>
       </div>
