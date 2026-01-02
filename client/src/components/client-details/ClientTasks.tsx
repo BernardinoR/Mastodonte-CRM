@@ -4,7 +4,7 @@
  */
 import { Link } from "wouter";
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
-import { CheckCircle2, Search, X, ChevronDown } from "lucide-react";
+import { CheckCircle2, Search, X, Calendar, CheckSquare, Flag, User } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import { useSearchFilter } from "@/hooks/useSearchFilter";
 import { buildTasksUrl } from "@/hooks/useTaskUrlParams";
 import { StatusFilterContent, PriorityFilterContent } from "@/components/filter-bar/FilterPopoverContent";
 import { DateRangeFilterContent, formatDateFilterLabel } from "@/components/filter-bar/DateRangeFilterContent";
+import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
 
 export interface ClientTasksProps {
@@ -31,6 +32,16 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>(STATUS_OPTIONS);
   const [selectedPriorities, setSelectedPriorities] = useState<(TaskPriority | "none")[]>(PRIORITY_OPTIONS);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>({ type: "all" });
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  
+  // Calcular responsáveis disponíveis das tasks
+  const availableAssignees = useMemo(() => {
+    const assignees = new Set<string>();
+    tasks.forEach(task => {
+      task.assignees?.forEach(a => assignees.add(a));
+    });
+    return Array.from(assignees).sort();
+  }, [tasks]);
   
   // Aplicar filtros locais antes da busca
   const filteredTasks = useMemo(() => {
@@ -81,8 +92,15 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
       });
     }
     
+    // Filtro de responsável
+    if (selectedAssignees.length > 0) {
+      result = result.filter(task => 
+        task.assignees?.some(a => selectedAssignees.includes(a)) ?? false
+      );
+    }
+    
     return result;
-  }, [tasks, selectedStatuses, selectedPriorities, dateFilter]);
+  }, [tasks, selectedStatuses, selectedPriorities, dateFilter, selectedAssignees]);
   
   // Hook de busca por título (aplicado após os filtros)
   const searchFilter = useSearchFilter<GlobalTask>(
@@ -132,18 +150,9 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
     setDateFilter(value);
   }, []);
   
-  // Labels dos filtros
-  const statusLabel = selectedStatuses.length === STATUS_OPTIONS.length 
-    ? "Status" 
-    : `Status (${selectedStatuses.length})`;
-  
-  const priorityLabel = selectedPriorities.length === PRIORITY_OPTIONS.length 
-    ? "Prioridade" 
-    : `Prioridade (${selectedPriorities.length})`;
-  
-  const dateLabel = dateFilter.type === "all" 
-    ? "Data" 
-    : formatDateFilterLabel(dateFilter);
+  const handleAssigneeChange = useCallback((assignees: string[]) => {
+    setSelectedAssignees(assignees);
+  }, []);
 
   return (
     <div>
@@ -213,17 +222,37 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
+                aria-label="Filtrar por status"
                 data-testid="button-filter-status"
               >
-                {statusLabel}
-                <ChevronDown className="w-3 h-3 ml-1" />
+                <CheckSquare className="w-4 h-4" />
               </Button>
-            </PopoverTrigger>
+          </PopoverTrigger>
             <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
               <StatusFilterContent 
                 selectedValues={selectedStatuses} 
                 onToggle={handleStatusToggle} 
+            />
+          </PopoverContent>
+        </Popover>
+          
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
+                aria-label="Filtrar por prioridade"
+                data-testid="button-filter-priority"
+              >
+                <Flag className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+              <PriorityFilterContent 
+                selectedValues={selectedPriorities} 
+                onToggle={handlePriorityToggle} 
               />
             </PopoverContent>
           </Popover>
@@ -233,17 +262,17 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                data-testid="button-filter-priority"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
+                aria-label="Filtrar por data"
+                data-testid="button-filter-date"
               >
-                {priorityLabel}
-                <ChevronDown className="w-3 h-3 ml-1" />
+                <Calendar className="w-4 h-4" />
               </Button>
                     </PopoverTrigger>
-            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-              <PriorityFilterContent 
-                selectedValues={selectedPriorities} 
-                onToggle={handlePriorityToggle} 
+            <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6}>
+              <DateRangeFilterContent 
+                value={dateFilter}
+                onChange={handleDateChange}
                       />
                     </PopoverContent>
                   </Popover>
@@ -253,17 +282,23 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
               <Button 
                 variant="ghost" 
                 size="sm" 
-                className="h-8 text-xs text-muted-foreground hover:text-foreground"
-                data-testid="button-filter-date"
+                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
+                aria-label="Filtrar por responsável"
+                data-testid="button-filter-assignee"
               >
-                {dateLabel}
-                <ChevronDown className="w-3 h-3 ml-1" />
+                <User className="w-4 h-4" />
               </Button>
                       </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6}>
-              <DateRangeFilterContent 
-                value={dateFilter}
-                onChange={handleDateChange}
+                      <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+              <SearchableMultiSelect
+                items={availableAssignees}
+                selectedItems={selectedAssignees}
+                onSelectionChange={handleAssigneeChange}
+                placeholder="Buscar responsável..."
+                selectedLabel="Responsável selecionado"
+                availableLabel="Selecione mais"
+                emptyMessage="Nenhum responsável encontrado"
+                itemType="user"
                         />
                       </PopoverContent>
                     </Popover>

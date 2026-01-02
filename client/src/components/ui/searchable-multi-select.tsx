@@ -35,9 +35,10 @@ const SelectItemRow = memo(function SelectItemRow({
   if (isSelected) {
     return (
       <div 
-        className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1"
+        className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md mb-1 focus:outline-none focus-visible:outline-none"
         onClick={onClick}
         data-testid={`${testIdPrefix}-selected-${item}`}
+        tabIndex={0}
       >
         <Check className="w-4 h-4 text-gray-400" />
         <span className="text-sm text-foreground">{item}</span>
@@ -47,9 +48,10 @@ const SelectItemRow = memo(function SelectItemRow({
   
   return (
     <div
-      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+      className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group focus:outline-none focus-visible:outline-none"
       onClick={onClick}
       data-testid={`${testIdPrefix}-${index}`}
+      tabIndex={0}
     >
       <Icon className="w-4 h-4 text-gray-500" />
       <span className="text-sm text-foreground flex-1">{item}</span>
@@ -98,7 +100,7 @@ export const SearchableMultiSelect = memo(function SearchableMultiSelect({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={placeholder}
-          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none p-0 h-auto"
           onClick={(e) => e.stopPropagation()}
           data-testid={`input-filter-${itemType}-search`}
         />
