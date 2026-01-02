@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { KanbanColumn } from "@/components/KanbanColumn";
 import { SortableTaskCard } from "@/components/SortableTaskCard";
 import { DragPreview } from "@/components/DragPreview";
@@ -32,6 +32,7 @@ import { useTaskSelection } from "@/hooks/useTaskSelection";
 import { useTaskDrag } from "@/hooks/useTaskDrag";
 import { useQuickAddTask } from "@/hooks/useQuickAddTask";
 import { useTurboMode } from "@/hooks/useTurboMode";
+import { useTaskUrlParams } from "@/hooks/useTaskUrlParams";
 
 const COLUMN_IDS = ["To Do", "In Progress", "Done"] as const;
 const TASKS_PER_PAGE = 25;
@@ -53,6 +54,9 @@ export default function Tasks() {
   // Use the tasks context for global state management
   const { tasks, setTasks, setTasksWithHistory } = useTasks();
   
+  // Ler parâmetros da URL
+  const urlParams = useTaskUrlParams();
+  
   // Use the task filters hook for search, assignee, and priority filtering
   const {
     viewMode,
@@ -71,6 +75,32 @@ export default function Tasks() {
     inProgressTasks,
     doneTasks,
   } = useTaskFilters(tasks);
+
+  // Aplicar filtros e ordenação baseados nos parâmetros da URL
+  useEffect(() => {
+    if (urlParams.clientFilter) {
+      // Verificar se já existe filtro de cliente
+      const hasClientFilter = activeFilters.some(
+        f => f.type === "client" && Array.isArray(f.value) && f.value.includes(urlParams.clientFilter!)
+      );
+      
+      if (!hasClientFilter) {
+        addFilter("client", [urlParams.clientFilter]);
+      }
+    }
+
+    if (urlParams.viewMode === "table") {
+      setViewMode("table");
+    }
+
+    // Aplicar ordenação padrão quando vier de cliente detalhado
+    if (urlParams.shouldApplyDefaultSort && sorts.length === 0) {
+      setSorts([
+        { field: "dueDate", direction: "desc" },
+        { field: "priority", direction: "asc" }
+      ]);
+    }
+  }, [urlParams.clientFilter, urlParams.viewMode, urlParams.shouldApplyDefaultSort, activeFilters, addFilter, setViewMode, sorts.length, setSorts]);
   
   // Helper function for selection hook
   const getTasksByStatus = useCallback((status: TaskStatus): Task[] => {

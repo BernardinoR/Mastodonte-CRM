@@ -1,7 +1,7 @@
 /**
  * Componente de tabela de tarefas extraído para melhor organização e reutilização
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,6 +20,7 @@ import { useInlineTaskEdit } from "@/hooks/useInlineTaskEdit";
 import { useInlineEdit } from "@/hooks/useInlineEdit";
 import { usePaginatedList } from "@/hooks/usePaginatedList";
 import type { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
+import { sortTasksByDateAndPriority } from "@/lib/taskUtils";
 
 export interface TasksTableProps {
   tasks: GlobalTask[];
@@ -36,8 +37,13 @@ export function TasksTable({
   tasks, 
   inlineProps 
 }: TasksTableProps) {
+  // Ordenar tasks por data (mais recente primeiro) e prioridade (Urgente primeiro)
+  const sortedTasks = useMemo(() => {
+    return sortTasksByDateAndPriority(tasks);
+  }, [tasks]);
+
   // Hook de paginação genérico
-  const { visibleItems: visibleTasks, hasMore, remainingCount, loadMore } = usePaginatedList(tasks, 5);
+  const { visibleItems: visibleTasks, hasMore, remainingCount, loadMore } = usePaginatedList(sortedTasks, 5);
 
   // Hook de edição inline genérico para o título
   const { updateTask } = useTasks();

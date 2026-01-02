@@ -18,6 +18,7 @@ import {
 } from '@/types/task';
 import { parseLocalDate } from '@/lib/date-utils';
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
+import { PRIORITY_ORDER } from '@/lib/taskUtils';
 
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";
@@ -52,14 +53,6 @@ interface UseTaskFiltersReturn {
 
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
 const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Importante", "Normal", "Baixa", "none"];
-
-const PRIORITY_ORDER: Record<string, number> = {
-  "Urgente": 1,
-  "Importante": 2,
-  "Normal": 3,
-  "Baixa": 4,
-  "undefined": 5,
-};
 
 const STATUS_ORDER: Record<string, number> = {
   "To Do": 1,
@@ -188,8 +181,8 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
           
           switch (sort.field) {
             case "priority":
-              const aPriority = PRIORITY_ORDER[a.priority || "undefined"] || 3;
-              const bPriority = PRIORITY_ORDER[b.priority || "undefined"] || 3;
+              const aPriority = PRIORITY_ORDER[a.priority || "Normal"] || 3;
+              const bPriority = PRIORITY_ORDER[b.priority || "Normal"] || 3;
               comparison = aPriority - bPriority;
               break;
             case "dueDate":

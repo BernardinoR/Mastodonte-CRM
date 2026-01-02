@@ -202,7 +202,8 @@ export default function ClientDetails() {
 
         <ClientTasks 
           tasks={clientTasks} 
-          inlineProps={inlineTaskProps} 
+          inlineProps={inlineTaskProps}
+          clientName={client.name}
         />
       </div>
 
