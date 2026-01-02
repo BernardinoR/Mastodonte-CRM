@@ -12,7 +12,6 @@ import {
   type MeetingStatus 
 } from "@shared/config/meetingConfig";
 import { MEETING_STATUS_BADGE_COLORS } from "@/lib/statusConfig";
-import { Badge } from "@/components/ui/badge";
 
 export const MeetingTypeFilterContent = memo(function MeetingTypeFilterContent({
   selectedValues,
@@ -21,12 +20,14 @@ export const MeetingTypeFilterContent = memo(function MeetingTypeFilterContent({
   selectedValues: MeetingType[];
   onToggle: (type: MeetingType) => void;
 }) {
+  // Tipos genéricos inferidos para evitar conflito com metadados do Replit
+  const colorMap = MEETING_TYPE_COLORS as Record<MeetingType, string>;
   return (
     <BadgeFilterContent
       options={MEETING_TYPE_OPTIONS}
       selectedValues={selectedValues}
       onToggle={onToggle}
-      colorMap={MEETING_TYPE_COLORS}
+      colorMap={colorMap}
       label="Tipo selecionado"
     />
   );
@@ -39,12 +40,14 @@ export const MeetingStatusFilterContent = memo(function MeetingStatusFilterConte
   selectedValues: MeetingStatus[];
   onToggle: (status: MeetingStatus) => void;
 }) {
+  // Tipos genéricos inferidos para evitar conflito com metadados do Replit
+  const colorMap = MEETING_STATUS_BADGE_COLORS as Record<MeetingStatus, string>;
   return (
     <BadgeFilterContent
       options={MEETING_STATUS_OPTIONS}
       selectedValues={selectedValues}
       onToggle={onToggle}
-      colorMap={MEETING_STATUS_BADGE_COLORS}
+      colorMap={colorMap}
       label="Status selecionado"
     />
   );
