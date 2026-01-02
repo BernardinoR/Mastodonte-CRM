@@ -2,6 +2,7 @@ import { useState, useCallback } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -14,6 +15,7 @@ import {
   Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
@@ -23,7 +25,15 @@ import { MeetingAttachments } from "./MeetingAttachments";
 import { AIGenerateButton, type GenerateOption } from "./AIGenerateButton";
 import { useAISummary, type AIResponse } from "@/hooks/useAISummary";
 import type { MeetingDetail, MeetingClientContext, MeetingHighlight, MeetingAgendaItem, MeetingDecision } from "@/types/meeting";
-import { MEETING_TYPE_COLORS, MEETING_STATUS_COLORS, MEETING_FALLBACK_COLOR } from "@shared/config/meetingConfig";
+import { 
+  MEETING_TYPE_COLORS, 
+  MEETING_STATUS_COLORS, 
+  MEETING_FALLBACK_COLOR,
+  MEETING_TYPE_OPTIONS,
+  MEETING_STATUS_OPTIONS,
+  type MeetingType,
+  type MeetingStatus
+} from "@shared/config/meetingConfig";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;
@@ -48,6 +58,10 @@ export function MeetingDetailModal({
   // Estados para edição do título
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState("");
+
+  // Estados para popovers de badges
+  const [typePopoverOpen, setTypePopoverOpen] = useState(false);
+  const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
 
   // Update local meeting when prop changes
   if (meeting && localMeeting?.id !== meeting.id) {
@@ -177,6 +191,24 @@ export function MeetingDetailModal({
     setIsEditingName(false);
   }, [localMeeting, editingName, onUpdateMeeting]);
 
+  // Handler para mudar tipo
+  const handleTypeChange = useCallback((type: MeetingType) => {
+    if (!localMeeting) return;
+    const updated = { ...localMeeting, type };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { type });
+    setTypePopoverOpen(false);
+  }, [localMeeting, onUpdateMeeting]);
+
+  // Handler para mudar status
+  const handleStatusChange = useCallback((status: MeetingStatus) => {
+    if (!localMeeting) return;
+    const updated = { ...localMeeting, status };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { status });
+    setStatusPopoverOpen(false);
+  }, [localMeeting, onUpdateMeeting]);
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -232,13 +264,41 @@ export function MeetingDetailModal({
                   </div>
                 )}
                 <div className="flex gap-2 flex-wrap">
-                  <Badge className={cn(typeColors[localMeeting.type] || "bg-[#333333] text-[#a0a0a0]", "text-xs")}>
-                    ● {localMeeting.type}
-                  </Badge>
-                  <Badge className={cn(statusColors[localMeeting.status], "text-xs flex items-center gap-1.5")}>
-                    <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                    {localMeeting.status}
-                  </Badge>
+                  {/* Badge Tipo - Clicável */}
+                  <Popover open={typePopoverOpen} onOpenChange={setTypePopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button type="button">
+                        <Badge className={cn(typeColors[localMeeting.type] || "bg-[#333333] text-[#a0a0a0]", "text-xs cursor-pointer hover:opacity-80 transition-opacity")}>
+                          ● {localMeeting.type}
+                        </Badge>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                      <MeetingTypeFilterContent
+                        selectedValues={[localMeeting.type as MeetingType]}
+                        onToggle={handleTypeChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
+                  {/* Badge Status - Clicável */}
+                  <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button type="button">
+                        <Badge className={cn(statusColors[localMeeting.status], "text-xs flex items-center gap-1.5 cursor-pointer hover:opacity-80 transition-opacity")}>
+                          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+                          {localMeeting.status}
+                        </Badge>
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                      <MeetingStatusFilterContent
+                        selectedValues={[localMeeting.status as MeetingStatus]}
+                        onToggle={handleStatusChange}
+                      />
+                    </PopoverContent>
+                  </Popover>
+
                   <Badge className="bg-[#2d2640] text-[#a78bfa] text-xs">
                     Cliente: {localMeeting.clientName}
                   </Badge>
