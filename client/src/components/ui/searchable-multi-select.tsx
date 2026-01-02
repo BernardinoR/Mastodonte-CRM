@@ -100,7 +100,7 @@ export const SearchableMultiSelect = memo(function SearchableMultiSelect({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={placeholder}
-          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none p-0 h-auto"
+          className="bg-transparent border-0 text-sm text-white placeholder:text-gray-500 focus-visible:ring-0 focus-visible:ring-offset-0 focus:outline-none p-0 h-auto caret-white"
           onClick={(e) => e.stopPropagation()}
           data-testid={`input-filter-${itemType}-search`}
         />
