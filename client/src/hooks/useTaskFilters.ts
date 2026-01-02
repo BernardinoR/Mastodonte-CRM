@@ -61,7 +61,12 @@ const STATUS_ORDER: Record<string, number> = {
 };
 
 export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
-  const [viewMode, setViewMode] = useState<"board" | "table">("board");
+  // Inicializar viewMode baseado na URL para evitar flash ao navegar
+  const initialViewMode = typeof window !== "undefined" 
+    ? (new URLSearchParams(window.location.search).get("view") === "table" ? "table" : "board")
+    : "board";
+  
+  const [viewMode, setViewMode] = useState<"board" | "table">(initialViewMode);
   const [sorts, setSorts] = useState<SortOption[]>([]);
   const [activeFilters, setActiveFilters] = useState<TypedActiveFilter[]>([]);
 
