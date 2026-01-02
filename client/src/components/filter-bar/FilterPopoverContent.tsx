@@ -26,7 +26,7 @@ interface FilterPopoverContentProps {
   availableClients: string[];
 }
 
-const StatusFilterContent = memo(function StatusFilterContent({
+export const StatusFilterContent = memo(function StatusFilterContent({
   selectedValues,
   onToggle,
 }: {
@@ -92,7 +92,7 @@ const StatusFilterContent = memo(function StatusFilterContent({
   );
 });
 
-const PriorityFilterContent = memo(function PriorityFilterContent({
+export const PriorityFilterContent = memo(function PriorityFilterContent({
   selectedValues,
   onToggle,
 }: {

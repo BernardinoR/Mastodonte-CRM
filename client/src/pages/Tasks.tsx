@@ -25,6 +25,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
+import { createTypedFilter } from "@/types/task";
 import { createNewTask } from "@/lib/mock-data";
 import { useTasks } from "@/contexts/TasksContext";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
@@ -57,6 +58,17 @@ export default function Tasks() {
   // Ler parâmetros da URL
   const urlParams = useTaskUrlParams();
   
+  // Construir filtros iniciais baseados na URL para evitar flash
+  const initialFilters = useMemo(() => {
+    const filters: TypedActiveFilter[] = [];
+    
+    if (urlParams.clientFilter) {
+      filters.push(createTypedFilter("client", [urlParams.clientFilter]));
+    }
+    
+    return filters;
+  }, [urlParams.clientFilter]);
+  
   // Use the task filters hook for search, assignee, and priority filtering
   const {
     viewMode,
@@ -74,33 +86,17 @@ export default function Tasks() {
     todoTasks,
     inProgressTasks,
     doneTasks,
-  } = useTaskFilters(tasks);
+  } = useTaskFilters(tasks, initialFilters);
 
-  // Aplicar filtros e ordenação baseados nos parâmetros da URL
+  // Aplicar ordenação baseados nos parâmetros da URL (apenas uma vez)
   useEffect(() => {
-    if (urlParams.clientFilter) {
-      // Verificar se já existe filtro de cliente
-      const hasClientFilter = activeFilters.some(
-        f => f.type === "client" && Array.isArray(f.value) && f.value.includes(urlParams.clientFilter!)
-      );
-      
-      if (!hasClientFilter) {
-        addFilter("client", [urlParams.clientFilter]);
-      }
-    }
-
-    if (urlParams.viewMode === "table") {
-      setViewMode("table");
-    }
-
-    // Aplicar ordenação padrão quando vier de cliente detalhado
     if (urlParams.shouldApplyDefaultSort && sorts.length === 0) {
       setSorts([
         { field: "dueDate", direction: "desc" },
         { field: "priority", direction: "asc" }
       ]);
     }
-  }, [urlParams.clientFilter, urlParams.viewMode, urlParams.shouldApplyDefaultSort, activeFilters, addFilter, setViewMode, sorts.length, setSorts]);
+  }, [urlParams.shouldApplyDefaultSort, sorts.length, setSorts]);
   
   // Helper function for selection hook
   const getTasksByStatus = useCallback((status: TaskStatus): Task[] => {

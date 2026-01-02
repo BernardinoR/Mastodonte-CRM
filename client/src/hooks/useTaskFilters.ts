@@ -60,7 +60,7 @@ const STATUS_ORDER: Record<string, number> = {
   "Done": 3,
 };
 
-export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
+export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter[]): UseTaskFiltersReturn {
   // Inicializar viewMode baseado na URL para evitar flash ao navegar
   const initialViewMode = typeof window !== "undefined" 
     ? (new URLSearchParams(window.location.search).get("view") === "table" ? "table" : "board")
@@ -68,7 +68,7 @@ export function useTaskFilters(tasks: Task[]): UseTaskFiltersReturn {
   
   const [viewMode, setViewMode] = useState<"board" | "table">(initialViewMode);
   const [sorts, setSorts] = useState<SortOption[]>([]);
-  const [activeFilters, setActiveFilters] = useState<TypedActiveFilter[]>([]);
+  const [activeFilters, setActiveFilters] = useState<TypedActiveFilter[]>(initialFilters || []);
 
   const availableAssignees = useMemo(() => {
     const assignees = new Set<string>();
