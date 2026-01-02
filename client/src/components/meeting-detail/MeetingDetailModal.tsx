@@ -10,7 +10,8 @@ import {
   Calendar, 
   Clock, 
   Video, 
-  Timer
+  Timer,
+  Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MeetingSummary } from "./MeetingSummary";
@@ -43,6 +44,10 @@ export function MeetingDetailModal({
 }: MeetingDetailModalProps) {
   const [localMeeting, setLocalMeeting] = useState<MeetingDetail | null>(meeting);
   const { isLoading: isAILoading, processWithAI } = useAISummary();
+
+  // Estados para edição do título
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingName, setEditingName] = useState("");
 
   // Update local meeting when prop changes
   if (meeting && localMeeting?.id !== meeting.id) {
@@ -163,6 +168,15 @@ export function MeetingDetailModal({
     }
   };
 
+  // Handler para salvar nome
+  const handleSaveName = useCallback(() => {
+    if (!localMeeting || !editingName.trim()) return;
+    const updated = { ...localMeeting, name: editingName };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { name: editingName });
+    setIsEditingName(false);
+  }, [localMeeting, editingName, onUpdateMeeting]);
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -191,9 +205,32 @@ export function MeetingDetailModal({
                 <FileText className="w-[22px] h-[22px]" />
               </div>
               <div>
-                <h1 className="text-[1.375rem] font-semibold text-white mb-2.5">
-                  {localMeeting.name}
-                </h1>
+                {isEditingName ? (
+                  <input
+                    type="text"
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    onBlur={handleSaveName}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveName();
+                      if (e.key === "Escape") setIsEditingName(false);
+                    }}
+                    autoFocus
+                    className="text-[1.375rem] font-semibold text-white bg-transparent border-b border-[#2eaadc] focus:outline-none mb-2.5 w-full"
+                  />
+                ) : (
+                  <div className="group/title flex items-center gap-2 mb-2.5">
+                    <h1 className="text-[1.375rem] font-semibold text-white">
+                      {localMeeting.name}
+                    </h1>
+                    <button 
+                      onClick={() => { setIsEditingName(true); setEditingName(localMeeting.name); }}
+                      className="opacity-0 group-hover/title:opacity-100 p-1 rounded hover:bg-[#3a3a3a] transition-opacity"
+                    >
+                      <Pencil className="w-4 h-4 text-muted-foreground" />
+                    </button>
+                  </div>
+                )}
                 <div className="flex gap-2 flex-wrap">
                   <Badge className={cn(typeColors[localMeeting.type] || "bg-[#333333] text-[#a0a0a0]", "text-xs")}>
                     ● {localMeeting.type}
