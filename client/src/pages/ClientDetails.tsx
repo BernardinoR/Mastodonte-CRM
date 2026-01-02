@@ -146,11 +146,9 @@ export default function ClientDetails() {
 
       <div className="mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {/* 1. AUM */}
           {stats
-            .filter(s => {
-              const labelLower = s.label.toLowerCase();
-              return labelLower !== "tasks concluídas" && !labelLower.includes("reuniões");
-            })
+            .filter(s => s.label.toLowerCase().includes("aum"))
             .map((stat, index) => (
               <Card 
                 key={`${stat.label}-${index}`} 
@@ -181,8 +179,46 @@ export default function ClientDetails() {
                 )}
               </Card>
             ))}
+          
+          {/* 2. Reuniões */}
           <MeetingsCard meetings={meetings} />
+          
+          {/* 3. Tasks Concluídas */}
           <TasksCompletedCard tasks={clientTasks} />
+          
+          {/* 4. Indicações */}
+          {stats
+            .filter(s => s.label.toLowerCase().includes("indicaç"))
+            .map((stat, index) => (
+              <Card 
+                key={`${stat.label}-${index}`} 
+                className="p-4 bg-[#202020] border-[#333333]"
+                data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+              >
+                <div 
+                  className="text-2xl font-bold text-foreground" 
+                  data-testid={`text-stat-value-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {stat.value}
+                </div>
+                <div 
+                  className="text-xs text-muted-foreground mt-1" 
+                  data-testid={`text-stat-label-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {stat.label}
+                </div>
+                {stat.change && (
+                  <div 
+                    className={`text-xs mt-2 ${
+                      stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
+                    }`}
+                    data-testid={`text-stat-change-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
+                  >
+                    {stat.change}
+                  </div>
+                )}
+              </Card>
+            ))}
         </div>
       </div>
 

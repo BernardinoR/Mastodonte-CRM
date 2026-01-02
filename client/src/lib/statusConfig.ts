@@ -190,9 +190,9 @@ export const TASK_PRIORITY_BADGE_COLORS: Record<TaskPriority, string> = {
 };
 
 export const MEETING_STATUS_BADGE_COLORS: Record<string, string> = {
-  "Agendada": "bg-[#243041] text-[#6db1d4]",
+  "Agendada": "bg-[#1c3847] text-[#2eaadc]",
   "Realizada": "bg-[#203828] text-[#6ecf8e]",
-  "Cancelada": "bg-[#3d2626] text-[#e07a7a]",
+  "Cancelada": "bg-[#3d2828] text-[#dc6b6b]",
 };
 
 export const getTaskStatusBadgeColor = (status: TaskStatus): string => {

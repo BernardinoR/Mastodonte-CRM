@@ -39,7 +39,7 @@ interface ClientMeetingsProps {
 export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }: ClientMeetingsProps) {
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingDetail | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const { getFullClientData, getMeetingDetail } = useClients();
+  const { getFullClientData, getMeetingDetail, updateClientMeeting } = useClients();
   
   const clientData = getFullClientData(clientId);
   const clientName = clientData?.client.name || "";
@@ -277,6 +277,34 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
     setDetailModalOpen(true);
   };
 
+  // Handler para atualizar reunião (sincroniza tabela e modal)
+  const handleUpdateMeeting = useCallback((meetingId: string, updates: Partial<MeetingDetail>) => {
+    // Atualizar no contexto (sincroniza com tabela)
+    updateClientMeeting(clientId, meetingId, updates);
+    
+    // Atualizar estado local do modal se estiver aberto
+    if (selectedMeeting && selectedMeeting.id === meetingId) {
+      setSelectedMeeting(prev => prev ? { ...prev, ...updates } : null);
+    }
+  }, [clientId, updateClientMeeting, selectedMeeting]);
+
+  // Sincronizar modal quando a tabela atualiza (quando meetings muda)
+  useEffect(() => {
+    if (selectedMeeting && detailModalOpen) {
+      const updatedMeeting = meetings.find(m => m.id === selectedMeeting.id);
+      if (updatedMeeting) {
+        // Atualizar apenas tipo e status se mudaram na tabela
+        if (updatedMeeting.type !== selectedMeeting.type || updatedMeeting.status !== selectedMeeting.status) {
+          setSelectedMeeting(prev => prev ? {
+            ...prev,
+            type: updatedMeeting.type,
+            status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
+          } : null);
+        }
+      }
+    }
+  }, [meetings, selectedMeeting, detailModalOpen]);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -467,6 +495,7 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
         meeting={selectedMeeting}
         open={detailModalOpen}
         onOpenChange={setDetailModalOpen}
+        onUpdateMeeting={handleUpdateMeeting}
       />
     </div>
   );

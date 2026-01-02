@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Badge } from "@/components/ui/badge";
@@ -63,10 +63,22 @@ export function MeetingDetailModal({
   const [typePopoverOpen, setTypePopoverOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
 
-  // Update local meeting when prop changes
-  if (meeting && localMeeting?.id !== meeting.id) {
-    setLocalMeeting(meeting);
-  }
+  // Update local meeting when prop changes (ID, type, or status)
+  useEffect(() => {
+    if (meeting) {
+      if (!localMeeting || localMeeting.id !== meeting.id) {
+        // Meeting changed completely
+        setLocalMeeting(meeting);
+      } else if (
+        localMeeting.type !== meeting.type ||
+        localMeeting.status !== meeting.status ||
+        localMeeting.name !== meeting.name
+      ) {
+        // Update specific fields that might have changed from table
+        setLocalMeeting(prev => prev ? { ...prev, ...meeting } : meeting);
+      }
+    }
+  }, [meeting, localMeeting]);
 
   // Handle summary update
   const handleSummaryUpdate = useCallback((data: {
@@ -389,30 +401,42 @@ export function MeetingDetailModal({
           </div>
 
           {/* Modal Body - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-8 space-y-8">
-            <MeetingSummary 
-              summary={localMeeting.summary}
-              clientName={localMeeting.clientName}
-              clientContext={localMeeting.clientContext}
-              highlights={localMeeting.highlights}
-              onUpdate={handleSummaryUpdate}
-            />
+          <div className="flex-1 overflow-y-auto p-8">
+            {localMeeting.status === "Realizada" ? (
+              <div className="space-y-8">
+                <MeetingSummary 
+                  summary={localMeeting.summary}
+                  clientName={localMeeting.clientName}
+                  clientContext={localMeeting.clientContext}
+                  highlights={localMeeting.highlights}
+                  onUpdate={handleSummaryUpdate}
+                />
 
-            <MeetingAgenda 
-              agenda={localMeeting.agenda}
-              onUpdate={handleAgendaUpdate}
-            />
+                <MeetingAgenda 
+                  agenda={localMeeting.agenda}
+                  onUpdate={handleAgendaUpdate}
+                />
 
-            <MeetingDecisions 
-              decisions={localMeeting.decisions}
-              onUpdate={handleDecisionsUpdate}
-            />
+                <MeetingDecisions 
+                  decisions={localMeeting.decisions}
+                  onUpdate={handleDecisionsUpdate}
+                />
 
-            <MeetingTasks tasks={localMeeting.linkedTasks} />
+                <MeetingTasks tasks={localMeeting.linkedTasks} />
 
-            <MeetingParticipants participants={localMeeting.participants} />
+                <MeetingParticipants participants={localMeeting.participants} />
 
-            <MeetingAttachments attachments={localMeeting.attachments} />
+                <MeetingAttachments attachments={localMeeting.attachments} />
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full min-h-[300px] text-center">
+                <div className="text-[#8c8c8c] text-lg">
+                  {localMeeting.status === "Agendada" 
+                    ? "Esta reunião está agendada. O conteúdo estará disponível após sua realização."
+                    : "Esta reunião foi cancelada."}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Modal Footer */}
