@@ -4,7 +4,7 @@
  */
 import { Link } from "wouter";
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
-import { CheckCircle2, Search, X, Calendar, CheckSquare, Flag, User } from "lucide-react";
+import { CheckCircle2, Search, X, Calendar, CheckSquare, Flag, User, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
   const [selectedPriorities, setSelectedPriorities] = useState<(TaskPriority | "none")[]>(PRIORITY_OPTIONS);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>({ type: "all" });
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
+  const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   
   // Calcular responsáveis disponíveis das tasks
   const availableAssignees = useMemo(() => {
@@ -163,146 +164,186 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
             <h2 className="text-base font-semibold text-foreground">Tasks</h2>
             </div>
           
-          {/* Search - Expandable with animation (mesmo estilo do FilterBar) */}
-          <div 
-            className={cn(
-              "relative flex items-center h-8 rounded-full overflow-hidden transition-all duration-300 ease-out",
-              searchFilter.isSearchOpen 
-                ? "w-52 bg-[#1a1a1a] border border-[#333] px-3" 
-                : "w-8"
-            )}
-          >
-            <button
-              onClick={() => !searchFilter.isSearchOpen && searchFilter.openSearch()}
-              className={cn(
-                "flex items-center justify-center shrink-0 transition-colors",
-                searchFilter.isSearchOpen 
-                  ? "w-4 h-4 text-gray-500 cursor-default" 
-                  : "w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-              )}
-              data-testid="button-search"
-            >
-              <Search className="w-4 h-4" />
-            </button>
-            
-            <div className={cn(
-              "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
-              searchFilter.isSearchOpen ? "w-full opacity-100 ml-1.5" : "w-0 opacity-0"
-            )}>
-              <Input
-                ref={searchInputRef}
-                type="text"
-                value={searchFilter.searchTerm}
-                onChange={(e) => searchFilter.setSearchTerm(e.target.value)}
-                onBlur={handleSearchBlur}
-                onKeyDown={(e) => {
-                  if (e.key === "Escape") {
-                    handleClearSearch();
-                  }
-                }}
-                placeholder="Buscar tarefa..."
-                className="h-7 flex-1 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
-                data-testid="input-search-task"
-              />
-              {searchFilter.searchTerm && (
+          {/* Botão Toggle Expansor (Plus → X) */}
           <button
-                  onClick={handleClearSearch}
-                  className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
-                  data-testid="button-clear-search"
-                >
-                  <X className="w-3.5 h-3.5" />
+            onClick={() => setIsFiltersExpanded(!isFiltersExpanded)}
+            className="w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a] flex items-center justify-center transition-colors focus:outline-none"
+            aria-label="Mostrar/ocultar filtros e busca"
+            data-testid="button-toggle-filters"
+          >
+            <Plus className={cn(
+              "w-4 h-4 transition-transform duration-300",
+              isFiltersExpanded && "rotate-45"
+            )} />
           </button>
+          
+          {/* Container animado - Busca + Filtros */}
+          <div className={cn(
+            "flex items-center gap-1 overflow-hidden transition-all duration-300 ease-out",
+            isFiltersExpanded ? "opacity-100" : "w-0 opacity-0"
+          )}>
+            {/* Busca */}
+            <div 
+              className={cn(
+                "relative flex items-center h-8 rounded-full overflow-hidden transition-all duration-300 ease-out",
+                isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0",
+                searchFilter.isSearchOpen 
+                  ? "w-52 bg-[#1a1a1a] border border-[#333] px-3" 
+                  : "w-8"
               )}
+              style={{ transitionDelay: isFiltersExpanded ? "0ms" : "0ms" }}
+            >
+              <button
+                onClick={() => !searchFilter.isSearchOpen && searchFilter.openSearch()}
+                className={cn(
+                  "flex items-center justify-center shrink-0 transition-colors",
+                  searchFilter.isSearchOpen 
+                    ? "w-4 h-4 text-gray-500 cursor-default" 
+                    : "w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+                )}
+                data-testid="button-search"
+              >
+                <Search className="w-4 h-4" />
+              </button>
+              
+              <div className={cn(
+                "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
+                searchFilter.isSearchOpen ? "w-full opacity-100 ml-1.5" : "w-0 opacity-0"
+              )}>
+                <Input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchFilter.searchTerm}
+                  onChange={(e) => searchFilter.setSearchTerm(e.target.value)}
+                  onBlur={handleSearchBlur}
+                  onKeyDown={(e) => {
+                    if (e.key === "Escape") {
+                      handleClearSearch();
+                    }
+                  }}
+                  placeholder="Buscar tarefa..."
+                  className="h-7 flex-1 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
+                  data-testid="input-search-task"
+                />
+                {searchFilter.searchTerm && (
+                  <button
+                    onClick={handleClearSearch}
+                    className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
+                    data-testid="button-clear-search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
+
+            {/* Filtro Status */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
+                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                  )}
+                  style={{ transitionDelay: isFiltersExpanded ? "50ms" : "0ms" }}
+                  aria-label="Filtrar por status"
+                  data-testid="button-filter-status"
+                >
+                  <CheckSquare className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                <StatusFilterContent 
+                  selectedValues={selectedStatuses} 
+                  onToggle={handleStatusToggle} 
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Filtro Prioridade */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
+                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                  )}
+                  style={{ transitionDelay: isFiltersExpanded ? "100ms" : "0ms" }}
+                  aria-label="Filtrar por prioridade"
+                  data-testid="button-filter-priority"
+                >
+                  <Flag className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                <PriorityFilterContent 
+                  selectedValues={selectedPriorities} 
+                  onToggle={handlePriorityToggle} 
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Filtro Data */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
+                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                  )}
+                  style={{ transitionDelay: isFiltersExpanded ? "150ms" : "0ms" }}
+                  aria-label="Filtrar por data"
+                  data-testid="button-filter-date"
+                >
+                  <Calendar className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6}>
+                <DateRangeFilterContent 
+                  value={dateFilter}
+                  onChange={handleDateChange}
+                />
+              </PopoverContent>
+            </Popover>
+            
+            {/* Filtro Responsável */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
+                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                  )}
+                  style={{ transitionDelay: isFiltersExpanded ? "200ms" : "0ms" }}
+                  aria-label="Filtrar por responsável"
+                  data-testid="button-filter-assignee"
+                >
+                  <User className="w-4 h-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                <SearchableMultiSelect
+                  items={availableAssignees}
+                  selectedItems={selectedAssignees}
+                  onSelectionChange={handleAssigneeChange}
+                  placeholder="Buscar responsável..."
+                  selectedLabel="Responsável selecionado"
+                  availableLabel="Selecione mais"
+                  emptyMessage="Nenhum responsável encontrado"
+                  itemType="user"
+                />
+              </PopoverContent>
+            </Popover>
           </div>
-          
-          {/* Filtros */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
-                aria-label="Filtrar por status"
-                data-testid="button-filter-status"
-              >
-                <CheckSquare className="w-4 h-4" />
-              </Button>
-          </PopoverTrigger>
-            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-              <StatusFilterContent 
-                selectedValues={selectedStatuses} 
-                onToggle={handleStatusToggle} 
-            />
-          </PopoverContent>
-        </Popover>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
-                aria-label="Filtrar por prioridade"
-                data-testid="button-filter-priority"
-              >
-                <Flag className="w-4 h-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-              <PriorityFilterContent 
-                selectedValues={selectedPriorities} 
-                onToggle={handlePriorityToggle} 
-              />
-            </PopoverContent>
-          </Popover>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
-                aria-label="Filtrar por data"
-                data-testid="button-filter-date"
-              >
-                <Calendar className="w-4 h-4" />
-              </Button>
-                    </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6}>
-              <DateRangeFilterContent 
-                value={dateFilter}
-                onChange={handleDateChange}
-                      />
-                    </PopoverContent>
-                  </Popover>
-          
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0"
-                aria-label="Filtrar por responsável"
-                data-testid="button-filter-assignee"
-              >
-                <User className="w-4 h-4" />
-              </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-              <SearchableMultiSelect
-                items={availableAssignees}
-                selectedItems={selectedAssignees}
-                onSelectionChange={handleAssigneeChange}
-                placeholder="Buscar responsável..."
-                selectedLabel="Responsável selecionado"
-                availableLabel="Selecione mais"
-                emptyMessage="Nenhum responsável encontrado"
-                itemType="user"
-                        />
-                      </PopoverContent>
-                    </Popover>
-      </div>
+        </div>
 
         <Link 
           href={buildTasksUrl(clientName)} 
