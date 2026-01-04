@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@/components/filter-bar/MeetingFilterContent";
+import { SingleAssigneeSelector } from "@/components/task-editors/AssigneeSelector";
+import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
@@ -69,6 +71,9 @@ export function MeetingDetailModal({
   // Estados para edição inline do horário
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [editingTimeValue, setEditingTimeValue] = useState("");
+
+  // Estado para popover de responsável
+  const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false);
 
   // Update local meeting when prop changes (ID, type, or status)
   useEffect(() => {
@@ -284,6 +289,25 @@ export function MeetingDetailModal({
     
     setIsEditingTime(false);
   }, [localMeeting, editingTimeValue, onUpdateMeeting]);
+
+  // Handler para mudar responsável (sincroniza com assignees da tabela)
+  const handleResponsibleChange = useCallback((name: string) => {
+    if (!localMeeting) return;
+    const consultant = MOCK_RESPONSIBLES.find(c => c.name === name);
+    const responsible = {
+      name,
+      initials: consultant?.initials || name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+    };
+    
+    // Substituir apenas o primeiro assignee, mantendo os demais
+    const currentAssignees = localMeeting.assignees || [];
+    const assignees = [name, ...currentAssignees.slice(1)];
+    
+    const updated = { ...localMeeting, responsible, assignees };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { responsible, assignees });
+    setResponsiblePopoverOpen(false);
+  }, [localMeeting, onUpdateMeeting]);
 
   const handleClose = () => {
     onOpenChange(false);
@@ -503,17 +527,35 @@ export function MeetingDetailModal({
               </div>
             </div>
 
-            <div className="ml-auto flex items-center gap-2.5">
-              <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                Responsável:
-              </span>
-              <div className="w-8 h-8 bg-[#2563eb] rounded-full flex items-center justify-center text-xs font-semibold text-white">
-                {localMeeting.responsible.initials}
-              </div>
-              <span className="text-sm font-medium text-[#ededed]">
-                {localMeeting.responsible.name}
-              </span>
-            </div>
+            <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
+              <PopoverTrigger asChild>
+                <button 
+                  type="button"
+                  className="ml-auto flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
+                >
+                  <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                    Responsável:
+                  </span>
+                  <div className="w-8 h-8 bg-[#2563eb] rounded-full flex items-center justify-center text-xs font-semibold text-white">
+                    {localMeeting.responsible.initials}
+                  </div>
+                  <span className="text-sm font-medium text-[#ededed]">
+                    {localMeeting.responsible.name}
+                  </span>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-64 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                side="bottom" 
+                align="end" 
+                sideOffset={6}
+              >
+                <SingleAssigneeSelector
+                  selectedAssignee={localMeeting.responsible.name}
+                  onSelect={handleResponsibleChange}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           {/* Modal Body - Scrollable */}

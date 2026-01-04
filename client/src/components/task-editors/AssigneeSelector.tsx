@@ -363,3 +363,97 @@ export function ContextMenuAssigneeEditor({
     </div>
   );
 }
+
+// ============================================
+// SingleAssigneeSelector - Seleção única de responsável
+// ============================================
+
+interface SingleAssigneeSelectorProps {
+  selectedAssignee: string | null;
+  onSelect: (assignee: string) => void;
+}
+
+export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAssigneeSelectorProps) {
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  const selectedConsultant = MOCK_RESPONSIBLES.find(c => c.name === selectedAssignee);
+  
+  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
+    consultant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  
+  return (
+    <div className="w-full">
+      <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar consultor..."
+          className="bg-transparent border-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0 p-0 h-auto"
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+          autoFocus
+          data-testid="input-search-single-assignee"
+        />
+      </div>
+      
+      {selectedConsultant && (
+        <div className="border-b border-[#2a2a2a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            Responsável atual
+          </div>
+          <div className="px-3 py-1">
+            <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
+              <Avatar className="w-5 h-5 shrink-0">
+                <AvatarFallback className={cn("text-[9px] font-normal text-white", selectedConsultant.grayColor)}>
+                  {selectedConsultant.initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-foreground flex-1">{selectedConsultant.name}</span>
+              <Check className="w-4 h-4 text-emerald-500" />
+            </div>
+          </div>
+        </div>
+      )}
+      
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        {selectedConsultant ? 'Alterar para' : 'Selecionar responsável'}
+      </div>
+      
+      <div 
+        className="max-h-52 overflow-y-auto scrollbar-thin"
+        onWheel={(e) => {
+          e.stopPropagation();
+          e.currentTarget.scrollTop += e.deltaY;
+        }}
+      >
+        {availableConsultants
+          .filter(c => c.name !== selectedAssignee)
+          .map((consultant) => (
+          <div
+            key={consultant.id}
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(consultant.name);
+            }}
+            data-testid={`option-single-assignee-${consultant.id}`}
+          >
+            <Avatar className="w-5 h-5 shrink-0">
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
+                {consultant.initials}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+          </div>
+        ))}
+        {availableConsultants.filter(c => c.name !== selectedAssignee).length === 0 && (
+          <div className="px-3 py-4 text-sm text-gray-500 text-center">
+            {searchQuery ? 'Nenhum consultor encontrado' : 'Nenhum consultor disponível'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

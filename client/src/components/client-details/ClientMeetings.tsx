@@ -293,13 +293,32 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
     if (selectedMeeting && detailModalOpen) {
       const updatedMeeting = meetings.find(m => m.id === selectedMeeting.id);
       if (updatedMeeting) {
-        // Atualizar apenas tipo e status se mudaram na tabela
-        if (updatedMeeting.type !== selectedMeeting.type || updatedMeeting.status !== selectedMeeting.status) {
-          setSelectedMeeting(prev => prev ? {
-            ...prev,
-            type: updatedMeeting.type,
-            status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
-          } : null);
+        const typeChanged = updatedMeeting.type !== selectedMeeting.type;
+        const statusChanged = updatedMeeting.status !== selectedMeeting.status;
+        const assigneesChanged = JSON.stringify(updatedMeeting.assignees) !== JSON.stringify(selectedMeeting.assignees);
+        
+        if (typeChanged || statusChanged || assigneesChanged) {
+          setSelectedMeeting(prev => {
+            if (!prev) return null;
+            
+            // Atualizar responsible se o primeiro assignee mudou
+            const newFirstAssignee = updatedMeeting.assignees?.[0];
+            const currentFirstAssignee = prev.assignees?.[0];
+            const responsible = newFirstAssignee && newFirstAssignee !== currentFirstAssignee
+              ? {
+                  name: newFirstAssignee,
+                  initials: newFirstAssignee.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+                }
+              : prev.responsible;
+            
+            return {
+              ...prev,
+              type: updatedMeeting.type,
+              status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
+              assignees: updatedMeeting.assignees,
+              responsible,
+            };
+          });
         }
       }
     }
