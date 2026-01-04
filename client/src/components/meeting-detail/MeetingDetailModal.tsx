@@ -15,7 +15,7 @@ import {
   Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@/components/filter-bar/MeetingFilterContent";
+import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
@@ -28,10 +28,6 @@ import type { MeetingDetail, MeetingClientContext, MeetingHighlight, MeetingAgen
 import { 
   MEETING_TYPE_COLORS, 
   MEETING_STATUS_COLORS, 
-  MEETING_FALLBACK_COLOR,
-  MEETING_TYPE_OPTIONS,
-  MEETING_STATUS_OPTIONS,
-  MEETING_LOCATION_OPTIONS,
   type MeetingType,
   type MeetingStatus,
   type MeetingLocation
@@ -423,30 +419,11 @@ export function MeetingDetailModal({
                   </div>
                 </button>
               </PopoverTrigger>
-              <PopoverContent 
-                className="w-48 p-1 bg-[#1a1a1a] border-[#2a2a2a]" 
-                side="bottom" 
-                align="start" 
-                sideOffset={6}
-              >
-                <div className="flex flex-col">
-                  {MEETING_LOCATION_OPTIONS.map((location) => (
-                    <button
-                      key={location}
-                      type="button"
-                      onClick={() => handleLocationChange(location)}
-                      className={cn(
-                        "px-3 py-2 text-sm text-left rounded-md transition-colors",
-                        "hover:bg-[#252525]",
-                        localMeeting.location === location 
-                          ? "text-[#2eaadc] bg-[#1c3847]" 
-                          : "text-[#ededed]"
-                      )}
-                    >
-                      {location}
-                    </button>
-                  ))}
-                </div>
+              <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                <MeetingLocationFilterContent
+                  selectedValues={[localMeeting.location as MeetingLocation]}
+                  onToggle={handleLocationChange}
+                />
               </PopoverContent>
             </Popover>
 

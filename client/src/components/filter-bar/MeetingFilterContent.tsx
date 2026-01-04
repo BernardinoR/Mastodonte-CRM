@@ -8,8 +8,11 @@ import {
   MEETING_TYPE_COLORS, 
   MEETING_TYPE_OPTIONS,
   MEETING_STATUS_OPTIONS,
+  MEETING_LOCATION_OPTIONS,
+  MEETING_LOCATION_COLORS,
   type MeetingType,
-  type MeetingStatus 
+  type MeetingStatus,
+  type MeetingLocation
 } from "@shared/config/meetingConfig";
 import { MEETING_STATUS_BADGE_COLORS } from "@/lib/statusConfig";
 
@@ -49,6 +52,25 @@ export const MeetingStatusFilterContent = memo(function MeetingStatusFilterConte
       onToggle={onToggle}
       colorMap={colorMap}
       label="Status selecionado"
+    />
+  );
+});
+
+export const MeetingLocationFilterContent = memo(function MeetingLocationFilterContent({
+  selectedValues,
+  onToggle,
+}: {
+  selectedValues: MeetingLocation[];
+  onToggle: (location: MeetingLocation) => void;
+}) {
+  const colorMap = MEETING_LOCATION_COLORS as Record<MeetingLocation, string>;
+  return (
+    <BadgeFilterContent
+      options={MEETING_LOCATION_OPTIONS}
+      selectedValues={selectedValues}
+      onToggle={onToggle}
+      colorMap={colorMap}
+      label="Local selecionado"
     />
   );
 });

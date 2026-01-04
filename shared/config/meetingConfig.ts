@@ -37,3 +37,12 @@ export const MEETING_LOCATION_OPTIONS = [
 ] as const;
 export type MeetingLocation = (typeof MEETING_LOCATION_OPTIONS)[number];
 
+// Cores dos badges por local de reunião
+export const MEETING_LOCATION_COLORS: Record<MeetingLocation, string> = {
+  "Google Meet": "bg-[#1e3a5f] text-[#4da6ff]",
+  "Zoom": "bg-[#1a3350] text-[#2d8cff]",
+  "Microsoft Teams": "bg-[#2d2640] text-[#a78bfa]",
+  "Presencial": "bg-[#203828] text-[#6ecf8e]",
+  "Telefone": "bg-[#3d3828] text-[#dcb092]",
+};
+
