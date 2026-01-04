@@ -66,6 +66,10 @@ export function MeetingDetailModal({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [locationPopoverOpen, setLocationPopoverOpen] = useState(false);
 
+  // Estados para edição inline do horário
+  const [isEditingTime, setIsEditingTime] = useState(false);
+  const [editingTimeValue, setEditingTimeValue] = useState("");
+
   // Update local meeting when prop changes (ID, type, or status)
   useEffect(() => {
     if (meeting) {
@@ -242,6 +246,45 @@ export function MeetingDetailModal({
     setLocationPopoverOpen(false);
   }, [localMeeting, onUpdateMeeting]);
 
+  // Handler para iniciar edição do horário
+  const handleStartEditTime = useCallback(() => {
+    if (!localMeeting) return;
+    setEditingTimeValue(`${localMeeting.startTime} - ${localMeeting.endTime}`);
+    setIsEditingTime(true);
+  }, [localMeeting]);
+
+  // Handler para máscara do horário (HH:MM - HH:MM)
+  const handleTimeInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/[^\d]/g, ""); // Remove tudo exceto números
+    let formatted = "";
+    
+    for (let i = 0; i < value.length && i < 8; i++) {
+      if (i === 2 || i === 6) formatted += ":";
+      if (i === 4) formatted += " - ";
+      formatted += value[i];
+    }
+    
+    setEditingTimeValue(formatted);
+  }, []);
+
+  // Handler para salvar horário
+  const handleSaveTime = useCallback(() => {
+    if (!localMeeting) return;
+    
+    // Parse: "HH:MM - HH:MM"
+    const match = editingTimeValue.match(/^(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})$/);
+    if (match) {
+      const startTime = `${match[1]}:${match[2]}`;
+      const endTime = `${match[3]}:${match[4]}`;
+      
+      const updated = { ...localMeeting, startTime, endTime };
+      setLocalMeeting(updated);
+      onUpdateMeeting?.(localMeeting.id, { startTime, endTime });
+    }
+    
+    setIsEditingTime(false);
+  }, [localMeeting, editingTimeValue, onUpdateMeeting]);
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -388,15 +431,34 @@ export function MeetingDetailModal({
 
             <div className="w-px h-8 bg-[#333333]" />
 
-            <div className="flex items-center gap-2.5">
+            <div 
+              className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
+              onClick={!isEditingTime ? handleStartEditTime : undefined}
+            >
               <Clock className="w-4 h-4 text-[#8c8c8c]" />
               <div className="flex flex-col">
                 <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
                   Horário
                 </span>
-                <span className="text-sm font-medium text-[#ededed]">
-                  {localMeeting.startTime} - {localMeeting.endTime}
-                </span>
+                {isEditingTime ? (
+                  <input
+                    type="text"
+                    value={editingTimeValue}
+                    onChange={handleTimeInputChange}
+                    onBlur={handleSaveTime}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleSaveTime();
+                      if (e.key === "Escape") setIsEditingTime(false);
+                    }}
+                    autoFocus
+                    placeholder="00:00 - 00:00"
+                    className="text-sm font-medium text-white bg-transparent border-b border-[#2eaadc] focus:outline-none w-[110px]"
+                  />
+                ) : (
+                  <span className="text-sm font-medium text-[#ededed]">
+                    {localMeeting.startTime} - {localMeeting.endTime}
+                  </span>
+                )}
               </div>
             </div>
 
