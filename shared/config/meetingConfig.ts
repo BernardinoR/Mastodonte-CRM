@@ -27,3 +27,13 @@ export const MEETING_STATUS_COLORS: Record<MeetingStatus, string> = {
 // Fallback color para tipos/status não reconhecidos
 export const MEETING_FALLBACK_COLOR = "bg-[#333333] text-[#a0a0a0]";
 
+// Locais de reunião disponíveis
+export const MEETING_LOCATION_OPTIONS = [
+  "Google Meet",
+  "Zoom",
+  "Microsoft Teams",
+  "Presencial",
+  "Telefone",
+] as const;
+export type MeetingLocation = (typeof MEETING_LOCATION_OPTIONS)[number];
+

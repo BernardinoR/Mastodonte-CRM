@@ -31,9 +31,12 @@ import {
   MEETING_FALLBACK_COLOR,
   MEETING_TYPE_OPTIONS,
   MEETING_STATUS_OPTIONS,
+  MEETING_LOCATION_OPTIONS,
   type MeetingType,
-  type MeetingStatus
+  type MeetingStatus,
+  type MeetingLocation
 } from "@shared/config/meetingConfig";
+import { DateInput } from "@/components/ui/date-input";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;
@@ -62,6 +65,10 @@ export function MeetingDetailModal({
   // Estados para popovers de badges
   const [typePopoverOpen, setTypePopoverOpen] = useState(false);
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
+
+  // Estados para popovers de metadados
+  const [datePopoverOpen, setDatePopoverOpen] = useState(false);
+  const [locationPopoverOpen, setLocationPopoverOpen] = useState(false);
 
   // Update local meeting when prop changes (ID, type, or status)
   useEffect(() => {
@@ -221,6 +228,24 @@ export function MeetingDetailModal({
     setStatusPopoverOpen(false);
   }, [localMeeting, onUpdateMeeting]);
 
+  // Handler para mudar data
+  const handleDateChange = useCallback((date: Date | undefined) => {
+    if (!localMeeting || !date) return;
+    const updated = { ...localMeeting, date };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { date });
+    setDatePopoverOpen(false);
+  }, [localMeeting, onUpdateMeeting]);
+
+  // Handler para mudar local
+  const handleLocationChange = useCallback((location: MeetingLocation) => {
+    if (!localMeeting) return;
+    const updated = { ...localMeeting, location };
+    setLocalMeeting(updated);
+    onUpdateMeeting?.(localMeeting.id, { location });
+    setLocationPopoverOpen(false);
+  }, [localMeeting, onUpdateMeeting]);
+
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -333,17 +358,37 @@ export function MeetingDetailModal({
 
           {/* Meta Info Bar */}
           <div className="px-8 py-4 bg-[#171717] border-b border-[#333333] flex items-center gap-8 flex-wrap">
-            <div className="flex items-center gap-2.5">
-              <Calendar className="w-4 h-4 text-[#8c8c8c]" />
-              <div className="flex flex-col">
-                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                  Data
-                </span>
-                <span className="text-sm font-medium text-[#ededed]">
-                  {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
-                </span>
-              </div>
-            </div>
+            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+              <PopoverTrigger asChild>
+                <button 
+                  type="button"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
+                >
+                  <Calendar className="w-4 h-4 text-[#8c8c8c]" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                      Data
+                    </span>
+                    <span className="text-sm font-medium text-[#ededed]">
+                      {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
+                    </span>
+                  </div>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-auto p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
+                side="bottom" 
+                align="start" 
+                sideOffset={6}
+              >
+                <DateInput
+                  value={localMeeting.date}
+                  onChange={handleDateChange}
+                  hideIcon
+                  commitOnInput={false}
+                />
+              </PopoverContent>
+            </Popover>
 
             <div className="w-px h-8 bg-[#333333]" />
 
@@ -361,17 +406,49 @@ export function MeetingDetailModal({
 
             <div className="w-px h-8 bg-[#333333]" />
 
-            <div className="flex items-center gap-2.5">
-              <Video className="w-4 h-4 text-[#8c8c8c]" />
-              <div className="flex flex-col">
-                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                  Local
-                </span>
-                <span className="text-sm font-medium text-[#ededed]">
-                  {localMeeting.location}
-                </span>
-              </div>
-            </div>
+            <Popover open={locationPopoverOpen} onOpenChange={setLocationPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button 
+                  type="button"
+                  className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
+                >
+                  <Video className="w-4 h-4 text-[#8c8c8c]" />
+                  <div className="flex flex-col text-left">
+                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                      Local
+                    </span>
+                    <span className="text-sm font-medium text-[#ededed]">
+                      {localMeeting.location}
+                    </span>
+                  </div>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent 
+                className="w-48 p-1 bg-[#1a1a1a] border-[#2a2a2a]" 
+                side="bottom" 
+                align="start" 
+                sideOffset={6}
+              >
+                <div className="flex flex-col">
+                  {MEETING_LOCATION_OPTIONS.map((location) => (
+                    <button
+                      key={location}
+                      type="button"
+                      onClick={() => handleLocationChange(location)}
+                      className={cn(
+                        "px-3 py-2 text-sm text-left rounded-md transition-colors",
+                        "hover:bg-[#252525]",
+                        localMeeting.location === location 
+                          ? "text-[#2eaadc] bg-[#1c3847]" 
+                          : "text-[#ededed]"
+                      )}
+                    >
+                      {location}
+                    </button>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
 
             <div className="w-px h-8 bg-[#333333]" />
 
