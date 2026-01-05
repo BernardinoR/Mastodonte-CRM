@@ -1,7 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import { storage } from "./storage";
-import type { User, UserRole } from "@shared/schema";
+import type { User } from "@prisma/client";
+import type { UserRole } from "@shared/types";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,

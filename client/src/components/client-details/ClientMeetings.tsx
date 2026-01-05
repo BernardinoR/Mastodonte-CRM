@@ -312,9 +312,9 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
               : prev.responsible;
             
             return {
-              ...prev,
-              type: updatedMeeting.type,
-              status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
+            ...prev,
+            type: updatedMeeting.type,
+            status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
               assignees: updatedMeeting.assignees,
               responsible,
             };

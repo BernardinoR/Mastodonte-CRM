@@ -1,85 +1,117 @@
-import { type User, type InsertUser, type Group, type InsertGroup, type UserRole, users, groups } from "@shared/schema";
-import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { prisma } from "./db";
+import type { User, Group } from "@prisma/client";
+import type { UserRole } from "@shared/types";
+
+// Types for insert operations
+export type InsertUser = {
+  clerkId: string;
+  email: string;
+  name?: string | null;
+  roles?: UserRole[];
+  groupId?: number | null;
+  isActive?: boolean;
+};
+
+export type InsertGroup = {
+  name: string;
+  description?: string | null;
+  logoUrl?: string | null;
+  isActive?: boolean;
+};
 
 export interface IStorage {
-  getUser(id: number): Promise<User | undefined>;
-  getUserByClerkId(clerkId: string): Promise<User | undefined>;
+  getUser(id: number): Promise<User | null>;
+  getUserByClerkId(clerkId: string): Promise<User | null>;
   createUser(user: InsertUser): Promise<User>;
-  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined>;
+  updateUser(id: number, updates: Partial<InsertUser>): Promise<User | null>;
   getAllUsers(): Promise<User[]>;
   getUsersByGroupId(groupId: number): Promise<User[]>;
   
-  getGroup(id: number): Promise<Group | undefined>;
+  getGroup(id: number): Promise<Group | null>;
   createGroup(group: InsertGroup): Promise<Group>;
-  updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | undefined>;
+  updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | null>;
   deleteGroup(id: number): Promise<boolean>;
   getAllGroups(): Promise<Group[]>;
 }
 
 export class DbStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    return result[0];
+  async getUser(id: number): Promise<User | null> {
+    return prisma.user.findUnique({ where: { id } });
   }
 
-  async getUserByClerkId(clerkId: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.clerkId, clerkId));
-    return result[0];
+  async getUserByClerkId(clerkId: string): Promise<User | null> {
+    return prisma.user.findUnique({ where: { clerkId } });
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values({
-      clerkId: insertUser.clerkId,
-      email: insertUser.email,
-      name: insertUser.name ?? null,
-      roles: insertUser.roles ?? ["consultor"],
-      groupId: insertUser.groupId ?? null,
-      isActive: insertUser.isActive ?? true,
-    }).returning();
-    return result[0];
+    return prisma.user.create({
+      data: {
+        clerkId: insertUser.clerkId,
+        email: insertUser.email,
+        name: insertUser.name ?? null,
+        roles: insertUser.roles ?? ["consultor"],
+        groupId: insertUser.groupId ?? null,
+        isActive: insertUser.isActive ?? true,
+      },
+    });
   }
 
-  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | undefined> {
-    const result = await db.update(users).set(updates).where(eq(users.id, id)).returning();
-    return result[0];
+  async updateUser(id: number, updates: Partial<InsertUser>): Promise<User | null> {
+    try {
+      return await prisma.user.update({
+        where: { id },
+        data: updates,
+      });
+    } catch {
+      return null;
+    }
   }
 
   async getAllUsers(): Promise<User[]> {
-    return db.select().from(users);
+    return prisma.user.findMany();
   }
 
   async getUsersByGroupId(groupId: number): Promise<User[]> {
-    return db.select().from(users).where(eq(users.groupId, groupId));
+    return prisma.user.findMany({ where: { groupId } });
   }
 
-  async getGroup(id: number): Promise<Group | undefined> {
-    const result = await db.select().from(groups).where(eq(groups.id, id));
-    return result[0];
+  async getGroup(id: number): Promise<Group | null> {
+    return prisma.group.findUnique({ where: { id } });
   }
 
   async createGroup(insertGroup: InsertGroup): Promise<Group> {
-    const result = await db.insert(groups).values({
-      name: insertGroup.name,
-      description: insertGroup.description ?? null,
-      logoUrl: insertGroup.logoUrl ?? null,
-      isActive: insertGroup.isActive ?? true,
-    }).returning();
-    return result[0];
+    return prisma.group.create({
+      data: {
+        name: insertGroup.name,
+        description: insertGroup.description ?? null,
+        logoUrl: insertGroup.logoUrl ?? null,
+        isActive: insertGroup.isActive ?? true,
+      },
+    });
   }
 
-  async updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | undefined> {
-    const result = await db.update(groups).set(updates).where(eq(groups.id, id)).returning();
-    return result[0];
+  async updateGroup(id: number, updates: Partial<InsertGroup>): Promise<Group | null> {
+    try {
+      return await prisma.group.update({
+        where: { id },
+        data: updates,
+      });
+    } catch {
+      return null;
+    }
   }
 
   async deleteGroup(id: number): Promise<boolean> {
-    const result = await db.delete(groups).where(eq(groups.id, id)).returning();
-    return result.length > 0;
+    try {
+      await prisma.group.delete({ where: { id } });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   async getAllGroups(): Promise<Group[]> {
-    return db.select().from(groups);
+    return prisma.group.findMany();
   }
 }
 

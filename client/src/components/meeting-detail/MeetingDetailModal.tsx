@@ -427,15 +427,15 @@ export function MeetingDetailModal({
                   type="button"
                   className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
                 >
-                  <Calendar className="w-4 h-4 text-[#8c8c8c]" />
+              <Calendar className="w-4 h-4 text-[#8c8c8c]" />
                   <div className="flex flex-col text-left">
-                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                      Data
-                    </span>
-                    <span className="text-sm font-medium text-[#ededed]">
-                      {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
+                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                  Data
+                </span>
+                <span className="text-sm font-medium text-[#ededed]">
+                  {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
+                </span>
+              </div>
                 </button>
               </PopoverTrigger>
               <PopoverContent 
@@ -479,9 +479,9 @@ export function MeetingDetailModal({
                     className="text-sm font-medium text-white bg-transparent border-b border-[#2eaadc] focus:outline-none w-[110px]"
                   />
                 ) : (
-                  <span className="text-sm font-medium text-[#ededed]">
-                    {localMeeting.startTime} - {localMeeting.endTime}
-                  </span>
+                <span className="text-sm font-medium text-[#ededed]">
+                  {localMeeting.startTime} - {localMeeting.endTime}
+                </span>
                 )}
               </div>
             </div>
@@ -494,15 +494,15 @@ export function MeetingDetailModal({
                   type="button"
                   className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
                 >
-                  <Video className="w-4 h-4 text-[#8c8c8c]" />
+              <Video className="w-4 h-4 text-[#8c8c8c]" />
                   <div className="flex flex-col text-left">
-                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                      Local
-                    </span>
-                    <span className="text-sm font-medium text-[#ededed]">
-                      {localMeeting.location}
-                    </span>
-                  </div>
+                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                  Local
+                </span>
+                <span className="text-sm font-medium text-[#ededed]">
+                  {localMeeting.location}
+                </span>
+              </div>
                 </button>
               </PopoverTrigger>
               <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
@@ -533,15 +533,15 @@ export function MeetingDetailModal({
                   type="button"
                   className="ml-auto flex items-center gap-2.5 rounded-lg px-2 py-1.5 -mx-2 -my-1.5 hover:bg-[#252525] transition-colors cursor-pointer"
                 >
-                  <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                    Responsável:
-                  </span>
-                  <div className="w-8 h-8 bg-[#2563eb] rounded-full flex items-center justify-center text-xs font-semibold text-white">
-                    {localMeeting.responsible.initials}
-                  </div>
-                  <span className="text-sm font-medium text-[#ededed]">
-                    {localMeeting.responsible.name}
-                  </span>
+              <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
+                Responsável:
+              </span>
+              <div className="w-8 h-8 bg-[#2563eb] rounded-full flex items-center justify-center text-xs font-semibold text-white">
+                {localMeeting.responsible.initials}
+              </div>
+              <span className="text-sm font-medium text-[#ededed]">
+                {localMeeting.responsible.name}
+              </span>
                 </button>
               </PopoverTrigger>
               <PopoverContent 

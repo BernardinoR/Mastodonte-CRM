@@ -3,7 +3,25 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { clerkAuthMiddleware, requireAdmin } from "./auth";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
-import { insertGroupSchema, insertUserSchema, type UserRole } from "@shared/schema";
+import { z } from "zod";
+import { USER_ROLES, type UserRole } from "@shared/types";
+
+// Validation schemas (replacing drizzle-zod)
+const insertGroupSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional().nullable(),
+  logoUrl: z.string().optional().nullable(),
+  isActive: z.boolean().optional(),
+});
+
+const insertUserSchema = z.object({
+  clerkId: z.string(),
+  email: z.string().email(),
+  name: z.string().optional().nullable(),
+  roles: z.array(z.enum(USER_ROLES)).optional(),
+  groupId: z.number().nullable().optional(),
+  isActive: z.boolean().optional(),
+});
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,

@@ -1,0 +1,116 @@
+// Prisma Schema - CRM Mastodonte
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTENTICAÇÃO E USUÁRIOS
+// ============================================
+
+model Group {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  logoUrl     String?  @map("logo_url")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  users       User[]
+
+  @@map("groups")
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  clerkId  String   @unique @map("clerk_id")
+  email    String
+  name     String?
+  roles    String[] @default(["consultor"])
+  groupId  Int?     @map("group_id")
+  isActive Boolean  @default(true) @map("is_active")
+  group    Group?   @relation(fields: [groupId], references: [id])
+
+  // Relações
+  clientsOwned    Client[]  @relation("ClientOwner")
+  tasksAssigned   Task[]    @relation("TaskAssignee")
+  tasksCreated    Task[]    @relation("TaskCreator")
+  meetingsCreated Meeting[] @relation("MeetingCreator")
+
+  @@map("users")
+}
+
+// ============================================
+// ENTIDADES PRINCIPAIS (CRM)
+// ============================================
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String?
+  company   String?
+  position  String?
+  notes     String?
+  patrimony Decimal? @db.Decimal(15, 2)
+  ownerId   Int?     @map("owner_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  owner    User?     @relation("ClientOwner", fields: [ownerId], references: [id])
+  meetings Meeting[]
+  tasks    Task[]
+
+  @@map("clients")
+}
+
+model Meeting {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  date        DateTime
+  startTime   String?  @map("start_time")
+  endTime     String?  @map("end_time")
+  location    String?
+  type        String   @default("Prospecção")
+  status      String   @default("Agendada")
+  clientId    Int      @map("client_id")
+  creatorId   Int?     @map("creator_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  client  Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  creator User?  @relation("MeetingCreator", fields: [creatorId], references: [id])
+  tasks   Task[]
+
+  @@map("meetings")
+}
+
+model Task {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  priority    String    @default("Média")
+  status      String    @default("A fazer")
+  dueDate     DateTime? @map("due_date")
+  clientId    Int?      @map("client_id")
+  meetingId   Int?      @map("meeting_id")
+  assigneeId  Int?      @map("assignee_id")
+  creatorId   Int?      @map("creator_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  client   Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  meeting  Meeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  assignee User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creator  User?    @relation("TaskCreator", fields: [creatorId], references: [id])
+
+  @@map("tasks")
+}

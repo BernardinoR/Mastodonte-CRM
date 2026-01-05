@@ -15,7 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { ImageCropModal } from "@/components/ImageCropModal";
-import type { User as DbUser, Group } from "@shared/schema";
+import type { User as DbUser, Group } from "@shared/types";
 
 const ROLE_LABELS: Record<string, string> = {
   administrador: "Admin",
