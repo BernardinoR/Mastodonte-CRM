@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Phone,
   Mail,
@@ -48,6 +48,15 @@ function MetaItem({
   );
 }
 
+interface ClientMeeting {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+  date: Date;
+  assignees: string[];
+}
+
 interface ClientHeaderProps {
   client: {
     id: string;
@@ -64,6 +73,7 @@ interface ClientHeaderProps {
     clientSince: string;
     status: ClientStatus;
   };
+  meetings: ClientMeeting[];
   whatsappGroups: WhatsAppGroup[];
   editingState: ReturnType<typeof useClientHeaderEditing>;
   onNewMeeting: () => void;
@@ -80,6 +90,7 @@ interface ClientHeaderProps {
 
 export function ClientHeader({
   client,
+  meetings,
   whatsappGroups,
   editingState,
   onNewMeeting,
@@ -94,6 +105,14 @@ export function ClientHeader({
   onUpdateStatus,
 }: ClientHeaderProps) {
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
+
+  // Calcular última reunião mensal realizada (tipo "Mensal" + status "Realizada")
+  const lastMonthlyMeetingDate = useMemo(() => {
+    const monthlyMeetings = meetings
+      .filter(m => m.type === "Mensal" && m.status === "Realizada")
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    return monthlyMeetings[0]?.date || client.lastMeeting;
+  }, [meetings, client.lastMeeting]);
 
   const {
     isEditingName,
@@ -249,7 +268,7 @@ export function ClientHeader({
             <MetaItem 
               icon={CalendarIcon} 
               label="Última Reunião" 
-              value={format(client.lastMeeting, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} 
+              value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} 
             />
             <AddressPopover
               address={client.address}

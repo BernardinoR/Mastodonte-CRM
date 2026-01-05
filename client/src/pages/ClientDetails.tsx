@@ -130,6 +130,7 @@ export default function ClientDetails() {
 
       <ClientHeader
         client={client}
+        meetings={meetings}
         whatsappGroups={whatsappGroups}
         editingState={editingState}
         onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
