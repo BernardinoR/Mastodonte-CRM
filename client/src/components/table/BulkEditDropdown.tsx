@@ -11,10 +11,9 @@ import {
   PenLine,
   ChevronRight,
 } from "lucide-react";
-import { parseLocalDate } from "@/lib/date-utils";
+import { DateInput } from "@/components/ui/date-input";
 import { 
   ContextMenuClientEditor,
-  ContextMenuDateEditor,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
@@ -164,12 +163,16 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
         
         <SubMenu label="Data" icon={<CalendarIcon className="w-4 h-4" />}>
           <div className="p-0">
-            <ContextMenuDateEditor 
-              currentDate={currentDate}
-              isBulk={true}
-              onSelect={(dateString) => {
-                onDateChange(parseLocalDate(dateString));
+            <DateInput
+              value={currentDate}
+              onChange={(date) => {
+                if (date) {
+                  onDateChange(date);
+                }
               }}
+              hideIcon={true}
+              commitOnInput={false}
+              dataTestId="bulk-edit-date-input"
             />
           </div>
         </SubMenu>
