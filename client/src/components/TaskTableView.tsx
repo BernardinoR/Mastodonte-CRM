@@ -8,6 +8,7 @@ import {
   DragEndEvent,
   DragStartEvent,
 } from "@dnd-kit/core";
+import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SmartPointerSensor } from "@/lib/dndSensors";
 import {
   arrayMove,
@@ -91,13 +92,42 @@ export const TaskTableView = memo(function TaskTableView({
 
   const taskIds = useMemo(() => tasks.map(t => `task-${t.id}`), [tasks]);
 
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(event.active.id as string);
+  // Handler para drag de LINHAS (restrito ao eixo vertical)
+  const handleRowDragStart = useCallback((event: DragStartEvent) => {
+    const activeIdStr = event.active.id as string;
+    // Só processa se for uma linha (task-)
+    if (activeIdStr.startsWith("task-")) {
+      setActiveId(activeIdStr);
+    }
   }, []);
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
+  const handleRowDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    
+    if (!over || active.id === over.id) return;
+
+    const activeIdStr = active.id as string;
+    const overIdStr = over.id as string;
+
+    // Só processa se ambos forem linhas (task-)
+    if (activeIdStr.startsWith("task-") && overIdStr.startsWith("task-")) {
+      const activeTaskId = activeIdStr.replace("task-", "");
+      const overTaskId = overIdStr.replace("task-", "");
+      
+      const oldIndex = tasks.findIndex((t) => t.id === activeTaskId);
+      const newIndex = tasks.findIndex((t) => t.id === overTaskId);
+      
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedTasks = arrayMove([...tasks], oldIndex, newIndex);
+        onReorderTasks?.(reorderedTasks);
+      }
+    }
+  }, [tasks, onReorderTasks]);
+
+  // Handler para drag de COLUNAS (será usado no TableHeader)
+  const handleColumnDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
     
     if (!over || active.id === over.id) return;
 
@@ -113,19 +143,8 @@ export const TaskTableView = memo(function TaskTableView({
         const newIndex = items.findIndex((i) => i.id === overColId);
         return arrayMove(items, oldIndex, newIndex);
       });
-    } else if (activeIdStr.startsWith("task-") && overIdStr.startsWith("task-")) {
-      const activeTaskId = activeIdStr.replace("task-", "");
-      const overTaskId = overIdStr.replace("task-", "");
-      
-      const oldIndex = tasks.findIndex((t) => t.id === activeTaskId);
-      const newIndex = tasks.findIndex((t) => t.id === overTaskId);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedTasks = arrayMove([...tasks], oldIndex, newIndex);
-        onReorderTasks?.(reorderedTasks);
-      }
     }
-  }, [tasks, onReorderTasks]);
+  }, [setColumns]);
 
   // Selection handlers
   const handleSelectTask = useCallback((taskId: string, checked: boolean, shiftKey: boolean = false) => {
@@ -228,28 +247,30 @@ export const TaskTableView = memo(function TaskTableView({
         />
       )}
       <div className="min-w-max">
-        <DndContext 
-          sensors={sensors} 
-          collisionDetection={closestCenter} 
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-        >
-          <TableHeader
-            columns={columns}
-            controlWidth={HEADER_CONTROL_WIDTH}
-            allSelected={allSelected}
-            someSelected={someSelected}
-            onSelectAll={handleSelectAll}
-            stickyOffset="0"
-            onResizeStart={handleResizeStart}
-            onResizeMove={handleResizeMove}
-            onResizeEnd={handleResizeEnd}
-          />
-          {tasks.length === 0 ? (
-            <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
-              Nenhuma tarefa encontrada
-            </div>
-          ) : (
+        <TableHeader
+          columns={columns}
+          controlWidth={HEADER_CONTROL_WIDTH}
+          allSelected={allSelected}
+          someSelected={someSelected}
+          onSelectAll={handleSelectAll}
+          stickyOffset="0"
+          onResizeStart={handleResizeStart}
+          onResizeMove={handleResizeMove}
+          onResizeEnd={handleResizeEnd}
+          onColumnReorder={handleColumnDragEnd}
+        />
+        {tasks.length === 0 ? (
+          <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
+            Nenhuma tarefa encontrada
+          </div>
+        ) : (
+          <DndContext 
+            sensors={sensors} 
+            collisionDetection={closestCenter} 
+            modifiers={[restrictToVerticalAxis]}
+            onDragStart={handleRowDragStart}
+            onDragEnd={handleRowDragEnd}
+          >
             <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
               {tasks.map((task) => (
                 <TaskTableRow 
@@ -273,8 +294,8 @@ export const TaskTableView = memo(function TaskTableView({
                 />
               ))}
             </SortableContext>
-          )}
-        </DndContext>
+          </DndContext>
+        )}
       </div>
     </div>
   );

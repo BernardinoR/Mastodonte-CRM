@@ -1,14 +1,25 @@
-import { memo, useMemo, useRef, useEffect, useState } from "react";
+import { memo, useMemo, useRef, useEffect, useState, useCallback } from "react";
 import { GripVertical } from "lucide-react";
+import { 
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import { 
   SortableContext, 
   horizontalListSortingStrategy, 
-  useSortable 
+  useSortable,
+  sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
+import { SmartPointerSensor } from "@/lib/dndSensors";
 
 export interface Column {
   id: string;
@@ -69,6 +80,7 @@ interface TableHeaderProps {
   onResizeStart?: (columnId: string, clientX: number) => void;
   onResizeMove?: (clientX: number) => void;
   onResizeEnd?: (finalClientX?: number) => void;
+  onColumnReorder?: (event: DragEndEvent) => void;
 }
 
 export const TableHeader = memo(function TableHeader({
@@ -81,10 +93,26 @@ export const TableHeader = memo(function TableHeader({
   onResizeStart,
   onResizeMove,
   onResizeEnd,
+  onColumnReorder,
 }: TableHeaderProps) {
   const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnOffsets, setColumnOffsets] = useState<number[]>([]);
+
+  // Sensors para drag de colunas
+  const sensors = useSensors(
+    useSensor(SmartPointerSensor, {
+      activationConstraint: { distance: 5 },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  // Handler de drag para colunas (restrito ao eixo horizontal)
+  const handleColumnDragEnd = useCallback((event: DragEndEvent) => {
+    onColumnReorder?.(event);
+  }, [onColumnReorder]);
 
   useEffect(() => {
     if (!gridRef.current || !onResizeStart) return;
@@ -147,28 +175,41 @@ export const TableHeader = memo(function TableHeader({
           gridTemplateColumns: columns.map(c => c.width).join(" "),
         }}
       >
-        <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
-          {columns.map((column) => (
-            <SortableColumnHeader 
-              key={column.id} 
-              column={column}
-            />
-          ))}
-        </SortableContext>
-        {onResizeStart && onResizeMove && onResizeEnd && columnOffsets.map((offset, index) => (
-          <div
-            key={`resize-${columns[index].id}`}
-            className="resize-handle-overlay absolute top-0 bottom-0"
-            style={{ left: `${offset}px`, transform: 'translateX(-2px)' }}
-          >
-            <ColumnResizeHandle
-              columnId={columns[index].id}
-              onResizeStart={onResizeStart}
-              onResizeMove={onResizeMove}
-              onResizeEnd={onResizeEnd}
-            />
-          </div>
-        ))}
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          modifiers={[restrictToHorizontalAxis]}
+          onDragEnd={handleColumnDragEnd}
+        >
+          <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
+            {columns.map((column) => (
+              <SortableColumnHeader 
+                key={column.id} 
+                column={column}
+              />
+            ))}
+          </SortableContext>
+        </DndContext>
+        {onResizeStart && onResizeMove && onResizeEnd && 
+          columns.slice(0, -1).map((column, index) => {
+            const offset = columnOffsets[index];
+            if (offset === undefined) return null;
+            
+            return (
+              <div
+                key={`resize-${column.id}`}
+                className="resize-handle-overlay absolute top-0 bottom-0"
+                style={{ left: `${offset}px`, transform: 'translateX(-2px)' }}
+              >
+                <ColumnResizeHandle
+                  columnId={column.id}
+                  onResizeStart={onResizeStart}
+                  onResizeMove={onResizeMove}
+                  onResizeEnd={onResizeEnd}
+                />
+              </div>
+            );
+          })}
       </div>
     </div>
   );
