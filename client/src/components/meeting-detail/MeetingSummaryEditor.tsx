@@ -3,7 +3,7 @@ import { FileText, User, Check, Sparkles, Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAISummary, type AIResponse } from "@/hooks/useAISummary";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
-import { TagEditorModal, TagDisplay, type TagData, type TagType } from "./TagEditorModal";
+import { TagEditorModal, TagDisplay, InlineTagEditor, type TagData, type TagType } from "./TagEditorModal";
 import type { IconName } from "./IconPicker";
 import type { MeetingClientContext, MeetingHighlight } from "@/types/meeting";
 
@@ -59,7 +59,6 @@ export function MeetingSummaryEditor({
       type: h.type === "warning" ? "warning" : "finance" as TagType,
     }));
   });
-  const [tagModalOpen, setTagModalOpen] = useState(false);
 
   // AI integration
   const { isLoading, error, processWithAI, clearError } = useAISummary();
@@ -209,7 +208,7 @@ export function MeetingSummaryEditor({
             onKeyDown={handleKeyDown}
             data-placeholder="Escreva o resumo da reunião aqui. Selecione texto e pressione Ctrl+B para negrito..."
             className={cn(
-              "min-h-[60px] text-[#c0c0c0] text-[0.9375rem] leading-[1.8] outline-none",
+              "min-h-[60px] text-sm text-[#a0a0a0] leading-[1.7] outline-none",
               "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-[#555555]",
               "[&_strong]:text-white [&_strong]:font-semibold",
               "[&_b]:text-white [&_b]:font-semibold"
@@ -236,14 +235,7 @@ export function MeetingSummaryEditor({
               onRemove={() => handleRemoveTag(tag.id)}
             />
           ))}
-          <button
-            type="button"
-            onClick={() => setTagModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888]"
-          >
-            <Plus className="w-3 h-3" />
-            Adicionar tag
-          </button>
+          <InlineTagEditor onAddTag={handleAddTag} />
         </div>
 
         {/* Action Buttons */}
@@ -314,13 +306,6 @@ export function MeetingSummaryEditor({
           Salvar Resumo
         </button>
       </div>
-
-      {/* Tag Modal */}
-      <TagEditorModal
-        open={tagModalOpen}
-        onOpenChange={setTagModalOpen}
-        onAddTag={handleAddTag}
-      />
     </div>
   );
 }

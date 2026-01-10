@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { X, Calendar, Plane, Truck, AlertTriangle } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { X, Calendar, Plane, Truck, AlertTriangle, Check, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn } from "@/lib/utils";
@@ -139,13 +139,17 @@ export function TagDisplay({ tag, onRemove, editable = true }: TagDisplayProps) 
   const IconComponent = getIconComponent(tag.icon);
 
   return (
-    <div
+    <span
       className={cn(
-        "group inline-flex items-center gap-2 px-3.5 py-2 rounded-md text-[0.8125rem] font-medium cursor-default transition-all",
-        TAG_STYLES[tag.type]
+        "group inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#252730] border border-[#363842] rounded-md text-xs text-[#ededed] cursor-default transition-all"
       )}
     >
-      <IconComponent className="w-3.5 h-3.5" />
+      <IconComponent 
+        className={cn(
+          "w-3 h-3",
+          tag.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"
+        )} 
+      />
       {tag.text}
       {editable && (
         <button
@@ -156,9 +160,141 @@ export function TagDisplay({ tag, onRemove, editable = true }: TagDisplayProps) 
           <X className="w-3 h-3" />
         </button>
       )}
-    </div>
+    </span>
   );
 }
 
 export { TAG_STYLES, TAG_ICONS };
+
+interface InlineTagEditorProps {
+  onAddTag: (tag: TagData) => void;
+  onCancel?: () => void;
+}
+
+export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
+  const [text, setText] = useState("");
+  const [selectedType, setSelectedType] = useState<TagType>("finance");
+  const [isExpanded, setIsExpanded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isExpanded && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isExpanded]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        if (!text.trim()) {
+          setIsExpanded(false);
+          onCancel?.();
+        }
+      }
+    }
+
+    if (isExpanded) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isExpanded, text, onCancel]);
+
+  const handleConfirm = () => {
+    if (!text.trim()) return;
+
+    const newTag: TagData = {
+      id: crypto.randomUUID(),
+      icon: TAG_ICONS[selectedType],
+      text: text.trim(),
+      type: selectedType,
+    };
+
+    onAddTag(newTag);
+    setText("");
+    setSelectedType("finance");
+    setIsExpanded(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleConfirm();
+    } else if (e.key === "Escape") {
+      setIsExpanded(false);
+      setText("");
+      onCancel?.();
+    }
+  };
+
+  if (!isExpanded) {
+    return (
+      <button
+        type="button"
+        onClick={() => setIsExpanded(true)}
+        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888]"
+      >
+        <Plus className="w-3 h-3" />
+        Adicionar tag
+      </button>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className="inline-flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-md px-3 py-2">
+        <input
+          ref={inputRef}
+          type="text"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Digite o texto da tag..."
+          className="bg-transparent border-none outline-none text-[#ededed] text-[0.8125rem] min-w-[120px] placeholder:text-[#555555]"
+        />
+        <div className="flex items-center gap-1">
+          {TAG_TYPES.map(({ type, icon: Icon, iconClass }) => (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setSelectedType(type)}
+              className={cn(
+                "w-6 h-6 rounded flex items-center justify-center transition-all",
+                iconClass,
+                selectedType === type && "ring-2 ring-[#a78bfa] ring-offset-1 ring-offset-[#1a1a1a]"
+              )}
+              title={TAG_TYPES.find(t => t.type === type)?.label}
+            >
+              <Icon className="w-3.5 h-3.5" />
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={!text.trim()}
+          className="w-6 h-6 rounded flex items-center justify-center bg-[#7c3aed] text-white transition-all hover:bg-[#6d28d9] disabled:opacity-50 disabled:cursor-not-allowed"
+          title="Confirmar"
+        >
+          <Check className="w-3.5 h-3.5" />
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setIsExpanded(false);
+            setText("");
+            onCancel?.();
+          }}
+          className="w-6 h-6 rounded flex items-center justify-center text-[#888888] hover:bg-[#333333] hover:text-[#ededed] transition-all"
+          title="Cancelar"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
+    </div>
+  );
+}
 

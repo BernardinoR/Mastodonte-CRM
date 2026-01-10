@@ -12,6 +12,23 @@ import {
   Star,
   Target,
   Plus,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  Car,
+  Shield,
+  PiggyBank,
+  BarChart,
+  User,
+  Users,
+  Info,
+  CheckCircle,
+  Clock,
+  Timer,
+  Lock,
+  Settings,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +44,23 @@ const AVAILABLE_ICONS = [
   { name: "heart", icon: Heart, label: "Saúde" },
   { name: "star", icon: Star, label: "Destaque" },
   { name: "target", icon: Target, label: "Meta" },
+  { name: "dollar-sign", icon: DollarSign, label: "Dinheiro" },
+  { name: "trending-up", icon: TrendingUp, label: "Crescimento" },
+  { name: "trending-down", icon: TrendingDown, label: "Queda" },
+  { name: "calendar", icon: Calendar, label: "Calendário" },
+  { name: "car", icon: Car, label: "Carro" },
+  { name: "shield", icon: Shield, label: "Seguro" },
+  { name: "piggy-bank", icon: PiggyBank, label: "Poupança" },
+  { name: "bar-chart", icon: BarChart, label: "Gráfico" },
+  { name: "user", icon: User, label: "Pessoa" },
+  { name: "users", icon: Users, label: "Pessoas" },
+  { name: "info", icon: Info, label: "Informação" },
+  { name: "check-circle", icon: CheckCircle, label: "Confirmado" },
+  { name: "clock", icon: Clock, label: "Relógio" },
+  { name: "timer", icon: Timer, label: "Timer" },
+  { name: "lock", icon: Lock, label: "Bloqueado" },
+  { name: "settings", icon: Settings, label: "Configurações" },
+  { name: "file-text", icon: FileText, label: "Documento" },
 ] as const;
 
 export type IconName = typeof AVAILABLE_ICONS[number]["name"];
@@ -80,7 +114,7 @@ export function IconPicker({ selectedIcon, onSelect, triggerClassName }: IconPic
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-0 mt-2 bg-[#1a1a1a] border border-[#333333] rounded-lg p-2 grid grid-cols-4 gap-1 z-50 shadow-lg shadow-black/50">
+        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#1a1a1a] border border-[#333333] rounded-lg p-2 grid grid-cols-5 gap-1 z-50 shadow-lg shadow-black/50 max-h-[300px] overflow-y-auto">
           {AVAILABLE_ICONS.map(({ name, icon: Icon }) => (
             <button
               key={name}

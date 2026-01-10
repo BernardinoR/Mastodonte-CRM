@@ -35,7 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
-import { TagEditorModal, TagDisplay, type TagData, type TagType } from "./TagEditorModal";
+import { TagEditorModal, TagDisplay, InlineTagEditor, type TagData, type TagType } from "./TagEditorModal";
 import type { IconName } from "./IconPicker";
 import type { MeetingClientContext, MeetingHighlight } from "@/types/meeting";
 
@@ -173,7 +173,6 @@ export function MeetingSummary({
       type: h.type === "warning" ? "warning" : "finance" as TagType,
     }));
   });
-  const [tagModalOpen, setTagModalOpen] = useState(false);
 
   // Keyboard shortcuts for bold
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -459,9 +458,9 @@ export function MeetingSummary({
       </div>
 
       {/* Summary Container */}
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl overflow-hidden">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl">
         {/* Main Text Editor */}
-        <div className="p-6">
+        <div className="p-5">
           <div
             ref={editorRef}
             contentEditable
@@ -469,7 +468,7 @@ export function MeetingSummary({
             onKeyDown={handleKeyDown}
             data-placeholder="Escreva o resumo da reunião aqui. Selecione texto e pressione Ctrl+B para negrito..."
             className={cn(
-              "min-h-[60px] text-[#c0c0c0] text-[0.9375rem] leading-[1.8] outline-none",
+              "min-h-[60px] text-sm text-[#a0a0a0] leading-[1.7] outline-none",
               "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-[#555555]",
               "[&_strong]:text-white [&_strong]:font-semibold",
               "[&_b]:text-white [&_b]:font-semibold"
@@ -496,23 +495,9 @@ export function MeetingSummary({
               onRemove={() => handleRemoveTag(tag.id)}
             />
           ))}
-          <button
-            type="button"
-            onClick={() => setTagModalOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888]"
-          >
-            <Plus className="w-3 h-3" />
-            Adicionar tag
-          </button>
+          <InlineTagEditor onAddTag={handleAddTag} />
         </div>
       </div>
-
-      {/* Tag Modal */}
-      <TagEditorModal
-        open={tagModalOpen}
-        onOpenChange={setTagModalOpen}
-        onAddTag={handleAddTag}
-      />
     </div>
   );
 }

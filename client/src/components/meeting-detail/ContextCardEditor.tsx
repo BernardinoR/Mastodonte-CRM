@@ -77,7 +77,7 @@ export function ContextSectionEditor({
   };
 
   return (
-    <div className="p-5 pt-5 bg-[#151515] border-t border-[#2a2a2a]">
+    <div className="p-4 pt-4 bg-[#151515] border-t border-[#2a2a2a]">
       <div className="flex items-center gap-2 mb-4">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[#a78bfa]">
           CONTEXTO DA CLIENTE -
@@ -105,7 +105,7 @@ export function ContextSectionEditor({
       <button
         type="button"
         onClick={addCard}
-        className="mt-3 w-full flex items-center justify-center gap-2 p-5 bg-transparent border-2 border-dashed border-[#2a2a2a] rounded-lg text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#444444] hover:text-[#888888]"
+        className="mt-3 w-full flex items-center justify-center gap-2 p-4 bg-transparent border-2 border-dashed border-[#2a2a2a] rounded-lg text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#444444] hover:text-[#888888]"
       >
         <span className="text-lg">+</span>
         Adicionar contexto
