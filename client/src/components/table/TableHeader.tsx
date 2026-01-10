@@ -7,6 +7,8 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
+  DragOverlay,
 } from "@dnd-kit/core";
 import { restrictToHorizontalAxis } from "@dnd-kit/modifiers";
 import { 
@@ -55,7 +57,7 @@ const SortableColumnHeader = memo(function SortableColumnHeader({
       className={cn(
         "relative flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide select-none cursor-grab active:cursor-grabbing",
         "text-muted-foreground/70",
-        isDragging && "opacity-50 bg-muted rounded"
+        isDragging && "opacity-0"
       )}
       data-testid={`header-column-${column.id}`}
       {...attributes}
@@ -98,6 +100,7 @@ export const TableHeader = memo(function TableHeader({
   const columnIds = useMemo(() => columns.map(c => `col-${c.id}`), [columns]);
   const gridRef = useRef<HTMLDivElement>(null);
   const [columnOffsets, setColumnOffsets] = useState<number[]>([]);
+  const [activeColumn, setActiveColumn] = useState<Column | null>(null);
 
   // Sensors para drag de colunas
   const sensors = useSensors(
@@ -110,7 +113,14 @@ export const TableHeader = memo(function TableHeader({
   );
 
   // Handler de drag para colunas (restrito ao eixo horizontal)
+  const handleColumnDragStart = useCallback((event: DragStartEvent) => {
+    const columnId = (event.active.id as string).replace("col-", "");
+    const column = columns.find(c => c.id === columnId);
+    setActiveColumn(column || null);
+  }, [columns]);
+
   const handleColumnDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveColumn(null);
     onColumnReorder?.(event);
   }, [onColumnReorder]);
 
@@ -179,6 +189,7 @@ export const TableHeader = memo(function TableHeader({
           sensors={sensors}
           collisionDetection={closestCenter}
           modifiers={[restrictToHorizontalAxis]}
+          onDragStart={handleColumnDragStart}
           onDragEnd={handleColumnDragEnd}
         >
           <SortableContext items={columnIds} strategy={horizontalListSortingStrategy}>
@@ -189,6 +200,14 @@ export const TableHeader = memo(function TableHeader({
               />
             ))}
           </SortableContext>
+          <DragOverlay>
+            {activeColumn && (
+              <div className="flex items-center gap-1.5 px-3 py-2 text-xs font-normal uppercase tracking-wide bg-background border border-border rounded shadow-lg">
+                <GripVertical className="w-3 h-3 text-muted-foreground" />
+                <span>{activeColumn.label}</span>
+              </div>
+            )}
+          </DragOverlay>
         </DndContext>
         {onResizeStart && onResizeMove && onResizeEnd && 
           columns.slice(0, -1).map((column, index) => {
