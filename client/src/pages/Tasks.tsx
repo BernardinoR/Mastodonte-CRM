@@ -133,8 +133,8 @@ export default function Tasks() {
     clearSelection,
   });
 
-  // Use the turbo mode hook for focused task processing
-  const turboMode = useTurboMode(tasks);
+  // Use the turbo mode hook for focused task processing (uses filtered tasks)
+  const turboMode = useTurboMode(filteredTasks);
 
   // Visible task IDs for SortableContext (limited by pagination)
   const visibleTodoTaskIds = useMemo(() => 
