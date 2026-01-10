@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LayoutDashboard, Users, Calendar, CheckSquare, LogOut, Shield, Check } from "lucide-react";
+import { LayoutDashboard, Users, CheckSquare, LogOut, Shield, Check } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser } from "@clerk/clerk-react";
 import {
@@ -36,12 +36,6 @@ const menuItems = [
     title: "Clientes",
     url: "/clients",
     icon: Users,
-    adminOnly: false,
-  },
-  {
-    title: "Reuniões",
-    url: "/meetings",
-    icon: Calendar,
     adminOnly: false,
   },
   {

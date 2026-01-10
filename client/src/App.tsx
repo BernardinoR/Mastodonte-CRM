@@ -15,7 +15,6 @@ import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Clients from "@/pages/Clients";
 import ClientDetails from "@/pages/ClientDetails";
-import Meetings from "@/pages/Meetings";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
 import SSOCallback from "@/pages/SSOCallback";
@@ -30,7 +29,6 @@ function AuthenticatedRouter() {
       <Route path="/" component={Dashboard} />
       <Route path="/clients" component={Clients} />
       <Route path="/clients/:id" component={ClientDetails} />
-      <Route path="/meetings" component={Meetings} />
       <Route path="/tasks" component={Tasks} />
       <Route path="/admin" component={Admin} />
       <Route path="/profile" component={Profile} />
