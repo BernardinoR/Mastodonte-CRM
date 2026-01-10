@@ -162,8 +162,8 @@ export const TableHeader = memo(function TableHeader({
         className="flex items-center justify-end pr-2 py-2 relative z-30"
         style={{ width: controlWidth }}
         data-no-dnd="true"
-        onPointerDownCapture={(e) => e.stopPropagation()}
-        onClickCapture={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <Checkbox
           checked={allSelected}
