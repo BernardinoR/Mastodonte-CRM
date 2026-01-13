@@ -57,3 +57,39 @@ export interface ClientFullData {
   meetings: ClientMeeting[];
   whatsappGroups: WhatsAppGroup[];
 }
+
+/**
+ * Cliente enriquecido com dados calculados (sem modificar tipo base)
+ */
+export interface EnrichedClient extends Client {
+  aum: number;
+  aumFormatted: string;
+  daysSinceLastMeeting: number;
+  meetingDelayStatus: 'ok' | 'warning' | 'critical';
+  urgentTasksCount: number;
+  cityState: string;
+}
+
+/**
+ * Estatísticas agregadas da página de clientes
+ */
+export interface ClientsPageStats {
+  totalAUM: number;
+  averageAUM: number;
+  activeClients: number;
+  noMeeting30Days: number;
+  urgentTasksClients: number;
+  newClientsMonth: number;
+  meetingsThisWeek: number;
+  retentionRate: string;
+}
+
+/**
+ * Modo de visualização da página de clientes
+ */
+export type ClientsViewMode = 'cards' | 'list';
+
+/**
+ * Modo de filtro da página de clientes
+ */
+export type ClientsFilterMode = 'all' | 'noMeeting' | 'urgentTasks' | 'byAum';
