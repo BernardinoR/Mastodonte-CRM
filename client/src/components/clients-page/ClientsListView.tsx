@@ -23,9 +23,9 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
 
   // Determinar classe de borda lateral para linha
   const getRowBorderClass = (client: EnrichedClient) => {
-    if (client.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e07a7a]';
-    if (client.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e07a7a]';
-    if (client.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#dcb092]';
+    if (client.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e8b6b6]';
+    if (client.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e8b6b6]';
+    if (client.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#e4c3a3]';
     return '';
   };
 
@@ -40,8 +40,8 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
   const getDaysBadge = (days: number, status: 'ok' | 'warning' | 'critical') => {
     const colors = {
       ok: 'bg-[#1a2e1a] text-[#6ecf8e]',
-      warning: 'bg-[#422c24] text-[#dcb092]',
-      critical: 'bg-[#3d2626] text-[#e07a7a]',
+      warning: 'bg-[#3b2b1f] text-[#e4c3a3]',
+      critical: 'bg-[#3b2525] text-[#e8b6b6]',
     };
     return (
       <span className={cn("px-2 py-0.5 rounded text-xs font-medium", colors[status])}>
@@ -51,9 +51,9 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
   };
 
   return (
-    <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg overflow-hidden">
+    <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden">
       {/* Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 px-4 py-3 bg-[#141414] border-b border-[#333333]">
+      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 px-4 py-3 bg-[#141414] border-b border-[#2a2a2a]">
         <div className="flex items-center gap-1 text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide cursor-pointer hover:text-[#ededed]">
           Cliente
           <ArrowUpDown className="w-3 h-3" />
@@ -97,25 +97,25 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
         <div
           key={client.id}
           className={cn(
-            "grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 px-4 py-3 items-center border-b border-[#252525] cursor-pointer hover:bg-[#202020] transition-colors",
+            "grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 px-4 py-3 items-center border-b border-[#252525] cursor-pointer hover:bg-[#1f1f1f] transition-colors",
             getRowBorderClass(client)
           )}
           onClick={() => handleRowClick(client.id)}
           data-testid={`row-client-${client.id}`}
         >
           {/* Cliente */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[#333333] flex items-center justify-center text-xs font-semibold">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-[#2b2b2b] flex items-center justify-center text-xs font-semibold text-[#a5a5a5]">
               {client.initials}
             </div>
             <div className="flex flex-col gap-0.5 min-w-0">
-              <span className="text-sm font-medium truncate">{client.name}</span>
-              <span className="text-xs text-[#8c8c8c] truncate">{client.emails[client.primaryEmailIndex]}</span>
+                <span className="text-sm font-semibold text-[#ededed] truncate">{client.name}</span>
+                <span className="text-[13px] text-[#a3a3a3] truncate">{client.emails[client.primaryEmailIndex]}</span>
             </div>
           </div>
 
           {/* AUM */}
-          <div className="text-[13px] font-semibold text-[#6ecf8e]">
+          <div className="text-[14px] font-semibold text-[#6ecf8e]">
             {client.aumFormatted}
           </div>
 
@@ -128,7 +128,7 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
           </div>
 
           {/* Última Reunião */}
-          <div className={cn("text-[13px]", getDateColor(client))}>
+          <div className={cn("text-[14px]", getDateColor(client))}>
             {client.lastMeeting ? formatMeetingDate(client.lastMeeting) : '-'}
           </div>
 
@@ -160,7 +160,7 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
           {/* Tasks Urgentes */}
           <div>
             {client.urgentTasksCount > 0 ? (
-              <span className="inline-flex items-center gap-1 text-[#e07a7a]">
+              <span className="inline-flex items-center gap-1 text-[#e8b6b6]">
                 <AlertTriangle className="w-4 h-4" />
                 <span className="font-bold text-sm">{client.urgentTasksCount}</span>
               </span>
@@ -179,7 +179,7 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
                   e.stopPropagation();
                   // Handle schedule
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#203828] border border-[#2d4a35] text-[#6ecf8e] rounded-md text-xs font-semibold hover:bg-[#2a4a32] transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-[#1c3021] border border-[#2f4a33] text-[#6ecf8e] rounded-md text-xs font-semibold hover:bg-[#26402f] transition-colors"
               >
                 <CalendarPlus className="w-3.5 h-3.5" />
                 Agendar

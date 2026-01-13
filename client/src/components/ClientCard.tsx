@@ -37,9 +37,9 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
   // Determinar classe de borda lateral
   const getBorderClass = () => {
     if (!enriched) return '';
-    if (enriched.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#dcb092]';
+    if (enriched.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e8b6b6]';
+    if (enriched.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e8b6b6]';
+    if (enriched.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#e4c3a3]';
     return '';
   };
 
@@ -63,10 +63,10 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
 
   // Cor do indicador de dias
   const getDaysIndicatorColor = () => {
-    if (!enriched) return 'text-[#8c8c8c]';
-    if (enriched.meetingDelayStatus === 'critical') return 'text-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'warning') return 'text-[#dcb092]';
-    return 'text-[#8c8c8c]';
+    if (!enriched) return 'text-[#9a9a9a]';
+    if (enriched.meetingDelayStatus === 'critical') return 'text-[#e8b6b6]';
+    if (enriched.meetingDelayStatus === 'warning') return 'text-[#e4c3a3]';
+    return 'text-[#9a9a9a]';
   };
 
   // Cidade/Estado formatado
@@ -90,15 +90,15 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
         isCompact && "border-b-0 pb-0 mb-0"
       )}>
         {/* Avatar */}
-        <div className="w-11 h-11 rounded-full bg-[#2a2a2a] flex items-center justify-center text-sm font-semibold text-[#8c8c8c] flex-shrink-0">
+        <div className="w-11 h-11 rounded-full bg-[#242424] flex items-center justify-center text-sm font-semibold text-[#a5a5a5] flex-shrink-0">
           {initials}
         </div>
         
         {/* Info */}
         <div className="flex-1 min-w-0">
-          <div className="text-[15px] font-semibold text-[#ededed]">{name}</div>
+          <div className="text-base font-semibold text-[#ededed]">{name}</div>
           <div 
-            className="text-xs text-[#6c6c6c] cursor-pointer hover:text-[#b0b0b0] hover:bg-[rgba(176,176,176,0.1)] rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors inline-block"
+            className="text-[13px] text-[#a3a3a3] cursor-pointer hover:text-[#d0d0d0] hover:bg-[rgba(208,208,208,0.08)] rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors inline-block"
             onClick={(e) => handleCopyClick(e, email, 'Email')}
           >
             {email}
@@ -196,7 +196,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
 
           {/* Tasks urgentes */}
           {enriched && enriched.urgentTasksCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#e07a7a]">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#e8b6b6]">
               <AlertTriangle className="w-3.5 h-3.5" />
               {enriched.urgentTasksCount}
             </span>
@@ -206,7 +206,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
         {/* Botão Agendar */}
         <button
           onClick={handleScheduleClick}
-          className="px-4 py-2 rounded-lg border border-[#3a5a3a] bg-transparent text-[#6ecf8e] text-xs font-semibold hover:bg-[#1a2e1a] hover:border-[#6ecf8e] transition-colors"
+          className="px-4 py-2 rounded-lg border border-[#2f4a33] bg-[#1c3021] text-[#6ecf8e] text-xs font-semibold hover:bg-[#26402f] hover:border-[#6ecf8e] transition-colors"
         >
           Agendar
         </button>
