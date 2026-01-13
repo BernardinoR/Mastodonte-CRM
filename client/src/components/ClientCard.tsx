@@ -187,17 +187,17 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
         isCompact && "max-h-0 opacity-0 overflow-hidden pt-0 mt-0 border-t-0"
       )}>
         {/* Indicadores */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 min-w-[100px]">
           {/* Dias desde última reunião */}
-          <span className={cn("inline-flex items-center gap-1 text-xs font-semibold", getDaysIndicatorColor())}>
-            <Calendar className="w-3.5 h-3.5" />
+          <span className={cn("inline-flex items-center gap-1 text-[13px] font-semibold", getDaysIndicatorColor())}>
+            <Calendar className="w-4 h-4" />
             {enriched?.daysSinceLastMeeting !== undefined ? `${enriched.daysSinceLastMeeting}d` : '-'}
           </span>
 
           {/* Tasks urgentes */}
           {enriched && enriched.urgentTasksCount > 0 && (
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-[#e07a7a]">
-              <AlertTriangle className="w-3.5 h-3.5" />
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#e07a7a]">
+              <AlertTriangle className="w-4 h-4" />
               {enriched.urgentTasksCount}
             </span>
           )}
