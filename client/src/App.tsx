@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { TasksProvider } from "@/contexts/TasksContext";
 import { ClientsProvider } from "@/contexts/ClientsContext";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
@@ -61,10 +62,19 @@ function LoadingScreen() {
 }
 
 function AuthenticatedApp() {
+  // Sincroniza o usuário do Clerk com o banco de dados
+  // Isso garante que o usuário seja criado no banco após o login
+  const { isLoading: isSyncingUser } = useCurrentUser();
+
   const style = {
     "--sidebar-width": "16rem",
     "--sidebar-width-icon": "3rem",
   };
+
+  // Mostra loading enquanto sincroniza o usuário com o banco
+  if (isSyncingUser) {
+    return <LoadingScreen />;
+  }
 
   return (
     <ClientsProvider>
