@@ -96,7 +96,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
         
         {/* Info */}
         <div className="flex-1 min-w-0 flex flex-col gap-0">
-          <div className="text-[15px] font-semibold text-[#ededed] leading-[1.3] m-0 p-0 mb-1">{name}</div>
+          <div className="text-[15px] font-semibold text-[#ededed] leading-[1.3] m-0 p-0 mb-1 min-h-[40px]">{name}</div>
           <div 
             className="text-xs text-[#6c6c6c] leading-[1.3] m-0 p-0 cursor-pointer hover:text-[#b0b0b0] hover:bg-[rgba(176,176,176,0.1)] rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors inline-block"
             onClick={(e) => handleCopyClick(e, email, 'Email')}

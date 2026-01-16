@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ClientCard } from "@/components/ClientCard";
-import { NewClientDialog } from "@/components/NewClientDialog";
+import { NewClientInlineCard } from "@/components/NewClientInlineCard";
 import { useClientsPage } from "@/hooks/useClientsPage";
+import { useClients } from "@/contexts/ClientsContext";
 import { 
   ClientsToolbar, 
   ClientsStatsGrid, 
@@ -10,7 +11,8 @@ import {
 } from "@/components/clients-page";
 
 export default function Clients() {
-  const [newClientOpen, setNewClientOpen] = useState(false);
+  const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const { addClient } = useClients();
   
   const {
     viewMode,
@@ -51,7 +53,7 @@ export default function Clients() {
       <ClientsFiltersRow
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
-        onNewClient={() => setNewClientOpen(true)}
+        onNewClient={() => setIsCreatingClient(true)}
       />
 
       {/* Stats Grid */}
@@ -64,6 +66,15 @@ export default function Clients() {
       {/* Content */}
       {viewMode === 'cards' ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+          {isCreatingClient && (
+            <NewClientInlineCard
+              onSave={(data) => {
+                addClient(data);
+                setIsCreatingClient(false);
+              }}
+              onCancel={() => setIsCreatingClient(false)}
+            />
+          )}
           {filteredClients.map(client => (
             <ClientCard 
               key={client.id} 
@@ -71,7 +82,7 @@ export default function Clients() {
               isCompact={isCompact}
             />
           ))}
-          {filteredClients.length === 0 && (
+          {filteredClients.length === 0 && !isCreatingClient && (
             <div className="col-span-full text-center py-12 text-[#8c8c8c]">
               Nenhum cliente encontrado
             </div>
@@ -80,13 +91,6 @@ export default function Clients() {
       ) : (
         <ClientsListView clients={filteredClients} />
       )}
-
-      {/* New Client Dialog */}
-      <NewClientDialog
-        open={newClientOpen}
-        onOpenChange={setNewClientOpen}
-        onSubmit={(data) => console.log('New client:', data)}
-      />
     </div>
   );
 }

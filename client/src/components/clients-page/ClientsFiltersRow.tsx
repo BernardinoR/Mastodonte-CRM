@@ -9,6 +9,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface ClientsFiltersRowProps {
   searchQuery: string;
@@ -73,14 +74,13 @@ export function ClientsFiltersRow({
             <Download className="w-4 h-4" />
             Exportar
           </button>
-          <button 
+          <Button 
             onClick={onNewClient}
-            className="flex items-center gap-2 px-4 py-2 bg-[#2563eb] hover:bg-[#1d4ed8] text-white rounded-md text-sm font-medium transition-colors"
             data-testid="button-newclient"
           >
             <Plus className="w-4 h-4" />
             Novo Cliente
-          </button>
+          </Button>
         </div>
       </div>
 

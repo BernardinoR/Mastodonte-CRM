@@ -31,6 +31,7 @@ interface ClientsContextType {
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
   getMeetingDetail: (clientId: string, meetingId: string) => MeetingDetail | undefined;
+  addClient: (clientData: { name: string; email: string }) => string;
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => void;
   updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => void;
   deleteWhatsAppGroup: (clientId: string, groupId: string) => void;
@@ -94,6 +95,27 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   const getMeetingDetail = useCallback((clientId: string, meetingId: string): MeetingDetail | undefined => {
     const key = `${clientId}-${meetingId}`;
     return MEETING_DETAILS_DATA[key];
+  }, []);
+
+  const addClient = useCallback((clientData: { name: string; email: string }) => {
+    const newClient: Client = {
+      id: crypto.randomUUID(),
+      name: clientData.name,
+      initials: deriveInitials(clientData.name),
+      cpf: "",
+      phone: "",
+      emails: clientData.email ? [clientData.email] : [],
+      primaryEmailIndex: 0,
+      advisor: "",
+      lastMeeting: new Date(),
+      address: { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
+      foundationCode: "",
+      clientSince: new Date().getFullYear().toString(),
+      status: "Ativo",
+    };
+    setClients(prev => [newClient, ...prev]);
+    setDataVersion(v => v + 1);
+    return newClient.id;
   }, []);
 
   const addWhatsAppGroup = useCallback((clientId: string, group: Omit<WhatsAppGroup, 'id'>) => {
@@ -312,6 +334,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     getFullClientData,
     getAllClients,
     getMeetingDetail,
+    addClient,
     addWhatsAppGroup,
     updateWhatsAppGroup,
     deleteWhatsAppGroup,
@@ -331,7 +354,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientMeeting,
     deleteClientMeeting,
     dataVersion,
-  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
+  }), [clients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addClient, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>
