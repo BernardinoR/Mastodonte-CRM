@@ -261,25 +261,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       return newClient.id;
     } catch (err) {
       console.error("Error creating client:", err);
-      // Fallback to local creation if API fails
-      const newClient: Client = {
-        id: crypto.randomUUID(),
-        name: clientData.name,
-        initials: deriveInitials(clientData.name),
-        cpf: "",
-        phone: "",
-        emails: clientData.email ? [clientData.email] : [],
-        primaryEmailIndex: 0,
-        advisor: "",
-        lastMeeting: new Date(),
-        address: { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
-        foundationCode: "",
-        clientSince: new Date().getFullYear().toString(),
-        status: "Ativo",
-      };
-      setClients(prev => [newClient, ...prev]);
-      setDataVersion(v => v + 1);
-      return newClient.id;
+      throw new Error("Não foi possível criar o cliente. Verifique sua conexão e tente novamente.");
     }
   }, []);
 

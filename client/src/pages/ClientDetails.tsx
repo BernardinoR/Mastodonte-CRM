@@ -7,6 +7,7 @@ import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientHeader, ClientMeetings, ClientTasks } from "@/components/client-details";
 import { TasksCompletedCard } from "@/components/client-details/TasksCompletedCard";
 import { MeetingsCard } from "@/components/client-details/MeetingsCard";
+import { DisabledStatCard } from "@/components/client-details/DisabledStatCard";
 import { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
 import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
@@ -119,7 +120,7 @@ export default function ClientDetails() {
     );
   }
   
-  const { client, stats, meetings, whatsappGroups } = clientData;
+  const { client, meetings, whatsappGroups } = clientData;
 
   return (
     <div className="p-6 max-w-6xl mx-auto" data-testid="page-client-details">
@@ -147,39 +148,8 @@ export default function ClientDetails() {
 
       <div className="mb-8">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {/* 1. AUM */}
-          {stats
-            .filter(s => s.label.toLowerCase().includes("aum"))
-            .map((stat, index) => (
-              <Card 
-                key={`${stat.label}-${index}`} 
-                className="p-4 bg-[#202020] border-[#333333]"
-                data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <div 
-                  className="text-2xl font-bold text-foreground" 
-                  data-testid={`text-stat-value-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {stat.value}
-                </div>
-                <div 
-                  className="text-xs text-muted-foreground mt-1" 
-                  data-testid={`text-stat-label-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {stat.label}
-                </div>
-                {stat.change && (
-                  <div 
-                    className={`text-xs mt-2 ${
-                      stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
-                    }`}
-                    data-testid={`text-stat-change-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {stat.change}
-                  </div>
-                )}
-              </Card>
-            ))}
+          {/* 1. AUM - Indisponível */}
+          <DisabledStatCard title="AUM" />
           
           {/* 2. Reuniões */}
           <MeetingsCard meetings={meetings} />
@@ -187,39 +157,8 @@ export default function ClientDetails() {
           {/* 3. Tasks Concluídas */}
           <TasksCompletedCard tasks={clientTasks} />
           
-          {/* 4. Indicações */}
-          {stats
-            .filter(s => s.label.toLowerCase().includes("indicaç"))
-            .map((stat, index) => (
-              <Card 
-                key={`${stat.label}-${index}`} 
-                className="p-4 bg-[#202020] border-[#333333]"
-                data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <div 
-                  className="text-2xl font-bold text-foreground" 
-                  data-testid={`text-stat-value-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {stat.value}
-                </div>
-                <div 
-                  className="text-xs text-muted-foreground mt-1" 
-                  data-testid={`text-stat-label-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                >
-                  {stat.label}
-                </div>
-                {stat.change && (
-                  <div 
-                    className={`text-xs mt-2 ${
-                      stat.changeType === "positive" ? "text-emerald-400" : "text-red-400"
-                    }`}
-                    data-testid={`text-stat-change-${stat.label.toLowerCase().replace(/\s+/g, '-')}`}
-                  >
-                    {stat.change}
-                  </div>
-                )}
-              </Card>
-            ))}
+          {/* 4. Indicações - Indisponível */}
+          <DisabledStatCard title="Indicações" />
         </div>
       </div>
 
