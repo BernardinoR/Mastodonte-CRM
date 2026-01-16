@@ -271,15 +271,15 @@ export default function ClientDetails() {
             clientName={client.name}
             isAddingExternal={isAddingWhatsAppGroup}
             onCancelAddExternal={() => setIsAddingWhatsAppGroup(false)}
-            onAddGroup={(group) => {
-              addWhatsAppGroup(client.id, group);
+            onAddGroup={async (group) => {
+              await addWhatsAppGroup(client.id, group);
               setIsAddingWhatsAppGroup(false);
             }}
-            onUpdateGroup={(groupId, updates) => {
-              updateWhatsAppGroup(client.id, groupId, updates);
+            onUpdateGroup={async (groupId, updates) => {
+              await updateWhatsAppGroup(client.id, groupId, updates);
             }}
-            onDeleteGroup={(groupId) => {
-              deleteWhatsAppGroup(client.id, groupId);
+            onDeleteGroup={async (groupId) => {
+              await deleteWhatsAppGroup(client.id, groupId);
             }}
           />
         </Card>

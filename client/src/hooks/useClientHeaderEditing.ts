@@ -5,9 +5,9 @@ export interface UseClientHeaderEditingOptions {
   clientName: string;
   clientCpf: string;
   clientPhone: string;
-  onUpdateName: (id: string, name: string) => void;
-  onUpdateCpf: (id: string, cpf: string) => void;
-  onUpdatePhone: (id: string, phone: string) => void;
+  onUpdateName: (id: string, name: string) => void | Promise<void>;
+  onUpdateCpf: (id: string, cpf: string) => void | Promise<void>;
+  onUpdatePhone: (id: string, phone: string) => void | Promise<void>;
 }
 
 export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {

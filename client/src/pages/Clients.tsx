@@ -68,8 +68,8 @@ export default function Clients() {
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
           {isCreatingClient && (
             <NewClientInlineCard
-              onSave={(data) => {
-                addClient(data);
+              onSave={async (data) => {
+                await addClient(data);
                 setIsCreatingClient(false);
               }}
               onCancel={() => setIsCreatingClient(false)}

@@ -23,6 +23,40 @@ const insertUserSchema = z.object({
   isActive: z.boolean().optional(),
 });
 
+const addressSchema = z.object({
+  street: z.string().optional().default(""),
+  complement: z.string().optional().default(""),
+  neighborhood: z.string().optional().default(""),
+  city: z.string().optional().default(""),
+  state: z.string().optional().default(""),
+  zipCode: z.string().optional().default(""),
+}).optional().nullable();
+
+const insertClientSchema = z.object({
+  name: z.string().min(1),
+  initials: z.string().optional().nullable(),
+  cpf: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  emails: z.array(z.string().email()).optional().default([]),
+  primaryEmailIndex: z.number().optional().default(0),
+  lastMeeting: z.string().datetime().optional().nullable().transform(val => val ? new Date(val) : null),
+  address: addressSchema,
+  foundationCode: z.string().optional().nullable(),
+  clientSince: z.string().datetime().optional().nullable().transform(val => val ? new Date(val) : null),
+  status: z.enum(["Ativo", "Prospect", "Distrato"]).optional().default("Ativo"),
+  patrimony: z.number().optional().nullable(),
+  ownerId: z.number().optional().nullable(),
+  isActive: z.boolean().optional().default(true),
+});
+
+const insertWhatsAppGroupSchema = z.object({
+  name: z.string().min(1),
+  purpose: z.string().optional().nullable(),
+  link: z.string().url().optional().nullable(),
+  status: z.enum(["Ativo", "Inativo"]).optional().default("Ativo"),
+  clientId: z.string().uuid(),
+});
+
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
 });
@@ -435,6 +469,185 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error validating foundation code:", error);
       return res.status(500).json({ error: "Erro ao validar código" });
+    }
+  });
+
+  // ============================================
+  // CLIENT ROUTES
+  // ============================================
+
+  // List all clients
+  app.get("/api/clients", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const clients = await storage.getAllClients();
+      return res.json({ clients });
+    } catch (error) {
+      console.error("Error fetching clients:", error);
+      return res.status(500).json({ error: "Failed to fetch clients" });
+    }
+  });
+
+  // Get single client by ID (with relations)
+  app.get("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const clientId = req.params.id;
+      
+      const client = await storage.getClientWithRelations(clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      return res.json({ client });
+    } catch (error) {
+      console.error("Error fetching client:", error);
+      return res.status(500).json({ error: "Failed to fetch client" });
+    }
+  });
+
+  // Create new client
+  app.post("/api/clients", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const parsed = insertClientSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid client data", details: parsed.error });
+      }
+
+      // Get current user to set as owner
+      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      
+      const client = await storage.createClient({
+        ...parsed.data,
+        ownerId: currentUser?.id ?? null,
+      });
+      
+      return res.status(201).json({ client });
+    } catch (error) {
+      console.error("Error creating client:", error);
+      return res.status(500).json({ error: "Failed to create client" });
+    }
+  });
+
+  // Update client
+  app.patch("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const clientId = req.params.id;
+      
+      const existingClient = await storage.getClient(clientId);
+      if (!existingClient) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      const client = await storage.updateClient(clientId, req.body);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      return res.json({ client });
+    } catch (error) {
+      console.error("Error updating client:", error);
+      return res.status(500).json({ error: "Failed to update client" });
+    }
+  });
+
+  // Delete client
+  app.delete("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const clientId = req.params.id;
+      
+      const deleted = await storage.deleteClient(clientId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting client:", error);
+      return res.status(500).json({ error: "Failed to delete client" });
+    }
+  });
+
+  // ============================================
+  // WHATSAPP GROUP ROUTES
+  // ============================================
+
+  // List WhatsApp groups for a client
+  app.get("/api/clients/:clientId/whatsapp-groups", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      
+      const client = await storage.getClient(clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      const groups = await storage.getWhatsAppGroupsByClientId(clientId);
+      return res.json({ groups });
+    } catch (error) {
+      console.error("Error fetching WhatsApp groups:", error);
+      return res.status(500).json({ error: "Failed to fetch WhatsApp groups" });
+    }
+  });
+
+  // Create WhatsApp group for a client
+  app.post("/api/clients/:clientId/whatsapp-groups", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      
+      const client = await storage.getClient(clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      const parsed = insertWhatsAppGroupSchema.safeParse({ ...req.body, clientId });
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid group data", details: parsed.error });
+      }
+      
+      const group = await storage.createWhatsAppGroup(parsed.data);
+      return res.status(201).json({ group });
+    } catch (error) {
+      console.error("Error creating WhatsApp group:", error);
+      return res.status(500).json({ error: "Failed to create WhatsApp group" });
+    }
+  });
+
+  // Update WhatsApp group
+  app.patch("/api/whatsapp-groups/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id, 10);
+      if (isNaN(groupId)) {
+        return res.status(400).json({ error: "Invalid group ID" });
+      }
+      
+      const group = await storage.updateWhatsAppGroup(groupId, req.body);
+      if (!group) {
+        return res.status(404).json({ error: "WhatsApp group not found" });
+      }
+      
+      return res.json({ group });
+    } catch (error) {
+      console.error("Error updating WhatsApp group:", error);
+      return res.status(500).json({ error: "Failed to update WhatsApp group" });
+    }
+  });
+
+  // Delete WhatsApp group
+  app.delete("/api/whatsapp-groups/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const groupId = parseInt(req.params.id, 10);
+      if (isNaN(groupId)) {
+        return res.status(400).json({ error: "Invalid group ID" });
+      }
+      
+      const deleted = await storage.deleteWhatsAppGroup(groupId);
+      if (!deleted) {
+        return res.status(404).json({ error: "WhatsApp group not found" });
+      }
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting WhatsApp group:", error);
+      return res.status(500).json({ error: "Failed to delete WhatsApp group" });
     }
   });
 
