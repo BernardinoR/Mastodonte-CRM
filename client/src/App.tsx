@@ -106,7 +106,7 @@ function AuthenticatedApp() {
 }
 
 // TEMPORARY: Set to true to bypass authentication during development
-const DEV_BYPASS_AUTH = true;
+const DEV_BYPASS_AUTH = false;
 
 export default function App() {
   const { isLoaded } = useAuth();
