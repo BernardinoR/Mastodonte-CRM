@@ -3,6 +3,7 @@ import { ClientCard } from "@/components/ClientCard";
 import { NewClientInlineCard } from "@/components/NewClientInlineCard";
 import { useClientsPage } from "@/hooks/useClientsPage";
 import { useClients } from "@/contexts/ClientsContext";
+import { useToast } from "@/hooks/use-toast";
 import { 
   ClientsToolbar, 
   ClientsStatsGrid, 
@@ -13,6 +14,7 @@ import {
 export default function Clients() {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const { addClient } = useClients();
+  const { toast } = useToast();
   
   const {
     viewMode,
@@ -69,8 +71,16 @@ export default function Clients() {
           {isCreatingClient && (
             <NewClientInlineCard
               onSave={async (data) => {
-                await addClient(data);
-                setIsCreatingClient(false);
+                const result = await addClient(data);
+                if (result.success) {
+                  setIsCreatingClient(false);
+                } else {
+                  toast({
+                    title: "Erro ao criar cliente",
+                    description: result.error,
+                    variant: "destructive",
+                  });
+                }
               }}
               onCancel={() => setIsCreatingClient(false)}
             />

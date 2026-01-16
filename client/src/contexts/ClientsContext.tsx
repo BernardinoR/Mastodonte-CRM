@@ -98,7 +98,7 @@ interface ClientsContextType {
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
   getMeetingDetail: (clientId: string, meetingId: string) => MeetingDetail | undefined;
-  addClient: (clientData: { name: string; email: string }) => Promise<string>;
+  addClient: (clientData: { name: string; email: string }) => Promise<{ success: true; data: string } | { success: false; error: string }>;
   addWhatsAppGroup: (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => Promise<void>;
   updateWhatsAppGroup: (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => Promise<void>;
   deleteWhatsAppGroup: (clientId: string, groupId: string) => Promise<void>;
@@ -227,7 +227,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     return MEETING_DETAILS_DATA[key];
   }, []);
 
-  const addClient = useCallback(async (clientData: { name: string; email: string }): Promise<string> => {
+  const addClient = useCallback(async (clientData: { name: string; email: string }): Promise<{ success: true; data: string } | { success: false; error: string }> => {
     try {
       const response = await fetch("/api/clients", {
         method: "POST",
@@ -258,10 +258,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       }));
       setDataVersion(v => v + 1);
       
-      return newClient.id;
+      return { success: true, data: newClient.id };
     } catch (err) {
       console.error("Error creating client:", err);
-      throw new Error("Não foi possível criar o cliente. Verifique sua conexão e tente novamente.");
+      return { 
+        success: false, 
+        error: "Não foi possível criar o cliente. Verifique sua conexão e tente novamente." 
+      };
     }
   }, []);
 
