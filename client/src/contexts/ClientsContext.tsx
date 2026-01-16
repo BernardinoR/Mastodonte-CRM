@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup, Address } from "@/types/client";
 import type { ClientStatus } from "@/lib/statusConfig";
 import type { MeetingDetail } from "@/types/meeting";
@@ -123,11 +124,32 @@ interface ClientsContextType {
 const ClientsContext = createContext<ClientsContextType | null>(null);
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
+  const { getToken } = useAuth();
+  const getTokenRef = useRef(getToken);
+  
+  // Keep ref updated
+  useEffect(() => {
+    getTokenRef.current = getToken;
+  }, [getToken]);
+  
   const [clients, setClients] = useState<Client[]>([]);
   const [extendedData, setExtendedData] = useState<Record<string, ClientExtendedData>>({});
   const [dataVersion, setDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Helper to get auth headers
+  const getAuthHeaders = useCallback(async (contentType?: string): Promise<Record<string, string>> => {
+    const token = await getTokenRef.current();
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    if (contentType) {
+      headers["Content-Type"] = contentType;
+    }
+    return headers;
+  }, []);
 
   // Fetch clients from API
   const fetchClients = useCallback(async () => {
@@ -135,7 +157,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       setIsLoading(true);
       setError(null);
       
+      const headers = await getAuthHeaders();
       const response = await fetch("/api/clients", {
+        headers,
         credentials: "include",
       });
       
@@ -163,12 +187,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   // Fetch client with relations (for whatsapp groups)
   const fetchClientWithRelations = useCallback(async (clientId: string) => {
     try {
+      const headers = await getAuthHeaders();
       const response = await fetch(`/api/clients/${clientId}`, {
+        headers,
         credentials: "include",
       });
       
@@ -179,7 +205,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     } catch {
       return null;
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   // Load clients on mount
   useEffect(() => {
@@ -229,9 +255,10 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
 
   const addClient = useCallback(async (clientData: { name: string; email: string }): Promise<{ success: true; data: string } | { success: false; error: string }> => {
     try {
+      const headers = await getAuthHeaders("application/json");
       const response = await fetch("/api/clients", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify({
           name: clientData.name,
@@ -266,13 +293,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         error: "Não foi possível criar o cliente. Verifique sua conexão e tente novamente." 
       };
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   const updateClientApi = useCallback(async (clientId: string, updates: Record<string, unknown>) => {
     try {
+      const headers = await getAuthHeaders("application/json");
       const response = await fetch(`/api/clients/${clientId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify(updates),
       });
@@ -280,13 +308,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     } catch {
       return false;
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   const addWhatsAppGroup = useCallback(async (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => {
     try {
+      const headers = await getAuthHeaders("application/json");
       const response = await fetch(`/api/clients/${clientId}/whatsapp-groups`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify({
           name: group.name,
@@ -315,13 +344,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       console.error("Error creating WhatsApp group:", err);
     }
     setDataVersion(v => v + 1);
-  }, []);
+  }, [getAuthHeaders]);
 
   const updateWhatsAppGroup = useCallback(async (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => {
     try {
+      const headers = await getAuthHeaders("application/json");
       await fetch(`/api/whatsapp-groups/${groupId}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers,
         credentials: "include",
         body: JSON.stringify(updates),
       });
@@ -344,12 +374,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       };
     });
     setDataVersion(v => v + 1);
-  }, []);
+  }, [getAuthHeaders]);
 
   const deleteWhatsAppGroup = useCallback(async (clientId: string, groupId: string) => {
     try {
+      const headers = await getAuthHeaders();
       await fetch(`/api/whatsapp-groups/${groupId}`, {
         method: "DELETE",
+        headers,
         credentials: "include",
       });
     } catch (err) {
@@ -369,7 +401,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       };
     });
     setDataVersion(v => v + 1);
-  }, []);
+  }, [getAuthHeaders]);
 
   const updateClientStatus = useCallback(async (clientId: string, status: ClientStatus) => {
     await updateClientApi(clientId, { status });
