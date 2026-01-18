@@ -344,10 +344,14 @@ export class DbStorage implements IStorage {
     creator: true,
   };
   
-  // Include mínimo para criação (só o essencial)
+  // Include mínimo para criação (assignees + history criado)
   private taskCreateInclude = {
     assignees: {
       include: { user: { select: { id: true, name: true } } },
+    },
+    history: {
+      include: { author: { select: { id: true, name: true } } },
+      orderBy: { createdAt: 'desc' as const },
     },
   };
 
@@ -411,10 +415,9 @@ export class DbStorage implements IStorage {
       include: this.taskCreateInclude,
     });
 
-    // Retornar com campos vazios para manter compatibilidade com TaskWithRelations
+    // Retornar com campos opcionais vazios para manter compatibilidade com TaskWithRelations
     return {
       ...task,
-      history: [],
       client: null,
       creator: null,
     } as TaskWithRelations;

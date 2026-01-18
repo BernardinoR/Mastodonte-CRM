@@ -349,7 +349,16 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         const result = await response.json();
         const realTaskId = result.task.id;
         
-        // Pegar histórico pendente antes de substituir o ID
+        // Converter histórico da API para formato do frontend
+        const apiHistory: TaskHistoryEvent[] = (result.task.history || []).map((h: ApiTaskHistory) => ({
+          id: h.id,
+          type: h.type as TaskHistoryEvent["type"],
+          content: h.content,
+          author: h.author?.name || "Sistema",
+          timestamp: new Date(h.createdAt),
+        }));
+        
+        // Pegar histórico pendente (adicionado localmente enquanto task era temp)
         let pendingHistory: TaskHistoryEvent[] = [];
         setTasks(prev => {
           const tempTask = prev.find(t => t.id === tempId);
@@ -357,9 +366,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             // Pegar eventos de histórico que foram adicionados localmente (com ID temp-)
             pendingHistory = tempTask.history.filter(h => h.id.startsWith("temp-"));
           }
+          // Mesclar histórico da API com pendente local
           return prev.map(t => 
             t.id === tempId 
-              ? { ...t, id: realTaskId, syncStatus: undefined } 
+              ? { ...t, id: realTaskId, history: [...apiHistory, ...pendingHistory], syncStatus: undefined } 
               : t
           );
         });
