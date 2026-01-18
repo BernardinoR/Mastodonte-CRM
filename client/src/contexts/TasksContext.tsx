@@ -258,8 +258,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   // Create task and return it (API + local)
   const createTaskAndReturn = useCallback(async (data: CreateTaskData): Promise<Task | null> => {
+    console.log("[createTaskAndReturn] Called with data:", data);
+    console.log("[createTaskAndReturn] teamUsers:", teamUsers.length, "currentUser:", currentUser?.name);
+    
     try {
       const headers = await getAuthHeaders("application/json");
+      console.log("[createTaskAndReturn] Got auth headers");
       
       // Find client by name if clientId not provided
       let clientId = data.clientId;
@@ -281,29 +285,39 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             assigneeNames.push(user.name);
           }
         }
+        console.log("[createTaskAndReturn] Converted assignees:", data.assignees, "->", assigneeIds);
       } else if (currentUser) {
         // Default to current user if no assignees specified
         assigneeIds = [currentUser.id];
         assigneeNames.push(currentUser.name);
+        console.log("[createTaskAndReturn] Using currentUser as default:", currentUser.id);
+      } else {
+        console.log("[createTaskAndReturn] No assignees and no currentUser!");
       }
+
+      const requestBody = {
+        title: data.title,
+        priority: data.priority || "Normal",
+        status: data.status || "To Do",
+        dueDate: data.dueDate?.toISOString() || new Date().toISOString(),
+        clientId: clientId || null,
+        order: data.order ?? 0,
+        assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
+      };
+      console.log("[createTaskAndReturn] Request body:", requestBody);
 
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers,
         credentials: "include",
-        body: JSON.stringify({
-          title: data.title,
-          priority: data.priority || "Normal",
-          status: data.status || "To Do",
-          dueDate: data.dueDate?.toISOString() || new Date().toISOString(),
-          clientId: clientId || null,
-          order: data.order ?? 0,
-          assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
-        }),
+        body: JSON.stringify(requestBody),
       });
+
+      console.log("[createTaskAndReturn] Response status:", response.status);
 
       if (response.ok) {
         const result = await response.json();
+        console.log("[createTaskAndReturn] API result:", result);
         const newTask = mapApiTaskToTask(result.task);
         
         // Use the assignee names we resolved (or from API response)
@@ -312,14 +326,15 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         }
         
         setTasks(prev => [...prev, newTask]);
+        console.log("[createTaskAndReturn] Task created successfully:", newTask.id);
         return newTask;
       } else {
         const errorData = await response.json().catch(() => ({}));
-        console.error("Failed to create task:", response.status, errorData);
+        console.error("[createTaskAndReturn] Failed:", response.status, errorData);
         return null;
       }
     } catch (err) {
-      console.error("Error creating task:", err);
+      console.error("[createTaskAndReturn] Error:", err);
       return null;
     }
   }, [getAuthHeaders, clients, teamUsers, currentUser]);
