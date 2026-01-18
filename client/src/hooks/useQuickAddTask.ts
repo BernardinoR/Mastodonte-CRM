@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { Task, TaskStatus, TaskHistoryEvent } from "@/types/task";
-import { MOCK_USERS } from "@/lib/mock-users";
+import { useUsers } from "@/contexts/UsersContext";
 
 interface UseQuickAddTaskProps {
   tasks: Task[];
@@ -32,6 +32,8 @@ export function useQuickAddTask({
   onAddTask,
   onSetEditingTaskId,
 }: UseQuickAddTaskProps): UseQuickAddTaskReturn {
+  const { currentUser } = useUsers();
+  
   const handleQuickAdd = useCallback((status: TaskStatus) => {
     const existingIds = new Set(tasks.map(t => t.id));
     const newId = generateUniqueId(existingIds);
@@ -39,7 +41,7 @@ export function useQuickAddTask({
     const statusTasks = tasks.filter(t => t.status === status);
     const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
     
-    const defaultAssignee = MOCK_USERS[0]?.name || "";
+    const defaultAssignee = currentUser?.name || "";
     
     const createdEvent: TaskHistoryEvent = {
       id: `h-${newId}-created`,
@@ -62,7 +64,7 @@ export function useQuickAddTask({
     
     onAddTask(newTask);
     onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId]);
+  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
 
   const handleQuickAddTop = useCallback((status: TaskStatus) => {
     const existingIds = new Set(tasks.map(t => t.id));
@@ -71,7 +73,7 @@ export function useQuickAddTask({
     const statusTasks = tasks.filter(t => t.status === status);
     const minOrder = statusTasks.reduce((min, t) => Math.min(min, t.order), 1);
     
-    const defaultAssignee = MOCK_USERS[0]?.name || "";
+    const defaultAssignee = currentUser?.name || "";
     
     const createdEvent: TaskHistoryEvent = {
       id: `h-${newId}-created`,
@@ -94,7 +96,7 @@ export function useQuickAddTask({
     
     onAddTask(newTask);
     onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId]);
+  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
 
   const handleQuickAddAfter = useCallback((afterTaskId: string) => {
     const existingIds = new Set(tasks.map(t => t.id));
@@ -103,7 +105,7 @@ export function useQuickAddTask({
     const afterTask = tasks.find(t => t.id === afterTaskId);
     if (!afterTask) return;
     
-    const defaultAssignee = MOCK_USERS[0]?.name || "";
+    const defaultAssignee = currentUser?.name || "";
     
     const createdEvent: TaskHistoryEvent = {
       id: `h-${newId}-created`,
@@ -126,7 +128,7 @@ export function useQuickAddTask({
     
     onAddTask(newTask);
     onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId]);
+  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
 
   return { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter };
 }

@@ -1,17 +1,8 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { User, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
-import { useQuery } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-react";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
-
-interface ApiUser {
-  id: number;
-  name: string | null;
-  email: string;
-  roles: string[];
-}
+import { useUsers } from "@/contexts/UsersContext";
 
 interface AdvisorPopoverProps {
   currentAdvisor: string;
@@ -24,47 +15,9 @@ export function AdvisorPopover({
 }: AdvisorPopoverProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { getToken, isSignedIn } = useAuth();
+  const { teamUsers, getUserByName } = useUsers();
 
-  const { data: usersData } = useQuery<{ users: ApiUser[] }>({
-    queryKey: ["/api/users"],
-    queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch("/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
-    },
-    enabled: isSignedIn,
-    retry: false,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const consultores = useMemo(() => {
-    const apiConsultores = (usersData?.users || [])
-      .filter(user => user.roles?.includes("consultor"))
-      .map(user => ({
-        id: String(user.id),
-        name: user.name || user.email,
-        initials: getInitials(user.name || user.email),
-        avatarColor: "bg-blue-600",
-      }));
-
-    if (apiConsultores.length > 0) {
-      return apiConsultores;
-    }
-
-    return MOCK_RESPONSIBLES.map(r => ({
-      id: r.id,
-      name: r.name,
-      initials: r.initials,
-      avatarColor: r.avatarColor,
-    }));
-  }, [usersData]);
-
-  const filteredConsultores = consultores.filter(user =>
+  const filteredConsultores = teamUsers.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
     user.name !== currentAdvisor
   );
@@ -75,7 +28,7 @@ export function AdvisorPopover({
     setSearchQuery("");
   };
 
-  const currentAdvisorData = consultores.find(c => c.name === currentAdvisor);
+  const currentAdvisorData = getUserByName(currentAdvisor);
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -146,6 +99,9 @@ export function AdvisorPopover({
                 {user.initials}
               </div>
               <span className="text-sm text-foreground flex-1">{user.name}</span>
+              {user.isCurrentUser && (
+                <span className="text-xs text-muted-foreground">(você)</span>
+              )}
             </div>
           ))}
           {filteredConsultores.length === 0 && (

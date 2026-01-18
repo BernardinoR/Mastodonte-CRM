@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
+import { useUsers } from "@/contexts/UsersContext";
 
 export const getInitials = (name: string): string => {
   return name
@@ -43,8 +43,9 @@ export const AssigneeBadge = memo(function AssigneeBadge({
   showName = true,
   className
 }: AssigneeBadgeProps) {
-  const consultant = MOCK_RESPONSIBLES.find(c => c.name === name);
-  const grayColor = consultant?.grayColor || "bg-gray-600";
+  const { getUserByName } = useUsers();
+  const user = getUserByName(name);
+  const avatarColor = user?.avatarColor || "bg-gray-600";
   
   const avatarSize = size === "sm" ? "w-5 h-5" : "w-6 h-6";
   const textSize = size === "sm" ? "text-[9px]" : "text-[10px]";
@@ -53,8 +54,8 @@ export const AssigneeBadge = memo(function AssigneeBadge({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Avatar className={cn(avatarSize, "shrink-0")}>
-        <AvatarFallback className={cn(textSize, "font-normal text-white", grayColor)}>
-          {getInitials(name)}
+        <AvatarFallback className={cn(textSize, "font-normal text-white", avatarColor)}>
+          {user?.initials || getInitials(name)}
         </AvatarFallback>
       </Avatar>
       {showName && (
@@ -134,6 +135,8 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
   size = "sm",
   className
 }: AssigneeAvatarStackProps) {
+  const { getUserByName } = useUsers();
+  
   if (assignees.length === 0) return null;
 
   const displayAssignees = assignees.slice(0, maxDisplay);
@@ -146,8 +149,8 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
   return (
     <div className={cn("flex items-center", className)}>
       {displayAssignees.map((assignee, index) => {
-        const consultant = MOCK_RESPONSIBLES.find(c => c.name === assignee);
-        const grayColor = consultant?.grayColor || "bg-gray-600";
+        const user = getUserByName(assignee);
+        const avatarColor = user?.avatarColor || "bg-gray-600";
         
         return (
           <Avatar 
@@ -158,8 +161,8 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
               index > 0 && overlapMargin
             )}
           >
-            <AvatarFallback className={cn(textSize, "font-normal text-white", grayColor)}>
-              {getInitials(assignee)}
+            <AvatarFallback className={cn(textSize, "font-normal text-white", avatarColor)}>
+              {user?.initials || getInitials(assignee)}
             </AvatarFallback>
           </Avatar>
         );

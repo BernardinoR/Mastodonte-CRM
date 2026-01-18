@@ -272,6 +272,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get team users (current user + users in same group)
+  app.get("/api/users/team", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      let teamUsers: typeof currentUser[] = [];
+      
+      if (currentUser.groupId) {
+        // User belongs to a group - get all group members
+        teamUsers = await storage.getUsersByGroupId(currentUser.groupId);
+      } else {
+        // User has no group - return only themselves
+        teamUsers = [currentUser];
+      }
+
+      // Map to safe response format with initials
+      const users = teamUsers.map(user => ({
+        id: user.id,
+        name: user.name || user.email,
+        email: user.email,
+        initials: user.name 
+          ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
+          : user.email.substring(0, 2).toUpperCase(),
+        isCurrentUser: user.id === currentUser.id,
+      }));
+
+      return res.json({ users, currentUserId: currentUser.id });
+    } catch (error) {
+      console.error("Error fetching team users:", error);
+      return res.status(500).json({ error: "Failed to fetch team users" });
+    }
+  });
+
   // Get group members (only for users in that group or admins)
   app.get("/api/groups/:id/members", clerkAuthMiddleware, async (req, res) => {
     try {

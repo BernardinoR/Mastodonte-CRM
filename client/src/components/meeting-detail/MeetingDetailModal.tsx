@@ -17,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { SingleAssigneeSelector } from "@/components/task-editors/AssigneeSelector";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
+import { useUsers } from "@/contexts/UsersContext";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
@@ -55,6 +55,7 @@ export function MeetingDetailModal({
 }: MeetingDetailModalProps) {
   const [localMeeting, setLocalMeeting] = useState<MeetingDetail | null>(meeting);
   const { isLoading: isAILoading, processWithAI } = useAISummary();
+  const { getUserByName } = useUsers();
 
   // Estados para edição do título
   const [isEditingName, setIsEditingName] = useState(false);
@@ -293,10 +294,10 @@ export function MeetingDetailModal({
   // Handler para mudar responsável (sincroniza com assignees da tabela)
   const handleResponsibleChange = useCallback((name: string) => {
     if (!localMeeting) return;
-    const consultant = MOCK_RESPONSIBLES.find(c => c.name === name);
+    const user = getUserByName(name);
     const responsible = {
       name,
-      initials: consultant?.initials || name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
+      initials: user?.initials || name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     };
     
     // Substituir apenas o primeiro assignee, mantendo os demais
@@ -307,7 +308,7 @@ export function MeetingDetailModal({
     setLocalMeeting(updated);
     onUpdateMeeting?.(localMeeting.id, { responsible, assignees });
     setResponsiblePopoverOpen(false);
-  }, [localMeeting, onUpdateMeeting]);
+  }, [localMeeting, onUpdateMeeting, getUserByName]);
 
   const handleClose = () => {
     onOpenChange(false);

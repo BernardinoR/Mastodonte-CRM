@@ -10,6 +10,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { TasksProvider } from "@/contexts/TasksContext";
 import { ClientsProvider } from "@/contexts/ClientsContext";
+import { UsersProvider } from "@/contexts/UsersContext";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -77,9 +78,10 @@ function AuthenticatedApp() {
   }
 
   return (
-    <ClientsProvider>
-      <TasksProvider>
-        <SidebarProvider style={style as React.CSSProperties}>
+    <UsersProvider>
+      <ClientsProvider>
+        <TasksProvider>
+          <SidebarProvider style={style as React.CSSProperties}>
           <div className="flex h-screen w-full">
             <AppSidebar />
             <div className="flex flex-col flex-1 overflow-hidden">
@@ -109,9 +111,10 @@ function AuthenticatedApp() {
               </main>
             </div>
           </div>
-        </SidebarProvider>
-      </TasksProvider>
-    </ClientsProvider>
+          </SidebarProvider>
+        </TasksProvider>
+      </ClientsProvider>
+    </UsersProvider>
   );
 }
 

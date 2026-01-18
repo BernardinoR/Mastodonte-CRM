@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { useState } from "react";
-import { MOCK_USERS } from "@/lib/mock-users";
+import { useState, useEffect } from "react";
+import { useUsers } from "@/contexts/UsersContext";
 import { useClients } from "@/contexts/ClientsContext";
+import { cn } from "@/lib/utils";
 
 export interface NewTaskFormData {
   title: string;
@@ -28,14 +29,26 @@ interface NewTaskDialogProps {
 
 export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient }: NewTaskDialogProps) {
   const { clients } = useClients();
+  const { teamUsers, currentUser } = useUsers();
+  
+  // Default assignee is the current user
+  const defaultAssignee = currentUser?.name || "";
+  
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     clientId: preSelectedClient || "",
     priority: "Normal",
-    assignee: MOCK_USERS[0].name,
+    assignee: defaultAssignee,
     dueDate: "",
   });
+
+  // Update assignee when currentUser loads
+  useEffect(() => {
+    if (currentUser && !formData.assignee) {
+      setFormData(prev => ({ ...prev, assignee: currentUser.name }));
+    }
+  }, [currentUser, formData.assignee]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +66,7 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
       description: "",
       clientId: preSelectedClient || "",
       priority: "Normal",
-      assignee: MOCK_USERS[0].name,
+      assignee: currentUser?.name || "",
       dueDate: "",
     });
   };
@@ -138,18 +151,21 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
                   onValueChange={(value) => setFormData({ ...formData, assignee: value })}
                 >
                   <SelectTrigger id="assignee" data-testid="select-assignee">
-                    <SelectValue />
+                    <SelectValue placeholder="Selecione o responsável" />
                   </SelectTrigger>
                   <SelectContent>
-                    {MOCK_USERS.map((user) => (
+                    {teamUsers.map((user) => (
                       <SelectItem key={user.id} value={user.name}>
                         <div className="flex items-center gap-2">
                           <Avatar className="w-5 h-5">
-                            <AvatarFallback className="text-[10px]">
+                            <AvatarFallback className={cn("text-[10px] text-white", user.avatarColor)}>
                               {user.initials}
                             </AvatarFallback>
                           </Avatar>
                           <span>{user.name}</span>
+                          {user.isCurrentUser && (
+                            <span className="text-xs text-muted-foreground">(você)</span>
+                          )}
                         </div>
                       </SelectItem>
                     ))}

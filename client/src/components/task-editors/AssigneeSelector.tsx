@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Check, Plus, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MOCK_RESPONSIBLES } from "@/lib/mock-users";
+import { useUsers, type TeamUser } from "@/contexts/UsersContext";
 
 interface AssigneeSelectorProps {
   selectedAssignees: string[];
@@ -13,14 +13,15 @@ interface AssigneeSelectorProps {
 
 export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { teamUsers } = useUsers();
   
-  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    !selectedAssignees.includes(consultant.name)
+  const availableConsultants = teamUsers.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    !selectedAssignees.includes(user.name)
   );
   
-  const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    selectedAssignees.includes(consultant.name)
+  const selectedConsultants = teamUsers.filter(user =>
+    selectedAssignees.includes(user.name)
   );
   
   return (
@@ -41,24 +42,24 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {selectedConsultants.length} selecionado{selectedConsultants.length > 1 ? 's' : ''}
           </div>
-          {selectedConsultants.map((consultant) => (
+          {selectedConsultants.map((user) => (
             <div 
-              key={consultant.id}
+              key={user.id}
               className="px-3 py-1"
             >
               <div 
                 className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onRemove(consultant.name);
+                  onRemove(user.name);
                 }}
               >
                 <Avatar className="w-5 h-5 shrink-0">
-                  <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                    {consultant.initials}
+                  <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                    {user.initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+                <span className="text-sm text-foreground flex-1">{user.name}</span>
                 <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
@@ -77,22 +78,22 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
           e.currentTarget.scrollTop += e.deltaY;
         }}
       >
-        {availableConsultants.map((consultant) => (
+        {availableConsultants.map((user) => (
           <div
-            key={consultant.id}
+            key={user.id}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(consultant.name);
+              onSelect(user.name);
             }}
-            data-testid={`option-assignee-${consultant.id}`}
+            data-testid={`option-assignee-${user.id}`}
           >
             <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                {consultant.initials}
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                {user.initials}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            <span className="text-sm text-foreground flex-1">{user.name}</span>
             <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
@@ -128,6 +129,7 @@ export function ContextMenuAssigneeEditor({
   const pendingUpdatesRef = useRef<{type: 'add' | 'remove' | 'setSingle', value: string}[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevCurrentAssigneesRef = useRef(currentAssignees);
+  const { teamUsers } = useUsers();
   
   useEffect(() => {
     const propsKey = (currentAssignees || []).join(',');
@@ -140,17 +142,17 @@ export function ContextMenuAssigneeEditor({
     isLocalUpdate.current = false;
   }, [currentAssignees]);
   
-  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    consultant.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
-    !localAssignees.includes(consultant.name)
+  const availableConsultants = teamUsers.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    !localAssignees.includes(user.name)
   );
   
-  const selectedConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    localAssignees.includes(consultant.name)
+  const selectedConsultants = teamUsers.filter(user =>
+    localAssignees.includes(user.name)
   );
   
-  const filteredForSetSingle = MOCK_RESPONSIBLES.filter(consultant =>
-    consultant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredForSetSingle = teamUsers.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   const flushPendingUpdates = () => {
@@ -238,21 +240,21 @@ export function ContextMenuAssigneeEditor({
             e.currentTarget.scrollTop += e.deltaY;
           }}
         >
-          {filteredForSetSingle.map((consultant) => (
+          {filteredForSetSingle.map((user) => (
             <div
-              key={consultant.id}
+              key={user.id}
               className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
               onClick={(e) => {
                 e.stopPropagation();
-                handleLocalSetSingle(consultant.name);
+                handleLocalSetSingle(user.name);
               }}
             >
               <Avatar className="w-5 h-5 shrink-0">
-                <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                  {consultant.initials}
+                <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                  {user.initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+              <span className="text-sm text-foreground flex-1">{user.name}</span>
               <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
           ))}
@@ -300,24 +302,24 @@ export function ContextMenuAssigneeEditor({
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {localAssignees.length} selecionado{localAssignees.length > 1 ? 's' : ''}
           </div>
-          {selectedConsultants.map((consultant) => (
+          {selectedConsultants.map((user) => (
             <div 
-              key={consultant.id}
+              key={user.id}
               className="px-3 py-1"
             >
               <div 
                 className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
                 onClick={(e) => {
                   e.stopPropagation();
-                  handleLocalRemove(consultant.name);
+                  handleLocalRemove(user.name);
                 }}
               >
                 <Avatar className="w-5 h-5 shrink-0">
-                  <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                    {consultant.initials}
+                  <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                    {user.initials}
                   </AvatarFallback>
                 </Avatar>
-                <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+                <span className="text-sm text-foreground flex-1">{user.name}</span>
                 <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
             </div>
@@ -336,21 +338,21 @@ export function ContextMenuAssigneeEditor({
           e.currentTarget.scrollTop += e.deltaY;
         }}
       >
-        {availableConsultants.map((consultant) => (
+        {availableConsultants.map((user) => (
           <div
-            key={consultant.id}
+            key={user.id}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              handleLocalAdd(consultant.name);
+              handleLocalAdd(user.name);
             }}
           >
             <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                {consultant.initials}
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                {user.initials}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            <span className="text-sm text-foreground flex-1">{user.name}</span>
             <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
@@ -375,11 +377,12 @@ interface SingleAssigneeSelectorProps {
 
 export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAssigneeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
+  const { teamUsers } = useUsers();
   
-  const selectedConsultant = MOCK_RESPONSIBLES.find(c => c.name === selectedAssignee);
+  const selectedConsultant = teamUsers.find(u => u.name === selectedAssignee);
   
-  const availableConsultants = MOCK_RESPONSIBLES.filter(consultant =>
-    consultant.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const availableConsultants = teamUsers.filter(user =>
+    user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
   return (
@@ -405,7 +408,7 @@ export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAss
           <div className="px-3 py-1">
             <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
               <Avatar className="w-5 h-5 shrink-0">
-                <AvatarFallback className={cn("text-[9px] font-normal text-white", selectedConsultant.grayColor)}>
+                <AvatarFallback className={cn("text-[9px] font-normal text-white", selectedConsultant.avatarColor)}>
                   {selectedConsultant.initials}
                 </AvatarFallback>
               </Avatar>
@@ -428,27 +431,27 @@ export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAss
         }}
       >
         {availableConsultants
-          .filter(c => c.name !== selectedAssignee)
-          .map((consultant) => (
+          .filter(u => u.name !== selectedAssignee)
+          .map((user) => (
           <div
-            key={consultant.id}
+            key={user.id}
             className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(consultant.name);
+              onSelect(user.name);
             }}
-            data-testid={`option-single-assignee-${consultant.id}`}
+            data-testid={`option-single-assignee-${user.id}`}
           >
             <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", consultant.grayColor)}>
-                {consultant.initials}
+              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+                {user.initials}
               </AvatarFallback>
             </Avatar>
-            <span className="text-sm text-foreground flex-1">{consultant.name}</span>
+            <span className="text-sm text-foreground flex-1">{user.name}</span>
             <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
         ))}
-        {availableConsultants.filter(c => c.name !== selectedAssignee).length === 0 && (
+        {availableConsultants.filter(u => u.name !== selectedAssignee).length === 0 && (
           <div className="px-3 py-4 text-sm text-gray-500 text-center">
             {searchQuery ? 'Nenhum consultor encontrado' : 'Nenhum consultor disponível'}
           </div>
