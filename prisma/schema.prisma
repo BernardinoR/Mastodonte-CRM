@@ -38,10 +38,11 @@ model User {
   group    Group?   @relation(fields: [groupId], references: [id])
 
   // Relações
-  clientsOwned    Client[]  @relation("ClientOwner")
-  tasksAssigned   Task[]    @relation("TaskAssignee")
-  tasksCreated    Task[]    @relation("TaskCreator")
-  meetingsCreated Meeting[] @relation("MeetingCreator")
+  clientsOwned      Client[]       @relation("ClientOwner")
+  tasksCreated      Task[]         @relation("TaskCreator")
+  taskAssignments   TaskAssignee[]
+  taskHistoryEvents TaskHistory[]  @relation("TaskHistoryAuthor")
+  meetingsCreated   Meeting[]      @relation("MeetingCreator")
 
   @@map("users")
 }
@@ -116,23 +117,51 @@ model Meeting {
 }
 
 model Task {
-  id          Int       @id @default(autoincrement())
+  id          String    @id @default(uuid())
   title       String
   description String?
-  priority    String    @default("Média")
-  status      String    @default("A fazer")
+  priority    String    @default("Normal") // Urgente, Importante, Normal, Baixa
+  status      String    @default("To Do")  // To Do, In Progress, Done
   dueDate     DateTime? @map("due_date")
+  order       Int       @default(0)
   clientId    String?   @map("client_id")
   meetingId   Int?      @map("meeting_id")
-  assigneeId  Int?      @map("assignee_id")
   creatorId   Int?      @map("creator_id")
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime  @updatedAt @map("updated_at")
 
-  client   Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  meeting  Meeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
-  assignee User?    @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  creator  User?    @relation("TaskCreator", fields: [creatorId], references: [id])
+  // Relações
+  client    Client?        @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  meeting   Meeting?       @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  creator   User?          @relation("TaskCreator", fields: [creatorId], references: [id])
+  assignees TaskAssignee[]
+  history   TaskHistory[]
 
   @@map("tasks")
+}
+
+model TaskAssignee {
+  id     Int    @id @default(autoincrement())
+  taskId String @map("task_id")
+  userId Int    @map("user_id")
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+  @@map("task_assignees")
+}
+
+model TaskHistory {
+  id        String   @id @default(uuid())
+  taskId    String   @map("task_id")
+  type      String   // comment, email, call, whatsapp, status_change, assignee_change, created
+  content   String
+  authorId  Int?     @map("author_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  task   Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author User? @relation("TaskHistoryAuthor", fields: [authorId], references: [id])
+
+  @@map("task_history")
 }

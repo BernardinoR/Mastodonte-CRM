@@ -655,6 +655,188 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // TASK ROUTES
+  // ============================================
+
+  const insertTaskSchema = z.object({
+    title: z.string().min(1),
+    description: z.string().optional().nullable(),
+    priority: z.enum(["Urgente", "Importante", "Normal", "Baixa"]).optional(),
+    status: z.enum(["To Do", "In Progress", "Done"]).optional(),
+    dueDate: z.string().datetime().optional().nullable().transform(val => val ? new Date(val) : null),
+    order: z.number().optional(),
+    clientId: z.string().uuid().optional().nullable(),
+    meetingId: z.number().optional().nullable(),
+    assigneeIds: z.array(z.number()).optional(),
+  });
+
+  const insertTaskHistorySchema = z.object({
+    type: z.enum(["comment", "email", "call", "whatsapp", "status_change", "assignee_change"]),
+    content: z.string().min(1),
+  });
+
+  // List all tasks
+  app.get("/api/tasks", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const tasks = await storage.getAllTasks();
+      return res.json({ tasks });
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      return res.status(500).json({ error: "Failed to fetch tasks" });
+    }
+  });
+
+  // Get single task by ID
+  app.get("/api/tasks/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      
+      const task = await storage.getTask(taskId);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      return res.json({ task });
+    } catch (error) {
+      console.error("Error fetching task:", error);
+      return res.status(500).json({ error: "Failed to fetch task" });
+    }
+  });
+
+  // Create new task
+  app.post("/api/tasks", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const parsed = insertTaskSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid task data", details: parsed.error });
+      }
+
+      // Get current user to set as creator
+      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      
+      const task = await storage.createTask({
+        ...parsed.data,
+        creatorId: currentUser?.id ?? null,
+      });
+      
+      return res.status(201).json({ task });
+    } catch (error) {
+      console.error("Error creating task:", error);
+      return res.status(500).json({ error: "Failed to create task" });
+    }
+  });
+
+  // Update task
+  app.patch("/api/tasks/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      
+      const existingTask = await storage.getTask(taskId);
+      if (!existingTask) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      const task = await storage.updateTask(taskId, req.body);
+      if (!task) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      return res.json({ task });
+    } catch (error) {
+      console.error("Error updating task:", error);
+      return res.status(500).json({ error: "Failed to update task" });
+    }
+  });
+
+  // Delete task
+  app.delete("/api/tasks/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      
+      const deleted = await storage.deleteTask(taskId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      return res.status(500).json({ error: "Failed to delete task" });
+    }
+  });
+
+  // Get tasks by client ID
+  app.get("/api/clients/:clientId/tasks", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      
+      const client = await storage.getClient(clientId);
+      if (!client) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      const tasks = await storage.getTasksByClientId(clientId);
+      return res.json({ tasks });
+    } catch (error) {
+      console.error("Error fetching client tasks:", error);
+      return res.status(500).json({ error: "Failed to fetch client tasks" });
+    }
+  });
+
+  // ============================================
+  // TASK HISTORY ROUTES
+  // ============================================
+
+  // Add history event to task
+  app.post("/api/tasks/:id/history", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const taskId = req.params.id;
+      
+      const existingTask = await storage.getTask(taskId);
+      if (!existingTask) {
+        return res.status(404).json({ error: "Task not found" });
+      }
+
+      const parsed = insertTaskHistorySchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ error: "Invalid history data", details: parsed.error });
+      }
+
+      // Get current user as author
+      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      
+      const historyEvent = await storage.createTaskHistory({
+        taskId,
+        type: parsed.data.type,
+        content: parsed.data.content,
+        authorId: currentUser?.id ?? null,
+      });
+      
+      return res.status(201).json({ historyEvent });
+    } catch (error) {
+      console.error("Error adding task history:", error);
+      return res.status(500).json({ error: "Failed to add task history" });
+    }
+  });
+
+  // Delete history event from task
+  app.delete("/api/tasks/:taskId/history/:eventId", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { eventId } = req.params;
+      
+      const deleted = await storage.deleteTaskHistory(eventId);
+      if (!deleted) {
+        return res.status(404).json({ error: "History event not found" });
+      }
+      
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting task history:", error);
+      return res.status(500).json({ error: "Failed to delete task history" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
