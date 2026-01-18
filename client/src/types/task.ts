@@ -88,6 +88,7 @@ export interface TaskHistoryEvent {
   content: string;
   author: string;
   timestamp: Date;
+  syncStatus?: SyncStatus;
 }
 
 export interface Task {

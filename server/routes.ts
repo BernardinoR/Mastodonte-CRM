@@ -275,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get team users (current user + users in same group)
   app.get("/api/users/team", clerkAuthMiddleware, async (req, res) => {
     try {
-      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      const currentUser = req.auth?.user;
       if (!currentUser) {
         return res.status(401).json({ error: "User not found" });
       }
@@ -317,7 +317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Authorization check: user must belong to this group or be admin
-      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      const currentUser = req.auth?.user;
       if (!currentUser) {
         return res.status(401).json({ error: "User not found" });
       }
@@ -345,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update current user's own profile (name only - photo managed via Clerk)
   app.patch("/api/auth/profile", clerkAuthMiddleware, async (req, res) => {
     try {
-      const user = await storage.getUserByClerkId(req.auth!.userId);
+      const user = req.auth?.user;
       if (!user) {
         return res.status(404).json({ error: "User not found" });
       }
@@ -550,7 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get current user to set as owner
       // Always use the authenticated user as owner, ignoring any ownerId from the request
-      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      const currentUser = req.auth?.user;
       
       // Remove ownerId from parsed data to ensure we always use the authenticated user
       const { ownerId: _, ...clientData } = parsed.data;
@@ -749,7 +749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current user to set as creator
-      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      const currentUser = req.auth?.user;
       
       const task = await storage.createTask({
         ...parsed.data,
@@ -768,11 +768,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const taskId = req.params.id;
       
-      const existingTask = await storage.getTask(taskId);
-      if (!existingTask) {
-        return res.status(404).json({ error: "Task not found" });
-      }
-      
+      // updateTask retorna null se não encontrar
       const task = await storage.updateTask(taskId, req.body);
       if (!task) {
         return res.status(404).json({ error: "Task not found" });
@@ -840,7 +836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current user as author
-      const currentUser = await storage.getUserByClerkId(req.auth!.userId);
+      const currentUser = req.auth?.user;
       
       const historyEvent = await storage.createTaskHistory({
         taskId,

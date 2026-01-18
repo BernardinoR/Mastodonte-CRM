@@ -87,8 +87,8 @@ interface TasksContextType {
   createTaskAndReturn: (data: CreateTaskData) => Task;
   retryTaskSync: (taskId: string) => void;
   getTasksByClient: (clientNameOrId: string) => Task[];
-  addTaskHistory: (taskId: string, type: string, content: string) => Promise<void>;
-  deleteTaskHistory: (taskId: string, eventId: string) => Promise<void>;
+  addTaskHistory: (taskId: string, type: string, content: string) => void;
+  deleteTaskHistory: (taskId: string, eventId: string) => void;
   refetchTasks: () => Promise<void>;
   undo: () => void;
   canUndo: boolean;
@@ -429,64 +429,118 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     );
   }, [tasks]);
 
-  // Add history event to task
-  const addTaskHistory = useCallback(async (taskId: string, type: string, content: string) => {
-    try {
-      const headers = await getAuthHeaders("application/json");
-      const response = await fetch(`/api/tasks/${taskId}/history`, {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: JSON.stringify({ type, content }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        const newEvent: TaskHistoryEvent = {
-          id: result.historyEvent.id,
-          type: result.historyEvent.type as TaskHistoryEvent["type"],
-          content: result.historyEvent.content,
-          author: "Você",
-          timestamp: new Date(result.historyEvent.createdAt),
+  // Add history event to task (optimistic)
+  const addTaskHistory = useCallback((taskId: string, type: string, content: string) => {
+    const tempId = `temp-history-${Date.now()}`;
+    
+    // Criar evento local imediatamente
+    const tempEvent: TaskHistoryEvent = {
+      id: tempId,
+      type: type as TaskHistoryEvent["type"],
+      content,
+      author: "Você",
+      timestamp: new Date(),
+      syncStatus: "pending",
+    };
+    
+    // Adicionar localmente
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId) {
+        return {
+          ...task,
+          history: [tempEvent, ...(task.history || [])],
         };
+      }
+      return task;
+    }));
+    
+    // Sync em background
+    (async () => {
+      try {
+        const headers = await getAuthHeaders("application/json");
+        const response = await fetch(`/api/tasks/${taskId}/history`, {
+          method: "POST",
+          headers,
+          credentials: "include",
+          body: JSON.stringify({ type, content }),
+        });
 
+        if (response.ok) {
+          const result = await response.json();
+          // Substituir ID temporário pelo real
+          setTasks(prev => prev.map(task => {
+            if (task.id === taskId && task.history) {
+              return {
+                ...task,
+                history: task.history.map(h => 
+                  h.id === tempId 
+                    ? { ...h, id: result.historyEvent.id, syncStatus: undefined }
+                    : h
+                ),
+              };
+            }
+            return task;
+          }));
+        } else {
+          // Marcar como erro
+          setTasks(prev => prev.map(task => {
+            if (task.id === taskId && task.history) {
+              return {
+                ...task,
+                history: task.history.map(h => 
+                  h.id === tempId ? { ...h, syncStatus: "error" as const } : h
+                ),
+              };
+            }
+            return task;
+          }));
+        }
+      } catch {
+        // Marcar como erro
         setTasks(prev => prev.map(task => {
-          if (task.id === taskId) {
+          if (task.id === taskId && task.history) {
             return {
               ...task,
-              history: [newEvent, ...(task.history || [])],
+              history: task.history.map(h => 
+                h.id === tempId ? { ...h, syncStatus: "error" as const } : h
+              ),
             };
           }
           return task;
         }));
       }
-    } catch (err) {
-      console.error("Error adding task history:", err);
-    }
+    })();
   }, [getAuthHeaders]);
 
-  // Delete history event from task
-  const deleteTaskHistory = useCallback(async (taskId: string, eventId: string) => {
-    try {
-      const headers = await getAuthHeaders();
-      await fetch(`/api/tasks/${taskId}/history/${eventId}`, {
-        method: "DELETE",
-        headers,
-        credentials: "include",
-      });
-
-      setTasks(prev => prev.map(task => {
-        if (task.id === taskId && task.history) {
-          return {
-            ...task,
-            history: task.history.filter(h => h.id !== eventId),
-          };
-        }
-        return task;
-      }));
-    } catch (err) {
-      console.error("Error deleting task history:", err);
-    }
+  // Delete history event from task (optimistic)
+  const deleteTaskHistory = useCallback((taskId: string, eventId: string) => {
+    // Remover localmente imediatamente
+    setTasks(prev => prev.map(task => {
+      if (task.id === taskId && task.history) {
+        return {
+          ...task,
+          history: task.history.filter(h => h.id !== eventId),
+        };
+      }
+      return task;
+    }));
+    
+    // Ignorar eventos temporários (ainda não criados na API)
+    if (eventId.startsWith("temp-")) return;
+    
+    // Sync em background (silencioso - item já foi removido da UI)
+    (async () => {
+      try {
+        const headers = await getAuthHeaders();
+        await fetch(`/api/tasks/${taskId}/history/${eventId}`, {
+          method: "DELETE",
+          headers,
+          credentials: "include",
+        });
+      } catch {
+        // Silencioso - item já foi removido da UI
+      }
+    })();
   }, [getAuthHeaders]);
 
   return (

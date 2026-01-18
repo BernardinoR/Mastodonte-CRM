@@ -331,6 +331,7 @@ export class DbStorage implements IStorage {
   // TASK METHODS
   // ============================================
 
+  // Include completo para listagem (carrega todas as relações)
   private taskInclude = {
     assignees: {
       include: { user: true },
@@ -341,6 +342,13 @@ export class DbStorage implements IStorage {
     },
     client: true,
     creator: true,
+  };
+  
+  // Include mínimo para criação (só o essencial)
+  private taskCreateInclude = {
+    assignees: {
+      include: { user: { select: { id: true, name: true } } },
+    },
   };
 
   async getTask(id: string): Promise<TaskWithRelations | null> {
@@ -400,10 +408,16 @@ export class DbStorage implements IStorage {
           create: assigneeIds.map(userId => ({ userId })),
         } : undefined,
       },
-      include: this.taskInclude,
+      include: this.taskCreateInclude,
     });
 
-    return task;
+    // Retornar com campos vazios para manter compatibilidade com TaskWithRelations
+    return {
+      ...task,
+      history: [],
+      client: null,
+      creator: null,
+    } as TaskWithRelations;
   }
 
   async updateTask(id: string, updates: Partial<InsertTask>): Promise<TaskWithRelations | null> {
