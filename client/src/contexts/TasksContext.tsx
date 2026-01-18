@@ -2,6 +2,7 @@ import { createContext, useContext, useCallback, useEffect, useRef, useState, ty
 import { useAuth } from "@clerk/clerk-react";
 import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@/types/task";
 import { useClients } from "@/contexts/ClientsContext";
+import { useUsers } from "@/contexts/UsersContext";
 
 // API response types
 interface ApiTaskAssignee {
@@ -100,6 +101,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const { getToken } = useAuth();
   const getTokenRef = useRef(getToken);
   const { clients } = useClients();
+  const { teamUsers, currentUser } = useUsers();
   
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -266,6 +268,25 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         clientId = client?.id;
       }
 
+      // Convert assignee names to IDs
+      let assigneeIds: number[] = [];
+      const assigneeNames: string[] = [];
+      
+      if (data.assignees && data.assignees.length > 0) {
+        // Convert names to IDs
+        for (const name of data.assignees) {
+          const user = teamUsers.find(u => u.name.toLowerCase() === name.toLowerCase());
+          if (user) {
+            assigneeIds.push(user.id);
+            assigneeNames.push(user.name);
+          }
+        }
+      } else if (currentUser) {
+        // Default to current user if no assignees specified
+        assigneeIds = [currentUser.id];
+        assigneeNames.push(currentUser.name);
+      }
+
       const response = await fetch("/api/tasks", {
         method: "POST",
         headers,
@@ -277,6 +298,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           dueDate: data.dueDate?.toISOString() || new Date().toISOString(),
           clientId: clientId || null,
           order: data.order ?? 0,
+          assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
         }),
       });
 
@@ -284,20 +306,23 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         const result = await response.json();
         const newTask = mapApiTaskToTask(result.task);
         
-        // Add assignees from request (stored as names)
-        if (data.assignees) {
-          newTask.assignees = data.assignees;
+        // Use the assignee names we resolved (or from API response)
+        if (assigneeNames.length > 0) {
+          newTask.assignees = assigneeNames;
         }
         
         setTasks(prev => [...prev, newTask]);
         return newTask;
+      } else {
+        const errorData = await response.json().catch(() => ({}));
+        console.error("Failed to create task:", response.status, errorData);
+        return null;
       }
-      return null;
     } catch (err) {
       console.error("Error creating task:", err);
       return null;
     }
-  }, [getAuthHeaders, clients]);
+  }, [getAuthHeaders, clients, teamUsers, currentUser]);
 
   // Create task (API + local) - fire and forget version
   const createTask = useCallback(async (data: CreateTaskData) => {
