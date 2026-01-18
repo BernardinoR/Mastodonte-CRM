@@ -572,11 +572,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const clientId = req.params.id;
       
-      const existingClient = await storage.getClient(clientId);
-      if (!existingClient) {
-        return res.status(404).json({ error: "Client not found" });
-      }
-      
+      // updateClient retorna null se não encontrar
       const client = await storage.updateClient(clientId, req.body);
       if (!client) {
         return res.status(404).json({ error: "Client not found" });

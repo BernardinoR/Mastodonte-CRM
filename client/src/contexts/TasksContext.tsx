@@ -347,13 +347,56 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
       if (response.ok) {
         const result = await response.json();
-        // Substituir ID temporário pelo real e limpar syncStatus
-        setTasks(prev => prev.map(t => 
-          t.id === tempId 
-            ? { ...t, id: result.task.id, syncStatus: undefined } 
-            : t
-        ));
+        const realTaskId = result.task.id;
+        
+        // Pegar histórico pendente antes de substituir o ID
+        let pendingHistory: TaskHistoryEvent[] = [];
+        setTasks(prev => {
+          const tempTask = prev.find(t => t.id === tempId);
+          if (tempTask?.history) {
+            // Pegar eventos de histórico que foram adicionados localmente (com ID temp-)
+            pendingHistory = tempTask.history.filter(h => h.id.startsWith("temp-"));
+          }
+          return prev.map(t => 
+            t.id === tempId 
+              ? { ...t, id: realTaskId, syncStatus: undefined } 
+              : t
+          );
+        });
+        
         pendingCreateData.current.delete(tempId);
+        
+        // Sincronizar histórico pendente com o ID real da task
+        for (const historyEvent of pendingHistory) {
+          try {
+            const historyResponse = await fetch(`/api/tasks/${realTaskId}/history`, {
+              method: "POST",
+              headers,
+              credentials: "include",
+              body: JSON.stringify({ type: historyEvent.type, content: historyEvent.content }),
+            });
+            
+            if (historyResponse.ok) {
+              const historyResult = await historyResponse.json();
+              // Atualizar ID do histórico
+              setTasks(prev => prev.map(t => {
+                if (t.id === realTaskId && t.history) {
+                  return {
+                    ...t,
+                    history: t.history.map(h => 
+                      h.id === historyEvent.id 
+                        ? { ...h, id: historyResult.historyEvent.id, syncStatus: undefined }
+                        : h
+                    ),
+                  };
+                }
+                return t;
+              }));
+            }
+          } catch (err) {
+            console.error("Error syncing pending history:", err);
+          }
+        }
       } else {
         // Marcar como erro
         setTasks(prev => prev.map(t => 
@@ -433,6 +476,9 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const addTaskHistory = useCallback((taskId: string, type: string, content: string) => {
     const tempId = `temp-history-${Date.now()}`;
     
+    // Verificar se task ainda não foi sincronizada
+    const isTaskTemp = taskId.startsWith("temp-");
+    
     // Criar evento local imediatamente
     const tempEvent: TaskHistoryEvent = {
       id: tempId,
@@ -440,7 +486,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       content,
       author: "Você",
       timestamp: new Date(),
-      syncStatus: "pending",
+      // Se task é temp, histórico fica local até task sincronizar
+      syncStatus: isTaskTemp ? undefined : "pending",
     };
     
     // Adicionar localmente
@@ -453,6 +500,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       }
       return task;
     }));
+    
+    // Não sincronizar se task ainda é temporária
+    if (isTaskTemp) {
+      console.log("[addTaskHistory] Task ainda não sincronizada, histórico mantido localmente");
+      return;
+    }
     
     // Sync em background
     (async () => {
