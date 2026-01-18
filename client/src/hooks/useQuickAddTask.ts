@@ -29,7 +29,7 @@ export function useQuickAddTask({
     
     // Create task via API
     const newTask = await createTaskAndReturn({
-      title: "", // Empty title - user will edit inline
+      title: "Nova tarefa",
       status,
       priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
@@ -50,7 +50,7 @@ export function useQuickAddTask({
     
     // Create task via API
     const newTask = await createTaskAndReturn({
-      title: "",
+      title: "Nova tarefa",
       status,
       priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
@@ -71,7 +71,7 @@ export function useQuickAddTask({
     
     // Create task via API
     const newTask = await createTaskAndReturn({
-      title: "",
+      title: "Nova tarefa",
       status: afterTask.status,
       priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
