@@ -57,6 +57,14 @@ function deriveInitials(name: string): string {
   return first + last;
 }
 
+function formatClientSince(date: Date): string {
+  const months = [
+    "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+    "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+  ];
+  return `${months[date.getMonth()]} de ${date.getFullYear()}`;
+}
+
 // Map API client to frontend Client type
 function mapApiClientToClient(apiClient: ApiClient): Client {
   const clientSinceDate = apiClient.clientSince ? new Date(apiClient.clientSince) : new Date();
@@ -72,7 +80,7 @@ function mapApiClientToClient(apiClient: ApiClient): Client {
     lastMeeting: apiClient.lastMeeting ? new Date(apiClient.lastMeeting) : new Date(),
     address: apiClient.address || { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
     foundationCode: apiClient.foundationCode || "",
-    clientSince: clientSinceDate.getFullYear().toString(),
+    clientSince: formatClientSince(clientSinceDate),
     status: (apiClient.status as ClientStatus) || "Ativo",
   };
 }
