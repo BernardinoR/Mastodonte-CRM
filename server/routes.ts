@@ -445,7 +445,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const invitation = await clerkClient.invitations.createInvitation({
         emailAddress: email,
         publicMetadata,
-        redirectUrl: `${process.env.REPLIT_DOMAINS?.split(",")[0] ? `https://${process.env.REPLIT_DOMAINS.split(",")[0]}` : "http://localhost:5000"}/`,
+        redirectUrl: `${process.env.APP_URL || "https://mastodonte-crm-production.up.railway.app"}/`,
       });
       
       return res.status(201).json({ 
