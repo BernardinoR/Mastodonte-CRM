@@ -21,14 +21,14 @@ export function useQuickAddTask({
   const { currentUser } = useUsers();
   const { createTaskAndReturn } = useTasks();
   
-  const handleQuickAdd = useCallback(async (status: TaskStatus) => {
+  const handleQuickAdd = useCallback((status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task via API
-    const newTask = await createTaskAndReturn({
+    // Create task (optimistic - instantâneo)
+    const newTask = createTaskAndReturn({
       title: "Nova tarefa",
       status,
       priority: "Normal",
@@ -37,19 +37,17 @@ export function useQuickAddTask({
       order: maxOrder + 1,
     });
     
-    if (newTask) {
-      onSetEditingTaskId(newTask.id);
-    }
+    onSetEditingTaskId(newTask.id);
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddTop = useCallback(async (status: TaskStatus) => {
+  const handleQuickAddTop = useCallback((status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const minOrder = statusTasks.reduce((min, t) => Math.min(min, t.order), 1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task via API
-    const newTask = await createTaskAndReturn({
+    // Create task (optimistic - instantâneo)
+    const newTask = createTaskAndReturn({
       title: "Nova tarefa",
       status,
       priority: "Normal",
@@ -58,19 +56,17 @@ export function useQuickAddTask({
       order: minOrder - 1,
     });
     
-    if (newTask) {
-      onSetEditingTaskId(newTask.id);
-    }
+    onSetEditingTaskId(newTask.id);
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddAfter = useCallback(async (afterTaskId: string) => {
+  const handleQuickAddAfter = useCallback((afterTaskId: string) => {
     const afterTask = tasks.find(t => t.id === afterTaskId);
     if (!afterTask) return;
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task via API
-    const newTask = await createTaskAndReturn({
+    // Create task (optimistic - instantâneo)
+    const newTask = createTaskAndReturn({
       title: "Nova tarefa",
       status: afterTask.status,
       priority: "Normal",
@@ -79,9 +75,7 @@ export function useQuickAddTask({
       order: afterTask.order + 0.5,
     });
     
-    if (newTask) {
-      onSetEditingTaskId(newTask.id);
-    }
+    onSetEditingTaskId(newTask.id);
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
   return { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter };

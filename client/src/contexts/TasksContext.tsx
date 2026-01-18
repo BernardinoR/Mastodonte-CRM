@@ -84,7 +84,8 @@ interface TasksContextType {
   deleteTask: (taskId: string) => void;
   addTask: (task: Task) => void;
   createTask: (data: CreateTaskData) => void;
-  createTaskAndReturn: (data: CreateTaskData) => Promise<Task | null>;
+  createTaskAndReturn: (data: CreateTaskData) => Task;
+  retryTaskSync: (taskId: string) => void;
   getTasksByClient: (clientNameOrId: string) => Task[];
   addTaskHistory: (taskId: string, type: string, content: string) => Promise<void>;
   deleteTaskHistory: (taskId: string, eventId: string) => Promise<void>;
@@ -107,6 +108,13 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const historyRef = useRef<Task[][]>([]);
+  
+  // Guardar dados de criação pendentes para retry
+  const pendingCreateData = useRef<Map<string, CreateTaskData>>(new Map());
+  
+  // Debounce para updates - acumular edições rápidas
+  const pendingUpdates = useRef<Map<string, Partial<Task>>>(new Map());
+  const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // Keep ref updated
   useEffect(() => {
@@ -202,16 +210,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo]);
 
-  // Update task (local + API)
-  const updateTask = useCallback(async (taskId: string, updates: Partial<Task>) => {
-    // Optimistic update
-    setTasksWithHistory(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, ...updates } : task
-      )
-    );
-
-    // API update
+  // Flush pending updates to API
+  const flushUpdate = useCallback(async (taskId: string) => {
+    const updates = pendingUpdates.current.get(taskId);
+    if (!updates) return;
+    
+    pendingUpdates.current.delete(taskId);
+    debounceTimers.current.delete(taskId);
+    
     try {
       const headers = await getAuthHeaders("application/json");
       const apiUpdates: Record<string, unknown> = {};
@@ -245,7 +251,36 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Error updating task:", err);
     }
-  }, [setTasksWithHistory, getAuthHeaders, teamUsers]);
+  }, [getAuthHeaders, teamUsers]);
+
+  // Update task (local + API com debounce)
+  const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
+    // Update local imediato
+    setTasksWithHistory(prevTasks =>
+      prevTasks.map(task =>
+        task.id === taskId ? { ...task, ...updates } : task
+      )
+    );
+    
+    // Ignorar tasks temporárias (ainda não criadas na API)
+    if (taskId.startsWith("temp-")) return;
+    
+    // Acumular updates
+    const currentUpdates = pendingUpdates.current.get(taskId) || {};
+    pendingUpdates.current.set(taskId, { ...currentUpdates, ...updates });
+    
+    // Cancelar timer anterior se existir
+    const existingTimer = debounceTimers.current.get(taskId);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+    
+    // Debounce - enviar após 500ms sem novas edições
+    const timer = setTimeout(() => {
+      flushUpdate(taskId);
+    }, 500);
+    debounceTimers.current.set(taskId, timer);
+  }, [setTasksWithHistory, flushUpdate]);
 
   // Delete task (local + API)
   const deleteTask = useCallback(async (taskId: string) => {
@@ -268,14 +303,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     setTasksWithHistory(prevTasks => [...prevTasks, task]);
   }, [setTasksWithHistory]);
 
-  // Create task and return it (API + local)
-  const createTaskAndReturn = useCallback(async (data: CreateTaskData): Promise<Task | null> => {
-    console.log("[createTaskAndReturn] Called with data:", data);
-    console.log("[createTaskAndReturn] teamUsers:", teamUsers.length, "currentUser:", currentUser?.name);
-    
+  // Sync task to API (background)
+  const syncTaskToApi = useCallback(async (tempId: string, data: CreateTaskData) => {
     try {
       const headers = await getAuthHeaders("application/json");
-      console.log("[createTaskAndReturn] Got auth headers");
       
       // Find client by name if clientId not provided
       let clientId = data.clientId;
@@ -285,26 +316,16 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       }
 
       // Convert assignee names to IDs
-      let assigneeIds: number[] = [];
-      const assigneeNames: string[] = [];
-      
+      const assigneeIds: number[] = [];
       if (data.assignees && data.assignees.length > 0) {
-        // Convert names to IDs
         for (const name of data.assignees) {
           const user = teamUsers.find(u => u.name.toLowerCase() === name.toLowerCase());
           if (user) {
             assigneeIds.push(user.id);
-            assigneeNames.push(user.name);
           }
         }
-        console.log("[createTaskAndReturn] Converted assignees:", data.assignees, "->", assigneeIds);
       } else if (currentUser) {
-        // Default to current user if no assignees specified
-        assigneeIds = [currentUser.id];
-        assigneeNames.push(currentUser.name);
-        console.log("[createTaskAndReturn] Using currentUser as default:", currentUser.id);
-      } else {
-        console.log("[createTaskAndReturn] No assignees and no currentUser!");
+        assigneeIds.push(currentUser.id);
       }
 
       const requestBody = {
@@ -316,7 +337,6 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         order: data.order ?? 0,
         assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
       };
-      console.log("[createTaskAndReturn] Request body:", requestBody);
 
       const response = await fetch("/api/tasks", {
         method: "POST",
@@ -325,35 +345,80 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("[createTaskAndReturn] Response status:", response.status);
-
       if (response.ok) {
         const result = await response.json();
-        console.log("[createTaskAndReturn] API result:", result);
-        const newTask = mapApiTaskToTask(result.task);
-        
-        // Use the assignee names we resolved (or from API response)
-        if (assigneeNames.length > 0) {
-          newTask.assignees = assigneeNames;
-        }
-        
-        setTasks(prev => [...prev, newTask]);
-        console.log("[createTaskAndReturn] Task created successfully:", newTask.id);
-        return newTask;
+        // Substituir ID temporário pelo real e limpar syncStatus
+        setTasks(prev => prev.map(t => 
+          t.id === tempId 
+            ? { ...t, id: result.task.id, syncStatus: undefined } 
+            : t
+        ));
+        pendingCreateData.current.delete(tempId);
       } else {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("[createTaskAndReturn] Failed:", response.status, errorData);
-        return null;
+        // Marcar como erro
+        setTasks(prev => prev.map(t => 
+          t.id === tempId ? { ...t, syncStatus: "error" as const } : t
+        ));
       }
-    } catch (err) {
-      console.error("[createTaskAndReturn] Error:", err);
-      return null;
+    } catch {
+      // Marcar como erro
+      setTasks(prev => prev.map(t => 
+        t.id === tempId ? { ...t, syncStatus: "error" as const } : t
+      ));
     }
   }, [getAuthHeaders, clients, teamUsers, currentUser]);
 
-  // Create task (API + local) - fire and forget version
-  const createTask = useCallback(async (data: CreateTaskData) => {
-    await createTaskAndReturn(data);
+  // Retry sync for failed task
+  const retryTaskSync = useCallback((taskId: string) => {
+    const data = pendingCreateData.current.get(taskId);
+    if (!data) return;
+    
+    // Marcar como pending novamente
+    setTasks(prev => prev.map(t => 
+      t.id === taskId ? { ...t, syncStatus: "pending" as const } : t
+    ));
+    
+    // Tentar novamente
+    syncTaskToApi(taskId, data);
+  }, [syncTaskToApi]);
+
+  // Create task and return it (optimistic - instantâneo)
+  const createTaskAndReturn = useCallback((data: CreateTaskData): Task => {
+    const tempId = `temp-${Date.now()}`;
+    
+    // Resolver assignees localmente
+    const assigneeNames = data.assignees?.length 
+      ? data.assignees 
+      : currentUser ? [currentUser.name] : [];
+    
+    // Criar tarefa local imediatamente
+    const tempTask: Task = {
+      id: tempId,
+      title: data.title,
+      priority: data.priority || "Normal",
+      status: data.status || "To Do",
+      dueDate: data.dueDate || new Date(),
+      order: data.order ?? 0,
+      assignees: assigneeNames,
+      history: [],
+      syncStatus: "pending",
+    };
+    
+    // Guardar dados para retry
+    pendingCreateData.current.set(tempId, data);
+    
+    // Adicionar imediatamente à lista
+    setTasks(prev => [...prev, tempTask]);
+    
+    // Sync em background (sem await)
+    syncTaskToApi(tempId, data);
+    
+    return tempTask; // Retorna instantaneamente
+  }, [currentUser, syncTaskToApi]);
+
+  // Create task (fire and forget version)
+  const createTask = useCallback((data: CreateTaskData) => {
+    createTaskAndReturn(data);
   }, [createTaskAndReturn]);
 
   // Get tasks by client
@@ -436,6 +501,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       addTask,
       createTask,
       createTaskAndReturn,
+      retryTaskSync,
       getTasksByClient,
       addTaskHistory,
       deleteTaskHistory,

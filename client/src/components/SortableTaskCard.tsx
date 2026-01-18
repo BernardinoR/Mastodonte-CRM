@@ -71,6 +71,7 @@ export const SortableTaskCard = memo(function SortableTaskCard({
   if (prev.status !== next.status) return false;
   if (prev.dueDate?.getTime() !== next.dueDate?.getTime()) return false;
   if (prev.description !== next.description) return false;
+  if (prev.syncStatus !== next.syncStatus) return false;
   if (prev.isSelected !== next.isSelected) return false;
   if (prev.selectedCount !== next.selectedCount) return false;
   if (prev.isDragActive !== next.isDragActive) return false;

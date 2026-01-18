@@ -58,7 +58,6 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
       clientName: selectedClient?.name,
       assignees: [formData.assignee],
     };
-    console.log('Task submitted:', taskData);
     onSubmit?.(taskData);
     onOpenChange(false);
     setFormData({

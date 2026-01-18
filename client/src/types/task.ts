@@ -1,5 +1,6 @@
 export type TaskStatus = "To Do" | "In Progress" | "Done";
 export type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
+export type SyncStatus = "pending" | "error";
 
 // Filter system types
 export type FilterType = "date" | "status" | "priority" | "task" | "assignee" | "client";
@@ -104,6 +105,7 @@ export interface Task {
   notes?: string[];
   history?: TaskHistoryEvent[];
   order: number;
+  syncStatus?: SyncStatus; // undefined = sincronizado
 }
 
 export type TaskUpdates = Partial<Omit<Task, 'id'>>;

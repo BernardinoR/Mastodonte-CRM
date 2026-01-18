@@ -2,6 +2,7 @@ import { memo, useCallback } from "react";
 import { useLocation } from "wouter";
 import { Card } from "@/components/ui/card";
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { calculateIsOverdue } from "@/lib/task-utils";
 import { useTaskCardEditing } from "@/hooks/useTaskCardEditing";
@@ -12,7 +13,7 @@ import { useTaskCardFieldHandlers } from "@/hooks/useTaskCardFieldHandlers";
 import { TaskCardDialogs } from "@/components/task-card-dialogs";
 import { TaskCardContextMenu } from "@/components/task-context-menu";
 import { TaskCardQuickDetails, TaskCardHeader, TaskCardContent } from "@/components/task-card";
-import type { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
+import type { TaskStatus, TaskPriority, TaskUpdates, SyncStatus } from "@/types/task";
 
 export interface TaskCardProps {
   id: string;
@@ -25,6 +26,7 @@ export interface TaskCardProps {
   dueDate: Date;
   description?: string;
   notes?: string[];
+  syncStatus?: SyncStatus;
   isSelected?: boolean;
   selectedCount?: number;
   isDragActive?: boolean;
@@ -35,6 +37,7 @@ export interface TaskCardProps {
   onDelete: (taskId: string) => void;
   onFinishEditing?: (taskId: string) => void;
   onOpenDetail?: (taskId: string) => void;
+  onRetrySync?: (taskId: string) => void;
   onBulkUpdate?: (updates: TaskUpdates) => void;
   onBulkDelete?: () => void;
   onBulkAppendTitle?: (suffix: string) => void;
@@ -54,6 +57,7 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
   if (prev.status !== next.status) return false;
   if (prev.dueDate?.getTime() !== next.dueDate?.getTime()) return false;
   if (prev.description !== next.description) return false;
+  if (prev.syncStatus !== next.syncStatus) return false;
   if (prev.isSelected !== next.isSelected) return false;
   if (prev.selectedCount !== next.selectedCount) return false;
   if (prev.isDragActive !== next.isDragActive) return false;
@@ -77,9 +81,10 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
 
 export const TaskCard = memo(function TaskCard({
   id, title, clientId, clientName, priority, status, assignees, dueDate, description, notes,
+  syncStatus,
   isSelected = false, selectedCount = 0, isDragActive = false,
   initialEditMode = false, isCompact = false,
-  onSelect, onUpdate, onDelete, onFinishEditing, onOpenDetail,
+  onSelect, onUpdate, onDelete, onFinishEditing, onOpenDetail, onRetrySync,
   onBulkUpdate, onBulkDelete, onBulkAppendTitle, onBulkReplaceTitle,
   onBulkAddAssignee, onBulkSetAssignees, onBulkRemoveAssignee, onEditStateChange,
 }: TaskCardProps) {
@@ -193,6 +198,24 @@ export const TaskCard = memo(function TaskCard({
               onStatusChange={handleStatusChange} onAddAssignee={addAssignee}
               onRemoveAssignee={removeAssignee} onEditClick={handleEditClick} onNavigate={navigate}
             />
+            
+            {/* Indicador de erro de sincronização */}
+            {syncStatus === "error" && (
+              <div className="px-3 pb-2">
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onRetrySync?.(id);
+                  }}
+                  className="flex items-center gap-1.5 text-red-400 text-xs hover:text-red-300 transition-colors"
+                >
+                  <AlertCircle className="w-3 h-3" />
+                  <span>Erro ao salvar</span>
+                  <RefreshCw className="w-3 h-3 ml-1" />
+                  <span>Tentar novamente</span>
+                </button>
+              </div>
+            )}
           </Card>
         </ContextMenuTrigger>
         <TaskCardContextMenu

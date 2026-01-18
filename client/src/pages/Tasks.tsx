@@ -53,7 +53,7 @@ export default function Tasks() {
   });
   
   // Use the tasks context for global state management
-  const { tasks, setTasks, setTasksWithHistory, updateTask, deleteTask, createTask } = useTasks();
+  const { tasks, setTasks, setTasksWithHistory, updateTask, deleteTask, createTask, retryTaskSync } = useTasks();
   
   // Ler parâmetros da URL
   const urlParams = useTaskUrlParams();
@@ -409,6 +409,7 @@ export default function Tasks() {
         onDelete={handleDeleteTask}
         onFinishEditing={handleFinishEditing}
         onOpenDetail={handleOpenDetail}
+        onRetrySync={retryTaskSync}
         onBulkUpdate={handleBulkUpdate}
         onBulkDelete={handleBulkDelete}
         onBulkAppendTitle={handleBulkAppendTitle}
