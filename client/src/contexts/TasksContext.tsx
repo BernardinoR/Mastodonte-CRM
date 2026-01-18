@@ -369,7 +369,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           // Mesclar histórico da API com pendente local
           return prev.map(t => 
             t.id === tempId 
-              ? { ...t, id: realTaskId, history: [...apiHistory, ...pendingHistory], syncStatus: undefined } 
+              ? { ...t, id: realTaskId, _tempId: tempId, history: [...apiHistory, ...pendingHistory], syncStatus: undefined } 
               : t
           );
         });

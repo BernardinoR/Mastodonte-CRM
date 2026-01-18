@@ -107,6 +107,7 @@ export interface Task {
   history?: TaskHistoryEvent[];
   order: number;
   syncStatus?: SyncStatus; // undefined = sincronizado
+  _tempId?: string; // ID temporário usado antes da sincronização com a API
 }
 
 export type TaskUpdates = Partial<Omit<Task, 'id'>>;

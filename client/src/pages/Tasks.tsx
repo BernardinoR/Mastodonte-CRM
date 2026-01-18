@@ -312,8 +312,8 @@ export default function Tasks() {
     setDetailTaskId(taskId);
   }, []);
 
-  // Get the task being viewed in detail
-  const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId) : null;
+  // Get the task being viewed in detail (busca por id ou _tempId para manter modal aberto após sincronização)
+  const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId || t._tempId === detailTaskId) : null;
 
   // Use the quick add task hook - creates tasks via API
   const { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter } = useQuickAddTask({
