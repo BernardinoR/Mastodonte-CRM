@@ -14,6 +14,7 @@ import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/t
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
 import { cn } from "@/lib/utils";
 import { useClients } from "@/contexts/ClientsContext";
+import { useTasks } from "@/contexts/TasksContext";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -62,6 +63,7 @@ export function TaskDetailModal({
 }: TaskDetailModalProps) {
   const [, navigate] = useLocation();
   const { getFullClientData } = useClients();
+  const { addTaskHistory, deleteTaskHistory } = useTasks();
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -219,7 +221,7 @@ export function TaskDetailModal({
   };
 
   const handleAddComment = () => {
-    if (!newComment.trim()) return;
+    if (!newComment.trim() || !task) return;
 
     const eventTypeMap = {
       note: "comment",
@@ -228,18 +230,8 @@ export function TaskDetailModal({
       whatsapp: "whatsapp",
     } as const;
 
-    const newEvent: TaskHistoryEvent = {
-      id: `event-${Date.now()}`,
-      type: eventTypeMap[noteType] as TaskHistoryEvent["type"],
-      content: newComment.trim(),
-      author: "Você",
-      timestamp: new Date(),
-    };
-
-    const currentHistory = task.history || [];
-    onUpdateTask(task.id, {
-      history: [...currentHistory, newEvent],
-    });
+    // Usar addTaskHistory do context (sincroniza com API)
+    addTaskHistory(task.id, eventTypeMap[noteType], newComment.trim());
     setNewComment("");
     setNoteType("note");
   };
@@ -249,9 +241,9 @@ export function TaskDetailModal({
   };
 
   const handleDeleteEvent = (eventId: string) => {
-    if (!task.history) return;
-    const updatedHistory = task.history.filter(event => event.id !== eventId);
-    onUpdateTask(task.id, { history: updatedHistory });
+    if (!task) return;
+    // Usar deleteTaskHistory do context (sincroniza com API)
+    deleteTaskHistory(task.id, eventId);
   };
 
   return (
