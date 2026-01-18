@@ -21,8 +21,24 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
     setLocation(`/clients/${clientId}`);
   };
 
+  // Verificar se o cadastro está incompleto
+  const isIncompleteRegistration = (client: EnrichedClient) => {
+    const hasCpf = client.cpf && client.cpf.trim().length > 0;
+    const hasPhone = client.phone && client.phone.trim().length > 0;
+    const hasAddress = client.address && (
+      client.address.street?.trim() || 
+      client.address.city?.trim() || 
+      client.address.state?.trim() || 
+      client.address.zipCode?.trim()
+    );
+    return !hasCpf && !hasPhone && !hasAddress;
+  };
+
   // Determinar classe de borda lateral para linha
   const getRowBorderClass = (client: EnrichedClient) => {
+    // Borda vermelha se cadastro incompleto (prioridade máxima)
+    if (isIncompleteRegistration(client)) return 'border-l-[4px] border-l-[#e07a7a]';
+    
     if (client.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e07a7a]';
     if (client.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e07a7a]';
     if (client.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#dcb092]';
@@ -163,6 +179,10 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
               <span className="inline-flex items-center gap-1 text-[#e07a7a]">
                 <AlertTriangle className="w-4 h-4" />
                 <span className="font-bold text-sm">{client.urgentTasksCount}</span>
+              </span>
+            ) : isIncompleteRegistration(client) ? (
+              <span className="inline-flex items-center gap-1 text-[#e07a7a]">
+                <AlertTriangle className="w-4 h-4" />
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 text-[#6ecf8e]">

@@ -27,15 +27,33 @@ function formatMeetingDate(date: Date): string {
 }
 
 export function ClientCard({ client, isCompact = false, onSchedule }: ClientCardProps) {
-  const { id, name, initials, emails, phone, status, advisor, clientSince, address, lastMeeting } = client;
+  const { id, name, initials, emails, phone, status, advisor, clientSince, address, lastMeeting, cpf } = client;
   const email = emails[client.primaryEmailIndex] || emails[0];
   const [, setLocation] = useLocation();
 
   // Dados enriquecidos (se disponíveis)
   const enriched = isEnrichedClient(client) ? client : null;
 
+  // Verificar se o cadastro está incompleto
+  const isIncompleteRegistration = () => {
+    const hasCpf = cpf && cpf.trim().length > 0;
+    const hasPhone = phone && phone.trim().length > 0;
+    const hasAddress = address && (
+      address.street?.trim() || 
+      address.city?.trim() || 
+      address.state?.trim() || 
+      address.zipCode?.trim()
+    );
+    return !hasCpf && !hasPhone && !hasAddress;
+  };
+
+  const incomplete = isIncompleteRegistration();
+
   // Determinar classe de borda lateral
   const getBorderClass = () => {
+    // Borda vermelha completa se cadastro incompleto
+    if (incomplete) return 'border-[#e07a7a]';
+    
     if (!enriched) return '';
     if (enriched.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e07a7a]';
     if (enriched.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e07a7a]';
@@ -193,6 +211,13 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
             <Calendar className="w-4 h-4" />
             {enriched?.daysSinceLastMeeting !== undefined ? `${enriched.daysSinceLastMeeting}d` : '-'}
           </span>
+
+          {/* Cadastro incompleto */}
+          {incomplete && (
+            <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#e07a7a]">
+              <AlertTriangle className="w-4 h-4" />
+            </span>
+          )}
 
           {/* Tasks urgentes */}
           {enriched && enriched.urgentTasksCount > 0 && (

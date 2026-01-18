@@ -513,10 +513,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get current user to set as owner
+      // Always use the authenticated user as owner, ignoring any ownerId from the request
       const currentUser = await storage.getUserByClerkId(req.auth!.userId);
       
+      // Remove ownerId from parsed data to ensure we always use the authenticated user
+      const { ownerId: _, ...clientData } = parsed.data;
+      
       const client = await storage.createClient({
-        ...parsed.data,
+        ...clientData,
         ownerId: currentUser?.id ?? null,
       });
       
