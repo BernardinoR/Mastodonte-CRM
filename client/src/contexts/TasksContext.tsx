@@ -223,6 +223,18 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate?.toISOString();
       if (updates.order !== undefined) apiUpdates.order = updates.order;
       if (updates.clientId !== undefined) apiUpdates.clientId = updates.clientId;
+      
+      // Converter assignees (nomes) para assigneeIds (IDs numéricos)
+      if (updates.assignees !== undefined) {
+        const assigneeIds: number[] = [];
+        for (const name of updates.assignees) {
+          const user = teamUsers.find(u => u.name.toLowerCase() === name.toLowerCase());
+          if (user) {
+            assigneeIds.push(user.id);
+          }
+        }
+        apiUpdates.assigneeIds = assigneeIds;
+      }
 
       await fetch(`/api/tasks/${taskId}`, {
         method: "PATCH",
@@ -233,7 +245,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     } catch (err) {
       console.error("Error updating task:", err);
     }
-  }, [setTasksWithHistory, getAuthHeaders]);
+  }, [setTasksWithHistory, getAuthHeaders, teamUsers]);
 
   // Delete task (local + API)
   const deleteTask = useCallback(async (taskId: string) => {
