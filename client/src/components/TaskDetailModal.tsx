@@ -181,21 +181,14 @@ export function TaskDetailModal({
       return;
     }
     
-    // Criar evento de histórico para mudança de status
-    const statusChangeEvent: TaskHistoryEvent = {
-      id: `h-${task.id}-status-${Date.now()}`,
-      type: "status_change",
-      content: `Status alterado de '${task.status}' para '${status}'`,
-      author: task.assignees[0] || "Sistema",
-      timestamp: new Date(),
-    };
+    // Atualizar status
+    onUpdateTask(task.id, { status });
     
-    onUpdateTask(task.id, { 
-      status,
-      history: [...(task.history || []), statusChangeEvent],
-    });
+    // Registrar mudança no histórico (via API)
+    addTaskHistory(task.id, "status_change", `Status alterado de '${task.status}' para '${status}'`);
+    
     setStatusPopoverOpen(false);
-  }, [task, onUpdateTask]);
+  }, [task, onUpdateTask, addTaskHistory]);
 
   const handleAddAssignee = useCallback((assignee: string) => {
     if (!task) return;
