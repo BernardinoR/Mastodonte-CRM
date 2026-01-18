@@ -53,7 +53,7 @@ export default function Tasks() {
   });
   
   // Use the tasks context for global state management
-  const { tasks, setTasks, setTasksWithHistory } = useTasks();
+  const { tasks, setTasks, setTasksWithHistory, updateTask, deleteTask, createTask } = useTasks();
   
   // Ler parâmetros da URL
   const urlParams = useTaskUrlParams();
@@ -213,19 +213,14 @@ export default function Tasks() {
 
   const activeTask = activeTaskId ? tasks.find(t => t.id === activeTaskId) : null;
 
+  // Use context functions that persist to API
   const handleUpdateTask = useCallback((taskId: string, updates: Partial<Task>) => {
-    setTasksWithHistory(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId
-          ? { ...task, ...updates }
-          : task
-      )
-    );
-  }, [setTasksWithHistory]);
+    updateTask(taskId, updates);
+  }, [updateTask]);
 
   const handleDeleteTask = useCallback((taskId: string) => {
-    setTasksWithHistory(prevTasks => prevTasks.filter(task => task.id !== taskId));
-  }, [setTasksWithHistory]);
+    deleteTask(taskId);
+  }, [deleteTask]);
 
 
   // Bulk update for selected tasks (used by context menu)
@@ -320,15 +315,9 @@ export default function Tasks() {
   // Get the task being viewed in detail
   const detailTask = detailTaskId ? tasks.find(t => t.id === detailTaskId) : null;
 
-  // Quick add task callback
-  const handleAddNewTask = useCallback((task: Task) => {
-    setTasksWithHistory(prevTasks => [...prevTasks, task]);
-  }, [setTasksWithHistory]);
-
-  // Use the quick add task hook
+  // Use the quick add task hook - creates tasks via API
   const { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter } = useQuickAddTask({
     tasks,
-    onAddTask: handleAddNewTask,
     onSetEditingTaskId: setEditingTaskId,
   });
 
@@ -631,7 +620,16 @@ export default function Tasks() {
       <NewTaskDialog
         open={newTaskOpen}
         onOpenChange={setNewTaskOpen}
-        onSubmit={(data) => console.log('New task:', data)}
+        onSubmit={(data) => {
+          createTask({
+            title: data.title,
+            clientId: data.clientId || undefined,
+            clientName: data.clientName,
+            priority: data.priority as any,
+            assignees: data.assignees,
+            dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+          });
+        }}
       />
 
       {detailTaskId !== null && detailTask && (

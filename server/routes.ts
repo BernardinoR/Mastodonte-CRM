@@ -696,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================
 
   const insertTaskSchema = z.object({
-    title: z.string().min(1),
+    title: z.string(), // Allow empty title for inline editing flow
     description: z.string().optional().nullable(),
     priority: z.enum(["Urgente", "Importante", "Normal", "Baixa"]).optional(),
     status: z.enum(["To Do", "In Progress", "Done"]).optional(),

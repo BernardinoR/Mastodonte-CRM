@@ -1,10 +1,10 @@
 import { useCallback } from "react";
-import type { Task, TaskStatus, TaskHistoryEvent } from "@/types/task";
+import type { Task, TaskStatus } from "@/types/task";
 import { useUsers } from "@/contexts/UsersContext";
+import { useTasks } from "@/contexts/TasksContext";
 
 interface UseQuickAddTaskProps {
   tasks: Task[];
-  onAddTask: (task: Task) => void;
   onSetEditingTaskId: (taskId: string) => void;
 }
 
@@ -14,121 +14,75 @@ interface UseQuickAddTaskReturn {
   handleQuickAddAfter: (afterTaskId: string) => void;
 }
 
-function generateUniqueId(existingIds: Set<string>): string {
-  const timestamp = Date.now();
-  const random = Math.random().toString(36).substring(2, 9);
-  let id = `task-${timestamp}-${random}`;
-  
-  while (existingIds.has(id)) {
-    const newRandom = Math.random().toString(36).substring(2, 9);
-    id = `task-${timestamp}-${newRandom}`;
-  }
-  
-  return id;
-}
-
 export function useQuickAddTask({
   tasks,
-  onAddTask,
   onSetEditingTaskId,
 }: UseQuickAddTaskProps): UseQuickAddTaskReturn {
   const { currentUser } = useUsers();
+  const { createTaskAndReturn } = useTasks();
   
-  const handleQuickAdd = useCallback((status: TaskStatus) => {
-    const existingIds = new Set(tasks.map(t => t.id));
-    const newId = generateUniqueId(existingIds);
-    
+  const handleQuickAdd = useCallback(async (status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    const createdEvent: TaskHistoryEvent = {
-      id: `h-${newId}-created`,
-      type: "created",
-      content: "Tarefa criada",
-      author: defaultAssignee || "Sistema",
-      timestamp: new Date(),
-    };
-    
-    const newTask: Task = {
-      id: newId,
-      title: "",
+    // Create task via API
+    const newTask = await createTaskAndReturn({
+      title: "", // Empty title - user will edit inline
       status,
+      priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
       dueDate: new Date(),
       order: maxOrder + 1,
-      notes: [],
-      history: [createdEvent],
-    };
+    });
     
-    onAddTask(newTask);
-    onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
+  }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddTop = useCallback((status: TaskStatus) => {
-    const existingIds = new Set(tasks.map(t => t.id));
-    const newId = generateUniqueId(existingIds);
-    
+  const handleQuickAddTop = useCallback(async (status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const minOrder = statusTasks.reduce((min, t) => Math.min(min, t.order), 1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    const createdEvent: TaskHistoryEvent = {
-      id: `h-${newId}-created`,
-      type: "created",
-      content: "Tarefa criada",
-      author: defaultAssignee || "Sistema",
-      timestamp: new Date(),
-    };
-    
-    const newTask: Task = {
-      id: newId,
+    // Create task via API
+    const newTask = await createTaskAndReturn({
       title: "",
       status,
+      priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
       dueDate: new Date(),
       order: minOrder - 1,
-      notes: [],
-      history: [createdEvent],
-    };
+    });
     
-    onAddTask(newTask);
-    onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
+  }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddAfter = useCallback((afterTaskId: string) => {
-    const existingIds = new Set(tasks.map(t => t.id));
-    const newId = generateUniqueId(existingIds);
-    
+  const handleQuickAddAfter = useCallback(async (afterTaskId: string) => {
     const afterTask = tasks.find(t => t.id === afterTaskId);
     if (!afterTask) return;
     
     const defaultAssignee = currentUser?.name || "";
     
-    const createdEvent: TaskHistoryEvent = {
-      id: `h-${newId}-created`,
-      type: "created",
-      content: "Tarefa criada",
-      author: defaultAssignee || "Sistema",
-      timestamp: new Date(),
-    };
-    
-    const newTask: Task = {
-      id: newId,
+    // Create task via API
+    const newTask = await createTaskAndReturn({
       title: "",
       status: afterTask.status,
+      priority: "Normal",
       assignees: defaultAssignee ? [defaultAssignee] : [],
       dueDate: new Date(),
       order: afterTask.order + 0.5,
-      notes: [],
-      history: [createdEvent],
-    };
+    });
     
-    onAddTask(newTask);
-    onSetEditingTaskId(newTask.id);
-  }, [tasks, onAddTask, onSetEditingTaskId, currentUser]);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
+  }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
   return { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter };
 }

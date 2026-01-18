@@ -62,6 +62,17 @@ function mapApiTaskToTask(apiTask: ApiTask): Task {
   };
 }
 
+interface CreateTaskData {
+  title: string;
+  clientId?: string;
+  clientName?: string;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  assignees?: string[];
+  dueDate?: Date;
+  order?: number;
+}
+
 interface TasksContextType {
   tasks: Task[];
   isLoading: boolean;
@@ -71,7 +82,8 @@ interface TasksContextType {
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
   addTask: (task: Task) => void;
-  createTask: (data: { title: string; clientId?: string; clientName?: string; priority?: TaskPriority; status?: TaskStatus; assignees?: string[]; dueDate?: Date }) => void;
+  createTask: (data: CreateTaskData) => void;
+  createTaskAndReturn: (data: CreateTaskData) => Promise<Task | null>;
   getTasksByClient: (clientNameOrId: string) => Task[];
   addTaskHistory: (taskId: string, type: string, content: string) => Promise<void>;
   deleteTaskHistory: (taskId: string, eventId: string) => Promise<void>;
@@ -242,16 +254,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     setTasksWithHistory(prevTasks => [...prevTasks, task]);
   }, [setTasksWithHistory]);
 
-  // Create task (API + local)
-  const createTask = useCallback(async (data: { 
-    title: string; 
-    clientId?: string;
-    clientName?: string; 
-    priority?: TaskPriority; 
-    status?: TaskStatus; 
-    assignees?: string[]; 
-    dueDate?: Date 
-  }) => {
+  // Create task and return it (API + local)
+  const createTaskAndReturn = useCallback(async (data: CreateTaskData): Promise<Task | null> => {
     try {
       const headers = await getAuthHeaders("application/json");
       
@@ -272,6 +276,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           status: data.status || "To Do",
           dueDate: data.dueDate?.toISOString() || new Date().toISOString(),
           clientId: clientId || null,
+          order: data.order ?? 0,
         }),
       });
 
@@ -285,11 +290,19 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         }
         
         setTasks(prev => [...prev, newTask]);
+        return newTask;
       }
+      return null;
     } catch (err) {
       console.error("Error creating task:", err);
+      return null;
     }
   }, [getAuthHeaders, clients]);
+
+  // Create task (API + local) - fire and forget version
+  const createTask = useCallback(async (data: CreateTaskData) => {
+    await createTaskAndReturn(data);
+  }, [createTaskAndReturn]);
 
   // Get tasks by client
   const getTasksByClient = useCallback((clientNameOrId: string) => {
@@ -370,6 +383,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       deleteTask,
       addTask,
       createTask,
+      createTaskAndReturn,
       getTasksByClient,
       addTaskHistory,
       deleteTaskHistory,
