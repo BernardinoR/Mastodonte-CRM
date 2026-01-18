@@ -459,12 +459,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error: any) {
       console.error("Error creating invitation:", error);
       
-      // Handle Clerk-specific errors
-      if (error?.errors?.[0]?.code === "form_identifier_exists") {
+      // Extrair mensagem de erro do Clerk
+      const clerkError = error?.errors?.[0];
+      const clerkMessage = clerkError?.longMessage || clerkError?.message;
+      const clerkCode = clerkError?.code;
+      
+      // Erros conhecidos do Clerk
+      if (clerkCode === "form_identifier_exists") {
         return res.status(400).json({ error: "Este email já possui uma conta ou convite pendente" });
       }
       
-      return res.status(500).json({ error: "Falha ao enviar convite" });
+      // Retornar erro mais informativo
+      const errorMessage = clerkMessage || error?.message || "Falha ao enviar convite";
+      console.error("Clerk error details:", { code: clerkCode, message: clerkMessage });
+      
+      return res.status(500).json({ error: errorMessage });
     }
   });
 
