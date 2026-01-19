@@ -448,6 +448,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const tempTask: Task = {
       id: tempId,
       title: data.title,
+      clientId: data.clientId,
+      clientName: data.clientName,
       priority: data.priority || "Normal",
       status: data.status || "To Do",
       dueDate: data.dueDate || new Date(),
