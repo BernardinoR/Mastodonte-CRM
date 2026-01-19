@@ -521,10 +521,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CLIENT ROUTES
   // ============================================
 
-  // List all clients
+  // List all clients (filtered by user access)
   app.get("/api/clients", clerkAuthMiddleware, async (req, res) => {
     try {
-      const clients = await storage.getAllClients();
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
+      const clients = await storage.getClientsByUserAccess(currentUser);
       return res.json({ clients });
     } catch (error) {
       console.error("Error fetching clients:", error);
@@ -532,14 +537,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get single client by ID (with relations)
+  // Get single client by ID (with relations and access check)
   app.get("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
     try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
       const clientId = req.params.id;
       
       const client = await storage.getClientWithRelations(clientId);
       if (!client) {
         return res.status(404).json({ error: "Client not found" });
+      }
+      
+      // Verificar permissão de acesso
+      const hasAccess = await storage.checkClientAccess(currentUser, client);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
       }
       
       return res.json({ client });
@@ -576,10 +592,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update client
+  // Update client (with access check)
   app.patch("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
     try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
       const clientId = req.params.id;
+      
+      // Verificar se cliente existe
+      const existingClient = await storage.getClient(clientId);
+      if (!existingClient) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      // Verificar permissão de acesso
+      const hasAccess = await storage.checkClientAccess(currentUser, existingClient);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       
       // updateClient retorna null se não encontrar
       const client = await storage.updateClient(clientId, req.body);
@@ -594,10 +627,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Delete client
+  // Delete client (with access check)
   app.delete("/api/clients/:id", clerkAuthMiddleware, async (req, res) => {
     try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+      
       const clientId = req.params.id;
+      
+      // Verificar se cliente existe
+      const existingClient = await storage.getClient(clientId);
+      if (!existingClient) {
+        return res.status(404).json({ error: "Client not found" });
+      }
+      
+      // Verificar permissão de acesso
+      const hasAccess = await storage.checkClientAccess(currentUser, existingClient);
+      if (!hasAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
       
       const deleted = await storage.deleteClient(clientId);
       if (!deleted) {

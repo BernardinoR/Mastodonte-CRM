@@ -93,6 +93,8 @@ export interface IStorage {
   getClient(id: string): Promise<Client | null>;
   getClientWithRelations(id: string): Promise<(Client & { whatsappGroups: WhatsAppGroup[]; owner: User | null }) | null>;
   getClientsByOwnerId(ownerId: number): Promise<Client[]>;
+  getClientsByUserAccess(user: User): Promise<Client[]>;
+  checkClientAccess(user: User, client: Client): Promise<boolean>;
   getAllClients(): Promise<Client[]>;
   createClient(client: InsertClient): Promise<Client>;
   updateClient(id: string, updates: Partial<InsertClient>): Promise<Client | null>;
@@ -230,6 +232,69 @@ export class DbStorage implements IStorage {
       where: { ownerId },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  /**
+   * Retorna clientes baseado nas permissões do usuário:
+   * - Admin: todos os clientes (incluindo órfãos sem owner)
+   * - Usuário com grupo: clientes onde owner pertence ao mesmo grupo
+   * - Usuário sem grupo: apenas clientes próprios
+   */
+  async getClientsByUserAccess(user: User): Promise<Client[]> {
+    // Admin vê todos os clientes
+    if (user.roles?.includes("administrador")) {
+      return this.getAllClients();
+    }
+
+    // Usuário com grupo: clientes onde owner pertence ao mesmo grupo
+    if (user.groupId) {
+      return prisma.client.findMany({
+        where: {
+          isActive: true,
+          owner: {
+            groupId: user.groupId
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+    }
+
+    // Usuário sem grupo: apenas seus próprios clientes
+    return prisma.client.findMany({
+      where: {
+        isActive: true,
+        ownerId: user.id
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+  }
+
+  /**
+   * Verifica se usuário tem acesso a um cliente específico:
+   * - Admin: sempre tem acesso
+   * - Cliente órfão (sem owner): apenas admin
+   * - Usuário com grupo: owner deve pertencer ao mesmo grupo
+   * - Usuário sem grupo: deve ser o owner
+   */
+  async checkClientAccess(user: User, client: Client): Promise<boolean> {
+    // Admin sempre tem acesso
+    if (user.roles?.includes("administrador")) {
+      return true;
+    }
+
+    // Cliente órfão: apenas admin pode acessar
+    if (!client.ownerId) {
+      return false;
+    }
+
+    // Usuário com grupo: verificar se owner pertence ao mesmo grupo
+    if (user.groupId) {
+      const owner = await this.getUser(client.ownerId);
+      return owner?.groupId === user.groupId;
+    }
+
+    // Usuário sem grupo: deve ser o owner
+    return client.ownerId === user.id;
   }
 
   async getAllClients(): Promise<Client[]> {
