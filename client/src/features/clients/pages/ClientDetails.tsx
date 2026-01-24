@@ -9,7 +9,7 @@ import { TasksCompletedCard } from "@features/clients/components/client-details/
 import { MeetingsCard } from "@features/clients/components/client-details/MeetingsCard";
 import { DisabledStatCard } from "@features/clients/components/client-details/DisabledStatCard";
 import { useClientHeaderEditing } from "@features/clients";
-import { useTasks } from "@/contexts/TasksContext";
+import { useTasks } from "@features/tasks";
 import { useClients } from "@features/clients";
 import { useInlineClientTasks } from "@features/clients";
 import { useInlineClientMeetings } from "@features/clients";

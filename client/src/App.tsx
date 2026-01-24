@@ -8,11 +8,10 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
-import { TasksProvider } from "@/contexts/TasksContext";
+import { TasksProvider, Tasks } from "@features/tasks";
 import { ClientsProvider } from "@features/clients";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
-import Tasks from "@/pages/Tasks";
 import Clients from "@features/clients/pages/Clients";
 import ClientDetails from "@features/clients/pages/ClientDetails";
 // Feature imports

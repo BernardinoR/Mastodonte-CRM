@@ -14,18 +14,18 @@ import { useClients } from "@features/clients";
 import { MeetingDetailModal, type MeetingDetail } from "@features/meetings";
 import { MeetingsTable, type Meeting } from "./MeetingsTable";
 import { ExpandableFilterBar } from "@/shared/components/ui/expandable-filter-bar";
-import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@/components/filter-bar/MeetingFilterContent";
-import { DateRangeFilterContent } from "@/components/filter-bar/DateRangeFilterContent";
+import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@features/tasks/components/filter-bar/MeetingFilterContent";
+import { DateRangeFilterContent } from "@features/tasks/components/filter-bar/DateRangeFilterContent";
 import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
-import { sortBy, type SortField } from "@/lib/sortUtils";
+import { sortBy, type SortField } from "@features/tasks/lib/sortUtils";
 import { 
   MEETING_TYPE_OPTIONS,
   MEETING_STATUS_OPTIONS,
   type MeetingType,
   type MeetingStatus 
 } from "@shared/config/meetingConfig";
-import type { DateFilterValue } from "@/types/task";
+import type { DateFilterValue } from "@features/tasks";
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
 
 interface ClientMeetingsProps {

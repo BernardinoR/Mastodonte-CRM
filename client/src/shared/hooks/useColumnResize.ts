@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
-import type { Column } from "@/components/table/TableHeader";
+import type { Column } from "@features/tasks/components/table/TableHeader";
 
 const STORAGE_KEY = "crm-table-column-widths";
 const MIN_COLUMN_WIDTH = 60;

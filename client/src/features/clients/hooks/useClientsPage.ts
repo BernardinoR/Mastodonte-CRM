@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from "react";
 import { useClients } from "@features/clients";
-import { useTasks } from "@/contexts/TasksContext";
+import { useTasks } from "@features/tasks";
 import { CLIENT_EXTENDED_DATA } from "@/shared/mocks/clientsMock";
 import { 
   parseAUM, 

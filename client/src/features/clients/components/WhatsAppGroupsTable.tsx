@@ -4,10 +4,10 @@ import { Badge } from "@/shared/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
 import { DateInput } from "@/shared/components/ui/date-input";
-import { useWhatsAppGroups, type WhatsAppGroupStatus } from "@/hooks/useWhatsAppGroups";
+import { useWhatsAppGroups, type WhatsAppGroupStatus } from "@features/tasks";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { UI_CLASSES } from "@/lib/statusConfig";
+import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import type { WhatsAppGroup } from "@features/clients";
 
 const STATUS_COLORS: Record<string, string> = {

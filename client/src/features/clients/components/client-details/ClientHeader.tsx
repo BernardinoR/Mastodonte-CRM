@@ -21,7 +21,7 @@ import { FoundationCodeField } from "@features/clients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Address, WhatsAppGroup } from "@features/clients";
-import type { ClientStatus } from "@/lib/statusConfig";
+import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { useClientHeaderEditing } from "@features/clients";
 
 function MetaItem({ 

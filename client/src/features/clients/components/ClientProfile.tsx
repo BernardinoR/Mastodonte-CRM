@@ -4,7 +4,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Phone, Mail, ExternalLink, Edit, Archive, Plus } from "lucide-react";
-import { CLIENT_STATUS_OUTLINE_COLORS } from "@/lib/statusConfig";
+import { CLIENT_STATUS_OUTLINE_COLORS } from "@features/tasks/lib/statusConfig";
 
 interface ClientProfileProps {
   name: string;

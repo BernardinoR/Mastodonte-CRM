@@ -1,4 +1,4 @@
-import type { ClientStatus } from "@/lib/statusConfig";
+import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 
 export interface Address {
   street: string;

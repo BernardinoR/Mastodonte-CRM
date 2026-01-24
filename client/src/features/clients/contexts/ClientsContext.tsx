@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup, Address } from "@features/clients";
-import type { ClientStatus } from "@/lib/statusConfig";
+import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { MeetingDetail } from "@features/meetings";
 import { 
   MEETING_DETAILS_DATA,

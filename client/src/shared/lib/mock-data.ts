@@ -1,4 +1,4 @@
-import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@/types/task";
+import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@features/tasks";
 
 export const MOCK_CLIENTS = [
   "Fernanda Carolina De Faria",

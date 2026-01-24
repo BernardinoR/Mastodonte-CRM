@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { subMonths } from "date-fns";
 import { Card } from "@/shared/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/components/ui/toggle-group";
-import type { Task } from "@/types/task";
+import type { Task } from "@features/tasks";
 
 interface TasksCompletedCardProps {
   tasks: Task[];

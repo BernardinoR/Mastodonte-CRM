@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { TaskStatus, TaskPriority } from "@/types/task";
-import { useTasks } from "@/contexts/TasksContext";
+import type { TaskStatus, TaskPriority } from "@features/tasks";
+import { useTasks } from "@features/tasks";
 
 export interface UseInlineClientTasksOptions {
   clientId: string;

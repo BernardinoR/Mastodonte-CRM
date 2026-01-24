@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
-import { getStatusConfig, getPriorityConfig } from "@/lib/statusConfig";
-import type { TaskStatus, TaskPriority } from "@/types/task";
+import { getStatusConfig, getPriorityConfig } from "@features/tasks/lib/statusConfig";
+import type { TaskStatus, TaskPriority } from "@features/tasks";
 
 interface PriorityBadgeProps {
   priority: TaskPriority;
