@@ -13,7 +13,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MEETING_STATUS_BADGE_COLORS, UI_CLASSES } from "@/lib/statusConfig";
 import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
-import { useInlineMeetingEdit } from "@/hooks/useInlineMeetingEdit";
+import { useInlineMeetingEdit } from "@features/meetings";
 import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
 import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
 import { useClients } from "@/contexts/ClientsContext";

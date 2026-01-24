@@ -11,8 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { cn } from "@/shared/lib/utils";
 import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
 import { useClients } from "@/contexts/ClientsContext";
-import type { MeetingDetail } from "@/types/meeting";
-import { MeetingDetailModal } from "@/components/meeting-detail";
+import { MeetingDetailModal, type MeetingDetail } from "@features/meetings";
 import { MeetingsTable, type Meeting } from "./MeetingsTable";
 import { ExpandableFilterBar } from "@/shared/components/ui/expandable-filter-bar";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@/components/filter-bar/MeetingFilterContent";

@@ -3,7 +3,7 @@
  * Separado do contexto para manter o código limpo e facilitar testes
  */
 import type { Client, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
-import type { MeetingDetail } from "@/types/meeting";
+import type { MeetingDetail } from "@features/meetings";
 
 // Clientes iniciais
 export const INITIAL_CLIENTS: Client[] = [

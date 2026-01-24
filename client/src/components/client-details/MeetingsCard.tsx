@@ -2,7 +2,7 @@ import { useState, useMemo } from "react";
 import { subMonths } from "date-fns";
 import { Card } from "@/shared/components/ui/card";
 import { ToggleGroup, ToggleGroupItem } from "@/shared/components/ui/toggle-group";
-import type { ClientMeeting } from "@/types/client";
+import type { ClientMeeting } from "@features/meetings";
 
 interface MeetingsCardProps {
   meetings: ClientMeeting[];
