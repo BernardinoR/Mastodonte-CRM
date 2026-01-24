@@ -2,9 +2,9 @@ import { useSignIn } from "@clerk/clerk-react";
 import { useState } from "react";
 import { Link } from "wouter";
 import { Loader2, ArrowLeft, Mail, KeyRound, CheckCircle } from "lucide-react";
-import { MastodonteLogo } from "@/components/auth/MastodonteLogo";
-import { AuthStyles } from "@/components/auth/AuthStyles";
-import { handleClerkError, redirectAfterAuth } from "@/components/auth/authHelpers";
+import { MastodonteLogo } from "../components/MastodonteLogo";
+import { AuthStyles } from "../components/AuthStyles";
+import { handleClerkError, redirectAfterAuth } from "../lib/authHelpers";
 
 type Step = "email" | "code" | "success";
 

@@ -1,13 +1,13 @@
 import { useSignIn } from "@clerk/clerk-react";
 import { useState, useEffect } from "react";
-import { MastodonteLogo } from "@/components/auth/MastodonteLogo";
-import { AuthStyles } from "@/components/auth/AuthStyles";
-import { VisualEffect } from "@/components/auth/VisualEffects";
-import { quotes } from "@/components/auth/QuoteCarousel";
-import { LoginForm } from "@/components/auth/forms/LoginForm";
-import { EmailVerificationForm } from "@/components/auth/forms/EmailVerificationForm";
-import { TwoFactorForm, TwoFactorStrategy } from "@/components/auth/forms/TwoFactorForm";
-import { handleClerkError, redirectAfterAuth } from "@/components/auth/authHelpers";
+import { MastodonteLogo } from "../components/MastodonteLogo";
+import { AuthStyles } from "../components/AuthStyles";
+import { VisualEffect } from "../components/VisualEffects";
+import { quotes } from "../components/QuoteCarousel";
+import { LoginForm } from "../components/forms/LoginForm";
+import { EmailVerificationForm } from "../components/forms/EmailVerificationForm";
+import { TwoFactorForm, TwoFactorStrategy } from "../components/forms/TwoFactorForm";
+import { handleClerkError, redirectAfterAuth } from "../lib/authHelpers";
 
 type AuthView = "login" | "email-verification" | "two-factor";
 

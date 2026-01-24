@@ -17,13 +17,10 @@ import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Clients from "@/pages/Clients";
 import ClientDetails from "@/pages/ClientDetails";
-import SignIn from "@/pages/SignIn";
-import SignUp from "@/pages/SignUp";
-import SSOCallback from "@/pages/SSOCallback";
-import ForgotPassword from "@/pages/ForgotPassword";
 import Admin from "@/pages/Admin";
 import Profile from "@/pages/Profile";
-import ClerkLogin from "@/pages/ClerkLogin";
+// Auth pages from feature
+import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
 
 function AuthenticatedRouter() {
   return (

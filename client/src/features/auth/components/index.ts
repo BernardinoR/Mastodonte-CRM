@@ -4,5 +4,4 @@ export * from "./MastodonteLogo";
 export * from "./QuoteCarousel";
 export * from "./VisualEffects";
 export * from "./GoogleIcon";
-export * from "./authHelpers";
 export * from "./forms";
