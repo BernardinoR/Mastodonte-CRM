@@ -13,7 +13,7 @@ import { useTasks } from "@/contexts/TasksContext";
 import { useClients } from "@/contexts/ClientsContext";
 import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 import { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useCurrentUser } from "@features/users";
 import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@/lib/clientSections";
 
 function DisabledSection({ section }: { section: DisabledSectionConfig }) {

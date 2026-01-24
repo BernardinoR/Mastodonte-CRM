@@ -23,7 +23,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import { useCurrentUser, type UserRole } from "@/hooks/useCurrentUser";
+import { useCurrentUser, type UserRole } from "@features/users";
 
 const menuItems = [
   {

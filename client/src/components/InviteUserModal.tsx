@@ -22,7 +22,7 @@ import { Separator } from "@/shared/components/ui/separator";
 import { Mail, Loader2, Info, ShieldAlert, UserCheck, Users, HeartHandshake } from "lucide-react";
 import { apiRequest, queryClient } from "@/shared/lib/queryClient";
 import { useToast } from "@/shared/hooks/use-toast";
-import type { UserRole } from "@/hooks/useCurrentUser";
+import type { UserRole } from "@features/users";
 
 interface Group {
   id: number;

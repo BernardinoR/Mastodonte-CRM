@@ -6,7 +6,7 @@ import { Textarea } from "@/shared/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { useState, useEffect } from "react";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 import { useClients } from "@/contexts/ClientsContext";
 import { cn } from "@/shared/lib/utils";
 

@@ -2,7 +2,7 @@ import { createContext, useContext, useCallback, useEffect, useRef, useState, ty
 import { useAuth } from "@clerk/clerk-react";
 import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@/types/task";
 import { useClients } from "@/contexts/ClientsContext";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 
 // API response types
 interface ApiTaskAssignee {

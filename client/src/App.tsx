@@ -10,17 +10,14 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { TasksProvider } from "@/contexts/TasksContext";
 import { ClientsProvider } from "@/contexts/ClientsContext";
-import { UsersProvider } from "@/contexts/UsersContext";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Tasks from "@/pages/Tasks";
 import Clients from "@/pages/Clients";
 import ClientDetails from "@/pages/ClientDetails";
-import Admin from "@/pages/Admin";
-import Profile from "@/pages/Profile";
-// Auth pages from feature
+// Feature imports
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
+import { UsersProvider, useCurrentUser, Admin, Profile } from "@features/users";
 
 function AuthenticatedRouter() {
   return (

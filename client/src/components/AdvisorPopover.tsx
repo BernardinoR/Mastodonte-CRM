@@ -2,7 +2,7 @@ import { useState } from "react";
 import { User, Check } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Input } from "@/shared/components/ui/input";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 
 interface AdvisorPopoverProps {
   currentAdvisor: string;

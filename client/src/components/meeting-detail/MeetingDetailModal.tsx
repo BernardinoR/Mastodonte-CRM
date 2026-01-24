@@ -17,7 +17,7 @@ import {
 import { cn } from "@/shared/lib/utils";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { SingleAssigneeSelector } from "@/components/task-editors/AssigneeSelector";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";

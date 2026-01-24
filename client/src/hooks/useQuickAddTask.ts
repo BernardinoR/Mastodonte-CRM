@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import type { Task, TaskStatus } from "@/types/task";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 import { useTasks } from "@/contexts/TasksContext";
 
 interface UseQuickAddTaskProps {

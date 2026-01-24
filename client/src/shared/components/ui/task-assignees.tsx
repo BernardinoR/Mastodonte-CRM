@@ -1,7 +1,7 @@
 import { memo } from "react";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { cn } from "@/shared/lib/utils";
-import { useUsers } from "@/contexts/UsersContext";
+import { useUsers } from "@features/users";
 
 export const getInitials = (name: string): string => {
   return name

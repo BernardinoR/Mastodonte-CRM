@@ -3,7 +3,7 @@ import { Input } from "@/shared/components/ui/input";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Check, Plus, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { useUsers, type TeamUser } from "@/contexts/UsersContext";
+import { useUsers, type TeamUser } from "@features/users";
 
 interface AssigneeSelectorProps {
   selectedAssignees: string[];
