@@ -1,14 +1,14 @@
 import { memo } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { 
   CheckCircle2, 
   Clock, 
   History, 
   Zap
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { TurboSessionStats } from "@/hooks/useTurboMode";
 
 interface TurboSummaryModalProps {

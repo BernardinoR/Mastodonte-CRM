@@ -1,10 +1,10 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { MapPin, Copy, Pencil, Check, X } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
+import { useToast } from "@/shared/hooks/use-toast";
 import type { Address } from "@/types/client";
 
 interface AddressPopoverProps {

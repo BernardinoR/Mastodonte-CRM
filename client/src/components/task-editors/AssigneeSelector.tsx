@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/shared/components/ui/input";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Check, Plus, X, User, ChevronLeft, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { useUsers, type TeamUser } from "@/contexts/UsersContext";
 
 interface AssigneeSelectorProps {

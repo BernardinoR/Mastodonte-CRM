@@ -20,7 +20,7 @@ import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { TableHeader, type Column } from "@/components/table/TableHeader";
 import { TableBulkActions } from "@/components/table/TableBulkActions";
 import { TaskTableRow } from "@/components/table/TaskTableRow";
-import { useColumnResize } from "@/hooks/useColumnResize";
+import { useColumnResize } from "@/shared/hooks/useColumnResize";
 
 interface TaskTableViewProps {
   tasks: Task[];

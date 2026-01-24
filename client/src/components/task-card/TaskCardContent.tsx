@@ -1,13 +1,13 @@
 import { useCallback } from "react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { AssigneeList } from "@/components/ui/task-assignees";
+} from "@/shared/components/ui/popover";
+import { AssigneeList } from "@/shared/components/ui/task-assignees";
 import { Pencil } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { AssigneeSelector } from "@/components/task-editors";
 import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopover } from "@/components/task-popovers";
 import type { TaskStatus, TaskPriority } from "@/types/task";

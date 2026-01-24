@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Calendar, Plane, Truck, AlertTriangle, Check, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { getIconComponent, type IconName } from "./IconPicker";
 
 export type TagType = "finance" | "travel" | "vehicle" | "warning";

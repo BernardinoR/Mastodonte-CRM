@@ -1,10 +1,10 @@
 import { memo, useCallback, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
+import { Input } from "@/shared/components/ui/input";
+import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { StatusBadge, PriorityBadge } from "@/components/ui/task-badges";
+import { StatusBadge, PriorityBadge } from "@/shared/components/ui/task-badges";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { 
   STATUS_OPTIONS, 
   PRIORITY_OPTIONS, 

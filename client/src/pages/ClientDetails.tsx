@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
 import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
 import { ClientHeader, ClientMeetings, ClientTasks } from "@/components/client-details";
 import { TasksCompletedCard } from "@/components/client-details/TasksCompletedCard";

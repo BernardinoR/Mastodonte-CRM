@@ -6,7 +6,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { TurboModeOverlay } from "@/components/TurboModeOverlay";
 import { TurboSummaryModal } from "@/components/TurboSummaryModal";
 import { TaskTableView } from "@/components/TaskTableView";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "@/components/NewTaskDialog";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
@@ -26,7 +26,7 @@ import {
 } from "@dnd-kit/sortable";
 import type { Task, TaskStatus, TaskPriority } from "@/types/task";
 import { createTypedFilter } from "@/types/task";
-import { createNewTask } from "@/lib/mock-data";
+import { createNewTask } from "@/shared/lib/mock-data";
 import { useTasks } from "@/contexts/TasksContext";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
 import { useTaskSelection } from "@/hooks/useTaskSelection";

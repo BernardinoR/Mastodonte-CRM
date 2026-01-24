@@ -6,7 +6,7 @@ import type { MeetingDetail } from "@/types/meeting";
 import { 
   MEETING_DETAILS_DATA,
   type ClientExtendedData 
-} from "@/mocks/clientsMock";
+} from "@/shared/mocks/clientsMock";
 
 // API response types
 interface ApiClient {

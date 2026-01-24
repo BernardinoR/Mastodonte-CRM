@@ -1,13 +1,13 @@
 import { useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/shared/components/ui/button";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { 
   Mail, Phone, MessageCircle, RefreshCw, User, Sparkles, 
   FileText, Paperclip, Image, X, SquarePen 
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
 import type { TaskHistoryEvent } from "@/types/task";
 

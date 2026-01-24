@@ -7,7 +7,7 @@ import {
   CalendarX,
   TrendingUp
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { ClientsViewMode, ClientsFilterMode } from "@/types/client";
 
 interface ClientsToolbarProps {

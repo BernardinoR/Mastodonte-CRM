@@ -1,5 +1,5 @@
 import { memo, useCallback, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface ColumnResizeHandleProps {
   columnId: string;

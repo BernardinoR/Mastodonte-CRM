@@ -4,9 +4,9 @@
  */
 import { memo, useMemo } from "react";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/components/ui/badge";
 
 export interface BadgeFilterContentProps<T extends string> {
   options: readonly T[];

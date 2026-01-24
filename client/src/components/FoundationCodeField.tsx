@@ -1,10 +1,10 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Hash, Check, X, Loader2, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/shared/components/ui/button";
+import { useToast } from "@/shared/hooks/use-toast";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest } from "@/shared/lib/queryClient";
 import { useAuth } from "@clerk/clerk-react";
 
 interface FoundationCodeFieldProps {

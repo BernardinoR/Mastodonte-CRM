@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { format } from "date-fns";
-import { parseLocalDate } from "@/lib/date-utils";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 import type { TaskStatus, TaskPriority, TaskUpdates } from "@/types/task";
 
 const globalJustClosedEditRef = { current: false };

@@ -30,7 +30,7 @@ import {
   Settings,
   FileText,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 const AVAILABLE_ICONS = [
   { name: "alert-circle", icon: AlertCircle, label: "Alerta" },

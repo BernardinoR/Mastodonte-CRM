@@ -4,21 +4,21 @@
  */
 import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import { Calendar as CalendarIcon, Search, X, Calendar, User, Tag } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Card } from "@/shared/components/ui/card";
+import { Input } from "@/shared/components/ui/input";
+import { Button } from "@/shared/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { cn } from "@/shared/lib/utils";
 import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
 import { useClients } from "@/contexts/ClientsContext";
 import type { MeetingDetail } from "@/types/meeting";
 import { MeetingDetailModal } from "@/components/meeting-detail";
 import { MeetingsTable, type Meeting } from "./MeetingsTable";
-import { ExpandableFilterBar } from "@/components/ui/expandable-filter-bar";
+import { ExpandableFilterBar } from "@/shared/components/ui/expandable-filter-bar";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { DateRangeFilterContent } from "@/components/filter-bar/DateRangeFilterContent";
-import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
-import { useSearchFilter } from "@/hooks/useSearchFilter";
+import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
+import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
 import { sortBy, type SortField } from "@/lib/sortUtils";
 import { 
   MEETING_TYPE_OPTIONS,

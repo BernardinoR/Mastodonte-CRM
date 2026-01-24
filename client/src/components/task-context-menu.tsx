@@ -6,7 +6,7 @@ import {
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from "@/components/ui/context-menu";
+} from "@/shared/components/ui/context-menu";
 import {
   Calendar as CalendarIcon,
   Pencil,
@@ -18,13 +18,13 @@ import {
   Briefcase,
   PenLine,
 } from "lucide-react";
-import { parseLocalDate } from "@/lib/date-utils";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 import { 
   ContextMenuClientEditor,
   ContextMenuDateEditor,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 import { useClients } from "@/contexts/ClientsContext";
 

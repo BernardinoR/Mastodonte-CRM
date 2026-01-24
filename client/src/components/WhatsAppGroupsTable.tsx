@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { MessageSquare, Calendar as CalendarIcon, Edit, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { DateInput } from "@/components/ui/date-input";
+import { Badge } from "@/shared/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
+import { DateInput } from "@/shared/components/ui/date-input";
 import { useWhatsAppGroups, type WhatsAppGroupStatus } from "@/hooks/useWhatsAppGroups";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";

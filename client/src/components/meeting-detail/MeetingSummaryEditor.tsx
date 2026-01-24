@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { FileText, User, Check, Sparkles, Loader2, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { useAISummary, type AIResponse } from "@/hooks/useAISummary";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
 import { TagEditorModal, TagDisplay, InlineTagEditor, type TagData, type TagType } from "./TagEditorModal";

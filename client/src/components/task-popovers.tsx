@@ -1,21 +1,21 @@
 import { memo, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { DateInput } from "@/components/ui/date-input";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/shared/components/ui/button";
+import { DateInput } from "@/shared/components/ui/date-input";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/shared/components/ui/popover";
 import { Calendar as CalendarIcon, X, Pencil } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { parseLocalDate } from "@/lib/date-utils";
-import { cn } from "@/lib/utils";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { parseLocalDate } from "@/shared/lib/date-utils";
+import { cn } from "@/shared/lib/utils";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { getAvatarColor, getInitials } from "@/components/ui/task-assignees";
+import { getAvatarColor, getInitials } from "@/shared/components/ui/task-assignees";
 import type { TaskPriority, TaskStatus } from "@/types/task";
 
 // ============================================

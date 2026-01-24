@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/shared/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { CLIENT_STATUS_CONFIG, CLIENT_STATUS_OPTIONS, type ClientStatus, UI_CLASSES } from "@/lib/statusConfig";
 
 interface ClientStatusBadgeProps {

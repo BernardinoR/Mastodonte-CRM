@@ -1,6 +1,6 @@
 import { memo, useEffect, useCallback, useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/shared/components/ui/button";
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import { 
   ChevronLeft, 
@@ -11,7 +11,7 @@ import {
   RotateCcw,
   Zap
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { UseTurboModeReturn } from "@/hooks/useTurboMode";
 import type { Task } from "@/types/task";
 

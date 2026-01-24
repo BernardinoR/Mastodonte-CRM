@@ -3,13 +3,13 @@
  */
 import { useState, useMemo } from "react";
 import { Calendar as CalendarIcon, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { DateInput } from "@/components/ui/date-input";
+import { Badge } from "@/shared/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
+import { DateInput } from "@/shared/components/ui/date-input";
 import { AssigneeSelector } from "@/components/task-editors";
-import { abbreviateName } from "@/components/ui/task-assignees";
-import { EditableCell } from "@/components/ui/editable-cell";
+import { abbreviateName } from "@/shared/components/ui/task-assignees";
+import { EditableCell } from "@/shared/components/ui/editable-cell";
 import { useTasks } from "@/contexts/TasksContext";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -17,8 +17,8 @@ import { UI_CLASSES, TASK_STATUS_BADGE_COLORS, TASK_PRIORITY_BADGE_COLORS } from
 import { TaskDetailModal } from "@/components/TaskDetailModal";
 import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task";
 import { useInlineTaskEdit } from "@/hooks/useInlineTaskEdit";
-import { useInlineEdit } from "@/hooks/useInlineEdit";
-import { usePaginatedList } from "@/hooks/usePaginatedList";
+import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
+import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
 import type { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 import { sortTasksByDateAndPriority } from "@/lib/taskUtils";
 

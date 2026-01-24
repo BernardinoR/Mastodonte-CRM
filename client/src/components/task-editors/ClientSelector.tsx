@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/shared/components/ui/input";
 import { Check, Plus, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { useClients } from "@/contexts/ClientsContext";
 
 interface ClientSelectorProps {

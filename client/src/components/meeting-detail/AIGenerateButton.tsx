@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Sparkles, FileText, ClipboardList, Zap, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@/shared/components/ui/popover";
 
 export type GenerateOption = "summary" | "agenda" | "decisions";
 

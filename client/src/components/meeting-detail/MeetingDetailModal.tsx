@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from "react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/shared/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
@@ -14,7 +14,7 @@ import {
   Timer,
   Pencil
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@/components/filter-bar/MeetingFilterContent";
 import { SingleAssigneeSelector } from "@/components/task-editors/AssigneeSelector";
 import { useUsers } from "@/contexts/UsersContext";
@@ -34,7 +34,7 @@ import {
   type MeetingStatus,
   type MeetingLocation
 } from "@shared/config/meetingConfig";
-import { DateInput } from "@/components/ui/date-input";
+import { DateInput } from "@/shared/components/ui/date-input";
 
 interface MeetingDetailModalProps {
   meeting: MeetingDetail | null;

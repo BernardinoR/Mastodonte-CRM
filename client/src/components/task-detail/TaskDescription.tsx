@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from "react";
-import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/shared/components/ui/textarea";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 interface TaskDescriptionProps {
   description: string;

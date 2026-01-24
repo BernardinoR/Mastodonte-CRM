@@ -5,20 +5,20 @@
 import { Link } from "wouter";
 import { useRef, useEffect, useState, useMemo, useCallback } from "react";
 import { CheckCircle2, Search, X, Calendar, CheckSquare, Flag, User, Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Card } from "@/shared/components/ui/card";
+import { Input } from "@/shared/components/ui/input";
+import { Button } from "@/shared/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { cn } from "@/shared/lib/utils";
 import type { Task as GlobalTask, TaskStatus, TaskPriority, DateFilterValue } from "@/types/task";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/types/task";
 import type { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
 import { TasksTable } from "./TasksTable";
-import { useSearchFilter } from "@/hooks/useSearchFilter";
+import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
 import { buildTasksUrl } from "@/hooks/useTaskUrlParams";
 import { StatusFilterContent, PriorityFilterContent } from "@/components/filter-bar/FilterPopoverContent";
 import { DateRangeFilterContent, formatDateFilterLabel } from "@/components/filter-bar/DateRangeFilterContent";
-import { SearchableMultiSelect } from "@/components/ui/searchable-multi-select";
+import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
 
 export interface ClientTasksProps {

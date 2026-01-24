@@ -1,5 +1,5 @@
 import { startOfDay, isBefore } from "date-fns";
-import { parseLocalDate } from "@/lib/date-utils";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 
 export function calculateIsOverdue(
   isEditing: boolean,

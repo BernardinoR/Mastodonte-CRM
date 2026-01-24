@@ -8,7 +8,7 @@ import {
   CalendarCheck,
   ShieldCheck
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { formatAUM } from "@/lib/clientUtils";
 import type { ClientsPageStats, ClientsFilterMode } from "@/types/client";
 

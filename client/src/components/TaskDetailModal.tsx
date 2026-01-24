@@ -1,18 +1,18 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory } from "@/components/task-detail";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
-import { parseLocalDate } from "@/lib/date-utils";
-import { DateInput } from "@/components/ui/date-input";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { parseLocalDate } from "@/shared/lib/date-utils";
+import { DateInput } from "@/shared/components/ui/date-input";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
 import { TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popovers";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { useClients } from "@/contexts/ClientsContext";
 import { useTasks } from "@/contexts/TasksContext";
 

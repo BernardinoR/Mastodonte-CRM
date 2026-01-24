@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useClients } from "@/contexts/ClientsContext";
 import { useTasks } from "@/contexts/TasksContext";
-import { CLIENT_EXTENDED_DATA } from "@/mocks/clientsMock";
+import { CLIENT_EXTENDED_DATA } from "@/shared/mocks/clientsMock";
 import { 
   parseAUM, 
   daysSinceLastMeeting, 

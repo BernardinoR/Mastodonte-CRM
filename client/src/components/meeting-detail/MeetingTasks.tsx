@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { CheckSquare, Plus, Calendar, User, Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { MeetingLinkedTask } from "@/types/meeting";
 
 interface MeetingTasksProps {

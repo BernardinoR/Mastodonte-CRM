@@ -1,8 +1,8 @@
 import { memo } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { Card, CardContent, CardHeader } from "@/shared/components/ui/card";
+import { Separator } from "@/shared/components/ui/separator";
 import { CalendarIcon, User } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { TaskStatus, TaskPriority } from "@/types/task";

@@ -3,7 +3,7 @@ import { ClientCard } from "@/components/ClientCard";
 import { NewClientInlineCard } from "@/components/NewClientInlineCard";
 import { useClientsPage } from "@/hooks/useClientsPage";
 import { useClients } from "@/contexts/ClientsContext";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/shared/hooks/use-toast";
 import { 
   ClientsToolbar, 
   ClientsStatsGrid, 

@@ -11,13 +11,13 @@ import {
   PenLine,
   ChevronRight,
 } from "lucide-react";
-import { DateInput } from "@/components/ui/date-input";
+import { DateInput } from "@/shared/components/ui/date-input";
 import { 
   ContextMenuClientEditor,
   ContextMenuAssigneeEditor
 } from "@/components/task-editors";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
-import { cn } from "@/lib/utils";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
+import { cn } from "@/shared/lib/utils";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 import { useClients } from "@/contexts/ClientsContext";
 

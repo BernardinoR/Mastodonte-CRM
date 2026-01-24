@@ -18,8 +18,8 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
+import { Checkbox } from "@/shared/components/ui/checkbox";
+import { cn } from "@/shared/lib/utils";
 import { ColumnResizeHandle } from "./ColumnResizeHandle";
 import { SmartPointerSensor } from "@/lib/dndSensors";
 

@@ -11,8 +11,8 @@ import {
   Check,
   X,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/shared/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { ClientStatusBadge } from "@/components/ClientStatusBadge";
 import { EmailsPopover } from "@/components/EmailsPopover";
 import { AdvisorPopover } from "@/components/AdvisorPopover";

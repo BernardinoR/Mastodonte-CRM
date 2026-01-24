@@ -1,11 +1,11 @@
 import { memo, useState, useCallback } from "react";
 import { CalendarIcon, X, Users, Building2, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { DateInput } from "@/components/ui/date-input";
-import { cn } from "@/lib/utils";
+import { Button } from "@/shared/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { DateInput } from "@/shared/components/ui/date-input";
+import { cn } from "@/shared/lib/utils";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/components/ui/task-badges";
+import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
 import { ClientSelector, AssigneeSelector } from "@/components/task-editors";
 import type { TaskStatus, TaskPriority } from "@/types/task";
 

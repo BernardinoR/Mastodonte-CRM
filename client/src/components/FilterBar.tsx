@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { Input } from "@/shared/components/ui/input";
 import { 
   LayoutGrid, 
   List, 
@@ -28,7 +28,7 @@ import {
   Rows3
 } from "lucide-react";
 import { addDays, addWeeks, startOfDay } from "date-fns";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "@/types/task";
 import { FilterPopoverContent, formatDateFilterLabel } from "@/components/filter-bar/FilterPopoverContent";
 import {

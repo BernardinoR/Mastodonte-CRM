@@ -5,8 +5,8 @@ import {
 import { useLocation } from "wouter";
 import { useCallback } from "react";
 import type { Client, EnrichedClient } from "@/types/client";
-import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
+import { cn } from "@/shared/lib/utils";
+import { toast } from "@/shared/hooks/use-toast";
 
 interface ClientCardProps {
   client: Client | EnrichedClient;

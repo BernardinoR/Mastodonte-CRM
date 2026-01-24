@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { ClipboardList, ChevronRight, Plus, Trash2, GripVertical, Check } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { Badge } from "@/shared/components/ui/badge";
+import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingAgendaItem, MeetingAgendaSubitem } from "@/types/meeting";
 

@@ -1,6 +1,6 @@
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/components/ui/badge";
 import { Circle } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { TaskStatus, STATUS_OPTIONS } from "@/types/task";
 import { STATUS_CONFIG } from "@/lib/statusConfig";
 

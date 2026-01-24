@@ -1,8 +1,8 @@
 import { useRef, useCallback } from "react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@/shared/components/ui/button";
+import { Separator } from "@/shared/components/ui/separator";
 import { Pencil, Trash2, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { TaskStatus } from "@/types/task";
 
 interface TaskCardHeaderProps {

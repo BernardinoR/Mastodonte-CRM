@@ -1,9 +1,9 @@
 import { memo, useCallback } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
 import { useDroppable } from "@dnd-kit/core";
 import { LucideIcon, Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import type { TaskStatus } from "@/types/task";
 
 interface KanbanColumnProps {

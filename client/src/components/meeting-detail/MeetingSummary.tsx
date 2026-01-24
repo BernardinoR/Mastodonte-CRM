@@ -32,7 +32,7 @@ import {
   Lock,
   Settings
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
 import { TagEditorModal, TagDisplay, InlineTagEditor, type TagData, type TagType } from "./TagEditorModal";

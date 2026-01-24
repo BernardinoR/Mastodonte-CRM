@@ -16,7 +16,7 @@ import {
   isAssigneeFilter,
   isClientFilter
 } from '@/types/task';
-import { parseLocalDate } from '@/lib/date-utils';
+import { parseLocalDate } from '@/shared/lib/date-utils';
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
 import { PRIORITY_ORDER } from '@/lib/taskUtils';
 

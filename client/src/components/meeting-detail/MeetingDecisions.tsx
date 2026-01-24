@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2, Check } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingDecision } from "@/types/meeting";
 

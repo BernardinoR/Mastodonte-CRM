@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Input } from "@/components/ui/input";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { Input } from "@/shared/components/ui/input";
+import { Calendar } from "@/shared/components/ui/calendar";
+import { cn } from "@/shared/lib/utils";
 import { format, parse, isValid, setYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { parseLocalDate } from "@/lib/date-utils";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 
 interface ContextMenuDateEditorProps {
   currentDate: string;

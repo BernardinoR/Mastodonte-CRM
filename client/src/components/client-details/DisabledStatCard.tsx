@@ -1,6 +1,6 @@
 import { Lock } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
 
 interface DisabledStatCardProps {
   title: string;

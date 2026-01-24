@@ -2,20 +2,20 @@
  * Componente de tabela de reuniões extraído para melhor organização e reutilização
  */
 import { Calendar as CalendarIcon, FileText, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { DateInput } from "@/components/ui/date-input";
+import { Badge } from "@/shared/components/ui/badge";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/shared/components/ui/alert-dialog";
+import { DateInput } from "@/shared/components/ui/date-input";
 import { AssigneeSelector } from "@/components/task-editors";
-import { abbreviateName } from "@/components/ui/task-assignees";
-import { EditableCell } from "@/components/ui/editable-cell";
+import { abbreviateName } from "@/shared/components/ui/task-assignees";
+import { EditableCell } from "@/shared/components/ui/editable-cell";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MEETING_STATUS_BADGE_COLORS, UI_CLASSES } from "@/lib/statusConfig";
 import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
 import { useInlineMeetingEdit } from "@/hooks/useInlineMeetingEdit";
-import { useInlineEdit } from "@/hooks/useInlineEdit";
-import { usePaginatedList } from "@/hooks/usePaginatedList";
+import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
+import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
 import { useClients } from "@/contexts/ClientsContext";
 import { 
   MEETING_TYPE_COLORS, 

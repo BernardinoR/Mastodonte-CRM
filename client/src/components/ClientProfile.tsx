@@ -1,8 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/shared/components/ui/card";
+import { Badge } from "@/shared/components/ui/badge";
+import { Button } from "@/shared/components/ui/button";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { Phone, Mail, ExternalLink, Edit, Archive, Plus } from "lucide-react";
 import { CLIENT_STATUS_OUTLINE_COLORS } from "@/lib/statusConfig";
 
