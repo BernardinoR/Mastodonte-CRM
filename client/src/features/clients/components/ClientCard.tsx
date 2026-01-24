@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "wouter";
 import { useCallback } from "react";
-import type { Client, EnrichedClient } from "@/types/client";
+import type { Client, EnrichedClient } from "@features/clients";
 import { cn } from "@/shared/lib/utils";
 import { toast } from "@/shared/hooks/use-toast";
 

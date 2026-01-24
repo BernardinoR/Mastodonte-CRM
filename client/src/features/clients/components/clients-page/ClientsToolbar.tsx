@@ -8,7 +8,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import type { ClientsViewMode, ClientsFilterMode } from "@/types/client";
+import type { ClientsViewMode, ClientsFilterMode } from "@features/clients";
 
 interface ClientsToolbarProps {
   viewMode: ClientsViewMode;

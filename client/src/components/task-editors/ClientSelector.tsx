@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Check, Plus, User } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 
 interface ClientSelectorProps {
   selectedClient: string | null;

@@ -12,11 +12,11 @@ import { EditableCell } from "@/shared/components/ui/editable-cell";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MEETING_STATUS_BADGE_COLORS, UI_CLASSES } from "@/lib/statusConfig";
-import type { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
+import type { useInlineClientMeetings } from "@features/clients";
 import { useInlineMeetingEdit } from "@features/meetings";
 import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
 import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 import { 
   MEETING_TYPE_COLORS, 
   MEETING_TYPE_OPTIONS, 

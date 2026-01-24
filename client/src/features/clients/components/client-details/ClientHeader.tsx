@@ -13,16 +13,16 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { ClientStatusBadge } from "@/components/ClientStatusBadge";
-import { EmailsPopover } from "@/components/EmailsPopover";
-import { AdvisorPopover } from "@/components/AdvisorPopover";
-import { AddressPopover } from "@/components/AddressPopover";
-import { FoundationCodeField } from "@/components/FoundationCodeField";
+import { ClientStatusBadge } from "@features/clients";
+import { EmailsPopover } from "@features/clients";
+import { AdvisorPopover } from "@features/clients";
+import { AddressPopover } from "@features/clients";
+import { FoundationCodeField } from "@features/clients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import type { Address, WhatsAppGroup } from "@/types/client";
+import type { Address, WhatsAppGroup } from "@features/clients";
 import type { ClientStatus } from "@/lib/statusConfig";
-import type { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
+import type { useClientHeaderEditing } from "@features/clients";
 
 function MetaItem({ 
   icon: Icon, 

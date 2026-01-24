@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 import { useTasks } from "@/contexts/TasksContext";
 import { CLIENT_EXTENDED_DATA } from "@/shared/mocks/clientsMock";
 import { 
@@ -7,13 +7,13 @@ import {
   daysSinceLastMeeting, 
   getMeetingDelayStatus, 
   formatAUM 
-} from "@/lib/clientUtils";
+} from "@features/clients";
 import type { 
   EnrichedClient, 
   ClientsPageStats, 
   ClientsViewMode, 
   ClientsFilterMode 
-} from "@/types/client";
+} from "@features/clients";
 
 export function useClientsPage() {
   // Estados de UI

@@ -1,7 +1,7 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { useAuth } from "@clerk/clerk-react";
 import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "@/types/task";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 import { useUsers } from "@features/users";
 
 // API response types

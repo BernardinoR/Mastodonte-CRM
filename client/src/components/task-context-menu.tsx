@@ -26,7 +26,7 @@ import {
 } from "@/components/task-editors";
 import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "@/types/task";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 
 interface TaskCardContextMenuProps {
   selectedCount: number;

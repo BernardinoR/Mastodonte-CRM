@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 
 export function useInlineMeetingEdit(clientId?: string) {
   const { updateClientMeeting, deleteClientMeeting } = useClients();

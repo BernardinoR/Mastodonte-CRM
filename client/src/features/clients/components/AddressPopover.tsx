@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { useToast } from "@/shared/hooks/use-toast";
-import type { Address } from "@/types/client";
+import type { Address } from "@features/clients";
 
 interface AddressPopoverProps {
   address: Address;

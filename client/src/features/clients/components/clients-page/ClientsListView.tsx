@@ -1,7 +1,7 @@
 import { AlertTriangle, Eye, CalendarPlus, ArrowUpDown } from "lucide-react";
 import { useLocation } from "wouter";
 import { cn } from "@/shared/lib/utils";
-import type { EnrichedClient } from "@/types/client";
+import type { EnrichedClient } from "@features/clients";
 
 interface ClientsListViewProps {
   clients: EnrichedClient[];

@@ -19,7 +19,7 @@ import type { Task as GlobalTask, TaskPriority, TaskStatus } from "@/types/task"
 import { useInlineTaskEdit } from "@/hooks/useInlineTaskEdit";
 import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
 import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
-import type { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
+import type { useInlineClientTasks } from "@features/clients";
 import { sortTasksByDateAndPriority } from "@/lib/taskUtils";
 
 export interface TasksTableProps {

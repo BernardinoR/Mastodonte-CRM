@@ -8,7 +8,7 @@ import { useWhatsAppGroups, type WhatsAppGroupStatus } from "@/hooks/useWhatsApp
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import type { WhatsAppGroup } from "@/types/client";
+import type { WhatsAppGroup } from "@features/clients";
 
 const STATUS_COLORS: Record<string, string> = {
   "Ativo": "bg-[#203828] text-[#6ecf8e]",

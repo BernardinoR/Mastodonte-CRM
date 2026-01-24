@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Mail, Phone, MessageCircle } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { UI_CLASSES } from "@/lib/statusConfig";
-import type { WhatsAppGroup } from "@/types/client";
+import type { WhatsAppGroup } from "@features/clients";
 
 interface TaskContactButtonsProps {
   clientEmail?: string;

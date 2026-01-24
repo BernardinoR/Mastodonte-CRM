@@ -9,8 +9,8 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { formatAUM } from "@/lib/clientUtils";
-import type { ClientsPageStats, ClientsFilterMode } from "@/types/client";
+import { formatAUM } from "@features/clients";
+import type { ClientsPageStats, ClientsFilterMode } from "@features/clients";
 
 interface ClientsStatsGridProps {
   stats: ClientsPageStats;

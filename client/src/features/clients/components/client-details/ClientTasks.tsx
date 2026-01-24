@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { cn } from "@/shared/lib/utils";
 import type { Task as GlobalTask, TaskStatus, TaskPriority, DateFilterValue } from "@/types/task";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS } from "@/types/task";
-import type { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
+import type { useInlineClientTasks } from "@features/clients";
 import { TasksTable } from "./TasksTable";
 import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
 import { buildTasksUrl } from "@/hooks/useTaskUrlParams";

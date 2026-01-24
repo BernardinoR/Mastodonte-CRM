@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import type { ClientMeeting } from "@/types/client";
-import { useClients } from "@/contexts/ClientsContext";
+import type { ClientMeeting } from "@features/clients";
+import { useClients } from "@features/clients";
 import { useCurrentUser } from "@features/users";
 import { MEETING_TYPE_OPTIONS, MEETING_STATUS_OPTIONS, type MeetingStatus } from "@shared/config/meetingConfig";
 

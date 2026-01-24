@@ -3,18 +3,18 @@ import { useParams, Link } from "wouter";
 import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import { WhatsAppGroupsTable } from "@/components/WhatsAppGroupsTable";
-import { ClientHeader, ClientMeetings, ClientTasks } from "@/components/client-details";
-import { TasksCompletedCard } from "@/components/client-details/TasksCompletedCard";
-import { MeetingsCard } from "@/components/client-details/MeetingsCard";
-import { DisabledStatCard } from "@/components/client-details/DisabledStatCard";
-import { useClientHeaderEditing } from "@/hooks/useClientHeaderEditing";
+import { WhatsAppGroupsTable } from "@features/clients";
+import { ClientHeader, ClientMeetings, ClientTasks } from "@features/clients/components/client-details";
+import { TasksCompletedCard } from "@features/clients/components/client-details/TasksCompletedCard";
+import { MeetingsCard } from "@features/clients/components/client-details/MeetingsCard";
+import { DisabledStatCard } from "@features/clients/components/client-details/DisabledStatCard";
+import { useClientHeaderEditing } from "@features/clients";
 import { useTasks } from "@/contexts/TasksContext";
-import { useClients } from "@/contexts/ClientsContext";
-import { useInlineClientTasks } from "@/hooks/useInlineClientTasks";
-import { useInlineClientMeetings } from "@/hooks/useInlineClientMeetings";
+import { useClients } from "@features/clients";
+import { useInlineClientTasks } from "@features/clients";
+import { useInlineClientMeetings } from "@features/clients";
 import { useCurrentUser } from "@features/users";
-import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@/lib/clientSections";
+import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@features/clients";
 
 function DisabledSection({ section }: { section: DisabledSectionConfig }) {
   const Icon = section.icon;

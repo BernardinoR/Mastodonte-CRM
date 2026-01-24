@@ -2,7 +2,7 @@
  * Mock data para clientes
  * Separado do contexto para manter o código limpo e facilitar testes
  */
-import type { Client, ClientStats, ClientMeeting, WhatsAppGroup } from "@/types/client";
+import type { Client, ClientStats, ClientMeeting, WhatsAppGroup } from "@features/clients";
 import type { MeetingDetail } from "@features/meetings";
 
 // Clientes iniciais

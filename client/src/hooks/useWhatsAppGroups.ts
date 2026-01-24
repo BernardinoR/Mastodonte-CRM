@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import type { WhatsAppGroup } from "@/types/client";
+import type { WhatsAppGroup } from "@features/clients";
 
 export type WhatsAppGroupStatus = "Ativo" | "Inativo";
 

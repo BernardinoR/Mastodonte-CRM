@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { useUsers } from "@features/users";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 import { cn } from "@/shared/lib/utils";
 
 export interface NewTaskFormData {

@@ -13,7 +13,7 @@ import { TaskClientPopover, TaskAssigneesPopover } from "@/components/task-popov
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "@/types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "@/lib/statusConfig";
 import { cn } from "@/shared/lib/utils";
-import { useClients } from "@/contexts/ClientsContext";
+import { useClients } from "@features/clients";
 import { useTasks } from "@/contexts/TasksContext";
 
 interface TaskDetailModalProps {

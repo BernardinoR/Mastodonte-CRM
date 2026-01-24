@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { ClientCard } from "@/components/ClientCard";
-import { NewClientInlineCard } from "@/components/NewClientInlineCard";
-import { useClientsPage } from "@/hooks/useClientsPage";
-import { useClients } from "@/contexts/ClientsContext";
+import { ClientCard } from "@features/clients";
+import { NewClientInlineCard } from "@features/clients";
+import { useClientsPage } from "@features/clients";
+import { useClients } from "@features/clients";
 import { useToast } from "@/shared/hooks/use-toast";
 import { 
   ClientsToolbar, 
   ClientsStatsGrid, 
   ClientsListView,
   ClientsFiltersRow
-} from "@/components/clients-page";
+} from "@features/clients/components/clients-page";
 
 export default function Clients() {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
