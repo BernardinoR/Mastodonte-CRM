@@ -24,7 +24,7 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@features": path.resolve(import.meta.dirname, "client", "src", "features"),
       "@app": path.resolve(import.meta.dirname, "client", "src", "app"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@shared": path.resolve(import.meta.dirname, "client", "src", "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
