@@ -5,7 +5,7 @@ import { Input } from "@/shared/components/ui/input";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
-import { UI_CLASSES } from "../../lib/statusConfig";
+import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import { 
   startOfDay, 
   endOfDay,
@@ -19,7 +19,7 @@ import {
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
-import type { DateFilterValue } from "../../types/task";
+import type { DateFilterValue } from "@features/tasks";
 
 export type { DateFilterValue };
 

@@ -40,7 +40,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrentUser, isAdmin as checkIsAdmin, type UserRole } from "@features/users";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { InviteUserModal } from "@/components/InviteUserModal";
+import { InviteUserModal } from "../components/InviteUserModal";
 
 interface Group {
   id: number;

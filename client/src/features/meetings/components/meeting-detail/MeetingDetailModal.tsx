@@ -15,7 +15,7 @@ import {
   Pencil
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@features/tasks/components/filter-bar/MeetingFilterContent";
+import { MeetingTypeFilterContent, MeetingStatusFilterContent, MeetingLocationFilterContent } from "@shared/components/filter-bar/MeetingFilterContent";
 import { SingleAssigneeSelector } from "@features/tasks/components/task-editors/AssigneeSelector";
 import { useUsers } from "@features/users";
 import { MeetingSummary } from "./MeetingSummary";

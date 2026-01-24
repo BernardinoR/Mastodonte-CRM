@@ -1,7 +1,7 @@
 import { memo, useCallback, useMemo } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
-import { UI_CLASSES } from "../../lib/statusConfig";
+import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import { StatusBadge, PriorityBadge } from "@/shared/components/ui/task-badges";
 import { X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
@@ -14,7 +14,7 @@ import {
   type TypedActiveFilter,
   type DateFilterValue,
   type FilterValueMap
-} from "../../types/task";
+} from "@features/tasks";
 import { DateRangeFilterContent, formatDateFilterLabel } from "./DateRangeFilterContent";
 
 export { formatDateFilterLabel };

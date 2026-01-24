@@ -14,7 +14,7 @@ import {
   type MeetingStatus,
   type MeetingLocation
 } from "@shared/config/meetingConfig";
-import { MEETING_STATUS_BADGE_COLORS } from "../../lib/statusConfig";
+import { MEETING_STATUS_BADGE_COLORS } from "@features/tasks/lib/statusConfig";
 
 export const MeetingTypeFilterContent = memo(function MeetingTypeFilterContent({
   selectedValues,

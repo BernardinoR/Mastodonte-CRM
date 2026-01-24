@@ -5,7 +5,7 @@
 import { memo, useMemo } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { UI_CLASSES } from "../../lib/statusConfig";
+import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import { Badge } from "@/shared/components/ui/badge";
 
 export interface BadgeFilterContentProps<T extends string> {

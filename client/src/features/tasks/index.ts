@@ -26,7 +26,6 @@ export * from './components/task-editors';
 export * from './components/table/TableHeader';
 export * from './components/table/TaskTableRow';
 export * from './components/table/TableBulkActions';
-export * from './components/filter-bar/FilterPopoverContent';
 
 // Hooks
 export { useTaskFilters } from './hooks/useTaskFilters';

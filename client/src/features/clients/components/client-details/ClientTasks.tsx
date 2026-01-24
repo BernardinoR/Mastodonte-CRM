@@ -16,8 +16,8 @@ import type { useInlineClientTasks } from "@features/clients";
 import { TasksTable } from "./TasksTable";
 import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
 import { buildTasksUrl } from "@features/tasks";
-import { StatusFilterContent, PriorityFilterContent } from "@features/tasks/components/filter-bar/FilterPopoverContent";
-import { DateRangeFilterContent, formatDateFilterLabel } from "@features/tasks/components/filter-bar/DateRangeFilterContent";
+import { StatusFilterContent, PriorityFilterContent } from "@shared/components/filter-bar/FilterPopoverContent";
+import { DateRangeFilterContent, formatDateFilterLabel } from "@shared/components/filter-bar/DateRangeFilterContent";
 import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
 

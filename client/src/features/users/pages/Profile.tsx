@@ -14,7 +14,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui
 import { useToast } from "@/shared/hooks/use-toast";
 import { apiRequest, queryClient } from "@/shared/lib/queryClient";
 import { useCurrentUser } from "@features/users";
-import { ImageCropModal } from "@/components/ImageCropModal";
+import { ImageCropModal } from "../components/ImageCropModal";
 import type { User as DbUser, Group } from "@shared/types";
 
 const ROLE_LABELS: Record<string, string> = {

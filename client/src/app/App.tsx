@@ -4,14 +4,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/shared/components/ui/toaster";
 import { TooltipProvider } from "@/shared/components/ui/tooltip";
 import { SidebarProvider, SidebarTrigger } from "@/shared/components/ui/sidebar";
-import { AppSidebar } from "@/components/app-sidebar";
+import { AppSidebar } from "@app/components/AppSidebar";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { TasksProvider, Tasks } from "@features/tasks";
 import { ClientsProvider } from "@features/clients";
-import NotFound from "@/pages/not-found";
-import Dashboard from "@/pages/Dashboard";
+import NotFound from "@app/pages/NotFound";
+import Dashboard from "@app/pages/Dashboard";
 import Clients from "@features/clients/pages/Clients";
 import ClientDetails from "@features/clients/pages/ClientDetails";
 // Feature imports

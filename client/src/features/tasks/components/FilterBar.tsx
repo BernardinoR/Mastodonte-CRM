@@ -30,7 +30,7 @@ import {
 import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/shared/lib/utils";
 import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "../types/task";
-import { FilterPopoverContent, formatDateFilterLabel } from "./filter-bar/FilterPopoverContent";
+import { FilterPopoverContent, formatDateFilterLabel } from "@shared/components/filter-bar/FilterPopoverContent";
 import {
   DndContext,
   closestCenter,
