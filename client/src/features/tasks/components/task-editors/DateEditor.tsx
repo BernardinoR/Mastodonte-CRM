@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { Input } from "@/shared/components/ui/input";
 import { Calendar } from "@/shared/components/ui/calendar";
 import { cn } from "@/shared/lib/utils";
-import { format, parse, isValid, setYear } from "date-fns";
+import { format, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { parseLocalDate } from "@/shared/lib/date-utils";
 
@@ -74,48 +74,34 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
   };
   
   const parseDate = (input: string): Date | null => {
-    let cleaned = input.replace(/[^\d\/\-\.]/g, "");
-    cleaned = cleaned.replace(/[\/\-\.]+$/, "");
-    
-    const formats = [
-      "dd/MM/yyyy",
-      "dd/MM/yy",
-      "dd/MM",
-      "dd-MM-yyyy", 
-      "dd-MM-yy",
-      "dd-MM",
-      "dd.MM.yyyy",
-      "dd.MM.yy",
-      "dd.MM",
-      "d/M/yyyy",
-      "d/M/yy",
-      "d/M",
-    ];
+    // Normalizar entrada: remover caracteres não-numéricos exceto separadores
+    const cleaned = input.replace(/[^\d\/\-\.]/g, "").replace(/[\/\-\.]+$/, "");
 
-    for (const formatString of formats) {
-      try {
-        let parsed = parse(cleaned, formatString, new Date(), { locale: ptBR });
-        
-        if (formatString.indexOf("yyyy") === -1 && formatString.indexOf("yy") === -1) {
-          parsed = setYear(parsed, new Date().getFullYear());
-        }
-        
-        if (formatString.includes("yy") && !formatString.includes("yyyy")) {
-          const year = parsed.getFullYear();
-          if (year < 100) {
-            parsed = setYear(parsed, 2000 + year);
-          }
-        }
-        
-        if (isValid(parsed)) {
-          return parsed;
-        }
-      } catch {
-        // Continue trying other formats
-      }
+    // Normalizar todos os separadores para /
+    const normalized = cleaned.replace(/[\-\.]/g, "/");
+
+    // Extrair partes da data (dd/MM/yyyy, dd/MM/yy, ou dd/MM)
+    const parts = normalized.split("/").map(p => parseInt(p, 10));
+    if (parts.some(isNaN) || parts.length < 2) return null;
+
+    const [day, month, year] = parts;
+
+    // Validar dia e mês básico
+    if (day < 1 || day > 31 || month < 1 || month > 12) return null;
+
+    // Determinar ano
+    let fullYear: number;
+    if (year === undefined) {
+      fullYear = new Date().getFullYear();
+    } else if (year < 100) {
+      fullYear = 2000 + year;
+    } else {
+      fullYear = year;
     }
 
-    return null;
+    // Criar e validar data
+    const date = new Date(fullYear, month - 1, day);
+    return isValid(date) && date.getDate() === day ? date : null;
   };
   
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -21,9 +21,9 @@ export function createSorter<T>(fields: SortField<T>[]): (a: T, b: T) => number 
 
   return (a: T, b: T) => {
     for (const field of sortedFields) {
-      const getValue = typeof field.key === "function" 
-        ? field.key 
-        : (item: T) => item[field.key];
+      const getValue = typeof field.key === "function"
+        ? field.key
+        : (item: T) => item[field.key as keyof T];
       
       const valueA = getValue(a);
       const valueB = getValue(b);

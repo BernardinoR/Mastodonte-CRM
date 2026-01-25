@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import type { ClientMeeting } from "@features/clients";
 import { useClients } from "@features/clients";
 import { useCurrentUser } from "@features/users";
-import { MEETING_TYPE_OPTIONS, MEETING_STATUS_OPTIONS, type MeetingStatus } from "@shared/config/meetingConfig";
+import { MEETING_TYPE_OPTIONS, MEETING_STATUS_OPTIONS, type MeetingStatus, type MeetingType } from "@shared/config/meetingConfig";
 
 export interface UseInlineClientMeetingsOptions {
   clientId: string;
@@ -18,7 +18,7 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
 
   const [isAddingMeeting, setIsAddingMeeting] = useState(false);
   const [newMeetingName, setNewMeetingName] = useState("");
-  const [newMeetingType, setNewMeetingType] = useState(MEETING_TYPE_OPTIONS[0]);
+  const [newMeetingType, setNewMeetingType] = useState<MeetingType>(MEETING_TYPE_OPTIONS[0]);
   const [newMeetingDate, setNewMeetingDate] = useState<Date>(new Date());
   const [newMeetingStatus, setNewMeetingStatus] = useState<MeetingStatus>(MEETING_STATUS_OPTIONS[0]);
   const [newMeetingAssignees, setNewMeetingAssignees] = useState<string[]>([]);
@@ -82,7 +82,7 @@ export function useInlineClientMeetings(options: UseInlineClientMeetingsOptions)
     }, 100);
   }, [newMeetingType, newMeetingStatus, newMeetingDate, newMeetingAssignees, clientId, addClientMeeting, resetNewMeetingForm]);
 
-  const handleNewTypeChange = useCallback((type: string) => {
+  const handleNewTypeChange = useCallback((type: MeetingType) => {
     setNewMeetingType(type);
     setNewTypePopoverOpen(false);
   }, []);

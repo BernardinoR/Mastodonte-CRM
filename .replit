@@ -45,6 +45,11 @@ externalPort = 5000
 localPort = 5555
 externalPort = 80
 
+[[ports]]
+localPort = 23796
+externalPort = 3000
+exposeLocalhost = true
+
 [userenv]
 
 [userenv.shared]

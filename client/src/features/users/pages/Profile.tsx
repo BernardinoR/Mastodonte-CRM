@@ -431,7 +431,7 @@ export default function Profile() {
                                 )}
                               </p>
                               <div className="flex flex-wrap gap-1 mt-0.5">
-                                {member.roles?.map((role) => (
+                                {member.roles?.map((role: string) => (
                                   <Badge
                                     key={role}
                                     variant="outline"

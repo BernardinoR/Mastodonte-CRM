@@ -1,4 +1,25 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
+
+/**
+ * Cria um adapter para popover que converte a API genérica (openPopover/closePopover)
+ * para a API de setter individual (setValue(value | null))
+ *
+ * Elimina duplicação de:
+ * const setStatusPopoverOpen = useCallback((value: string | null) => {
+ *   if (value === null) closePopover("status");
+ *   else openPopover("status", value);
+ * }, [openPopover, closePopover]);
+ */
+export function createPopoverAdapter<TFieldType extends string>(
+  fieldName: TFieldType,
+  openPopover: (field: TFieldType, id: string) => void,
+  closePopover: (field: TFieldType) => void
+): (value: string | null) => void {
+  return (value: string | null) => {
+    if (value === null) closePopover(fieldName);
+    else openPopover(fieldName, value);
+  };
+}
 
 /**
  * Configuração para um campo editável inline

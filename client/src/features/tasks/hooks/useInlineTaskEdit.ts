@@ -1,7 +1,7 @@
 import { useCallback, useMemo } from "react";
 import type { TaskStatus, TaskPriority } from "../types/task";
 import { useTasks } from "../contexts/TasksContext";
-import { useInlineFieldEdit } from "@/shared/hooks/useInlineFieldEdit";
+import { useInlineFieldEdit, createPopoverAdapter } from "@/shared/hooks/useInlineFieldEdit";
 
 export function useInlineTaskEdit() {
   const { updateTask, deleteTask } = useTasks();
@@ -64,25 +64,22 @@ export function useInlineTaskEdit() {
   }, [handleGenericConfirmDelete]);
 
   // Adaptadores para manter API original com setters individuais
-  const setStatusPopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("status");
-    else openPopover("status", value);
-  }, [openPopover, closePopover]);
-
-  const setPriorityPopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("priority");
-    else openPopover("priority", value);
-  }, [openPopover, closePopover]);
-
-  const setDatePopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("date");
-    else openPopover("date", value);
-  }, [openPopover, closePopover]);
-
-  const setAssigneePopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("assignee");
-    else openPopover("assignee", value);
-  }, [openPopover, closePopover]);
+  const setStatusPopoverOpen = useMemo(
+    () => createPopoverAdapter("status", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setPriorityPopoverOpen = useMemo(
+    () => createPopoverAdapter("priority", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setDatePopoverOpen = useMemo(
+    () => createPopoverAdapter("date", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setAssigneePopoverOpen = useMemo(
+    () => createPopoverAdapter("assignee", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
 
   return {
     // Estados - mantendo API original

@@ -24,7 +24,7 @@ import {
   SortableContext, 
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { Task, TaskStatus, TaskPriority } from "../types/task";
+import type { Task, TaskStatus, TaskPriority, TypedActiveFilter } from "../types/task";
 import { createTypedFilter } from "../types/task";
 import { createNewTask } from "@/shared/lib/mock-data";
 import { useTasks } from "../contexts/TasksContext";

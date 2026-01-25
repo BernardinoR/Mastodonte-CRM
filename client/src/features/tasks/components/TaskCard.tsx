@@ -48,34 +48,35 @@ export interface TaskCardProps {
   onEditStateChange?: (isEditing: boolean) => void;
 }
 
+// Helper para comparar arrays de strings
+const arraysEqual = (a: string[], b: string[]): boolean => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
+};
+
+// Chaves primitivas que podem ser comparadas diretamente
+const PRIMITIVE_KEYS = [
+  'id', 'title', 'clientId', 'clientName', 'priority', 'status',
+  'description', 'syncStatus', 'isSelected', 'selectedCount',
+  'isDragActive', 'initialEditMode', 'isCompact'
+] as const;
+
 const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
-  if (prev.id !== next.id) return false;
-  if (prev.title !== next.title) return false;
-  if (prev.clientId !== next.clientId) return false;
-  if (prev.clientName !== next.clientName) return false;
-  if (prev.priority !== next.priority) return false;
-  if (prev.status !== next.status) return false;
+  // Comparar propriedades primitivas
+  for (const key of PRIMITIVE_KEYS) {
+    if (prev[key] !== next[key]) return false;
+  }
+
+  // Comparar datas
   if (prev.dueDate?.getTime() !== next.dueDate?.getTime()) return false;
-  if (prev.description !== next.description) return false;
-  if (prev.syncStatus !== next.syncStatus) return false;
-  if (prev.isSelected !== next.isSelected) return false;
-  if (prev.selectedCount !== next.selectedCount) return false;
-  if (prev.isDragActive !== next.isDragActive) return false;
-  if (prev.initialEditMode !== next.initialEditMode) return false;
-  if (prev.isCompact !== next.isCompact) return false;
-  
-  if (prev.assignees.length !== next.assignees.length) return false;
-  for (let i = 0; i < prev.assignees.length; i++) {
-    if (prev.assignees[i] !== next.assignees[i]) return false;
-  }
-  
-  const prevNotes = prev.notes || [];
-  const nextNotes = next.notes || [];
-  if (prevNotes.length !== nextNotes.length) return false;
-  for (let i = 0; i < prevNotes.length; i++) {
-    if (prevNotes[i] !== nextNotes[i]) return false;
-  }
-  
+
+  // Comparar arrays
+  if (!arraysEqual(prev.assignees, next.assignees)) return false;
+  if (!arraysEqual(prev.notes || [], next.notes || [])) return false;
+
   return true;
 };
 

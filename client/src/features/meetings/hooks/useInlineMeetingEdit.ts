@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useClients } from "@features/clients";
-import { useInlineFieldEdit } from "@/shared/hooks/useInlineFieldEdit";
+import { useInlineFieldEdit, createPopoverAdapter } from "@/shared/hooks/useInlineFieldEdit";
 
 export function useInlineMeetingEdit(clientId?: string) {
   const { updateClientMeeting, deleteClientMeeting } = useClients();
@@ -81,25 +81,22 @@ export function useInlineMeetingEdit(clientId?: string) {
   }, [clientId, deleteConfirmOpen, deleteClientMeeting, setDeleteConfirmOpen]);
 
   // Adaptadores para manter API original com setters individuais
-  const setTypePopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("type");
-    else openPopover("type", value);
-  }, [openPopover, closePopover]);
-
-  const setStatusPopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("status");
-    else openPopover("status", value);
-  }, [openPopover, closePopover]);
-
-  const setDatePopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("date");
-    else openPopover("date", value);
-  }, [openPopover, closePopover]);
-
-  const setAssigneePopoverOpen = useCallback((value: string | null) => {
-    if (value === null) closePopover("assignee");
-    else openPopover("assignee", value);
-  }, [openPopover, closePopover]);
+  const setTypePopoverOpen = useMemo(
+    () => createPopoverAdapter("type", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setStatusPopoverOpen = useMemo(
+    () => createPopoverAdapter("status", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setDatePopoverOpen = useMemo(
+    () => createPopoverAdapter("date", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
+  const setAssigneePopoverOpen = useMemo(
+    () => createPopoverAdapter("assignee", openPopover, closePopover),
+    [openPopover, closePopover]
+  );
 
   return {
     // Estados - mantendo API original

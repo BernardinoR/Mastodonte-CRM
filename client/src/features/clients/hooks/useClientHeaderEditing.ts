@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect, useCallback, type KeyboardEvent, type ChangeEvent } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useInlineHeaderField } from "@/shared/hooks/useInlineHeaderField";
 
 export interface UseClientHeaderEditingOptions {
   clientId: string;
@@ -10,337 +11,167 @@ export interface UseClientHeaderEditingOptions {
   onUpdatePhone: (id: string, phone: string) => void | Promise<void>;
 }
 
+// Formatters
+const formatCpf = (value: string): string => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
+  if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+};
+
+const formatPhone = (value: string): string => {
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 0) return "";
+
+  if (digits.startsWith("55") && digits.length >= 3) {
+    const country = "+55";
+    const rest = digits.slice(2);
+    if (rest.length <= 2) return `${country} (${rest}`;
+    const ddd = rest.slice(0, 2);
+    const number = rest.slice(2);
+    if (number.length <= 4) return `${country} (${ddd}) ${number}`;
+    if (number.length <= 8) return `${country} (${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`;
+    return `${country} (${ddd}) ${number.slice(0, 5)}-${number.slice(5, 9)}`;
+  }
+
+  if (digits.length <= 2) return `+${digits}`;
+  const countryCode = digits.slice(0, 2);
+  const number = digits.slice(2);
+  if (number.length <= 4) return `+${countryCode} ${number}`;
+  if (number.length <= 8) return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4)}`;
+  return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4, 8)} ${number.slice(8, 12)}`;
+};
+
 export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
   const { clientId, clientName, clientCpf, clientPhone, onUpdateName, onUpdateCpf, onUpdatePhone } = options;
 
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [draftName, setDraftName] = useState("");
-  const [isEditingCpf, setIsEditingCpf] = useState(false);
-  const [draftCpf, setDraftCpf] = useState("");
-  const [isEditingPhone, setIsEditingPhone] = useState(false);
-  const [draftPhone, setDraftPhone] = useState("");
   const [isBulkEditing, setIsBulkEditing] = useState(false);
 
-  const nameInputRef = useRef<HTMLInputElement>(null);
-  const cpfInputRef = useRef<HTMLInputElement>(null);
-  const phoneInputRef = useRef<HTMLInputElement>(null);
-  const blurTimeoutRef = useRef<number | null>(null);
-  const cpfBlurTimeoutRef = useRef<number | null>(null);
-  const phoneBlurTimeoutRef = useRef<number | null>(null);
-
-  const formatCpf = useCallback((value: string): string => {
-    const digits = value.replace(/\D/g, "").slice(0, 11);
-    if (digits.length <= 3) return digits;
-    if (digits.length <= 6) return `${digits.slice(0, 3)}.${digits.slice(3)}`;
-    if (digits.length <= 9) return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6)}`;
-    return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
-  }, []);
-
-  const formatPhone = useCallback((value: string): string => {
-    const digits = value.replace(/\D/g, "");
-    if (digits.length === 0) return "";
-    
-    if (digits.startsWith("55") && digits.length >= 3) {
-      const country = "+55";
-      const rest = digits.slice(2);
-      if (rest.length <= 2) return `${country} (${rest}`;
-      const ddd = rest.slice(0, 2);
-      const number = rest.slice(2);
-      if (number.length <= 4) return `${country} (${ddd}) ${number}`;
-      if (number.length <= 8) return `${country} (${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`;
-      return `${country} (${ddd}) ${number.slice(0, 5)}-${number.slice(5, 9)}`;
-    }
-    
-    if (digits.length <= 2) return `+${digits}`;
-    const countryCode = digits.slice(0, 2);
-    const number = digits.slice(2);
-    if (number.length <= 4) return `+${countryCode} ${number}`;
-    if (number.length <= 8) return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4)}`;
-    return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4, 8)} ${number.slice(8, 12)}`;
-  }, []);
-
-  const startEditingName = useCallback(() => {
-    setDraftName(clientName);
-    setIsEditingName(true);
-  }, [clientName]);
-
-  const commitNameChange = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-    
-    const trimmed = draftName.trim();
-    if (trimmed && trimmed !== clientName) {
-      onUpdateName(clientId, trimmed);
-    }
-    setIsEditingName(false);
-  }, [draftName, clientName, clientId, onUpdateName]);
-
-  const cancelEditingName = useCallback(() => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current);
-      blurTimeoutRef.current = null;
-    }
-    setIsEditingName(false);
-    setDraftName("");
-  }, []);
-
-  const startEditingCpf = useCallback(() => {
-    setDraftCpf(clientCpf);
-    setIsEditingCpf(true);
-  }, [clientCpf]);
-
-  const commitCpfChange = useCallback(() => {
-    if (cpfBlurTimeoutRef.current) {
-      clearTimeout(cpfBlurTimeoutRef.current);
-      cpfBlurTimeoutRef.current = null;
-    }
-    
-    const formatted = draftCpf.trim();
-    if (formatted && formatted !== clientCpf) {
-      onUpdateCpf(clientId, formatted);
-    }
-    setIsEditingCpf(false);
-  }, [draftCpf, clientCpf, clientId, onUpdateCpf]);
-
-  const cancelEditingCpf = useCallback(() => {
-    if (cpfBlurTimeoutRef.current) {
-      clearTimeout(cpfBlurTimeoutRef.current);
-      cpfBlurTimeoutRef.current = null;
-    }
-    setIsEditingCpf(false);
-    setDraftCpf("");
-  }, []);
-
-  const startEditingPhone = useCallback(() => {
-    setDraftPhone(clientPhone);
-    setIsEditingPhone(true);
-  }, [clientPhone]);
-
-  const commitPhoneChange = useCallback(() => {
-    if (phoneBlurTimeoutRef.current) {
-      clearTimeout(phoneBlurTimeoutRef.current);
-      phoneBlurTimeoutRef.current = null;
-    }
-    
-    const formatted = draftPhone.trim();
-    if (formatted && formatted !== clientPhone) {
-      onUpdatePhone(clientId, formatted);
-    }
-    setIsEditingPhone(false);
-  }, [draftPhone, clientPhone, clientId, onUpdatePhone]);
-
-  const cancelEditingPhone = useCallback(() => {
-    if (phoneBlurTimeoutRef.current) {
-      clearTimeout(phoneBlurTimeoutRef.current);
-      phoneBlurTimeoutRef.current = null;
-    }
-    setIsEditingPhone(false);
-    setDraftPhone("");
-  }, []);
-
-  const handleEditClient = useCallback(() => {
-    setDraftName(clientName);
-    setDraftCpf(clientCpf);
-    setDraftPhone(clientPhone);
-    setIsEditingName(true);
-    setIsEditingCpf(true);
-    setIsEditingPhone(true);
-    setIsBulkEditing(true);
-  }, [clientName, clientCpf, clientPhone]);
-
+  // Bulk editing handlers
   const commitAllChanges = useCallback(() => {
-    const trimmedName = draftName.trim();
+    // Will be implemented after field hooks are created
+  }, []);
+
+  const cancelAllChanges = useCallback(() => {
+    setIsBulkEditing(false);
+  }, []);
+
+  // Name field
+  const nameField = useInlineHeaderField({
+    initialValue: clientName,
+    onCommit: (value) => onUpdateName(clientId, value),
+    isBulkEditing,
+    onBulkCommit: commitAllChanges,
+    onBulkCancel: cancelAllChanges,
+  });
+
+  // CPF field
+  const cpfField = useInlineHeaderField({
+    initialValue: clientCpf,
+    onCommit: (value) => onUpdateCpf(clientId, value),
+    format: formatCpf,
+    isBulkEditing,
+    onBulkCommit: commitAllChanges,
+    onBulkCancel: cancelAllChanges,
+  });
+
+  // Phone field
+  const phoneField = useInlineHeaderField({
+    initialValue: clientPhone,
+    onCommit: (value) => onUpdatePhone(clientId, value),
+    format: formatPhone,
+    isBulkEditing,
+    onBulkCommit: commitAllChanges,
+    onBulkCancel: cancelAllChanges,
+  });
+
+  // Implement commitAllChanges now that fields are available
+  const commitAllChangesImpl = useCallback(() => {
+    const trimmedName = nameField.draft.trim();
     if (trimmedName && trimmedName !== clientName) {
       onUpdateName(clientId, trimmedName);
     }
-    
-    const trimmedCpf = draftCpf.trim();
+
+    const trimmedCpf = cpfField.draft.trim();
     if (trimmedCpf && trimmedCpf !== clientCpf) {
       onUpdateCpf(clientId, trimmedCpf);
     }
-    
-    const trimmedPhone = draftPhone.trim();
+
+    const trimmedPhone = phoneField.draft.trim();
     if (trimmedPhone && trimmedPhone !== clientPhone) {
       onUpdatePhone(clientId, trimmedPhone);
     }
-    
-    setIsEditingName(false);
-    setIsEditingCpf(false);
-    setIsEditingPhone(false);
+
     setIsBulkEditing(false);
-  }, [draftName, draftCpf, draftPhone, clientName, clientCpf, clientPhone, clientId, onUpdateName, onUpdateCpf, onUpdatePhone]);
+  }, [nameField.draft, cpfField.draft, phoneField.draft, clientName, clientCpf, clientPhone, clientId, onUpdateName, onUpdateCpf, onUpdatePhone]);
 
-  const cancelAllChanges = useCallback(() => {
-    setIsEditingName(false);
-    setIsEditingCpf(false);
-    setIsEditingPhone(false);
+  const handleEditClient = useCallback(() => {
+    nameField.setDraft(clientName);
+    cpfField.setDraft(clientCpf);
+    phoneField.setDraft(clientPhone);
+    setIsBulkEditing(true);
+  }, [clientName, clientCpf, clientPhone, nameField, cpfField, phoneField]);
+
+  const cancelAllChangesImpl = useCallback(() => {
     setIsBulkEditing(false);
-    setDraftName("");
-    setDraftCpf("");
-    setDraftPhone("");
-  }, []);
+    nameField.setDraft("");
+    cpfField.setDraft("");
+    phoneField.setDraft("");
+  }, [nameField, cpfField, phoneField]);
 
-  const handleNameKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        commitAllChanges();
-      } else {
-        commitNameChange();
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        cancelAllChanges();
-      } else {
-        cancelEditingName();
-      }
-    }
-  }, [isBulkEditing, commitAllChanges, commitNameChange, cancelAllChanges, cancelEditingName]);
-
-  const handleNameBlur = useCallback(() => {
-    if (isBulkEditing) return;
-    blurTimeoutRef.current = window.setTimeout(() => {
-      commitNameChange();
-    }, 150);
-  }, [isBulkEditing, commitNameChange]);
-
-  const handleCpfChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setDraftCpf(formatCpf(e.target.value));
-  }, [formatCpf]);
-
-  const handleCpfKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        commitAllChanges();
-      } else {
-        commitCpfChange();
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        cancelAllChanges();
-      } else {
-        cancelEditingCpf();
-      }
-    }
-  }, [isBulkEditing, commitAllChanges, commitCpfChange, cancelAllChanges, cancelEditingCpf]);
-
-  const handleCpfBlur = useCallback(() => {
-    if (isBulkEditing) return;
-    cpfBlurTimeoutRef.current = window.setTimeout(() => {
-      commitCpfChange();
-    }, 150);
-  }, [isBulkEditing, commitCpfChange]);
-
-  const handlePhoneChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
-    setDraftPhone(formatPhone(e.target.value));
-  }, [formatPhone]);
-
-  const handlePhoneKeyDown = useCallback((e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        commitAllChanges();
-      } else {
-        commitPhoneChange();
-      }
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      if (isBulkEditing) {
-        cancelAllChanges();
-      } else {
-        cancelEditingPhone();
-      }
-    }
-  }, [isBulkEditing, commitAllChanges, commitPhoneChange, cancelAllChanges, cancelEditingPhone]);
-
-  const handlePhoneBlur = useCallback(() => {
-    if (isBulkEditing) return;
-    phoneBlurTimeoutRef.current = window.setTimeout(() => {
-      commitPhoneChange();
-    }, 150);
-  }, [isBulkEditing, commitPhoneChange]);
-
+  // Focus name input when bulk editing starts
   useEffect(() => {
-    if (isEditingName && nameInputRef.current) {
-      nameInputRef.current.focus();
-      nameInputRef.current.select();
+    if (isBulkEditing && nameField.inputRef.current) {
+      nameField.inputRef.current.focus();
+      nameField.inputRef.current.select();
     }
-  }, [isEditingName]);
-
-  useEffect(() => {
-    if (isEditingCpf && cpfInputRef.current && !isBulkEditing) {
-      cpfInputRef.current.focus();
-      cpfInputRef.current.select();
-    }
-  }, [isEditingCpf, isBulkEditing]);
-
-  useEffect(() => {
-    if (isEditingPhone && phoneInputRef.current && !isBulkEditing) {
-      phoneInputRef.current.focus();
-      phoneInputRef.current.select();
-    }
-  }, [isEditingPhone, isBulkEditing]);
-
-  useEffect(() => {
-    return () => {
-      if (blurTimeoutRef.current) {
-        clearTimeout(blurTimeoutRef.current);
-      }
-      if (cpfBlurTimeoutRef.current) {
-        clearTimeout(cpfBlurTimeoutRef.current);
-      }
-      if (phoneBlurTimeoutRef.current) {
-        clearTimeout(phoneBlurTimeoutRef.current);
-      }
-    };
-  }, []);
+  }, [isBulkEditing, nameField.inputRef]);
 
   return {
-    isEditingName,
-    draftName,
-    setDraftName,
-    isEditingCpf,
-    draftCpf,
-    setDraftCpf,
-    isEditingPhone,
-    draftPhone,
-    setDraftPhone,
+    // Name field (for backwards compatibility)
+    isEditingName: nameField.isEditing || isBulkEditing,
+    draftName: nameField.draft,
+    setDraftName: nameField.setDraft,
+    nameInputRef: nameField.inputRef,
+    startEditingName: nameField.startEditing,
+    commitNameChange: nameField.commit,
+    cancelEditingName: nameField.cancel,
+    handleNameKeyDown: nameField.handleKeyDown,
+    handleNameBlur: nameField.handleBlur,
+
+    // CPF field (for backwards compatibility)
+    isEditingCpf: cpfField.isEditing || isBulkEditing,
+    draftCpf: cpfField.draft,
+    setDraftCpf: cpfField.setDraft,
+    cpfInputRef: cpfField.inputRef,
+    startEditingCpf: cpfField.startEditing,
+    commitCpfChange: cpfField.commit,
+    cancelEditingCpf: cpfField.cancel,
+    handleCpfChange: cpfField.handleChange,
+    handleCpfKeyDown: cpfField.handleKeyDown,
+    handleCpfBlur: cpfField.handleBlur,
+
+    // Phone field (for backwards compatibility)
+    isEditingPhone: phoneField.isEditing || isBulkEditing,
+    draftPhone: phoneField.draft,
+    setDraftPhone: phoneField.setDraft,
+    phoneInputRef: phoneField.inputRef,
+    startEditingPhone: phoneField.startEditing,
+    commitPhoneChange: phoneField.commit,
+    cancelEditingPhone: phoneField.cancel,
+    handlePhoneChange: phoneField.handleChange,
+    handlePhoneKeyDown: phoneField.handleKeyDown,
+    handlePhoneBlur: phoneField.handleBlur,
+
+    // Bulk editing
     isBulkEditing,
+    handleEditClient,
+    commitAllChanges: commitAllChangesImpl,
+    cancelAllChanges: cancelAllChangesImpl,
 
-    nameInputRef,
-    cpfInputRef,
-    phoneInputRef,
-
+    // Formatters (exported for external use)
     formatCpf,
     formatPhone,
-
-    startEditingName,
-    commitNameChange,
-    cancelEditingName,
-    handleNameKeyDown,
-    handleNameBlur,
-
-    startEditingCpf,
-    commitCpfChange,
-    cancelEditingCpf,
-    handleCpfChange,
-    handleCpfKeyDown,
-    handleCpfBlur,
-
-    startEditingPhone,
-    commitPhoneChange,
-    cancelEditingPhone,
-    handlePhoneChange,
-    handlePhoneKeyDown,
-    handlePhoneBlur,
-
-    handleEditClient,
-    commitAllChanges,
-    cancelAllChanges,
   };
 }

@@ -121,7 +121,7 @@ export function useClientsPage() {
   }, [enrichedClients]);
 
   // Handler para mudança de filtro via clique nos stats
-  const handleStatsClick = useCallback((statType: 'noMeeting' | 'urgentTasks') => {
+  const handleStatsClick = useCallback((statType: ClientsFilterMode) => {
     setFilterMode(prev => prev === statType ? 'all' : statType);
   }, []);
 

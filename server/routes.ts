@@ -582,6 +582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const client = await storage.createClient({
         ...clientData,
+        address: clientData.address ?? undefined,
         ownerId: currentUser?.id ?? null,
       });
       

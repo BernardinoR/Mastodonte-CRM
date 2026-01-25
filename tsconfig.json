@@ -19,7 +19,7 @@
       "@/*": ["./client/src/*"],
       "@features/*": ["./client/src/features/*"],
       "@app/*": ["./client/src/app/*"],
-      "@shared/*": ["./shared/*"]
+      "@shared/*": ["./client/src/shared/*"]
     }
   }
 }

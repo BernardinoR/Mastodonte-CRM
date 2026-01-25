@@ -5,6 +5,66 @@ import { Check, Plus, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useUsers, type TeamUser } from "@features/users";
 
+// ============================================
+// UserListItem - Componente reutilizável para item de usuário
+// ============================================
+
+type UserListItemVariant = "available" | "selected" | "setSingle" | "current";
+
+interface UserListItemProps {
+  user: TeamUser;
+  onClick: () => void;
+  variant: UserListItemVariant;
+  testId?: string;
+}
+
+function UserListItem({ user, onClick, variant, testId }: UserListItemProps) {
+  const isSelected = variant === "selected";
+  const isCurrent = variant === "current";
+
+  const icon = {
+    available: <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />,
+    selected: <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />,
+    setSingle: <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />,
+    current: <Check className="w-4 h-4 text-emerald-500" />,
+  }[variant];
+
+  const wrapperClass = isSelected || isCurrent
+    ? "px-3 py-1"
+    : "";
+
+  const itemClass = isSelected
+    ? "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
+    : isCurrent
+    ? "flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md"
+    : "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group";
+
+  const content = (
+    <div
+      className={itemClass}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!isCurrent) onClick();
+      }}
+      data-testid={testId}
+    >
+      <Avatar className="w-5 h-5 shrink-0">
+        <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
+          {user.initials}
+        </AvatarFallback>
+      </Avatar>
+      <span className="text-sm text-foreground flex-1">{user.name}</span>
+      {icon}
+    </div>
+  );
+
+  return wrapperClass ? <div className={wrapperClass}>{content}</div> : content;
+}
+
+// ============================================
+// AssigneeSelector - Seleção múltipla de responsáveis
+// ============================================
+
 interface AssigneeSelectorProps {
   selectedAssignees: string[];
   onSelect: (assignee: string) => void;
@@ -14,16 +74,16 @@ interface AssigneeSelectorProps {
 export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: AssigneeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { teamUsers } = useUsers();
-  
+
   const availableConsultants = teamUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
     !selectedAssignees.includes(user.name)
   );
-  
+
   const selectedConsultants = teamUsers.filter(user =>
     selectedAssignees.includes(user.name)
   );
-  
+
   return (
     <div className="w-full">
       <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
@@ -36,42 +96,28 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
           data-testid="input-search-assignee"
         />
       </div>
-      
+
       {selectedConsultants.length > 0 && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {selectedConsultants.length} selecionado{selectedConsultants.length > 1 ? 's' : ''}
           </div>
           {selectedConsultants.map((user) => (
-            <div 
+            <UserListItem
               key={user.id}
-              className="px-3 py-1"
-            >
-              <div 
-                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onRemove(user.name);
-                }}
-              >
-                <Avatar className="w-5 h-5 shrink-0">
-                  <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                    {user.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-foreground flex-1">{user.name}</span>
-                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
+              user={user}
+              variant="selected"
+              onClick={() => onRemove(user.name)}
+            />
           ))}
         </div>
       )}
-      
+
       <div className="px-3 py-1.5 text-xs text-gray-500">
         {selectedConsultants.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
-      
-      <div 
+
+      <div
         className="max-h-52 overflow-y-auto scrollbar-thin"
         onWheel={(e) => {
           e.stopPropagation();
@@ -79,23 +125,13 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
         }}
       >
         {availableConsultants.map((user) => (
-          <div
+          <UserListItem
             key={user.id}
-            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(user.name);
-            }}
-            data-testid={`option-assignee-${user.id}`}
-          >
-            <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                {user.initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-foreground flex-1">{user.name}</span>
-            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
+            user={user}
+            variant="available"
+            onClick={() => onSelect(user.name)}
+            testId={`option-assignee-${user.id}`}
+          />
         ))}
         {availableConsultants.length === 0 && (
           <div className="px-3 py-4 text-sm text-gray-500 text-center">
@@ -107,6 +143,10 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
   );
 }
 
+// ============================================
+// ContextMenuAssigneeEditor - Editor de responsáveis em context menu
+// ============================================
+
 interface ContextMenuAssigneeEditorProps {
   currentAssignees: string[];
   onAdd: (assignee: string) => void;
@@ -115,12 +155,12 @@ interface ContextMenuAssigneeEditorProps {
   isBulk?: boolean;
 }
 
-export function ContextMenuAssigneeEditor({ 
-  currentAssignees, 
-  onAdd, 
-  onRemove, 
-  onSetSingle, 
-  isBulk = false 
+export function ContextMenuAssigneeEditor({
+  currentAssignees,
+  onAdd,
+  onRemove,
+  onSetSingle,
+  isBulk = false
 }: ContextMenuAssigneeEditorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [showSetSingle, setShowSetSingle] = useState(false);
@@ -130,31 +170,31 @@ export function ContextMenuAssigneeEditor({
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevCurrentAssigneesRef = useRef(currentAssignees);
   const { teamUsers } = useUsers();
-  
+
   useEffect(() => {
     const propsKey = (currentAssignees || []).join(',');
     const prevKey = (prevCurrentAssigneesRef.current || []).join(',');
-    
+
     if (prevKey !== propsKey && !isLocalUpdate.current) {
       setLocalAssignees(currentAssignees || []);
     }
     prevCurrentAssigneesRef.current = currentAssignees;
     isLocalUpdate.current = false;
   }, [currentAssignees]);
-  
+
   const availableConsultants = teamUsers.filter(user =>
-    user.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+    user.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
     !localAssignees.includes(user.name)
   );
-  
+
   const selectedConsultants = teamUsers.filter(user =>
     localAssignees.includes(user.name)
   );
-  
+
   const filteredForSetSingle = teamUsers.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   const flushPendingUpdates = () => {
     if (flushTimeoutRef.current) {
       clearTimeout(flushTimeoutRef.current);
@@ -162,7 +202,7 @@ export function ContextMenuAssigneeEditor({
     flushTimeoutRef.current = setTimeout(() => {
       const updates = [...pendingUpdatesRef.current];
       pendingUpdatesRef.current = [];
-      
+
       updates.forEach(update => {
         try {
           if (update.type === 'add') {
@@ -178,7 +218,7 @@ export function ContextMenuAssigneeEditor({
       });
     }, 100);
   };
-  
+
   const handleLocalAdd = (assignee: string) => {
     if (!localAssignees.includes(assignee)) {
       isLocalUpdate.current = true;
@@ -187,14 +227,14 @@ export function ContextMenuAssigneeEditor({
       flushPendingUpdates();
     }
   };
-  
+
   const handleLocalRemove = (assignee: string) => {
     isLocalUpdate.current = true;
     setLocalAssignees(prev => prev.filter(a => a !== assignee));
     pendingUpdatesRef.current.push({ type: 'remove', value: assignee });
     flushPendingUpdates();
   };
-  
+
   const handleLocalSetSingle = (assignee: string) => {
     isLocalUpdate.current = true;
     setLocalAssignees([assignee]);
@@ -203,7 +243,8 @@ export function ContextMenuAssigneeEditor({
       flushPendingUpdates();
     }
   };
-  
+
+  // SetSingle mode view
   if (showSetSingle && isBulk && onSetSingle) {
     return (
       <div className="w-64">
@@ -233,7 +274,7 @@ export function ContextMenuAssigneeEditor({
         <div className="px-3 py-1.5 text-xs text-gray-500">
           Substituir todos por
         </div>
-        <div 
+        <div
           className="max-h-52 overflow-y-auto scrollbar-thin"
           onWheel={(e) => {
             e.stopPropagation();
@@ -241,22 +282,12 @@ export function ContextMenuAssigneeEditor({
           }}
         >
           {filteredForSetSingle.map((user) => (
-            <div
+            <UserListItem
               key={user.id}
-              className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleLocalSetSingle(user.name);
-              }}
-            >
-              <Avatar className="w-5 h-5 shrink-0">
-                <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                  {user.initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-foreground flex-1">{user.name}</span>
-              <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
+              user={user}
+              variant="setSingle"
+              onClick={() => handleLocalSetSingle(user.name)}
+            />
           ))}
           {filteredForSetSingle.length === 0 && (
             <div className="px-3 py-4 text-sm text-gray-500 text-center">
@@ -267,7 +298,8 @@ export function ContextMenuAssigneeEditor({
       </div>
     );
   }
-  
+
+  // Default view
   return (
     <div className="w-64">
       <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
@@ -281,9 +313,9 @@ export function ContextMenuAssigneeEditor({
           autoFocus
         />
       </div>
-      
+
       {isBulk && onSetSingle && (
-        <div 
+        <div
           className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors border-b border-[#2a2a2a]"
           onClick={(e) => {
             e.stopPropagation();
@@ -296,42 +328,28 @@ export function ContextMenuAssigneeEditor({
           <ChevronRight className="w-4 h-4 text-gray-500 ml-auto" />
         </div>
       )}
-      
+
       {selectedConsultants.length > 0 && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {localAssignees.length} selecionado{localAssignees.length > 1 ? 's' : ''}
           </div>
           {selectedConsultants.map((user) => (
-            <div 
+            <UserListItem
               key={user.id}
-              className="px-3 py-1"
-            >
-              <div 
-                className="flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md group"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleLocalRemove(user.name);
-                }}
-              >
-                <Avatar className="w-5 h-5 shrink-0">
-                  <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                    {user.initials}
-                  </AvatarFallback>
-                </Avatar>
-                <span className="text-sm text-foreground flex-1">{user.name}</span>
-                <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
+              user={user}
+              variant="selected"
+              onClick={() => handleLocalRemove(user.name)}
+            />
           ))}
         </div>
       )}
-      
+
       <div className="px-3 py-1.5 text-xs text-gray-500">
         {localAssignees.length > 0 ? 'Adicionar mais' : 'Consultores disponíveis'}
       </div>
-      
-      <div 
+
+      <div
         className="max-h-52 overflow-y-auto scrollbar-thin"
         onWheel={(e) => {
           e.stopPropagation();
@@ -339,22 +357,12 @@ export function ContextMenuAssigneeEditor({
         }}
       >
         {availableConsultants.map((user) => (
-          <div
+          <UserListItem
             key={user.id}
-            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLocalAdd(user.name);
-            }}
-          >
-            <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                {user.initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-foreground flex-1">{user.name}</span>
-            <Plus className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
+            user={user}
+            variant="available"
+            onClick={() => handleLocalAdd(user.name)}
+          />
         ))}
         {availableConsultants.length === 0 && (
           <div className="px-3 py-4 text-sm text-gray-500 text-center">
@@ -378,13 +386,13 @@ interface SingleAssigneeSelectorProps {
 export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAssigneeSelectorProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const { teamUsers } = useUsers();
-  
+
   const selectedConsultant = teamUsers.find(u => u.name === selectedAssignee);
-  
+
   const availableConsultants = teamUsers.filter(user =>
     user.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
-  
+
   return (
     <div className="w-full">
       <div className="px-3 py-2.5 border-b border-[#2a2a2a]">
@@ -399,31 +407,25 @@ export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAss
           data-testid="input-search-single-assignee"
         />
       </div>
-      
+
       {selectedConsultant && (
         <div className="border-b border-[#2a2a2a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
             Responsável atual
           </div>
-          <div className="px-3 py-1">
-            <div className="flex items-center gap-2 px-2 py-1.5 bg-[#2a2a2a] rounded-md">
-              <Avatar className="w-5 h-5 shrink-0">
-                <AvatarFallback className={cn("text-[9px] font-normal text-white", selectedConsultant.avatarColor)}>
-                  {selectedConsultant.initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-sm text-foreground flex-1">{selectedConsultant.name}</span>
-              <Check className="w-4 h-4 text-emerald-500" />
-            </div>
-          </div>
+          <UserListItem
+            user={selectedConsultant}
+            variant="current"
+            onClick={() => {}}
+          />
         </div>
       )}
-      
+
       <div className="px-3 py-1.5 text-xs text-gray-500">
         {selectedConsultant ? 'Alterar para' : 'Selecionar responsável'}
       </div>
-      
-      <div 
+
+      <div
         className="max-h-52 overflow-y-auto scrollbar-thin"
         onWheel={(e) => {
           e.stopPropagation();
@@ -433,23 +435,13 @@ export function SingleAssigneeSelector({ selectedAssignee, onSelect }: SingleAss
         {availableConsultants
           .filter(u => u.name !== selectedAssignee)
           .map((user) => (
-          <div
+          <UserListItem
             key={user.id}
-            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors group"
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect(user.name);
-            }}
-            data-testid={`option-single-assignee-${user.id}`}
-          >
-            <Avatar className="w-5 h-5 shrink-0">
-              <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-                {user.initials}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-foreground flex-1">{user.name}</span>
-            <User className="w-4 h-4 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity" />
-          </div>
+            user={user}
+            variant="setSingle"
+            onClick={() => onSelect(user.name)}
+            testId={`option-single-assignee-${user.id}`}
+          />
         ))}
         {availableConsultants.filter(u => u.name !== selectedAssignee).length === 0 && (
           <div className="px-3 py-4 text-sm text-gray-500 text-center">

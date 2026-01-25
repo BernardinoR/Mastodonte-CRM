@@ -45,7 +45,7 @@ export { usePomodoroTimer } from './hooks/usePomodoroTimer';
 export { useTurboMode } from './hooks/useTurboMode';
 export { useTurboNavigation } from './hooks/useTurboNavigation';
 export { useAudioNotification } from './hooks/useAudioNotification';
-export { useWhatsAppGroups } from './hooks/useWhatsAppGroups';
+export { useWhatsAppGroups, type WhatsAppGroupStatus } from './hooks/useWhatsAppGroups';
 
 // Lib/Utils
 export * from './lib/constants';

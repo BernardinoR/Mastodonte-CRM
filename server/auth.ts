@@ -40,10 +40,10 @@ export async function clerkAuthMiddleware(
     }
 
     const user = await storage.getUserByClerkId(userId);
-    
+
     req.auth = {
       userId,
-      user,
+      user: user ?? undefined,
     };
 
     next();
