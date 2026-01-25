@@ -4,7 +4,7 @@ import { Card } from "@/shared/components/ui/card";
 import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { calculateIsOverdue } from "../lib/task-utils";
+import { calculateIsOverdue } from "../lib/date-utils";
 import { useTaskCardEditing } from "../hooks/useTaskCardEditing";
 import { useTaskAssignees } from "../hooks/useTaskAssignees";
 import { useTaskContextMenu } from "../hooks/useTaskContextMenu";

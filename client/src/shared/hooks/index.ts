@@ -4,6 +4,7 @@ export { useToast, toast } from './use-toast';
 export { useColumnResize } from './useColumnResize';
 export { useDimensionsCache } from './useDimensionsCache';
 export { useInlineEdit } from './useInlineEdit';
+export { useInlineFieldEdit } from './useInlineFieldEdit';
 export { usePaginatedList } from './usePaginatedList';
 export { usePopoverState } from './usePopoverState';
 export { useSearchFilter } from './useSearchFilter';

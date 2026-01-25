@@ -1,81 +1,109 @@
-import { useState, useRef, useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import type { TaskStatus, TaskPriority } from "../types/task";
 import { useTasks } from "../contexts/TasksContext";
+import { useInlineFieldEdit } from "@/shared/hooks/useInlineFieldEdit";
 
 export function useInlineTaskEdit() {
   const { updateTask, deleteTask } = useTasks();
 
-  const [statusPopoverOpen, setStatusPopoverOpen] = useState<string | null>(null);
-  const [priorityPopoverOpen, setPriorityPopoverOpen] = useState<string | null>(null);
-  const [datePopoverOpen, setDatePopoverOpen] = useState<string | null>(null);
-  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState<string | null>(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState<{ taskId: string; taskTitle: string } | null>(null);
+  // Configuração dos campos
+  const fields = useMemo(() => [
+    { name: "status" as const },
+    { name: "priority" as const },
+    { name: "date" as const, updateKey: "dueDate" },
+    { name: "assignee" as const },
+  ], []);
 
-  const datePopoverRef = useRef<HTMLDivElement>(null);
+  // Hook genérico
+  const {
+    popoverStates,
+    openPopover,
+    closePopover,
+    deleteConfirmOpen,
+    setDeleteConfirmOpen,
+    datePopoverRef,
+    handleFieldChange,
+    handleDateChange: handleGenericDateChange,
+    handleAddAssignee,
+    handleRemoveAssignee,
+    handleDeleteClick: handleGenericDeleteClick,
+    handleConfirmDelete: handleGenericConfirmDelete,
+    handleInteractOutside,
+  } = useInlineFieldEdit({
+    fields,
+    onUpdate: updateTask,
+    onDelete: deleteTask,
+    hasDateField: true,
+    deleteConfirmKeys: { id: "taskId", title: "taskTitle" },
+  });
 
+  // Handlers específicos mantendo a API original
   const handleStatusChange = useCallback((taskId: string, status: TaskStatus) => {
-    updateTask(taskId, { status });
-    setStatusPopoverOpen(null);
-  }, [updateTask]);
+    handleFieldChange("status", taskId, status);
+  }, [handleFieldChange]);
 
   const handlePriorityChange = useCallback((taskId: string, priority: TaskPriority | "_none") => {
     if (priority === "_none") {
       updateTask(taskId, { priority: undefined });
+      closePopover("priority");
     } else {
-      updateTask(taskId, { priority });
+      handleFieldChange("priority", taskId, priority);
     }
-    setPriorityPopoverOpen(null);
-  }, [updateTask]);
+  }, [handleFieldChange, updateTask, closePopover]);
 
   const handleDateChange = useCallback((taskId: string, date: Date | undefined) => {
-    if (date) {
-      updateTask(taskId, { dueDate: date });
-      setDatePopoverOpen(null);
-    }
-  }, [updateTask]);
-
-  const handleAddAssignee = useCallback((taskId: string, currentAssignees: string[], assignee: string) => {
-    if (!currentAssignees.includes(assignee)) {
-      updateTask(taskId, { assignees: [...currentAssignees, assignee] });
-    }
-  }, [updateTask]);
-
-  const handleRemoveAssignee = useCallback((taskId: string, currentAssignees: string[], assignee: string) => {
-    updateTask(taskId, { assignees: currentAssignees.filter(a => a !== assignee) });
-  }, [updateTask]);
+    handleGenericDateChange("date", taskId, date);
+  }, [handleGenericDateChange]);
 
   const handleDeleteClick = useCallback((taskId: string, taskTitle: string) => {
-    setDeleteConfirmOpen({ taskId, taskTitle });
-  }, []);
+    handleGenericDeleteClick(taskId, taskTitle);
+  }, [handleGenericDeleteClick]);
 
   const handleConfirmDelete = useCallback(() => {
-    if (deleteConfirmOpen) {
-      deleteTask(deleteConfirmOpen.taskId);
-      setDeleteConfirmOpen(null);
-    }
-  }, [deleteConfirmOpen, deleteTask]);
+    handleGenericConfirmDelete();
+  }, [handleGenericConfirmDelete]);
 
-  const handleInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
-    const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
-    const target = originalTarget || (e.target as HTMLElement);
-    if (datePopoverRef.current?.contains(target) || target?.closest('.rdp')) {
-      e.preventDefault();
-    }
-  }, []);
+  // Adaptadores para manter API original com setters individuais
+  const setStatusPopoverOpen = useCallback((value: string | null) => {
+    if (value === null) closePopover("status");
+    else openPopover("status", value);
+  }, [openPopover, closePopover]);
+
+  const setPriorityPopoverOpen = useCallback((value: string | null) => {
+    if (value === null) closePopover("priority");
+    else openPopover("priority", value);
+  }, [openPopover, closePopover]);
+
+  const setDatePopoverOpen = useCallback((value: string | null) => {
+    if (value === null) closePopover("date");
+    else openPopover("date", value);
+  }, [openPopover, closePopover]);
+
+  const setAssigneePopoverOpen = useCallback((value: string | null) => {
+    if (value === null) closePopover("assignee");
+    else openPopover("assignee", value);
+  }, [openPopover, closePopover]);
 
   return {
-    statusPopoverOpen,
+    // Estados - mantendo API original
+    statusPopoverOpen: popoverStates.status,
     setStatusPopoverOpen,
-    priorityPopoverOpen,
+    priorityPopoverOpen: popoverStates.priority,
     setPriorityPopoverOpen,
-    datePopoverOpen,
+    datePopoverOpen: popoverStates.date,
     setDatePopoverOpen,
-    assigneePopoverOpen,
+    assigneePopoverOpen: popoverStates.assignee,
     setAssigneePopoverOpen,
-    deleteConfirmOpen,
-    setDeleteConfirmOpen,
+    deleteConfirmOpen: deleteConfirmOpen ? {
+      taskId: deleteConfirmOpen.id,
+      taskTitle: deleteConfirmOpen.title,
+    } : null,
+    setDeleteConfirmOpen: (value: { taskId: string; taskTitle: string } | null) => {
+      setDeleteConfirmOpen(value ? { id: value.taskId, title: value.taskTitle } : null);
+    },
     datePopoverRef,
 
+    // Handlers - mantendo API original
     handleStatusChange,
     handlePriorityChange,
     handleDateChange,

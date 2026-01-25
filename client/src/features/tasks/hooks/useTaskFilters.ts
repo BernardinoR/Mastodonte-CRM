@@ -18,7 +18,7 @@ import {
 } from '../types/task';
 import { parseLocalDate } from '@/shared/lib/date-utils';
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
-import { PRIORITY_ORDER } from '../lib/taskUtils';
+import { PRIORITY_ORDER } from '../lib/constants';
 
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";

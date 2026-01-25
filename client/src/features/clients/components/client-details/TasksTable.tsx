@@ -20,7 +20,7 @@ import { useInlineTaskEdit } from "@features/tasks";
 import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
 import { usePaginatedList } from "@/shared/hooks/usePaginatedList";
 import type { useInlineClientTasks } from "@features/clients";
-import { sortTasksByDateAndPriority } from "@features/tasks/lib/taskUtils";
+import { sortTasksByDateAndPriority } from "@features/tasks/lib/sorting-utils";
 
 export interface TasksTableProps {
   tasks: GlobalTask[];

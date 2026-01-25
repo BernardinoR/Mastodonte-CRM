@@ -48,8 +48,9 @@ export { useAudioNotification } from './hooks/useAudioNotification';
 export { useWhatsAppGroups } from './hooks/useWhatsAppGroups';
 
 // Lib/Utils
-export * from './lib/taskUtils';
-export * from './lib/task-utils';
+export * from './lib/constants';
+export * from './lib/sorting-utils';
+export * from './lib/date-utils';
 export * from './lib/sortUtils';
 export * from './lib/statusConfig';
 export * from './lib/dndSensors';
