@@ -1,67 +1,106 @@
 import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { useAuth } from "@clerk/clerk-react";
 import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "../types/task";
 import { useClients } from "@features/clients";
 import { useUsers } from "@features/users";
+import { supabase } from "@/shared/lib/supabase";
 
-// API response types
-interface ApiTaskAssignee {
-  userId: number;
+// ============================================
+// Supabase DB row types (snake_case)
+// ============================================
+
+interface DbTaskAssignee {
+  user_id: number;
   user: { id: number; name: string | null };
 }
 
-interface ApiTaskHistory {
+interface DbTaskHistory {
   id: string;
   type: string;
   content: string;
-  authorId: number | null;
-  createdAt: string;
+  author_id: number | null;
+  created_at: string;
   author: { name: string | null } | null;
 }
 
-interface ApiTask {
+interface DbTask {
   id: string;
   title: string;
   description: string | null;
   priority: string;
   status: string;
-  dueDate: string | null;
+  due_date: string | null;
   order: number;
-  clientId: string | null;
-  meetingId: number | null;
-  creatorId: number | null;
-  createdAt: string;
-  updatedAt: string;
-  assignees: ApiTaskAssignee[];
-  history: ApiTaskHistory[];
+  client_id: string | null;
+  meeting_id: number | null;
+  creator_id: number | null;
+  created_at: string;
+  updated_at: string;
+  task_assignees: DbTaskAssignee[];
+  task_history: DbTaskHistory[];
   client: { id: string; name: string; emails: string[]; phone: string | null } | null;
   creator: { name: string | null } | null;
 }
 
-// Map API task to frontend Task type
-function mapApiTaskToTask(apiTask: ApiTask): Task {
+// Map Supabase DB row → frontend Task type
+function mapDbRowToTask(row: DbTask): Task {
   return {
-    id: apiTask.id,
-    title: apiTask.title,
-    description: apiTask.description || undefined,
-    priority: (apiTask.priority as TaskPriority) || "Normal",
-    status: (apiTask.status as TaskStatus) || "To Do",
-    dueDate: apiTask.dueDate ? new Date(apiTask.dueDate) : new Date(),
-    order: apiTask.order,
-    clientId: apiTask.clientId || undefined,
-    clientName: apiTask.client?.name,
-    clientEmail: apiTask.client?.emails?.[0],
-    clientPhone: apiTask.client?.phone || undefined,
-    assignees: apiTask.assignees.map(a => a.user.name || "Unknown"),
-    history: apiTask.history.map(h => ({
+    id: row.id,
+    title: row.title,
+    description: row.description || undefined,
+    priority: (row.priority as TaskPriority) || "Normal",
+    status: (row.status as TaskStatus) || "To Do",
+    dueDate: row.due_date ? new Date(row.due_date) : new Date(),
+    order: row.order,
+    clientId: row.client_id || undefined,
+    clientName: row.client?.name,
+    clientEmail: row.client?.emails?.[0],
+    clientPhone: row.client?.phone || undefined,
+    assignees: (row.task_assignees || []).map(a => a.user?.name || "Unknown"),
+    history: (row.task_history || []).map(h => ({
       id: h.id,
       type: h.type as TaskHistoryEvent["type"],
       content: h.content,
       author: h.author?.name || "Sistema",
-      timestamp: new Date(h.createdAt),
+      timestamp: new Date(h.created_at),
     })),
   };
 }
+
+// Map frontend camelCase update fields → Supabase snake_case
+const TASK_FIELD_MAP: Record<string, string> = {
+  title: 'title',
+  description: 'description',
+  priority: 'priority',
+  status: 'status',
+  dueDate: 'due_date',
+  order: 'order',
+  clientId: 'client_id',
+  meetingId: 'meeting_id',
+};
+
+function mapTaskUpdatesToDb(updates: Record<string, unknown>): Record<string, unknown> {
+  const dbUpdates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    const dbKey = TASK_FIELD_MAP[key];
+    if (dbKey) {
+      dbUpdates[dbKey] = value;
+    }
+  }
+  return dbUpdates;
+}
+
+// Supabase select query for tasks with relations
+const TASK_SELECT = `
+  *,
+  task_assignees(user_id, user:users!user_id(id, name)),
+  task_history(id, type, content, author_id, created_at, author:users!author_id(name)),
+  client:clients!client_id(id, name, emails, phone),
+  creator:users!creator_id(name)
+`;
+
+// ============================================
+// Context
+// ============================================
 
 interface CreateTaskData {
   title: string;
@@ -99,59 +138,35 @@ const TasksContext = createContext<TasksContextType | null>(null);
 const MAX_HISTORY = 20;
 
 export function TasksProvider({ children }: { children: ReactNode }) {
-  const { getToken } = useAuth();
-  const getTokenRef = useRef(getToken);
   const { clients } = useClients();
   const { teamUsers, currentUser } = useUsers();
-  
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const historyRef = useRef<Task[][]>([]);
-  
+
   // Guardar dados de criação pendentes para retry
   const pendingCreateData = useRef<Map<string, CreateTaskData>>(new Map());
-  
+
   // Debounce para updates - acumular edições rápidas
   const pendingUpdates = useRef<Map<string, Partial<Task>>>(new Map());
   const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
-  // Keep ref updated
-  useEffect(() => {
-    getTokenRef.current = getToken;
-  }, [getToken]);
-
-  // Helper to get auth headers
-  const getAuthHeaders = useCallback(async (contentType?: string): Promise<Record<string, string>> => {
-    const token = await getTokenRef.current();
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    if (contentType) {
-      headers["Content-Type"] = contentType;
-    }
-    return headers;
-  }, []);
-
-  // Fetch tasks from API
+  // Fetch tasks from Supabase
   const fetchTasks = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const headers = await getAuthHeaders();
-      const response = await fetch("/api/tasks", {
-        headers,
-        credentials: "include",
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch tasks");
-      }
-      
-      const data = await response.json();
-      const mappedTasks = (data.tasks || []).map(mapApiTaskToTask);
+
+      const { data, error: fetchError } = await supabase
+        .from('tasks')
+        .select(TASK_SELECT)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const mappedTasks = ((data || []) as DbTask[]).map(mapDbRowToTask);
       setTasks(mappedTasks);
     } catch (err) {
       console.error("Error fetching tasks:", err);
@@ -159,7 +174,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [getAuthHeaders]);
+  }, []);
 
   // Load tasks on mount
   useEffect(() => {
@@ -210,18 +225,17 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [undo]);
 
-  // Flush pending updates to API
+  // Flush pending updates to Supabase
   const flushUpdate = useCallback(async (taskId: string) => {
     const updates = pendingUpdates.current.get(taskId);
     if (!updates) return;
-    
+
     pendingUpdates.current.delete(taskId);
     debounceTimers.current.delete(taskId);
-    
+
     try {
-      const headers = await getAuthHeaders("application/json");
       const apiUpdates: Record<string, unknown> = {};
-      
+
       if (updates.title !== undefined) apiUpdates.title = updates.title;
       if (updates.description !== undefined) apiUpdates.description = updates.description;
       if (updates.priority !== undefined) apiUpdates.priority = updates.priority;
@@ -229,8 +243,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate?.toISOString();
       if (updates.order !== undefined) apiUpdates.order = updates.order;
       if (updates.clientId !== undefined) apiUpdates.clientId = updates.clientId;
-      
-      // Converter assignees (nomes) para assigneeIds (IDs numéricos)
+
+      // Task field updates via Supabase
+      const dbUpdates = mapTaskUpdatesToDb(apiUpdates);
+      if (Object.keys(dbUpdates).length > 0) {
+        await supabase.from('tasks').update(dbUpdates).eq('id', taskId);
+      }
+
+      // Assignees update (separate table)
       if (updates.assignees !== undefined) {
         const assigneeIds: number[] = [];
         for (const name of updates.assignees) {
@@ -239,21 +259,21 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             assigneeIds.push(user.id);
           }
         }
-        apiUpdates.assigneeIds = assigneeIds;
-      }
 
-      await fetch(`/api/tasks/${taskId}`, {
-        method: "PATCH",
-        headers,
-        credentials: "include",
-        body: JSON.stringify(apiUpdates),
-      });
+        // Delete existing + insert new (atomic via sequential calls)
+        await supabase.from('task_assignees').delete().eq('task_id', taskId);
+        if (assigneeIds.length > 0) {
+          await supabase.from('task_assignees').insert(
+            assigneeIds.map(userId => ({ task_id: taskId, user_id: userId }))
+          );
+        }
+      }
     } catch (err) {
       console.error("Error updating task:", err);
     }
-  }, [getAuthHeaders, teamUsers]);
+  }, [teamUsers]);
 
-  // Update task (local + API com debounce)
+  // Update task (local + Supabase com debounce)
   const updateTask = useCallback((taskId: string, updates: Partial<Task>) => {
     // Update local imediato
     setTasksWithHistory(prevTasks =>
@@ -261,20 +281,20 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         task.id === taskId ? { ...task, ...updates } : task
       )
     );
-    
+
     // Ignorar tasks temporárias (ainda não criadas na API)
     if (taskId.startsWith("temp-")) return;
-    
+
     // Acumular updates
     const currentUpdates = pendingUpdates.current.get(taskId) || {};
     pendingUpdates.current.set(taskId, { ...currentUpdates, ...updates });
-    
+
     // Cancelar timer anterior se existir
     const existingTimer = debounceTimers.current.get(taskId);
     if (existingTimer) {
       clearTimeout(existingTimer);
     }
-    
+
     // Debounce - enviar após 500ms sem novas edições
     const timer = setTimeout(() => {
       flushUpdate(taskId);
@@ -282,32 +302,25 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     debounceTimers.current.set(taskId, timer);
   }, [setTasksWithHistory, flushUpdate]);
 
-  // Delete task (local + API)
+  // Delete task (local + Supabase)
   const deleteTask = useCallback(async (taskId: string) => {
     setTasksWithHistory(prevTasks => prevTasks.filter(task => task.id !== taskId));
 
     try {
-      const headers = await getAuthHeaders();
-      await fetch(`/api/tasks/${taskId}`, {
-        method: "DELETE",
-        headers,
-        credentials: "include",
-      });
+      await supabase.from('tasks').delete().eq('id', taskId);
     } catch (err) {
       console.error("Error deleting task:", err);
     }
-  }, [setTasksWithHistory, getAuthHeaders]);
+  }, [setTasksWithHistory]);
 
   // Add task (local only - for compatibility)
   const addTask = useCallback((task: Task) => {
     setTasksWithHistory(prevTasks => [...prevTasks, task]);
   }, [setTasksWithHistory]);
 
-  // Sync task to API (background)
+  // Sync task to Supabase (background)
   const syncTaskToApi = useCallback(async (tempId: string, data: CreateTaskData) => {
     try {
-      const headers = await getAuthHeaders("application/json");
-      
       // Find client by name if clientId not provided
       let clientId = data.clientId;
       if (!clientId && data.clientName) {
@@ -328,109 +341,118 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         assigneeIds.push(currentUser.id);
       }
 
-      const requestBody = {
-        title: data.title,
-        priority: data.priority || "Normal",
-        status: data.status || "To Do",
-        dueDate: data.dueDate?.toISOString() || new Date().toISOString(),
-        clientId: clientId || null,
-        order: data.order ?? 0,
-        assigneeIds: assigneeIds.length > 0 ? assigneeIds : undefined,
-      };
+      // Insert task via Supabase
+      const { data: created, error: insertError } = await supabase
+        .from('tasks')
+        .insert({
+          title: data.title,
+          priority: data.priority || "Normal",
+          status: data.status || "To Do",
+          due_date: data.dueDate?.toISOString() || new Date().toISOString(),
+          client_id: clientId || null,
+          creator_id: currentUser?.id ?? null,
+          order: data.order ?? 0,
+        })
+        .select('id')
+        .single();
 
-      const response = await fetch("/api/tasks", {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: JSON.stringify(requestBody),
+      if (insertError) throw insertError;
+
+      const realTaskId = created.id;
+
+      // Insert assignees
+      if (assigneeIds.length > 0) {
+        await supabase.from('task_assignees').insert(
+          assigneeIds.map(userId => ({ task_id: realTaskId, user_id: userId }))
+        );
+      }
+
+      // History is auto-created by trigger, fetch it
+      const { data: historyData } = await supabase
+        .from('task_history')
+        .select('id, type, content, author_id, created_at, author:users!author_id(name)')
+        .eq('task_id', realTaskId)
+        .order('created_at', { ascending: false });
+
+      // Supabase may return relation as array or object depending on FK inference
+      const apiHistory: TaskHistoryEvent[] = (historyData || []).map((h: Record<string, unknown>) => {
+        const author = Array.isArray(h.author) ? h.author[0] : h.author;
+        return {
+          id: h.id as string,
+          type: (h.type as string) as TaskHistoryEvent["type"],
+          content: h.content as string,
+          author: (author as { name: string | null } | null)?.name || "Sistema",
+          timestamp: new Date(h.created_at as string),
+        };
       });
 
-      if (response.ok) {
-        const result = await response.json();
-        const realTaskId = result.task.id;
-        
-        // Converter histórico da API para formato do frontend
-        const apiHistory: TaskHistoryEvent[] = (result.task.history || []).map((h: ApiTaskHistory) => ({
-          id: h.id,
-          type: h.type as TaskHistoryEvent["type"],
-          content: h.content,
-          author: h.author?.name || "Sistema",
-          timestamp: new Date(h.createdAt),
-        }));
-        
-        // Pegar histórico pendente (adicionado localmente enquanto task era temp)
-        let pendingHistory: TaskHistoryEvent[] = [];
-        setTasks(prev => {
-          const tempTask = prev.find(t => t.id === tempId);
-          if (tempTask?.history) {
-            // Pegar eventos de histórico que foram adicionados localmente (com ID temp-)
-            pendingHistory = tempTask.history.filter(h => h.id.startsWith("temp-"));
-          }
-          // Mesclar histórico da API com pendente local
-          return prev.map(t => 
-            t.id === tempId 
-              ? { ...t, id: realTaskId, _tempId: tempId, history: [...apiHistory, ...pendingHistory], syncStatus: undefined } 
-              : t
-          );
-        });
-        
-        pendingCreateData.current.delete(tempId);
-        
-        // Sincronizar histórico pendente com o ID real da task
-        for (const historyEvent of pendingHistory) {
-          try {
-            const historyResponse = await fetch(`/api/tasks/${realTaskId}/history`, {
-              method: "POST",
-              headers,
-              credentials: "include",
-              body: JSON.stringify({ type: historyEvent.type, content: historyEvent.content }),
-            });
-            
-            if (historyResponse.ok) {
-              const historyResult = await historyResponse.json();
-              // Atualizar ID do histórico
-              setTasks(prev => prev.map(t => {
-                if (t.id === realTaskId && t.history) {
-                  return {
-                    ...t,
-                    history: t.history.map(h => 
-                      h.id === historyEvent.id 
-                        ? { ...h, id: historyResult.historyEvent.id, syncStatus: undefined }
-                        : h
-                    ),
-                  };
-                }
-                return t;
-              }));
-            }
-          } catch (err) {
-            console.error("Error syncing pending history:", err);
-          }
+      // Pegar histórico pendente (adicionado localmente enquanto task era temp)
+      let pendingHistory: TaskHistoryEvent[] = [];
+      setTasks(prev => {
+        const tempTask = prev.find(t => t.id === tempId);
+        if (tempTask?.history) {
+          pendingHistory = tempTask.history.filter(h => h.id.startsWith("temp-"));
         }
-      } else {
-        // Marcar como erro
-        setTasks(prev => prev.map(t => 
-          t.id === tempId ? { ...t, syncStatus: "error" as const } : t
-        ));
+        return prev.map(t =>
+          t.id === tempId
+            ? { ...t, id: realTaskId, _tempId: tempId, history: [...apiHistory, ...pendingHistory], syncStatus: undefined }
+            : t
+        );
+      });
+
+      pendingCreateData.current.delete(tempId);
+
+      // Sincronizar histórico pendente com o ID real da task
+      for (const historyEvent of pendingHistory) {
+        try {
+          const { data: newHistory, error: histError } = await supabase
+            .from('task_history')
+            .insert({
+              task_id: realTaskId,
+              type: historyEvent.type,
+              content: historyEvent.content,
+              author_id: currentUser?.id ?? null,
+            })
+            .select('id')
+            .single();
+
+          if (!histError && newHistory) {
+            setTasks(prev => prev.map(t => {
+              if (t.id === realTaskId && t.history) {
+                return {
+                  ...t,
+                  history: t.history.map(h =>
+                    h.id === historyEvent.id
+                      ? { ...h, id: newHistory.id, syncStatus: undefined }
+                      : h
+                  ),
+                };
+              }
+              return t;
+            }));
+          }
+        } catch (err) {
+          console.error("Error syncing pending history:", err);
+        }
       }
     } catch {
       // Marcar como erro
-      setTasks(prev => prev.map(t => 
+      setTasks(prev => prev.map(t =>
         t.id === tempId ? { ...t, syncStatus: "error" as const } : t
       ));
     }
-  }, [getAuthHeaders, clients, teamUsers, currentUser]);
+  }, [clients, teamUsers, currentUser]);
 
   // Retry sync for failed task
   const retryTaskSync = useCallback((taskId: string) => {
     const data = pendingCreateData.current.get(taskId);
     if (!data) return;
-    
+
     // Marcar como pending novamente
-    setTasks(prev => prev.map(t => 
+    setTasks(prev => prev.map(t =>
       t.id === taskId ? { ...t, syncStatus: "pending" as const } : t
     ));
-    
+
     // Tentar novamente
     syncTaskToApi(taskId, data);
   }, [syncTaskToApi]);
@@ -438,12 +460,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   // Create task and return it (optimistic - instantâneo)
   const createTaskAndReturn = useCallback((data: CreateTaskData): Task => {
     const tempId = `temp-${Date.now()}`;
-    
+
     // Resolver assignees localmente
-    const assigneeNames = data.assignees?.length 
-      ? data.assignees 
+    const assigneeNames = data.assignees?.length
+      ? data.assignees
       : currentUser ? [currentUser.name] : [];
-    
+
     // Criar tarefa local imediatamente
     const tempTask: Task = {
       id: tempId,
@@ -458,16 +480,16 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       history: [],
       syncStatus: "pending",
     };
-    
+
     // Guardar dados para retry
     pendingCreateData.current.set(tempId, data);
-    
+
     // Adicionar imediatamente à lista
     setTasks(prev => [...prev, tempTask]);
-    
+
     // Sync em background (sem await)
     syncTaskToApi(tempId, data);
-    
+
     return tempTask; // Retorna instantaneamente
   }, [currentUser, syncTaskToApi]);
 
@@ -478,7 +500,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   // Get tasks by client
   const getTasksByClient = useCallback((clientNameOrId: string) => {
-    return tasks.filter(task => 
+    return tasks.filter(task =>
       task.clientId === clientNameOrId ||
       task.clientName?.toLowerCase() === clientNameOrId.toLowerCase()
     );
@@ -487,10 +509,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   // Add history event to task (optimistic)
   const addTaskHistory = useCallback((taskId: string, type: string, content: string) => {
     const tempId = `temp-history-${Date.now()}`;
-    
+
     // Verificar se task ainda não foi sincronizada
     const isTaskTemp = taskId.startsWith("temp-");
-    
+
     // Criar evento local imediatamente
     const tempEvent: TaskHistoryEvent = {
       id: tempId,
@@ -498,10 +520,9 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       content,
       author: "Você",
       timestamp: new Date(),
-      // Se task é temp, histórico fica local até task sincronizar
       syncStatus: isTaskTemp ? undefined : "pending",
     };
-    
+
     // Adicionar localmente
     setTasks(prev => prev.map(task => {
       if (task.id === taskId) {
@@ -512,34 +533,33 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       }
       return task;
     }));
-    
+
     // Não sincronizar se task ainda é temporária
-    if (isTaskTemp) {
-      console.log("[addTaskHistory] Task ainda não sincronizada, histórico mantido localmente");
-      return;
-    }
-    
-    // Sync em background
+    if (isTaskTemp) return;
+
+    // Sync em background via Supabase
     (async () => {
       try {
-        const headers = await getAuthHeaders("application/json");
-        const response = await fetch(`/api/tasks/${taskId}/history`, {
-          method: "POST",
-          headers,
-          credentials: "include",
-          body: JSON.stringify({ type, content }),
-        });
+        const { data: newHistory, error: insertError } = await supabase
+          .from('task_history')
+          .insert({
+            task_id: taskId,
+            type,
+            content,
+            author_id: currentUser?.id ?? null,
+          })
+          .select('id')
+          .single();
 
-        if (response.ok) {
-          const result = await response.json();
+        if (!insertError && newHistory) {
           // Substituir ID temporário pelo real
           setTasks(prev => prev.map(task => {
             if (task.id === taskId && task.history) {
               return {
                 ...task,
-                history: task.history.map(h => 
-                  h.id === tempId 
-                    ? { ...h, id: result.historyEvent.id, syncStatus: undefined }
+                history: task.history.map(h =>
+                  h.id === tempId
+                    ? { ...h, id: newHistory.id, syncStatus: undefined }
                     : h
                 ),
               };
@@ -552,7 +572,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             if (task.id === taskId && task.history) {
               return {
                 ...task,
-                history: task.history.map(h => 
+                history: task.history.map(h =>
                   h.id === tempId ? { ...h, syncStatus: "error" as const } : h
                 ),
               };
@@ -561,12 +581,11 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           }));
         }
       } catch {
-        // Marcar como erro
         setTasks(prev => prev.map(task => {
           if (task.id === taskId && task.history) {
             return {
               ...task,
-              history: task.history.map(h => 
+              history: task.history.map(h =>
                 h.id === tempId ? { ...h, syncStatus: "error" as const } : h
               ),
             };
@@ -575,7 +594,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         }));
       }
     })();
-  }, [getAuthHeaders]);
+  }, [currentUser]);
 
   // Delete history event from task (optimistic)
   const deleteTaskHistory = useCallback((taskId: string, eventId: string) => {
@@ -589,24 +608,19 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       }
       return task;
     }));
-    
-    // Ignorar eventos temporários (ainda não criados na API)
+
+    // Ignorar eventos temporários (ainda não criados)
     if (eventId.startsWith("temp-")) return;
-    
-    // Sync em background (silencioso - item já foi removido da UI)
+
+    // Sync em background via Supabase
     (async () => {
       try {
-        const headers = await getAuthHeaders();
-        await fetch(`/api/tasks/${taskId}/history/${eventId}`, {
-          method: "DELETE",
-          headers,
-          credentials: "include",
-        });
+        await supabase.from('task_history').delete().eq('id', eventId);
       } catch {
         // Silencioso - item já foi removido da UI
       }
     })();
-  }, [getAuthHeaders]);
+  }, []);
 
   return (
     <TasksContext.Provider value={{

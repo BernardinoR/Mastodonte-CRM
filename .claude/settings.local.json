@@ -7,7 +7,23 @@
       "WebSearch",
       "mcp__ai-context__context",
       "Bash(find:*)",
-      "Bash(wc:*)"
+      "Bash(wc:*)",
+      "Bash(gh repo clone:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "WebFetch(domain:api.github.com)",
+      "mcp__ai-context__workflow-status",
+      "mcp__ai-context__workflow-init",
+      "mcp__ai-context__plan",
+      "mcp__ai-context__workflow-manage",
+      "mcp__ai-context__workflow-advance",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run build:*)",
+      "Bash(psql:*)",
+      "Bash(kill:*)"
     ]
   }
 }

@@ -21,6 +21,7 @@ import {
 import { Separator } from "@/shared/components/ui/separator";
 import { Mail, Loader2, Info, ShieldAlert, UserCheck, Users, HeartHandshake } from "lucide-react";
 import { apiRequest, queryClient } from "@/shared/lib/queryClient";
+import { supabase } from "@/shared/lib/supabase";
 import { useToast } from "@/shared/hooks/use-toast";
 import type { UserRole } from "@features/users";
 
@@ -92,15 +93,11 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
   const { data: groupsData } = useQuery<{ groups: Group[] }>({
-    queryKey: ["/api/groups"],
+    queryKey: ["groups"],
     queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch("/api/groups", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch groups");
-      return res.json();
+      const { data, error } = await supabase.from('groups').select('id, name, logo_url').order('name');
+      if (error) throw error;
+      return { groups: (data || []).map((r: Record<string, unknown>) => ({ id: r.id as number, name: r.name as string, logoUrl: r.logo_url as string | null })) };
     },
     enabled: open,
   });
@@ -113,7 +110,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       return apiRequest("POST", "/api/invitations", data, { Authorization: `Bearer ${token}` });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({ title: "Convite enviado com sucesso!" });
       resetForm();
       onOpenChange(false);

@@ -1,57 +1,65 @@
-import { createContext, useContext, useState, useCallback, useMemo, useEffect, useRef, type ReactNode } from "react";
-import { useAuth } from "@clerk/clerk-react";
+import { createContext, useContext, useState, useCallback, useMemo, useEffect, type ReactNode } from "react";
 import type { Client, ClientFullData, ClientStats, ClientMeeting, WhatsAppGroup, Address } from "@features/clients";
 import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { MeetingDetail } from "@features/meetings";
-import { 
+import { useUsers } from "@features/users";
+import { supabase } from "@/shared/lib/supabase";
+import {
   MEETING_DETAILS_DATA,
-  type ClientExtendedData 
+  type ClientExtendedData
 } from "@/shared/mocks/clientsMock";
 
-// API response types
-interface ApiClient {
+// ============================================
+// Supabase DB row types (snake_case)
+// ============================================
+
+interface DbClient {
   id: string;
   name: string;
   initials: string | null;
   cpf: string | null;
   phone: string | null;
   emails: string[];
-  primaryEmailIndex: number;
-  lastMeeting: string | null;
+  primary_email_index: number;
+  last_meeting: string | null;
   address: Address | null;
-  foundationCode: string | null;
-  clientSince: string | null;
+  foundation_code: string | null;
+  client_since: string | null;
   status: string;
   patrimony: string | null;
-  ownerId: number | null;
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  owner_id: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
   owner?: { id: number; name: string | null } | null;
-  whatsappGroups?: ApiWhatsAppGroup[];
+  whatsapp_groups?: DbWhatsAppGroup[];
 }
 
-interface ApiWhatsAppGroup {
+interface DbWhatsAppGroup {
   id: number;
   name: string;
   purpose: string | null;
   link: string | null;
   status: string;
-  clientId: string;
-  createdAt: string;
-  updatedAt: string;
+  client_id: string;
+  created_at: string;
+  updated_at: string;
 }
+
+// ============================================
+// Mapping utilities
+// ============================================
 
 function deriveInitials(name: string): string {
   const trimmed = name.trim();
   if (!trimmed) return "";
-  
+
   const parts = trimmed.split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "";
   if (parts.length === 1) {
     return parts[0].charAt(0).toUpperCase();
   }
-  
+
   const first = parts[0].charAt(0).toUpperCase();
   const last = parts[parts.length - 1].charAt(0).toUpperCase();
   return first + last;
@@ -65,37 +73,70 @@ function formatClientSince(date: Date): string {
   return `${months[date.getMonth()]} de ${date.getFullYear()}`;
 }
 
-// Map API client to frontend Client type
-function mapApiClientToClient(apiClient: ApiClient): Client {
-  const clientSinceDate = apiClient.clientSince ? new Date(apiClient.clientSince) : new Date();
+// Map Supabase DB row (snake_case) → frontend Client type
+function mapDbRowToClient(row: DbClient): Client {
+  const clientSinceDate = row.client_since ? new Date(row.client_since) : new Date();
   return {
-    id: apiClient.id,
-    name: apiClient.name,
-    initials: apiClient.initials || deriveInitials(apiClient.name),
-    cpf: apiClient.cpf || "",
-    phone: apiClient.phone || "",
-    emails: apiClient.emails || [],
-    primaryEmailIndex: apiClient.primaryEmailIndex || 0,
-    advisor: apiClient.owner?.name || "",
-    lastMeeting: apiClient.lastMeeting ? new Date(apiClient.lastMeeting) : new Date(),
-    address: apiClient.address || { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
-    foundationCode: apiClient.foundationCode || "",
+    id: row.id,
+    name: row.name,
+    initials: row.initials || deriveInitials(row.name),
+    cpf: row.cpf || "",
+    phone: row.phone || "",
+    emails: row.emails || [],
+    primaryEmailIndex: row.primary_email_index || 0,
+    advisor: row.owner?.name || "",
+    lastMeeting: row.last_meeting ? new Date(row.last_meeting) : new Date(),
+    address: row.address || { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
+    foundationCode: row.foundation_code || "",
     clientSince: formatClientSince(clientSinceDate),
-    status: (apiClient.status as ClientStatus) || "Ativo",
+    status: (row.status as ClientStatus) || "Ativo",
   };
 }
 
-// Map API WhatsAppGroup to frontend type
-function mapApiWhatsAppGroup(apiGroup: ApiWhatsAppGroup): WhatsAppGroup {
+// Map Supabase DB row → frontend WhatsAppGroup type
+function mapDbWhatsAppGroup(row: DbWhatsAppGroup): WhatsAppGroup {
   return {
-    id: apiGroup.id.toString(),
-    name: apiGroup.name,
-    purpose: apiGroup.purpose || "",
-    link: apiGroup.link,
-    status: (apiGroup.status as "Ativo" | "Inativo") || "Ativo",
-    createdAt: new Date(apiGroup.createdAt),
+    id: row.id.toString(),
+    name: row.name,
+    purpose: row.purpose || "",
+    link: row.link,
+    status: (row.status as "Ativo" | "Inativo") || "Ativo",
+    createdAt: new Date(row.created_at),
   };
 }
+
+// Map frontend camelCase update fields → Supabase snake_case
+const FIELD_MAP: Record<string, string> = {
+  name: 'name',
+  initials: 'initials',
+  cpf: 'cpf',
+  phone: 'phone',
+  emails: 'emails',
+  primaryEmailIndex: 'primary_email_index',
+  lastMeeting: 'last_meeting',
+  address: 'address',
+  foundationCode: 'foundation_code',
+  clientSince: 'client_since',
+  status: 'status',
+  patrimony: 'patrimony',
+  ownerId: 'owner_id',
+  isActive: 'is_active',
+};
+
+function mapUpdatesToDb(updates: Record<string, unknown>): Record<string, unknown> {
+  const dbUpdates: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(updates)) {
+    dbUpdates[FIELD_MAP[key] || key] = value;
+  }
+  return dbUpdates;
+}
+
+// Supabase select query for clients with relations
+const CLIENT_SELECT = '*, owner:users!owner_id(id, name), whatsapp_groups(*)';
+
+// ============================================
+// Context
+// ============================================
 
 interface ClientsContextType {
   clients: Client[];
@@ -132,60 +173,38 @@ interface ClientsContextType {
 const ClientsContext = createContext<ClientsContextType | null>(null);
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
-  const { getToken } = useAuth();
-  const getTokenRef = useRef(getToken);
-  
-  // Keep ref updated
-  useEffect(() => {
-    getTokenRef.current = getToken;
-  }, [getToken]);
-  
+  const { currentUser } = useUsers();
+
   const [clients, setClients] = useState<Client[]>([]);
   const [extendedData, setExtendedData] = useState<Record<string, ClientExtendedData>>({});
   const [dataVersion, setDataVersion] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper to get auth headers
-  const getAuthHeaders = useCallback(async (contentType?: string): Promise<Record<string, string>> => {
-    const token = await getTokenRef.current();
-    const headers: Record<string, string> = {};
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-    if (contentType) {
-      headers["Content-Type"] = contentType;
-    }
-    return headers;
-  }, []);
-
-  // Fetch clients from API
+  // Fetch clients from Supabase (RLS handles access filtering)
   const fetchClients = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
-      const headers = await getAuthHeaders();
-      const response = await fetch("/api/clients", {
-        headers,
-        credentials: "include",
-      });
-      
-      if (!response.ok) {
-        throw new Error("Failed to fetch clients");
-      }
-      
-      const data = await response.json();
-      const mappedClients = (data.clients || []).map(mapApiClientToClient);
+
+      const { data, error: fetchError } = await supabase
+        .from('clients')
+        .select(CLIENT_SELECT)
+        .order('created_at', { ascending: false });
+
+      if (fetchError) throw fetchError;
+
+      const rows = (data || []) as DbClient[];
+      const mappedClients = rows.map(mapDbRowToClient);
       setClients(mappedClients);
-      
+
       // Initialize extended data for each client
       const newExtendedData: Record<string, ClientExtendedData> = {};
-      for (const apiClient of (data.clients || []) as ApiClient[]) {
-        newExtendedData[apiClient.id] = {
+      for (const row of rows) {
+        newExtendedData[row.id] = {
           stats: [],
           meetings: [],
-          whatsappGroups: (apiClient.whatsappGroups || []).map(mapApiWhatsAppGroup),
+          whatsappGroups: (row.whatsapp_groups || []).map(mapDbWhatsAppGroup),
         };
       }
       setExtendedData(newExtendedData);
@@ -195,25 +214,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [getAuthHeaders]);
-
-  // Fetch client with relations (for whatsapp groups)
-  const fetchClientWithRelations = useCallback(async (clientId: string) => {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`/api/clients/${clientId}`, {
-        headers,
-        credentials: "include",
-      });
-      
-      if (!response.ok) return null;
-      
-      const data = await response.json();
-      return data.client as ApiClient;
-    } catch {
-      return null;
-    }
-  }, [getAuthHeaders]);
+  }, []);
 
   // Load clients on mount
   useEffect(() => {
@@ -235,7 +236,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   const getFullClientData = useCallback((id: string): ClientFullData | undefined => {
     const client = clients.find(c => c.id === id);
     if (!client) return undefined;
-    
+
     const data = extendedData[id];
     if (!data) {
       return {
@@ -245,7 +246,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         whatsappGroups: [],
       };
     }
-    
+
     return {
       client,
       ...data,
@@ -261,108 +262,110 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     return MEETING_DETAILS_DATA[key];
   }, []);
 
+  // ============================================
+  // Client CRUD - Supabase direct
+  // ============================================
+
   const addClient = useCallback(async (clientData: { name: string; email: string }): Promise<{ success: true; data: string } | { success: false; error: string }> => {
     try {
-      const headers = await getAuthHeaders("application/json");
-      const response = await fetch("/api/clients", {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: JSON.stringify({
+      const { data, error: insertError } = await supabase
+        .from('clients')
+        .insert({
           name: clientData.name,
           initials: deriveInitials(clientData.name),
           emails: clientData.email ? [clientData.email] : [],
-          primaryEmailIndex: 0,
-          status: "Ativo",
+          primary_email_index: 0,
+          status: 'Ativo',
           address: { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
-          clientSince: new Date().toISOString(),
-        }),
-      });
+          client_since: new Date().toISOString(),
+          owner_id: currentUser?.id ?? null,
+        })
+        .select(CLIENT_SELECT)
+        .single();
 
-      if (!response.ok) {
-        throw new Error("Failed to create client");
-      }
+      if (insertError) throw insertError;
 
-      const data = await response.json();
-      const newClient = mapApiClientToClient(data.client);
-      
+      const newClient = mapDbRowToClient(data as DbClient);
+
       setClients(prev => [newClient, ...prev]);
       setExtendedData(prev => ({
         ...prev,
         [newClient.id]: { stats: [], meetings: [], whatsappGroups: [] },
       }));
       setDataVersion(v => v + 1);
-      
+
       return { success: true, data: newClient.id };
     } catch (err) {
       console.error("Error creating client:", err);
-      return { 
-        success: false, 
-        error: "Não foi possível criar o cliente. Verifique sua conexão e tente novamente." 
+      return {
+        success: false,
+        error: "Não foi possível criar o cliente. Verifique sua conexão e tente novamente."
       };
     }
-  }, [getAuthHeaders]);
+  }, [currentUser]);
 
   const updateClientApi = useCallback(async (clientId: string, updates: Record<string, unknown>) => {
     try {
-      const headers = await getAuthHeaders("application/json");
-      const response = await fetch(`/api/clients/${clientId}`, {
-        method: "PATCH",
-        headers,
-        credentials: "include",
-        body: JSON.stringify(updates),
-      });
-      return response.ok;
+      const dbUpdates = mapUpdatesToDb(updates);
+      const { error: updateError } = await supabase
+        .from('clients')
+        .update(dbUpdates)
+        .eq('id', clientId);
+
+      if (updateError) {
+        console.error("Error updating client:", updateError);
+        return false;
+      }
+      return true;
     } catch {
       return false;
     }
-  }, [getAuthHeaders]);
+  }, []);
+
+  // ============================================
+  // WhatsApp Groups - Supabase direct
+  // ============================================
 
   const addWhatsAppGroup = useCallback(async (clientId: string, group: Omit<WhatsAppGroup, 'id'>) => {
     try {
-      const headers = await getAuthHeaders("application/json");
-      const response = await fetch(`/api/clients/${clientId}/whatsapp-groups`, {
-        method: "POST",
-        headers,
-        credentials: "include",
-        body: JSON.stringify({
+      const { data, error: insertError } = await supabase
+        .from('whatsapp_groups')
+        .insert({
           name: group.name,
           purpose: group.purpose,
           link: group.link,
           status: group.status,
-        }),
-      });
+          client_id: clientId,
+        })
+        .select()
+        .single();
 
-      if (response.ok) {
-        const data = await response.json();
-        const newGroup = mapApiWhatsAppGroup(data.group);
-        
-        setExtendedData(prev => {
-          const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
-          return {
-            ...prev,
-            [clientId]: {
-              ...clientData,
-              whatsappGroups: [...clientData.whatsappGroups, newGroup],
-            },
-          };
-        });
-      }
+      if (insertError) throw insertError;
+
+      const newGroup = mapDbWhatsAppGroup(data as DbWhatsAppGroup);
+
+      setExtendedData(prev => {
+        const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
+        return {
+          ...prev,
+          [clientId]: {
+            ...clientData,
+            whatsappGroups: [...clientData.whatsappGroups, newGroup],
+          },
+        };
+      });
     } catch (err) {
       console.error("Error creating WhatsApp group:", err);
     }
     setDataVersion(v => v + 1);
-  }, [getAuthHeaders]);
+  }, []);
 
   const updateWhatsAppGroup = useCallback(async (clientId: string, groupId: string, updates: Partial<Omit<WhatsAppGroup, 'id'>>) => {
     try {
-      const headers = await getAuthHeaders("application/json");
-      await fetch(`/api/whatsapp-groups/${groupId}`, {
-        method: "PATCH",
-        headers,
-        credentials: "include",
-        body: JSON.stringify(updates),
-      });
+      await supabase
+        .from('whatsapp_groups')
+        .update(updates)
+        .eq('id', parseInt(groupId));
     } catch (err) {
       console.error("Error updating WhatsApp group:", err);
     }
@@ -370,7 +373,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setExtendedData(prev => {
       const clientData = prev[clientId];
       if (!clientData) return prev;
-      
+
       return {
         ...prev,
         [clientId]: {
@@ -382,16 +385,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       };
     });
     setDataVersion(v => v + 1);
-  }, [getAuthHeaders]);
+  }, []);
 
   const deleteWhatsAppGroup = useCallback(async (clientId: string, groupId: string) => {
     try {
-      const headers = await getAuthHeaders();
-      await fetch(`/api/whatsapp-groups/${groupId}`, {
-        method: "DELETE",
-        headers,
-        credentials: "include",
-      });
+      await supabase
+        .from('whatsapp_groups')
+        .delete()
+        .eq('id', parseInt(groupId));
     } catch (err) {
       console.error("Error deleting WhatsApp group:", err);
     }
@@ -399,7 +400,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setExtendedData(prev => {
       const clientData = prev[clientId];
       if (!clientData) return prev;
-      
+
       return {
         ...prev,
         [clientId]: {
@@ -409,113 +410,113 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       };
     });
     setDataVersion(v => v + 1);
-  }, [getAuthHeaders]);
+  }, []);
+
+  // ============================================
+  // Client field updates (optimistic + Supabase)
+  // ============================================
 
   const updateClientStatus = useCallback(async (clientId: string, status: ClientStatus) => {
-    await updateClientApi(clientId, { status });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, status } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { status });
   }, [updateClientApi]);
 
   const updateClientName = useCallback(async (clientId: string, name: string) => {
     const trimmedName = name.trim();
     if (!trimmedName) return;
-    
+
     const initials = deriveInitials(trimmedName);
-    await updateClientApi(clientId, { name: trimmedName, initials });
-    
     setClients(prev => prev.map(client =>
-      client.id === clientId 
-        ? { ...client, name: trimmedName, initials } 
+      client.id === clientId
+        ? { ...client, name: trimmedName, initials }
         : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { name: trimmedName, initials });
   }, [updateClientApi]);
 
   const updateClientCpf = useCallback(async (clientId: string, cpf: string) => {
-    await updateClientApi(clientId, { cpf });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, cpf } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { cpf });
   }, [updateClientApi]);
 
   const updateClientPhone = useCallback(async (clientId: string, phone: string) => {
-    await updateClientApi(clientId, { phone });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, phone } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { phone });
   }, [updateClientApi]);
 
   const updateClientEmails = useCallback(async (clientId: string, emails: string[], primaryEmailIndex: number) => {
-    await updateClientApi(clientId, { emails, primaryEmailIndex });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, emails, primaryEmailIndex } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { emails, primaryEmailIndex });
   }, [updateClientApi]);
 
   const addClientEmail = useCallback(async (clientId: string, email: string) => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
-    
+
     const newEmails = [...client.emails, email];
-    await updateClientApi(clientId, { emails: newEmails });
-    
     setClients(prev => prev.map(c => {
       if (c.id !== clientId) return c;
       return { ...c, emails: newEmails };
     }));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { emails: newEmails });
   }, [clients, updateClientApi]);
 
   const removeClientEmail = useCallback(async (clientId: string, emailIndex: number) => {
     const client = clients.find(c => c.id === clientId);
     if (!client || client.emails.length <= 1) return;
-    
+
     const newEmails = client.emails.filter((_, i) => i !== emailIndex);
     let newPrimaryIndex = client.primaryEmailIndex;
-    
+
     if (emailIndex === client.primaryEmailIndex) {
       newPrimaryIndex = 0;
     } else if (emailIndex < client.primaryEmailIndex) {
       newPrimaryIndex = client.primaryEmailIndex - 1;
     }
-    
-    await updateClientApi(clientId, { emails: newEmails, primaryEmailIndex: newPrimaryIndex });
-    
+
     setClients(prev => prev.map(c => {
       if (c.id !== clientId) return c;
       return { ...c, emails: newEmails, primaryEmailIndex: newPrimaryIndex };
     }));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { emails: newEmails, primaryEmailIndex: newPrimaryIndex });
   }, [clients, updateClientApi]);
 
   const updateClientEmail = useCallback(async (clientId: string, emailIndex: number, newEmail: string) => {
     const client = clients.find(c => c.id === clientId);
     if (!client) return;
-    
+
     const newEmails = [...client.emails];
     newEmails[emailIndex] = newEmail;
-    
-    await updateClientApi(clientId, { emails: newEmails });
-    
+
     setClients(prev => prev.map(c => {
       if (c.id !== clientId) return c;
       return { ...c, emails: newEmails };
     }));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { emails: newEmails });
   }, [clients, updateClientApi]);
 
   const setClientPrimaryEmail = useCallback(async (clientId: string, emailIndex: number) => {
-    await updateClientApi(clientId, { primaryEmailIndex: emailIndex });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, primaryEmailIndex: emailIndex } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { primaryEmailIndex: emailIndex });
   }, [updateClientApi]);
 
   // Advisor is managed locally (linked to owner in backend)
@@ -527,22 +528,22 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateClientAddress = useCallback(async (clientId: string, address: Address) => {
-    await updateClientApi(clientId, { address });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, address } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { address });
   }, [updateClientApi]);
 
   const updateClientFoundationCode = useCallback(async (clientId: string, foundationCode: string) => {
-    await updateClientApi(clientId, { foundationCode });
     setClients(prev => prev.map(client =>
       client.id === clientId ? { ...client, foundationCode } : client
     ));
     setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { foundationCode });
   }, [updateClientApi]);
 
-  // Meetings are still managed locally for now (will be integrated with Meeting model later)
+  // Meetings are still managed locally for now
   const addClientMeeting = useCallback((clientId: string, meeting: Omit<ClientMeeting, 'id'>) => {
     setExtendedData(prev => {
       const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
@@ -565,7 +566,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setExtendedData(prev => {
       const clientData = prev[clientId];
       if (!clientData) return prev;
-      
+
       return {
         ...prev,
         [clientId]: {
@@ -583,7 +584,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setExtendedData(prev => {
       const clientData = prev[clientId];
       if (!clientData) return prev;
-      
+
       return {
         ...prev,
         [clientId]: {

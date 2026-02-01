@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { useUser, useClerk, useAuth } from "@clerk/clerk-react";
+import { useUser, useClerk } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { User, Camera, Users, Key, Check, X, ExternalLink, Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "wouter";
@@ -12,7 +12,8 @@ import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { useToast } from "@/shared/hooks/use-toast";
-import { apiRequest, queryClient } from "@/shared/lib/queryClient";
+import { queryClient } from "@/shared/lib/queryClient";
+import { supabase } from "@/shared/lib/supabase";
 import { useCurrentUser } from "@features/users";
 import { ImageCropModal } from "../components/ImageCropModal";
 import type { User as DbUser, Group } from "@shared/types";
@@ -34,7 +35,6 @@ const ROLE_COLORS: Record<string, string> = {
 export default function Profile() {
   const { user: clerkUser } = useUser();
   const { openUserProfile } = useClerk();
-  const { getToken } = useAuth();
   const { toast } = useToast();
   const { data: currentUserData, isLoading: loadingUser } = useCurrentUser();
   const currentUser = currentUserData?.user;
@@ -49,28 +49,54 @@ export default function Profile() {
 
   const groupId = currentUser?.groupId;
   const { data: groupData, isLoading: loadingGroup } = useQuery<{ group: Group; members: DbUser[] }>({
-    queryKey: [`/api/groups/${groupId}/members`],
+    queryKey: ["groups", groupId, "members"],
     queryFn: async () => {
-      const token = await getToken();
-      if (!token) throw new Error("No auth token available");
-      const res = await fetch(`/api/groups/${groupId}/members`, {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(`${res.status}: ${text}`);
-      }
-      return res.json();
+      const { data: groupRow, error: groupError } = await supabase
+        .from('groups')
+        .select('*')
+        .eq('id', groupId!)
+        .single();
+      if (groupError) throw groupError;
+
+      const { data: memberRows, error: membersError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('group_id', groupId!)
+        .order('name');
+      if (membersError) throw membersError;
+
+      const group: Group = {
+        id: groupRow.id,
+        name: groupRow.name,
+        description: groupRow.description,
+        logoUrl: groupRow.logo_url,
+        isActive: groupRow.is_active ?? true,
+        createdAt: groupRow.created_at ? new Date(groupRow.created_at) : new Date(),
+      };
+
+      const members: DbUser[] = (memberRows || []).map((r: Record<string, unknown>) => ({
+        id: r.id as number,
+        clerkId: r.clerk_id as string,
+        email: r.email as string,
+        name: r.name as string | null,
+        roles: r.roles as string[],
+        groupId: r.group_id as number | null,
+        isActive: (r.is_active as boolean) ?? true,
+      }));
+
+      return { group, members };
     },
     enabled: !!groupId,
   });
 
   const updateProfileMutation = useMutation({
     mutationFn: async (data: { name: string }) => {
-      const token = await getToken();
-      if (!token) throw new Error("No auth token available");
-      return apiRequest('PATCH', '/api/auth/profile', data, { Authorization: `Bearer ${token}` });
+      if (!currentUser?.id) throw new Error("User not loaded");
+      const { error } = await supabase
+        .from('users')
+        .update({ name: data.name })
+        .eq('id', currentUser.id);
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });

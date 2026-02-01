@@ -8,6 +8,7 @@ import { AppSidebar } from "@app/components/AppSidebar";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
+import { useSupabaseAuth } from "@/shared/hooks/useSupabaseAuth";
 import { TasksProvider, Tasks } from "@features/tasks";
 import { ClientsProvider } from "@features/clients";
 import NotFound from "@app/pages/NotFound";
@@ -56,8 +57,9 @@ function LoadingScreen() {
 }
 
 function AuthenticatedApp() {
+  // Sincroniza token do Clerk com Supabase para acesso direto ao banco
+  const { isReady: isSupabaseReady } = useSupabaseAuth();
   // Sincroniza o usuário do Clerk com o banco de dados
-  // Isso garante que o usuário seja criado no banco após o login
   const { isLoading: isSyncingUser } = useCurrentUser();
 
   const style = {
@@ -65,8 +67,8 @@ function AuthenticatedApp() {
     "--sidebar-width-icon": "3rem",
   };
 
-  // Mostra loading enquanto sincroniza o usuário com o banco
-  if (isSyncingUser) {
+  // Mostra loading enquanto sincroniza o usuário e o Supabase
+  if (isSyncingUser || !isSupabaseReady) {
     return <LoadingScreen />;
   }
 

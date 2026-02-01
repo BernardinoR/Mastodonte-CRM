@@ -1,6 +1,5 @@
 import { useState, useMemo, useRef } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { useAuth } from "@clerk/clerk-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Card, CardContent } from "@/shared/components/ui/card";
@@ -35,7 +34,8 @@ import {
   DollarSign,
   BarChart3
 } from "lucide-react";
-import { queryClient, apiRequest } from "@/shared/lib/queryClient";
+import { queryClient } from "@/shared/lib/queryClient";
+import { supabase } from "@/shared/lib/supabase";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrentUser, isAdmin as checkIsAdmin, type UserRole } from "@features/users";
 import { format } from "date-fns";
@@ -77,8 +77,15 @@ const ROLE_COLORS: Record<UserRole, string> = {
 
 const ALL_ROLES: UserRole[] = ["administrador", "consultor", "alocador", "concierge"];
 
+// Map Supabase snake_case → camelCase
+function mapDbGroup(row: Record<string, unknown>): Group {
+  return { id: row.id as number, name: row.name as string, description: row.description as string | null, logoUrl: row.logo_url as string | null, isActive: row.is_active as boolean, createdAt: row.created_at as string };
+}
+function mapDbUser(row: Record<string, unknown>): User {
+  return { id: row.id as number, clerkId: row.clerk_id as string, email: row.email as string, name: row.name as string | null, roles: row.roles as UserRole[], groupId: row.group_id as number | null, isActive: row.is_active as boolean };
+}
+
 export default function Admin() {
-  const { getToken } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("groups");
   const [groupSearch, setGroupSearch] = useState("");
@@ -151,40 +158,37 @@ export default function Admin() {
   const isAdmin = checkIsAdmin(currentUser);
 
   const { data: groupsData, isLoading: groupsLoading } = useQuery<{ groups: Group[] }>({
-    queryKey: ["/api/groups"],
+    queryKey: ["groups"],
     queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch("/api/groups", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch groups");
-      return res.json();
+      const { data, error } = await supabase.from('groups').select('*').order('created_at', { ascending: false });
+      if (error) throw error;
+      return { groups: (data || []).map(mapDbGroup) };
     },
     enabled: isAdmin,
   });
 
   const { data: usersData, isLoading: usersLoading } = useQuery<{ users: User[] }>({
-    queryKey: ["/api/users"],
+    queryKey: ["users"],
     queryFn: async () => {
-      const token = await getToken();
-      const res = await fetch("/api/users", {
-        headers: { Authorization: `Bearer ${token}` },
-        credentials: "include",
-      });
-      if (!res.ok) throw new Error("Failed to fetch users");
-      return res.json();
+      const { data, error } = await supabase.from('users').select('*').order('name');
+      if (error) throw error;
+      return { users: (data || []).map(mapDbUser) };
     },
     enabled: isAdmin,
   });
 
   const createGroupMutation = useMutation({
     mutationFn: async (data: { name: string; description?: string; logoUrl?: string }) => {
-      const token = await getToken();
-      return apiRequest("POST", "/api/groups", data, { Authorization: `Bearer ${token}` });
+      const { data: created, error } = await supabase
+        .from('groups')
+        .insert({ name: data.name, description: data.description, logo_url: data.logoUrl })
+        .select()
+        .single();
+      if (error) throw error;
+      return { group: mapDbGroup(created) };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
       resetCreateGroupForm();
       setCreateGroupOpen(false);
       toast({ title: "Grupo criado com sucesso" });
@@ -196,11 +200,15 @@ export default function Admin() {
 
   const updateGroupMutation = useMutation({
     mutationFn: async ({ id, ...data }: { id: number; name?: string; description?: string; logoUrl?: string }) => {
-      const token = await getToken();
-      return apiRequest("PATCH", `/api/groups/${id}`, data, { Authorization: `Bearer ${token}` });
+      const dbData: Record<string, unknown> = {};
+      if (data.name !== undefined) dbData.name = data.name;
+      if (data.description !== undefined) dbData.description = data.description;
+      if (data.logoUrl !== undefined) dbData.logo_url = data.logoUrl;
+      const { error } = await supabase.from('groups').update(dbData).eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/groups"] });
+      queryClient.invalidateQueries({ queryKey: ["groups"] });
       setEditGroupOpen(false);
       setSelectedGroup(null);
       toast({ title: "Grupo atualizado com sucesso" });
@@ -212,14 +220,14 @@ export default function Admin() {
 
   const updateUserMutation = useMutation({
     mutationFn: async ({ id, roles, groupId }: { id: number; roles?: UserRole[]; groupId?: number | null }) => {
-      const token = await getToken();
-      const body: { roles?: UserRole[]; groupId?: number | null } = {};
-      if (roles !== undefined) body.roles = roles;
-      if (groupId !== undefined) body.groupId = groupId;
-      return apiRequest("PATCH", `/api/users/${id}`, body, { Authorization: `Bearer ${token}` });
+      const dbData: Record<string, unknown> = {};
+      if (roles !== undefined) dbData.roles = roles;
+      if (groupId !== undefined) dbData.group_id = groupId;
+      const { error } = await supabase.from('users').update(dbData).eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast({ title: "Usuário atualizado com sucesso" });
     },
     onError: () => {
@@ -270,20 +278,19 @@ export default function Admin() {
   };
 
   const handleCreateGroup = async () => {
-    const response = await createGroupMutation.mutateAsync({
+    const result = await createGroupMutation.mutateAsync({
       name: newGroupName,
       description: newGroupDescription || undefined,
       logoUrl: newGroupLogoUrl || undefined,
     });
-    
-    const data = await response.json() as { group: Group };
-    const createdGroup = data?.group;
-    
+
+    const createdGroup = result?.group;
+
     if (selectedMemberIds.length > 0 && createdGroup?.id) {
       for (const userId of selectedMemberIds) {
         await updateUserMutation.mutateAsync({ id: userId, groupId: createdGroup.id });
       }
-      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     }
   };
 
@@ -321,7 +328,7 @@ export default function Admin() {
     
     setManageGroupMembersOpen(false);
     setSelectedGroup(null);
-    queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    queryClient.invalidateQueries({ queryKey: ["users"] });
   };
 
   const toggleRole = (user: User, role: UserRole) => {

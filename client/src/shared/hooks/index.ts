@@ -1,5 +1,6 @@
 // Shared hooks - hooks genéricos usados em múltiplas features
 export { useIsMobile } from './use-mobile';
+export { useSupabaseAuth } from './useSupabaseAuth';
 export { useToast, toast } from './use-toast';
 export { useColumnResize } from './useColumnResize';
 export { useDimensionsCache } from './useDimensionsCache';
