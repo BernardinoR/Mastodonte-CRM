@@ -1,220 +1,266 @@
-```markdown
----
-ai_update_goal: Document all tooling, automation, and productivity workflows
-required_inputs:
-  - package.json scripts
-  - CI/CD configuration
-  - Development environment setup
-  - Editor configurations
-  - Pre-commit hooks and linters
-success_criteria:
-  - All required tools listed with installation instructions
-  - Development automation workflows documented
-  - Editor setup guidance provided
-  - Productivity tips based on actual project structure
----
-
-<!-- agent-update:start:tooling -->
 # Tooling & Productivity Guide
 
-This guide documents the scripts, automation, and editor settings that keep contributors efficient across the ai-context project.
+This document covers CLI tools, IDE configuration, and automation workflows for development.
 
-## Required Tooling
+## Development Tools
 
-### Node.js & pnpm
-- **Node.js**: v18+ required (check `.nvmrc` if present)
-- **pnpm**: v8+ recommended for workspace management
-  ```bash
-  npm install -g pnpm
-  ```
-- Powers: Package management, script execution, workspace coordination
+### Core Tools
 
-### TypeScript
-- **Version**: 5.x (defined in `package.json`)
-- **Installation**: Included in project dependencies
-  ```bash
-  pnpm install
-  ```
-- Powers: Type checking, compilation for client/server/shared packages
+| Tool | Purpose | Command |
+|------|---------|---------|
+| Vite | Dev server & bundler | `npm run dev` |
+| TypeScript | Type checking | `npx tsc --noEmit` |
+| ESLint | Code linting | `npm run lint` |
+| Prisma | Database ORM | `npx prisma` |
+| Jest | Testing | `npm run test` |
 
-### Git
-- **Version**: 2.30+ recommended
-- **Installation**: Via system package manager
-- Powers: Version control, pre-commit hooks, collaboration workflows
+### Vite Dev Server
 
-### Docker (Optional but Recommended)
-- **Version**: Latest stable
-- **Installation**: [Docker Desktop](https://www.docker.com/products/docker-desktop)
-- Powers: Containerized development, consistent environments
-
-## Recommended Automation
-
-### Pre-commit Hooks
-The project uses Git hooks to maintain code quality:
-- **Linting**: ESLint runs on staged files
-- **Formatting**: Prettier auto-formats code
-- **Type checking**: TypeScript validates types before commit
-
-Setup (if not auto-configured):
 ```bash
-pnpm run prepare
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-### Linting & Formatting Commands
+### Prisma Commands
+
 ```bash
-# Lint all packages
-pnpm run lint
+# Generate Prisma client
+npx prisma generate
 
-# Format all code
-pnpm run format
+# Create migration
+npx prisma migrate dev --name migration_name
 
-# Type check entire workspace
-pnpm run type-check
+# Apply migrations in production
+npx prisma migrate deploy
+
+# Reset database (CAUTION: deletes all data)
+npx prisma migrate reset
+
+# Open Prisma Studio (database GUI)
+npx prisma studio
+
+# Format schema file
+npx prisma format
 ```
 
-### Development Watch Modes
-```bash
-# Watch mode for server development
-cd server && pnpm run dev
+## IDE Setup
 
-# Watch mode for client development
-cd client && pnpm run dev
+### VS Code / Cursor Extensions
 
-# Build shared package in watch mode
-cd shared && pnpm run build --watch
-```
+Recommended extensions:
+- **ESLint** - Linting integration
+- **Prettier** - Code formatting
+- **Prisma** - Schema syntax highlighting
+- **Tailwind CSS IntelliSense** - Class autocompletion
+- **TypeScript Importer** - Auto-import suggestions
 
-### Code Generation & Scaffolding
-- **AI Context Generation**: `pnpm run generate-context` - Updates AI-friendly repository snapshots
-- **Component Templates**: Use workspace-specific generators in `client/` and `server/` directories
-- **Type Generation**: Shared types auto-sync across packages via workspace references
+### Workspace Settings
 
-## IDE / Editor Setup
-
-### VS Code (Recommended)
-**Required Extensions**:
-- ESLint (`dbaeumer.vscode-eslint`)
-- Prettier (`esbenp.prettier-vscode`)
-- TypeScript and JavaScript Language Features (built-in)
-
-**Recommended Extensions**:
-- GitLens (`eamodio.gitlens`)
-- Error Lens (`usernamehw.errorlens`)
-- Path Intellisense (`christian-kohler.path-intellisense`)
-- Markdown All in One (`yzhang.markdown-all-in-one`)
-
-**Workspace Settings** (`.vscode/settings.json`):
 ```json
+// .vscode/settings.json
 {
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": true
   },
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.preferences.importModuleSpecifier": "relative",
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript"
+  }
 }
 ```
 
-### JetBrains IDEs (WebStorm/IntelliJ)
-- Enable ESLint: Preferences → Languages & Frameworks → JavaScript → Code Quality Tools → ESLint
-- Enable Prettier: Preferences → Languages & Frameworks → JavaScript → Prettier
-- Set TypeScript version: Preferences → Languages & Frameworks → TypeScript → Use TypeScript from project
+### Launch Configuration
 
-### Vim/Neovim
-- Use CoC (Conquer of Completion) with `coc-tsserver`, `coc-eslint`, `coc-prettier`
-- Or configure LSP with `typescript-language-server`
+```json
+// .vscode/launch.json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Server",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "console": "integratedTerminal"
+    }
+  ]
+}
+```
 
-## Productivity Tips
+## Code Quality
 
-### Terminal Aliases
-Add to your `.bashrc`, `.zshrc`, or equivalent:
+### ESLint Configuration
+
+Key rules enforced:
+- TypeScript strict mode
+- React hooks rules
+- Import ordering
+- No unused variables
+- Consistent code style
+
 ```bash
-# Quick navigation
-alias ai-server='cd ~/path/to/ai-context/server'
-alias ai-client='cd ~/path/to/ai-context/client'
+# Run linting
+npm run lint
 
-# Common commands
-alias ai-lint='pnpm run lint'
-alias ai-test='pnpm run test'
-alias ai-build='pnpm run build'
-
-# Development shortcuts
-alias ai-dev='pnpm run dev'
-alias ai-clean='pnpm run clean && pnpm install'
+# Fix auto-fixable issues
+npm run lint -- --fix
 ```
 
-### Workspace Development Loop
-1. **Start in root**: `pnpm install` to sync all dependencies
-2. **Parallel development**: Open multiple terminals for client/server
-3. **Watch shared changes**: Keep `shared/` building in watch mode
-4. **Hot reload**: Both client and server support hot module replacement
+### Prettier Configuration
 
-### Container Workflows
-If using Docker for development:
+```json
+// .prettierrc
+{
+  "semi": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "es5",
+  "printWidth": 100
+}
+```
+
+## Git Hooks
+
+### Pre-commit Hook (Recommended)
+
+Using Husky and lint-staged:
+
 ```bash
-# Build development container
-docker-compose up --build
+# Install
+npm install -D husky lint-staged
 
-# Run tests in container
-docker-compose run --rm test
+# Initialize Husky
+npx husky install
 
-# Shell into running container
-docker-compose exec app sh
+# Add pre-commit hook
+npx husky add .husky/pre-commit "npx lint-staged"
 ```
 
-### Local Testing Shortcuts
+```json
+// package.json
+{
+  "lint-staged": {
+    "*.{ts,tsx}": ["eslint --fix", "prettier --write"],
+    "*.{json,md}": ["prettier --write"]
+  }
+}
+```
+
+## Debugging
+
+### Browser DevTools
+
+- React Developer Tools for component inspection
+- TanStack Query DevTools for query debugging
+- Network tab for API request monitoring
+
+### Server Debugging
+
+```typescript
+// Add debug logging
+import { log } from './app';
+
+log(`Processing task ${taskId}`);
+```
+
+### Database Debugging
+
 ```bash
-# Run tests for specific package
-cd server && pnpm test
+# View database queries
+DEBUG=prisma:query npm run dev
 
-# Run tests in watch mode
-pnpm test -- --watch
-
-# Run tests with coverage
-pnpm test -- --coverage
-
-# Run specific test file
-pnpm test -- path/to/test.spec.ts
+# Open Prisma Studio
+npx prisma studio
 ```
 
-### Performance Optimization
-- **Incremental builds**: TypeScript project references enable faster rebuilds
-- **Selective testing**: Use `--testPathPattern` to run relevant tests only
-- **Parallel execution**: pnpm workspaces run tasks concurrently when possible
+## Useful Scripts
 
-### Shared Scripts & Dotfiles
-- **Workspace scripts**: See `package.json` in root and each package
-- **CI/CD scripts**: `.github/workflows/` contains automation examples
-- **Development utilities**: `scripts/` directory (if present) for custom tooling
+### Quick Commands
 
-### Documentation Workflows
-- **Generate AI context**: Run `pnpm run generate-context` before major updates
-- **Update guides**: Follow `docs/README.md` document map
-- **Validate links**: Use markdown linters to catch broken cross-references
+```bash
+# Fresh install
+rm -rf node_modules && npm install
 
-## Cross-References
-- [Development Workflow](./workflow.md) - Branching, commits, and PR process
-- [Testing Strategy](./testing.md) - Test execution and coverage requirements
-- [Architecture Overview](./architecture.md) - System design and package structure
-- [Contributing Guide](./contributing.md) - Onboarding and collaboration guidelines
+# Database reset and seed
+npx prisma migrate reset
 
-<!-- agent-readonly:guidance -->
-## AI Update Checklist
-1. ✅ Verified commands align with latest package.json scripts
-2. ✅ Documented workspace-specific tooling (pnpm, TypeScript)
-3. ✅ Added IDE setup for VS Code, JetBrains, and Vim
-4. ✅ Included productivity shortcuts and development loops
-5. ✅ Cross-linked to related documentation
-6. ✅ Removed placeholder TODOs and agent-fill markers
+# Type check without emit
+npx tsc --noEmit
 
-<!-- agent-readonly:sources -->
-## Acceptable Sources
-- Root and package-level `package.json` files
-- `.github/workflows/` CI configuration
-- Common IDE configuration patterns for TypeScript projects
-- Standard pnpm workspace practices
-- Git hooks and linting tool documentation
+# Find unused exports
+npx ts-prune
 
-<!-- agent-update:end -->
+# Check for outdated packages
+npm outdated
 ```
+
+### Custom npm Scripts
+
+Add to `package.json`:
+
+```json
+{
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "typecheck": "tsc --noEmit",
+    "db:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev",
+    "db:reset": "prisma migrate reset"
+  }
+}
+```
+
+## Environment Management
+
+### Environment Files
+
+| File | Purpose | Git |
+|------|---------|-----|
+| `.env` | Local development | Ignored |
+| `.env.example` | Template with keys | Committed |
+| `.env.test` | Test environment | Ignored |
+| `.env.production` | Production (CI only) | Ignored |
+
+### Required Variables
+
+```bash
+# .env.example
+DATABASE_URL="postgresql://user:pass@localhost:5432/dbname"
+CLERK_PUBLISHABLE_KEY="pk_test_..."
+CLERK_SECRET_KEY="sk_test_..."
+```
+
+## Performance Monitoring
+
+### Build Analysis
+
+```bash
+# Analyze bundle size
+npm run build -- --analyze
+```
+
+### Runtime Monitoring
+
+- Use React DevTools Profiler
+- Monitor TanStack Query cache hits
+- Track API response times
+
+## Related Resources
+
+- [Development Workflow](./development-workflow.md)
+- [Testing Strategy](./testing-strategy.md)
+- [Architecture Notes](./architecture.md)

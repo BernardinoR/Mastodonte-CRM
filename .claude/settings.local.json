@@ -3,7 +3,11 @@
     "allow": [
       "mcp__ide__getDiagnostics",
       "Bash(tree:*)",
-      "Bash(npm run check:*)"
+      "Bash(npm run check:*)",
+      "WebSearch",
+      "mcp__ai-context__context",
+      "Bash(find:*)",
+      "Bash(wc:*)"
     ]
   }
 }

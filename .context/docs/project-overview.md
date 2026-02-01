@@ -1,195 +1,99 @@
-```markdown
----
-ai_update_goal: "Provide a comprehensive overview of the project's purpose, architecture, and technology stack"
-required_inputs:
-  - package.json dependencies and scripts
-  - Directory structure analysis
-  - Technology stack identification
-  - Project purpose and goals
-success_criteria:
-  - All placeholder sections filled with accurate information
-  - Technology stack clearly documented
-  - Directory purposes explained
-  - Getting started steps verified
----
-
-<!-- agent-update:start:project-overview -->
 # Project Overview
 
-This project is a full-stack web application built with modern TypeScript frameworks, featuring a React-based client, Express-based server, and PostgreSQL database. It provides a foundation for building scalable web applications with type-safe APIs, real-time capabilities, and a comprehensive development toolchain.
+## Purpose
 
-## Quick Facts
-- Root path: `/home/runner/workspace`
-- Primary languages detected:
-  - .tsx (127 files) - React components and pages
-  - .ts (59 files) - TypeScript modules and configurations
-  - .txt (10 files) - Documentation and configuration
-  - .png (6 files) - Static assets and images
-  - .json (4 files) - Configuration files
-- Architecture: Monorepo with shared type definitions
-- Database: PostgreSQL with Drizzle ORM
-- Build tool: Vite for frontend bundling
+The Task Management System is a full-stack web application designed to help teams manage clients, tasks, meetings, and workflows efficiently. It provides a modern, responsive interface with features like turbo mode for rapid task processing and AI-powered meeting summaries.
 
-## File Structure & Code Organization
-- `attached_assets/` — Static assets and resources for documentation, design references, or deployment artifacts
-- `client/` — React frontend application built with TypeScript, featuring UI components, pages, routing, and state management
-- `components.json` — Shadcn/ui component configuration defining import paths and styling conventions for the UI component library
-- `design_guidelines.md` — Design system documentation outlining visual standards, component usage patterns, and UX principles
-- `drizzle.config.ts` — Drizzle ORM configuration specifying database connection settings, migration paths, and schema locations
-- `package-lock.json` — NPM dependency lock file ensuring reproducible builds across environments
-- `package.json` — Project manifest defining dependencies, scripts, and workspace configuration for the monorepo
-- `postcss.config.js` — PostCSS configuration for CSS processing, including Tailwind CSS integration
-- `replit.md` — Replit-specific documentation for running and deploying the application on the Replit platform
-- `server/` — Express-based backend API with route handlers, middleware, database models, and business logic
-- `shared/` — Shared TypeScript types, schemas, and utilities used across both client and server for type safety
-- `tailwind.config.ts` — Tailwind CSS configuration defining theme customization, plugins, and content paths
-- `tsconfig.json` — Root TypeScript compiler configuration with path mappings and compiler options
-- `vite.config.ts` — Vite bundler configuration for development server, build optimization, and plugin setup
+## Goals
 
-## Technology Stack Summary
+1. **Streamline Task Management**: Provide intuitive task creation, assignment, and tracking
+2. **Client Relationship Management**: Centralize client information and interaction history
+3. **Meeting Organization**: Schedule, document, and summarize meetings effectively
+4. **Team Collaboration**: Enable role-based access and team-wide visibility
+5. **Productivity Enhancement**: Features like Turbo Mode for bulk operations
 
-**Runtime & Languages:**
-- Node.js runtime environment
-- TypeScript 5.x for type-safe development across the entire stack
-- Modern ES modules with path mapping support
+## Target Users
 
-**Build & Development:**
-- Vite for fast frontend development and optimized production builds
-- TSX for TypeScript execution during development
-- PostCSS with Tailwind CSS for utility-first styling
-- ESLint and Prettier for code quality and formatting
+| Role | Description | Key Features |
+|------|-------------|--------------|
+| Admin | System administrators | Full access, user management, system configuration |
+| Manager | Team leads and supervisors | Task assignment, client oversight, reporting |
+| User | Regular team members | Task completion, meeting participation, client interaction |
 
-## Core Framework Stack
+## Key Features
 
-**Backend (Server):**
-- Express.js for HTTP server and REST API endpoints
-- Drizzle ORM for type-safe database queries and migrations
-- PostgreSQL as the primary relational database
-- Session-based authentication with secure cookie handling
+### Task Management
+- Create and assign tasks with priorities (urgent, high, medium, low)
+- Track task status (pending, in_progress, completed, cancelled)
+- Filter and sort tasks by multiple criteria
+- Bulk operations via Turbo Mode
+- Task history and audit trail
 
-**Frontend (Client):**
-- React 18 with hooks and functional components
-- React Router for client-side routing and navigation
-- TanStack Query (React Query) for server state management and caching
-- Wouter for lightweight routing alternative
+### Client Management
+- Client profiles with contact information
+- Address management
+- Meeting history per client
+- Task association
+- Client status tracking
 
-**Shared Layer:**
-- Zod for runtime schema validation and type inference
-- Shared type definitions ensuring contract consistency between client and server
+### Meeting Management
+- Schedule meetings with clients
+- Record meeting notes
+- AI-powered summary generation
+- Track decisions and action items
+- Link meetings to tasks
 
-**Architectural Patterns:**
-- Monorepo structure with workspace-based dependency management
-- Type-safe API contracts via shared schemas
-- Component-driven UI development with Shadcn/ui
-- Database-first schema design with Drizzle migrations
+### User & Access Control
+- Clerk-based authentication
+- Role-based permissions (admin, manager, user)
+- Group-based access control
+- Secure session management
 
-## UI & Interaction Libraries
+## Technology Decisions
 
-**Component Library:**
-- Shadcn/ui for accessible, customizable React components
-- Radix UI primitives for headless component foundations
-- Lucide React for consistent iconography
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Frontend Framework | React + Vite | Fast development, excellent DX, broad ecosystem |
+| Styling | TailwindCSS + shadcn/ui | Utility-first CSS with accessible components |
+| State Management | TanStack Query | Excellent server state caching and synchronization |
+| Backend | Express.js | Simple, flexible, well-documented |
+| Database | PostgreSQL + Prisma | Reliable RDBMS with type-safe ORM |
+| Authentication | Clerk | Managed auth with social login support |
 
-**Styling & Theming:**
-- Tailwind CSS v3 for utility-first styling
-- CSS variables for theme customization
-- Dark mode support via class-based theming
-- Responsive design utilities
+## Project Structure
 
-**Accessibility:**
-- ARIA-compliant components from Radix UI
-- Keyboard navigation support
-- Screen reader optimizations
-
-**Developer Experience:**
-- TypeScript for full type safety across UI components
-- Component auto-import configuration
-- Hot module replacement for instant feedback
-
-## Development Tools Overview
-
-**Essential Commands:**
-- `npm run dev` - Start development servers for both client and server
-- `npm run build` - Build production bundles
-- `npm run db:push` - Push database schema changes
-- `npm run db:studio` - Open Drizzle Studio for database management
-
-**Development Environment:**
-- Replit-compatible configuration for cloud-based development
-- Local development support with hot reload
-- Database migrations managed via Drizzle Kit
-
-**Code Quality:**
-- TypeScript strict mode enabled
-- Consistent import paths via tsconfig path mapping
-- Shared linting and formatting configuration
-
-For detailed setup instructions and workflow, see [Tooling & Productivity Guide](./tooling.md).
-
-## Getting Started Checklist
-
-1. **Install Dependencies**
-   ```bash
-   npm install
-   ```
-
-2. **Configure Environment**
-   - Set up database connection in environment variables
-   - Review `.env.example` if available
-
-3. **Initialize Database**
-   ```bash
-   npm run db:push
-   ```
-
-4. **Start Development Server**
-   ```bash
-   npm run dev
-   ```
-
-5. **Explore the Application**
-   - Client runs on configured port (typically 5000)
-   - Server API available at `/api` endpoints
-
-6. **Review Documentation**
-   - Read [Development Workflow](./development-workflow.md) for day-to-day tasks
-   - Check [Architecture Overview](./architecture-overview.md) for system design
-   - Consult [Testing Strategy](./testing-strategy.md) for quality assurance
-
-## Next Steps
-
-**For New Contributors:**
-- Review the design guidelines in `design_guidelines.md`
-- Explore existing components in `client/src/components`
-- Understand the API structure in `server/routes`
-
-**For Product Development:**
-- Consult project issues and milestones for current priorities
-- Review ADRs (Architecture Decision Records) for context on technical choices
-- Engage with maintainers for feature planning and roadmap alignment
-
-**External Resources:**
-- Product specifications: Link to external product docs or requirements
-- Stakeholder contacts: To be defined by project maintainers
-- Deployment guides: See platform-specific documentation (e.g., `replit.md`)
-
-<!-- agent-readonly:guidance -->
-## AI Update Checklist
-1. ✅ Reviewed package.json for accurate dependency and script information
-2. ✅ Analyzed directory structure and documented purpose of each major directory/file
-3. ✅ Identified technology stack from package.json dependencies and configuration files
-4. ✅ Documented core frameworks, UI libraries, and development tools
-5. ✅ Verified getting started steps align with available scripts
-6. ✅ Cross-referenced related documentation guides
-7. ⚠️ External product specs and stakeholder information require human input
-
-<!-- agent-readonly:sources -->
-## Acceptable Sources
-- package.json: Dependencies, scripts, and workspace configuration
-- Configuration files: drizzle.config.ts, vite.config.ts, tailwind.config.ts, tsconfig.json
-- Directory structure: Analysis of client/, server/, shared/ organization
-- Component configuration: components.json for UI library setup
-- Design documentation: design_guidelines.md for UX standards
-
-<!-- agent-update:end -->
 ```
+.
+├── client/                 # React frontend
+│   └── src/
+│       ├── app/           # App-level components and pages
+│       ├── features/      # Feature modules
+│       │   ├── auth/      # Authentication
+│       │   ├── clients/   # Client management
+│       │   ├── meetings/  # Meeting management
+│       │   ├── tasks/     # Task management
+│       │   └── users/     # User management
+│       └── shared/        # Shared utilities and components
+├── server/                # Express backend
+├── prisma/                # Database schema
+└── attached_assets/       # Static assets
+```
+
+## Success Metrics
+
+- **User Adoption**: Active users and daily engagement
+- **Task Completion Rate**: Percentage of tasks completed on time
+- **Meeting Efficiency**: Time saved with AI summaries
+- **System Reliability**: Uptime and error rates
+
+## Roadmap Highlights
+
+1. **Current**: Core task, client, and meeting management
+2. **Near-term**: Enhanced reporting and analytics
+3. **Future**: Mobile app, integrations with external tools
+
+## Related Resources
+
+- [Architecture Notes](./architecture.md)
+- [Development Workflow](./development-workflow.md)
+- [Glossary](./glossary.md)

@@ -1,176 +1,174 @@
-```markdown
----
-ai_update_goal: Document security policies, authentication mechanisms, secrets management, compliance requirements, and incident response procedures
-required_inputs:
-  - Authentication/authorization implementation details
-  - Secrets management strategy and storage locations
-  - Compliance standards and audit requirements
-  - Incident response contacts and procedures
-success_criteria:
-  - All authentication and authorization mechanisms documented
-  - Secrets management practices clearly defined
-  - Compliance obligations and evidence requirements listed
-  - Incident response procedures include current contacts and tooling
----
-
-<!-- agent-update:start:security -->
 # Security & Compliance Notes
 
-This document captures the security policies, authentication mechanisms, compliance requirements, and incident response procedures for the Generative Mailer project.
+This document covers the security model, authentication, authorization, and compliance considerations.
 
-## Authentication & Authorization
+## Authentication
 
-### Identity & Session Management
-- **Authentication Strategy**: The application uses session-based authentication with secure HTTP-only cookies
-- **Session Storage**: Sessions are managed server-side with configurable storage (in-memory for development, persistent storage recommended for production)
-- **Token Format**: Session tokens are cryptographically secure random strings stored in HTTP-only cookies with SameSite protection
-- **Session Lifecycle**: 
-  - Default session timeout: 24 hours of inactivity
-  - Absolute session timeout: 7 days
-  - Sessions invalidated on logout or security events
+### Clerk Integration
 
-### Authorization Model
-- **Role-Based Access Control (RBAC)**: User permissions are managed through role assignments
-- **Permission Scopes**:
-  - `user`: Standard authenticated user access
-  - `admin`: Administrative privileges for user management and system configuration
-  - `api`: Programmatic access for integrations
-- **Authorization Enforcement**: Middleware validates permissions on protected routes before controller execution
-- **API Security**: RESTful endpoints require valid session tokens; rate limiting applied per user/IP
+The system uses [Clerk](https://clerk.com) for user authentication:
 
-### Security Headers
-The application enforces security best practices through HTTP headers:
-- `Strict-Transport-Security`: HSTS enabled for HTTPS enforcement
-- `X-Content-Type-Options`: nosniff to prevent MIME type confusion
-- `X-Frame-Options`: DENY to prevent clickjacking
-- `Content-Security-Policy`: Restrictive CSP to mitigate XSS attacks
+- **Session Management**: JWT-based sessions with automatic refresh
+- **Social Login**: Support for Google, GitHub, and other OAuth providers
+- **Multi-factor Authentication**: Optional 2FA for enhanced security
+- **Password Policies**: Configurable password requirements
 
-## Secrets & Sensitive Data
+### Authentication Flow
 
-### Storage & Management
-- **Environment Variables**: Secrets loaded from `.env` files (development) or environment configuration (production)
-- **Sensitive Configuration**:
-  - Database connection strings
-  - API keys for external services (email providers, AI services)
-  - Session secret keys
-  - Encryption keys for data at rest
-- **Production Recommendations**:
-  - Use a secrets management service (AWS Secrets Manager, HashiCorp Vault, Azure Key Vault)
-  - Rotate secrets on a regular cadence (minimum quarterly)
-  - Never commit secrets to version control (enforced by `.gitignore`)
-
-### Data Classification
-- **Public**: Marketing content, public documentation
-- **Internal**: User-generated email templates, campaign metadata
-- **Confidential**: User credentials (hashed), session tokens, API keys
-- **Restricted**: Payment information (if applicable), compliance audit logs
-
-### Encryption Practices
-- **Data in Transit**: TLS 1.2+ required for all external communications
-- **Data at Rest**: 
-  - Database encryption enabled for production deployments
-  - Passwords hashed using bcrypt with minimum work factor of 12
-  - Sensitive fields encrypted using AES-256-GCM
-- **Key Management**: Encryption keys stored separately from encrypted data; rotation procedures documented in runbooks
-
-### Secret Rotation
-- **Rotation Cadence**:
-  - Database credentials: Quarterly
-  - API keys: Semi-annually or on suspected compromise
-  - Session secrets: Annually
-  - Encryption keys: Annually with backward compatibility period
-- **Rotation Procedure**: Documented in operational runbooks with zero-downtime migration steps
-
-## Compliance & Policies
-
-### Applicable Standards
-- **GDPR (General Data Protection Regulation)**:
-  - User consent management for email communications
-  - Right to access, rectify, and delete personal data
-  - Data portability support
-  - Breach notification procedures (72-hour requirement)
-- **CAN-SPAM Act**:
-  - Unsubscribe mechanisms in all marketing emails
-  - Accurate sender information and subject lines
-  - Physical postal address inclusion
-- **Data Retention**: User data retained for active accounts; deletion within 30 days of account closure request
-
-### Evidence Requirements
-- **Audit Logging**: All authentication events, authorization failures, and data access logged with timestamps and user context
-- **Compliance Artifacts**:
-  - User consent records with timestamps
-  - Data processing agreements with third-party providers
-  - Security assessment reports (annual)
-  - Penetration test results (annual)
-- **Data Subject Requests**: Documented procedures for handling access, deletion, and portability requests within regulatory timeframes
-
-### Privacy Policies
-- Privacy policy published and accessible to users
-- Cookie policy and consent management for EU users
-- Terms of service defining acceptable use and data handling
-
-## Incident Response
-
-### Detection & Monitoring
-- **Security Monitoring Tools**:
-  - Application logging with structured log aggregation
-  - Failed authentication attempt tracking
-  - Rate limiting and anomaly detection
-  - Dependency vulnerability scanning (automated)
-- **Alerting Thresholds**:
-  - Multiple failed login attempts: 5 within 15 minutes
-  - Unusual API usage patterns: 3x baseline traffic
-  - Critical vulnerability disclosures: Immediate notification
-
-### Incident Classification
-- **P0 (Critical)**: Active data breach, service compromise, widespread outage
-- **P1 (High)**: Suspected breach, authentication bypass, significant vulnerability
-- **P2 (Medium)**: Isolated security issue, minor data exposure
-- **P3 (Low)**: Potential vulnerability, security configuration improvement
-
-### Escalation & Response
-- **On-Call Contacts**:
-  - Primary: Development team lead (see internal contact list)
-  - Secondary: Security officer or designated security contact
-  - Escalation: CTO or technical leadership
-- **Response Steps**:
-  1. **Detection**: Automated alerts or manual discovery
-  2. **Triage**: Assess severity, scope, and impact (target: 15 minutes)
-  3. **Containment**: Isolate affected systems, revoke compromised credentials
-  4. **Investigation**: Root cause analysis, evidence preservation
-  5. **Remediation**: Apply fixes, verify resolution
-  6. **Communication**: Notify stakeholders per compliance requirements
-  7. **Post-Incident**: Document lessons learned, update procedures
-
-### Post-Incident Analysis
-- **Incident Reports**: Required for P0/P1 incidents within 48 hours
-- **Root Cause Analysis**: Five Whys or similar methodology
-- **Remediation Tracking**: Action items assigned with owners and deadlines
-- **Knowledge Base**: Incident summaries added to runbook for future reference
-
-### Tooling
-- **Logging & SIEM**: Centralized log aggregation for security event correlation
-- **Incident Tracking**: Issue tracker for incident management workflow
-- **Communication**: Dedicated incident response channel (Slack, Teams, etc.)
-- **Forensics**: Log preservation and analysis tools for investigation
-
-<!-- agent-readonly:guidance -->
-## AI Update Checklist
-1. ✅ Confirmed authentication mechanisms match current session-based implementation
-2. ✅ Documented secrets management practices and production recommendations
-3. ✅ Listed applicable compliance standards (GDPR, CAN-SPAM) with evidence requirements
-4. ✅ Defined incident response procedures with classification and escalation steps
-5. ⚠️ On-call contacts reference internal documentation (update with specific contacts when available)
-6. ⚠️ Production secrets management should specify the chosen vault solution when deployed
-
-<!-- agent-readonly:sources -->
-## Acceptable Sources
-- Security architecture docs, runbooks, policy handbooks
-- IAM/authorization configuration (code or infrastructure)
-- Compliance updates from security or legal teams
-- Session management implementation in `server/` codebase
-- Environment variable configuration in `.env.example`
-- HTTP security middleware configuration
-
-<!-- agent-update:end -->
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend
+    participant Clerk
+    participant Backend
+    
+    User->>Frontend: Login request
+    Frontend->>Clerk: Authenticate
+    Clerk-->>Frontend: JWT token
+    Frontend->>Backend: API request + JWT
+    Backend->>Clerk: Verify token
+    Clerk-->>Backend: User claims
+    Backend-->>Frontend: Protected data
 ```
+
+### Token Handling
+
+- Tokens stored in HTTP-only cookies
+- Automatic token refresh before expiration
+- Secure token transmission via HTTPS
+- Token revocation on logout
+
+## Authorization
+
+### Role-Based Access Control (RBAC)
+
+| Role | Capabilities |
+|------|--------------|
+| Admin | Full system access, user management, configuration |
+| Manager | Team management, client oversight, reporting |
+| User | Own tasks, assigned clients, meeting participation |
+
+### Permission Matrix
+
+| Resource | Admin | Manager | User |
+|----------|-------|---------|------|
+| View all tasks | Yes | Yes (group) | No |
+| Create tasks | Yes | Yes | Yes |
+| Assign tasks | Yes | Yes | No |
+| Delete tasks | Yes | No | No |
+| View all clients | Yes | Yes (group) | No |
+| Create clients | Yes | Yes | No |
+| Manage users | Yes | No | No |
+
+### Middleware Implementation
+
+```typescript
+// server/auth.ts
+export function requireRole(roles: string[]) {
+  return (req, res, next) => {
+    const userRole = req.auth?.sessionClaims?.role;
+    if (!roles.includes(userRole)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
+
+export const requireAdmin = requireRole(['admin']);
+```
+
+## Data Protection
+
+### Database Security
+
+- **Connection Encryption**: TLS for database connections
+- **Credentials Management**: Environment variables for sensitive data
+- **Query Parameterization**: Prisma prevents SQL injection
+- **Access Control**: Database user with minimal required permissions
+
+### API Security
+
+- **CORS Configuration**: Restricted to allowed origins
+- **Rate Limiting**: Protect against abuse (recommended)
+- **Input Validation**: Server-side validation for all inputs
+- **Error Handling**: Generic error messages to prevent information leakage
+
+### Sensitive Data Handling
+
+| Data Type | Protection |
+|-----------|------------|
+| Passwords | Managed by Clerk (hashed) |
+| API Keys | Environment variables only |
+| User PII | Access controlled by role |
+| Session Tokens | HTTP-only, secure cookies |
+
+## Security Headers
+
+Recommended headers for production:
+
+```typescript
+// Security headers middleware
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  next();
+});
+```
+
+## Audit & Logging
+
+### Activity Logging
+
+- User authentication events (login, logout, failed attempts)
+- Data modification events (create, update, delete)
+- Administrative actions (user management, configuration)
+
+### Task History
+
+The `TaskHistory` entity tracks all task modifications:
+- Who made the change
+- When it occurred
+- What changed (previous and new values)
+
+## Compliance Considerations
+
+### Data Retention
+
+- User data retained while account is active
+- Deleted users: Personal data removed, audit logs retained
+- Meeting notes: Retained for business records
+
+### Privacy
+
+- Minimal data collection principle
+- User consent for data processing
+- Data export capability (GDPR compliance)
+- Right to deletion support
+
+## Security Checklist
+
+### Development
+- [ ] Never commit secrets to version control
+- [ ] Use environment variables for configuration
+- [ ] Validate and sanitize all user input
+- [ ] Use parameterized queries (Prisma handles this)
+
+### Deployment
+- [ ] Enable HTTPS
+- [ ] Configure security headers
+- [ ] Set up rate limiting
+- [ ] Enable logging and monitoring
+- [ ] Regular dependency updates
+
+### Operations
+- [ ] Regular security audits
+- [ ] Incident response plan
+- [ ] Backup and recovery procedures
+- [ ] Access review periodically
+
+## Related Resources
+
+- [Architecture Notes](./architecture.md)
+- [Development Workflow](./development-workflow.md)
