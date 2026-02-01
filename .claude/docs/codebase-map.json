@@ -1,0 +1,1728 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-02-01T20:39:48.369Z",
+  "stack": {
+    "primaryLanguage": "typescript",
+    "languages": [
+      "javascript",
+      "typescript"
+    ],
+    "frameworks": [],
+    "buildTools": [
+      "vite"
+    ],
+    "testFrameworks": [],
+    "packageManager": "npm",
+    "isMonorepo": false,
+    "hasDocker": false,
+    "hasCI": false
+  },
+  "structure": {
+    "totalFiles": 267,
+    "topDirectories": [
+      {
+        "name": "AGENTS.md",
+        "fileCount": 1
+      },
+      {
+        "name": "attached_assets",
+        "fileCount": 18
+      },
+      {
+        "name": "CLAUDE.md",
+        "fileCount": 1
+      },
+      {
+        "name": "client",
+        "fileCount": 230
+      },
+      {
+        "name": "components.json",
+        "fileCount": 1
+      },
+      {
+        "name": "design_guidelines.md",
+        "fileCount": 1
+      },
+      {
+        "name": "package-lock.json",
+        "fileCount": 1
+      },
+      {
+        "name": "package.json",
+        "fileCount": 1
+      },
+      {
+        "name": "postcss.config.js",
+        "fileCount": 1
+      },
+      {
+        "name": "prisma",
+        "fileCount": 1
+      },
+      {
+        "name": "replit.md",
+        "fileCount": 1
+      },
+      {
+        "name": "server",
+        "fileCount": 7
+      },
+      {
+        "name": "tailwind.config.ts",
+        "fileCount": 1
+      },
+      {
+        "name": "tsconfig.json",
+        "fileCount": 1
+      },
+      {
+        "name": "vite.config.ts",
+        "fileCount": 1
+      }
+    ],
+    "languageDistribution": [
+      {
+        "extension": ".tsx",
+        "count": 154
+      },
+      {
+        "extension": ".ts",
+        "count": 81
+      },
+      {
+        "extension": ".txt",
+        "count": 10
+      },
+      {
+        "extension": ".png",
+        "count": 6
+      },
+      {
+        "extension": ".json",
+        "count": 4
+      },
+      {
+        "extension": ".md",
+        "count": 4
+      },
+      {
+        "extension": ".html",
+        "count": 3
+      },
+      {
+        "extension": ".js",
+        "count": 1
+      },
+      {
+        "extension": ".prisma",
+        "count": 1
+      },
+      {
+        "extension": ".jpeg",
+        "count": 1
+      }
+    ]
+  },
+  "architecture": {
+    "layers": [
+      {
+        "name": "Controllers",
+        "description": "Request handling and routing",
+        "directories": [
+          "server",
+          "client/src/features/tasks/hooks"
+        ],
+        "symbolCount": 4,
+        "dependsOn": []
+      },
+      {
+        "name": "Utils",
+        "description": "Shared utilities and helpers",
+        "directories": [
+          "client/src/shared/types",
+          "client/src/shared/mocks",
+          "client/src/shared/lib",
+          "client/src/shared/hooks",
+          "client/src/shared/config",
+          "client/src/features/tasks/lib",
+          "client/src/features/clients/lib",
+          "client/src/features/auth/lib",
+          "client/src/shared/components/ui",
+          "client/src/shared/components/filter-bar"
+        ],
+        "symbolCount": 116,
+        "dependsOn": []
+      },
+      {
+        "name": "Components",
+        "description": "UI components and views",
+        "directories": [
+          "client/src/features/clients/hooks",
+          "client/src/features/auth/components",
+          "client/src/features/tasks/components/task-editors",
+          "client/src/features/tasks/components/task-detail",
+          "client/src/features/tasks/components/task-card",
+          "client/src/features/meetings/components/meeting-detail",
+          "client/src/features/clients/components/clients-page",
+          "client/src/features/clients/components/client-details",
+          "client/src/features/auth/components/forms",
+          "client/src/app/pages",
+          "client/src/app/components",
+          "client/src/features/users/pages",
+          "client/src/features/users/components",
+          "client/src/features/tasks/pages",
+          "client/src/features/tasks/components",
+          "client/src/features/meetings/components",
+          "client/src/features/clients/pages",
+          "client/src/features/clients/components",
+          "client/src/features/auth/pages",
+          "client/src/features/tasks/components/table"
+        ],
+        "symbolCount": 144,
+        "dependsOn": [
+          "Utils",
+          "Controllers"
+        ]
+      }
+    ],
+    "patterns": [],
+    "entryPoints": [
+      "server/app.ts",
+      "client/src/shared/types/index.ts",
+      "client/src/shared/mocks/index.ts",
+      "client/src/shared/hooks/index.ts",
+      "client/src/shared/config/index.ts",
+      "client/src/features/users/index.ts",
+      "client/src/features/tasks/index.ts",
+      "client/src/features/meetings/index.ts",
+      "client/src/features/clients/index.ts",
+      "client/src/features/auth/index.ts",
+      "client/src/features/auth/components/index.ts",
+      "client/src/features/tasks/components/task-editors/index.ts",
+      "client/src/features/tasks/components/task-detail/index.ts",
+      "client/src/features/tasks/components/task-card/index.ts",
+      "client/src/features/meetings/components/meeting-detail/index.ts",
+      "client/src/features/clients/components/clients-page/index.ts",
+      "client/src/features/clients/components/client-details/index.ts",
+      "client/src/features/auth/components/forms/index.ts",
+      "client/src/main.tsx"
+    ]
+  },
+  "symbols": {
+    "classes": [
+      {
+        "name": "DbStorage",
+        "kind": "class",
+        "file": "server/storage.ts",
+        "line": 124,
+        "exported": true
+      },
+      {
+        "name": "SmartPointerSensor",
+        "kind": "class",
+        "file": "client/src/features/tasks/lib/dndSensors.ts",
+        "line": 30,
+        "exported": true
+      }
+    ],
+    "interfaces": [
+      {
+        "name": "Address",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "AIAgendaItem",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "AIAgendaSubitem",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "AIContextPoint",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "AIDecision",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "AIHighlight",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "AIRequestPayload",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 44,
+        "exported": true
+      },
+      {
+        "name": "AIResponse",
+        "kind": "interface",
+        "file": "client/src/features/meetings/hooks/useAISummary.ts",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "AuthErrorResult",
+        "kind": "interface",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "BadgeFilterContentProps",
+        "kind": "interface",
+        "file": "client/src/shared/components/filter-bar/BadgeFilterContent.tsx",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "BadgeProps",
+        "kind": "interface",
+        "file": "client/src/shared/components/ui/badge.tsx",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "ButtonProps",
+        "kind": "interface",
+        "file": "client/src/shared/components/ui/button.tsx",
+        "line": 42,
+        "exported": true
+      },
+      {
+        "name": "Client",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "ClientExtendedData",
+        "kind": "interface",
+        "file": "client/src/shared/mocks/clientsMock.ts",
+        "line": 190,
+        "exported": true
+      },
+      {
+        "name": "ClientFullData",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 54,
+        "exported": true
+      },
+      {
+        "name": "ClientMeeting",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 92,
+        "exported": true
+      },
+      {
+        "name": "ClientMeeting",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "ClientsPageStats",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 76,
+        "exported": true
+      },
+      {
+        "name": "ClientStats",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "ClientStatusConfig",
+        "kind": "interface",
+        "file": "client/src/features/tasks/lib/statusConfig.ts",
+        "line": 148,
+        "exported": true
+      },
+      {
+        "name": "ClientTasksProps",
+        "kind": "interface",
+        "file": "client/src/features/clients/components/client-details/ClientTasks.tsx",
+        "line": 24,
+        "exported": true
+      },
+      {
+        "name": "Column",
+        "kind": "interface",
+        "file": "client/src/features/tasks/components/table/TableHeader.tsx",
+        "line": 26,
+        "exported": true
+      },
+      {
+        "name": "ContextCardData",
+        "kind": "interface",
+        "file": "client/src/features/meetings/components/meeting-detail/ContextCardEditor.tsx",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "CurrentUser",
+        "kind": "interface",
+        "file": "client/src/features/users/hooks/useCurrentUser.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "DateFilterValue",
+        "kind": "interface",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "DeleteConfirmState",
+        "kind": "interface",
+        "file": "client/src/shared/hooks/useInlineFieldEdit.ts",
+        "line": 60,
+        "exported": true
+      },
+      {
+        "name": "DisabledSectionConfig",
+        "kind": "interface",
+        "file": "client/src/features/clients/lib/clientSections.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "DropIndicator",
+        "kind": "interface",
+        "file": "client/src/features/tasks/hooks/useTaskDrag.ts",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "EditableCellProps",
+        "kind": "interface",
+        "file": "client/src/shared/components/ui/editable-cell.tsx",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "EditedTaskData",
+        "kind": "interface",
+        "file": "client/src/features/tasks/hooks/useTaskCardEditing.ts",
+        "line": 20,
+        "exported": true
+      },
+      {
+        "name": "EditingField",
+        "kind": "interface",
+        "file": "client/src/features/tasks/hooks/useWhatsAppGroups.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
+        "name": "EnrichedClient",
+        "kind": "interface",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 64,
+        "exported": true
+      },
+      {
+        "name": "ExpandableFilterBarProps",
+        "kind": "interface",
+        "file": "client/src/shared/components/ui/expandable-filter-bar.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "FieldConfig",
+        "kind": "interface",
+        "file": "client/src/shared/hooks/useInlineFieldEdit.ts",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "FilterValueMap",
+        "kind": "interface",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "IStorage",
+        "kind": "interface",
+        "file": "server/storage.ts",
+        "line": 76,
+        "exported": true
+      },
+      {
+        "name": "Meeting",
+        "kind": "interface",
+        "file": "client/src/features/clients/components/client-details/MeetingsTable.tsx",
+        "line": 27,
+        "exported": true
+      },
+      {
+        "name": "MeetingAgendaItem",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "MeetingAgendaSubitem",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "MeetingAttachment",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "MeetingClientContext",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 39,
+        "exported": true
+      },
+      {
+        "name": "MeetingDecision",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 17,
+        "exported": true
+      },
+      {
+        "name": "MeetingDetail",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "MeetingHighlight",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 47,
+        "exported": true
+      },
+      {
+        "name": "MeetingLinkedTask",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 54,
+        "exported": true
+      },
+      {
+        "name": "MeetingParticipant",
+        "kind": "interface",
+        "file": "client/src/features/meetings/types/meeting.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "MeetingsTableProps",
+        "kind": "interface",
+        "file": "client/src/features/clients/components/client-details/MeetingsTable.tsx",
+        "line": 36,
+        "exported": true
+      },
+      {
+        "name": "NewClientFormData",
+        "kind": "interface",
+        "file": "client/src/features/clients/components/NewClientDialog.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "NewClientInlineData",
+        "kind": "interface",
+        "file": "client/src/features/clients/components/NewClientInlineCard.tsx",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "NewMeetingFormData",
+        "kind": "interface",
+        "file": "client/src/features/meetings/components/NewMeetingDialog.tsx",
+        "line": 9,
+        "exported": true
+      }
+    ],
+    "functions": [
+      {
+        "name": "apiRequest",
+        "kind": "function",
+        "file": "client/src/shared/lib/queryClient.ts",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "AuthLayout",
+        "kind": "function",
+        "file": "client/src/features/auth/components/AuthLayout.tsx",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "AuthStyles",
+        "kind": "function",
+        "file": "client/src/features/auth/components/AuthStyles.tsx",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "buildTasksUrl",
+        "kind": "function",
+        "file": "client/src/features/tasks/hooks/useTaskUrlParams.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "calculateIsOverdue",
+        "kind": "function",
+        "file": "client/src/features/tasks/lib/date-utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "clerkAuthMiddleware",
+        "kind": "function",
+        "file": "server/auth.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "ClerkLogin",
+        "kind": "function",
+        "file": "client/src/features/auth/pages/ClerkLogin.tsx",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "ClientsProvider",
+        "kind": "function",
+        "file": "client/src/features/clients/contexts/ClientsContext.tsx",
+        "line": 134,
+        "exported": true
+      },
+      {
+        "name": "cn",
+        "kind": "function",
+        "file": "client/src/shared/lib/utils.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "createPopoverAdapter",
+        "kind": "function",
+        "file": "client/src/shared/hooks/useInlineFieldEdit.ts",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "createSorter",
+        "kind": "function",
+        "file": "client/src/features/tasks/lib/sortUtils.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "createTypedFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 51,
+        "exported": true
+      },
+      {
+        "name": "Dashboard",
+        "kind": "function",
+        "file": "client/src/app/pages/Dashboard.tsx",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "daysSinceLastMeeting",
+        "kind": "function",
+        "file": "client/src/features/clients/lib/clientUtils.ts",
+        "line": 39,
+        "exported": true
+      },
+      {
+        "name": "DisabledStatCard",
+        "kind": "function",
+        "file": "client/src/features/clients/components/client-details/DisabledStatCard.tsx",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "EditableCell",
+        "kind": "function",
+        "file": "client/src/shared/components/ui/editable-cell.tsx",
+        "line": 48,
+        "exported": true
+      },
+      {
+        "name": "EmailVerificationForm",
+        "kind": "function",
+        "file": "client/src/features/auth/components/forms/EmailVerificationForm.tsx",
+        "line": 15,
+        "exported": true
+      },
+      {
+        "name": "formatAUM",
+        "kind": "function",
+        "file": "client/src/features/clients/lib/clientUtils.ts",
+        "line": 63,
+        "exported": true
+      },
+      {
+        "name": "formatDaysAgo",
+        "kind": "function",
+        "file": "client/src/features/clients/lib/clientUtils.ts",
+        "line": 79,
+        "exported": true
+      },
+      {
+        "name": "formatLocalDate",
+        "kind": "function",
+        "file": "client/src/shared/lib/date-utils.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "getIconComponent",
+        "kind": "function",
+        "file": "client/src/features/meetings/components/meeting-detail/IconPicker.tsx",
+        "line": 74,
+        "exported": true
+      },
+      {
+        "name": "getMeetingDelayStatus",
+        "kind": "function",
+        "file": "client/src/features/clients/lib/clientUtils.ts",
+        "line": 53,
+        "exported": true
+      },
+      {
+        "name": "getSecondFactorDescription",
+        "kind": "function",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 75,
+        "exported": true
+      },
+      {
+        "name": "getSecondFactorLabel",
+        "kind": "function",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 60,
+        "exported": true
+      },
+      {
+        "name": "GoogleIcon",
+        "kind": "function",
+        "file": "client/src/features/auth/components/GoogleIcon.tsx",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "handleClerkError",
+        "kind": "function",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 22,
+        "exported": true
+      },
+      {
+        "name": "handleClickOutside",
+        "kind": "function",
+        "file": "client/src/features/meetings/components/meeting-detail/IconPicker.tsx",
+        "line": 84,
+        "exported": true
+      },
+      {
+        "name": "hasRole",
+        "kind": "function",
+        "file": "client/src/features/users/hooks/useCurrentUser.ts",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "IconPicker",
+        "kind": "function",
+        "file": "client/src/features/meetings/components/meeting-detail/IconPicker.tsx",
+        "line": 79,
+        "exported": true
+      },
+      {
+        "name": "isAdmin",
+        "kind": "function",
+        "file": "client/src/features/users/hooks/useCurrentUser.ts",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "isAssigneeFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 77,
+        "exported": true
+      },
+      {
+        "name": "isClientFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 81,
+        "exported": true
+      },
+      {
+        "name": "isDateFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 61,
+        "exported": true
+      },
+      {
+        "name": "isPriorityFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 69,
+        "exported": true
+      },
+      {
+        "name": "isStatusFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 65,
+        "exported": true
+      },
+      {
+        "name": "isTaskFilter",
+        "kind": "function",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 73,
+        "exported": true
+      },
+      {
+        "name": "log",
+        "kind": "function",
+        "file": "server/app.ts",
+        "line": 12,
+        "exported": true
+      },
+      {
+        "name": "MastodonteLogo",
+        "kind": "function",
+        "file": "client/src/features/auth/components/MastodonteLogo.tsx",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "NewClientDialog",
+        "kind": "function",
+        "file": "client/src/features/clients/components/NewClientDialog.tsx",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "NewClientInlineCard",
+        "kind": "function",
+        "file": "client/src/features/clients/components/NewClientInlineCard.tsx",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "NewMeetingDialog",
+        "kind": "function",
+        "file": "client/src/features/meetings/components/NewMeetingDialog.tsx",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "NotFound",
+        "kind": "function",
+        "file": "client/src/app/pages/NotFound.tsx",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "parseAUM",
+        "kind": "function",
+        "file": "client/src/features/clients/lib/clientUtils.ts",
+        "line": 9,
+        "exported": true
+      },
+      {
+        "name": "parseLocalDate",
+        "kind": "function",
+        "file": "client/src/shared/lib/date-utils.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "QuoteCarousel",
+        "kind": "function",
+        "file": "client/src/features/auth/components/QuoteCarousel.tsx",
+        "line": 54,
+        "exported": true
+      },
+      {
+        "name": "redirectAfterAuth",
+        "kind": "function",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 56,
+        "exported": true
+      },
+      {
+        "name": "requireAdmin",
+        "kind": "function",
+        "file": "server/auth.ts",
+        "line": 73,
+        "exported": true
+      },
+      {
+        "name": "requireGroupAccess",
+        "kind": "function",
+        "file": "server/auth.ts",
+        "line": 77,
+        "exported": true
+      },
+      {
+        "name": "requireRole",
+        "kind": "function",
+        "file": "server/auth.ts",
+        "line": 56,
+        "exported": true
+      },
+      {
+        "name": "runApp",
+        "kind": "function",
+        "file": "server/app.ts",
+        "line": 67,
+        "exported": true
+      }
+    ],
+    "types": [
+      {
+        "name": "CalendarProps",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/calendar.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "ChartConfig",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/chart.tsx",
+        "line": 11,
+        "exported": true
+      },
+      {
+        "name": "ClientsFilterMode",
+        "kind": "type",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 95,
+        "exported": true
+      },
+      {
+        "name": "ClientStatus",
+        "kind": "type",
+        "file": "client/src/features/tasks/lib/statusConfig.ts",
+        "line": 146,
+        "exported": true
+      },
+      {
+        "name": "ClientsViewMode",
+        "kind": "type",
+        "file": "client/src/features/clients/types/client.ts",
+        "line": 90,
+        "exported": true
+      },
+      {
+        "name": "ClientWithRelations",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "FilterType",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 6,
+        "exported": true
+      },
+      {
+        "name": "FilterValueFor",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "GenerateOption",
+        "kind": "type",
+        "file": "client/src/features/meetings/components/meeting-detail/AIGenerateButton.tsx",
+        "line": 10,
+        "exported": true
+      },
+      {
+        "name": "IconName",
+        "kind": "type",
+        "file": "client/src/features/meetings/components/meeting-detail/IconPicker.tsx",
+        "line": 66,
+        "exported": true
+      },
+      {
+        "name": "InsertClient",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 23,
+        "exported": true
+      },
+      {
+        "name": "InsertGroup",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "InsertTask",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 48,
+        "exported": true
+      },
+      {
+        "name": "InsertTaskHistory",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 61,
+        "exported": true
+      },
+      {
+        "name": "InsertUser",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 7,
+        "exported": true
+      },
+      {
+        "name": "InsertWhatsAppGroup",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "MeetingLocation",
+        "kind": "type",
+        "file": "client/src/shared/config/meetingConfig.ts",
+        "line": 38,
+        "exported": true
+      },
+      {
+        "name": "MeetingStatus",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 37,
+        "exported": true
+      },
+      {
+        "name": "MeetingStatus",
+        "kind": "type",
+        "file": "client/src/shared/config/meetingConfig.ts",
+        "line": 18,
+        "exported": true
+      },
+      {
+        "name": "MeetingType",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 40,
+        "exported": true
+      },
+      {
+        "name": "MeetingType",
+        "kind": "type",
+        "file": "client/src/shared/config/meetingConfig.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "MeetingWithRelations",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "PopoverField",
+        "kind": "type",
+        "file": "client/src/shared/hooks/usePopoverState.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "SelectItemType",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/searchable-multi-select.tsx",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "SortOrder",
+        "kind": "type",
+        "file": "client/src/features/tasks/lib/sortUtils.ts",
+        "line": 5,
+        "exported": true
+      },
+      {
+        "name": "SyncStatus",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "TagType",
+        "kind": "type",
+        "file": "client/src/features/meetings/components/meeting-detail/TagEditorModal.tsx",
+        "line": 8,
+        "exported": true
+      },
+      {
+        "name": "TaskPriority",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 34,
+        "exported": true
+      },
+      {
+        "name": "TaskPriority",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 2,
+        "exported": true
+      },
+      {
+        "name": "TaskStatus",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 31,
+        "exported": true
+      },
+      {
+        "name": "TaskStatus",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 1,
+        "exported": true
+      },
+      {
+        "name": "TaskUpdates",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 113,
+        "exported": true
+      },
+      {
+        "name": "TaskWithRelations",
+        "kind": "type",
+        "file": "server/storage.ts",
+        "line": 69,
+        "exported": true
+      },
+      {
+        "name": "TaskWithRelations",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
+        "name": "TwoFactorStrategy",
+        "kind": "type",
+        "file": "client/src/features/auth/components/forms/TwoFactorForm.tsx",
+        "line": 3,
+        "exported": true
+      },
+      {
+        "name": "TypedActiveFilter",
+        "kind": "type",
+        "file": "client/src/features/tasks/types/task.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
+        "name": "UserRole",
+        "kind": "type",
+        "file": "client/src/shared/types/types.ts",
+        "line": 28,
+        "exported": true
+      },
+      {
+        "name": "UserRole",
+        "kind": "type",
+        "file": "client/src/features/users/hooks/useCurrentUser.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "VisualEffectType",
+        "kind": "type",
+        "file": "client/src/features/auth/components/VisualEffects.tsx",
+        "line": 68,
+        "exported": true
+      },
+      {
+        "name": "WhatsAppGroupStatus",
+        "kind": "type",
+        "file": "client/src/features/tasks/hooks/useWhatsAppGroups.ts",
+        "line": 4,
+        "exported": true
+      },
+      {
+        "name": "Action",
+        "kind": "type",
+        "file": "client/src/shared/hooks/use-toast.ts",
+        "line": 34,
+        "exported": false
+      },
+      {
+        "name": "ActionType",
+        "kind": "type",
+        "file": "client/src/shared/hooks/use-toast.ts",
+        "line": 32,
+        "exported": false
+      },
+      {
+        "name": "AuthView",
+        "kind": "type",
+        "file": "client/src/features/auth/pages/SignIn.tsx",
+        "line": 12,
+        "exported": false
+      },
+      {
+        "name": "CarouselApi",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/carousel.tsx",
+        "line": 10,
+        "exported": false
+      },
+      {
+        "name": "CarouselContextProps",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/carousel.tsx",
+        "line": 22,
+        "exported": false
+      },
+      {
+        "name": "CarouselOptions",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/carousel.tsx",
+        "line": 12,
+        "exported": false
+      },
+      {
+        "name": "CarouselPlugin",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/carousel.tsx",
+        "line": 13,
+        "exported": false
+      },
+      {
+        "name": "CarouselProps",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/carousel.tsx",
+        "line": 15,
+        "exported": false
+      },
+      {
+        "name": "ChartContextProps",
+        "kind": "type",
+        "file": "client/src/shared/components/ui/chart.tsx",
+        "line": 21,
+        "exported": false
+      },
+      {
+        "name": "ClerkError",
+        "kind": "type",
+        "file": "client/src/features/auth/lib/authHelpers.ts",
+        "line": 1,
+        "exported": false
+      }
+    ],
+    "enums": []
+  },
+  "publicAPI": [
+    {
+      "name": "Address",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "AIAgendaItem",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 22,
+      "exported": true
+    },
+    {
+      "name": "AIAgendaSubitem",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 17,
+      "exported": true
+    },
+    {
+      "name": "AIContextPoint",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 6,
+      "exported": true
+    },
+    {
+      "name": "AIDecision",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 29,
+      "exported": true
+    },
+    {
+      "name": "AIHighlight",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 11,
+      "exported": true
+    },
+    {
+      "name": "AIRequestPayload",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 44,
+      "exported": true
+    },
+    {
+      "name": "AIResponse",
+      "kind": "interface",
+      "file": "client/src/features/meetings/hooks/useAISummary.ts",
+      "line": 34,
+      "exported": true
+    },
+    {
+      "name": "apiRequest",
+      "kind": "function",
+      "file": "client/src/shared/lib/queryClient.ts",
+      "line": 10,
+      "exported": true
+    },
+    {
+      "name": "AuthErrorResult",
+      "kind": "interface",
+      "file": "client/src/features/auth/lib/authHelpers.ts",
+      "line": 5,
+      "exported": true
+    },
+    {
+      "name": "AuthLayout",
+      "kind": "function",
+      "file": "client/src/features/auth/components/AuthLayout.tsx",
+      "line": 10,
+      "exported": true
+    },
+    {
+      "name": "AuthStyles",
+      "kind": "function",
+      "file": "client/src/features/auth/components/AuthStyles.tsx",
+      "line": 1,
+      "exported": true
+    },
+    {
+      "name": "BadgeFilterContentProps",
+      "kind": "interface",
+      "file": "client/src/shared/components/filter-bar/BadgeFilterContent.tsx",
+      "line": 11,
+      "exported": true
+    },
+    {
+      "name": "BadgeProps",
+      "kind": "interface",
+      "file": "client/src/shared/components/ui/badge.tsx",
+      "line": 28,
+      "exported": true
+    },
+    {
+      "name": "buildTasksUrl",
+      "kind": "function",
+      "file": "client/src/features/tasks/hooks/useTaskUrlParams.ts",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "ButtonProps",
+      "kind": "interface",
+      "file": "client/src/shared/components/ui/button.tsx",
+      "line": 42,
+      "exported": true
+    },
+    {
+      "name": "calculateIsOverdue",
+      "kind": "function",
+      "file": "client/src/features/tasks/lib/date-utils.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "CalendarProps",
+      "kind": "type",
+      "file": "client/src/shared/components/ui/calendar.tsx",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "ChartConfig",
+      "kind": "type",
+      "file": "client/src/shared/components/ui/chart.tsx",
+      "line": 11,
+      "exported": true
+    },
+    {
+      "name": "clerkAuthMiddleware",
+      "kind": "function",
+      "file": "server/auth.ts",
+      "line": 22,
+      "exported": true
+    },
+    {
+      "name": "ClerkLogin",
+      "kind": "function",
+      "file": "client/src/features/auth/pages/ClerkLogin.tsx",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "Client",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "ClientExtendedData",
+      "kind": "interface",
+      "file": "client/src/shared/mocks/clientsMock.ts",
+      "line": 190,
+      "exported": true
+    },
+    {
+      "name": "ClientFullData",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 54,
+      "exported": true
+    },
+    {
+      "name": "ClientMeeting",
+      "kind": "interface",
+      "file": "client/src/features/meetings/types/meeting.ts",
+      "line": 92,
+      "exported": true
+    },
+    {
+      "name": "ClientMeeting",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 36,
+      "exported": true
+    },
+    {
+      "name": "ClientsFilterMode",
+      "kind": "type",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 95,
+      "exported": true
+    },
+    {
+      "name": "ClientsPageStats",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 76,
+      "exported": true
+    },
+    {
+      "name": "ClientsProvider",
+      "kind": "function",
+      "file": "client/src/features/clients/contexts/ClientsContext.tsx",
+      "line": 134,
+      "exported": true
+    },
+    {
+      "name": "ClientStats",
+      "kind": "interface",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 29,
+      "exported": true
+    },
+    {
+      "name": "ClientStatus",
+      "kind": "type",
+      "file": "client/src/features/tasks/lib/statusConfig.ts",
+      "line": 146,
+      "exported": true
+    },
+    {
+      "name": "ClientStatusConfig",
+      "kind": "interface",
+      "file": "client/src/features/tasks/lib/statusConfig.ts",
+      "line": 148,
+      "exported": true
+    },
+    {
+      "name": "ClientsViewMode",
+      "kind": "type",
+      "file": "client/src/features/clients/types/client.ts",
+      "line": 90,
+      "exported": true
+    },
+    {
+      "name": "ClientTasksProps",
+      "kind": "interface",
+      "file": "client/src/features/clients/components/client-details/ClientTasks.tsx",
+      "line": 24,
+      "exported": true
+    },
+    {
+      "name": "ClientWithRelations",
+      "kind": "type",
+      "file": "client/src/shared/types/types.ts",
+      "line": 7,
+      "exported": true
+    },
+    {
+      "name": "cn",
+      "kind": "function",
+      "file": "client/src/shared/lib/utils.ts",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "Column",
+      "kind": "interface",
+      "file": "client/src/features/tasks/components/table/TableHeader.tsx",
+      "line": 26,
+      "exported": true
+    },
+    {
+      "name": "ContextCardData",
+      "kind": "interface",
+      "file": "client/src/features/meetings/components/meeting-detail/ContextCardEditor.tsx",
+      "line": 4,
+      "exported": true
+    },
+    {
+      "name": "createPopoverAdapter",
+      "kind": "function",
+      "file": "client/src/shared/hooks/useInlineFieldEdit.ts",
+      "line": 13,
+      "exported": true
+    },
+    {
+      "name": "createSorter",
+      "kind": "function",
+      "file": "client/src/features/tasks/lib/sortUtils.ts",
+      "line": 18,
+      "exported": true
+    },
+    {
+      "name": "createTypedFilter",
+      "kind": "function",
+      "file": "client/src/features/tasks/types/task.ts",
+      "line": 51,
+      "exported": true
+    },
+    {
+      "name": "CurrentUser",
+      "kind": "interface",
+      "file": "client/src/features/users/hooks/useCurrentUser.ts",
+      "line": 6,
+      "exported": true
+    },
+    {
+      "name": "Dashboard",
+      "kind": "function",
+      "file": "client/src/app/pages/Dashboard.tsx",
+      "line": 3,
+      "exported": true
+    },
+    {
+      "name": "DateFilterValue",
+      "kind": "interface",
+      "file": "client/src/features/tasks/types/task.ts",
+      "line": 8,
+      "exported": true
+    },
+    {
+      "name": "daysSinceLastMeeting",
+      "kind": "function",
+      "file": "client/src/features/clients/lib/clientUtils.ts",
+      "line": 39,
+      "exported": true
+    },
+    {
+      "name": "DbStorage",
+      "kind": "class",
+      "file": "server/storage.ts",
+      "line": 124,
+      "exported": true
+    },
+    {
+      "name": "DeleteConfirmState",
+      "kind": "interface",
+      "file": "client/src/shared/hooks/useInlineFieldEdit.ts",
+      "line": 60,
+      "exported": true
+    },
+    {
+      "name": "DisabledSectionConfig",
+      "kind": "interface",
+      "file": "client/src/features/clients/lib/clientSections.ts",
+      "line": 12,
+      "exported": true
+    },
+    {
+      "name": "DisabledStatCard",
+      "kind": "function",
+      "file": "client/src/features/clients/components/client-details/DisabledStatCard.tsx",
+      "line": 9,
+      "exported": true
+    },
+    {
+      "name": "DropIndicator",
+      "kind": "interface",
+      "file": "client/src/features/tasks/hooks/useTaskDrag.ts",
+      "line": 11,
+      "exported": true
+    }
+  ],
+  "dependencies": {
+    "mostImported": [
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/types/task.ts",
+        "importedBy": 34
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/lib/statusConfig.ts",
+        "importedBy": 10
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/components/task-editors/index.ts",
+        "importedBy": 5
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/contexts/TasksContext.tsx",
+        "importedBy": 4
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/meetings/components/meeting-detail/IconPicker.tsx",
+        "importedBy": 4
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/lib/turboModeConfig.ts",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/hooks/useTurboMode.ts",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/components/task-popovers.tsx",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/auth/components/MastodonteLogo.tsx",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/meetings/components/meeting-detail/EditableSectionTitle.tsx",
+        "importedBy": 3
+      },
+      {
+        "file": "/home/runner/workspace/server/app.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/lib/constants.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/meetings/components/meeting-detail/AIGenerateButton.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/components/TaskDetailModal.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/lib/dndSensors.ts",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/components/table/TableHeader.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/tasks/components/task-context-menu.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/auth/components/AuthStyles.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/auth/components/VisualEffects.tsx",
+        "importedBy": 2
+      },
+      {
+        "file": "/home/runner/workspace/client/src/features/auth/components/QuoteCarousel.tsx",
+        "importedBy": 2
+      }
+    ]
+  },
+  "stats": {
+    "totalSymbols": 413,
+    "exportedSymbols": 218,
+    "analysisTimeMs": 2430
+  }
+}

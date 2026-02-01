@@ -6,3 +6,13 @@
 {"timestamp":"2026-02-01T20:44:00.190Z","tool":"context","action":"fill","status":"success","details":{"params":{"action":"fill","target":"docs"},"result":{"success":true}}}
 {"timestamp":"2026-02-01T20:46:55.088Z","tool":"context","action":"fill","status":"success","details":{"params":{"action":"fill","target":"agents"},"result":{"success":true}}}
 {"timestamp":"2026-02-01T20:49:42.975Z","tool":"context","action":"listToFill","status":"success","details":{"params":{"action":"listToFill","target":"all"},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:50:50.849Z","tool":"skill","action":"list","status":"success","details":{"params":{"action":"list","includeContent":false},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:50:57.071Z","tool":"skill","action":"fill","status":"success","details":{"params":{"action":"fill","includeBuiltIn":true},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:54:03.262Z","tool":"skill","action":"export","status":"success","details":{"params":{"action":"export","includeBuiltIn":true,"preset":"claude","force":true},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:54:49.042Z","tool":"sync","action":"exportAgents","status":"error","details":{"params":{"action":"exportAgents","preset":"claude","force":true,"mode":"markdown"},"result":{"success":false}},"error":"errors.sync.sourceMissing"}
+{"timestamp":"2026-02-01T20:54:49.046Z","tool":"sync","action":"exportDocs","status":"success","details":{"params":{"action":"exportDocs","preset":"claude","force":true,"indexMode":"all"},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:54:55.182Z","tool":"sync","action":"exportContext","status":"success","details":{"params":{"action":"exportContext","preset":"claude","force":true,"docsIndexMode":"all","agentMode":"markdown","includeBuiltInSkills":true},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:59:08.265Z","tool":"context","action":"check","status":"success","details":{"params":{"action":"check","repoPath":"/home/runner/workspace"}}}
+{"timestamp":"2026-02-01T20:59:09.091Z","tool":"sync","action":"exportDocs","status":"success","details":{"params":{"action":"exportDocs","preset":"claude","dryRun":true},"result":{"success":true}}}
+{"timestamp":"2026-02-01T20:59:15.934Z","tool":"context","action":"buildSemantic","status":"success","details":{"params":{"action":"buildSemantic","contextType":"compact"}}}
+{"timestamp":"2026-02-01T20:59:21.610Z","tool":"sync","action":"exportContext","status":"success","details":{"params":{"action":"exportContext","preset":"claude","dryRun":true,"docsIndexMode":"all"},"result":{"success":true}}}

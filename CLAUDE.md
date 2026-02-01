@@ -1,131 +1,149 @@
-# CLAUDE.md - AI Context for CRM Mastodonte
+# Claude Code Project Context
 
-## Project Overview
+> Task Management System - Full-stack application for managing clients, tasks, meetings, and team workflows.
 
-CRM Mastodonte is a full-stack wealth management CRM platform for financial consultants and operational assistants. It provides client relationship management, meeting scheduling, and task workflows with a centralized "360-degree client view".
+## Technology Stack
 
-**Core business flow:** Client -> Meeting -> Task
+| Layer | Technology |
+|-------|------------|
+| Frontend | React, TypeScript, Vite, TailwindCSS |
+| Backend | Node.js, Express |
+| Database | PostgreSQL with Prisma ORM |
+| Authentication | Clerk |
+| UI Components | shadcn/ui |
+| State Management | TanStack Query |
 
-## Tech Stack
-
-- **Frontend:** React 18, TypeScript, Vite, Wouter (routing), TanStack Query v5, Tailwind CSS, Shadcn/UI (new-york style), Framer Motion, React Hook Form + Zod, @dnd-kit
-- **Backend:** Express.js with TypeScript
-- **Database:** PostgreSQL (Supabase), Prisma ORM
-- **Auth:** Clerk (OAuth, email/password, SSO)
-- **Build:** Vite (frontend), esbuild (backend)
-
-## Commands
-
-```bash
-npm run dev          # Start dev server (Vite + Express)
-npm run build        # Production build (frontend + backend)
-npm start            # Start production server
-npm run check        # TypeScript type checking
-npm run db:migrate   # Run Prisma migrations
-npm run db:push      # Push schema changes
-npm run db:studio    # Open Prisma Studio
-npm run db:generate  # Generate Prisma client
-```
-
-## Project Structure
+## Repository Structure
 
 ```
-client/src/
-  app/                    # Root component, routing, sidebar
-    components/           # AppSidebar
-    pages/                # Dashboard, NotFound
-  features/               # Feature modules (domain-driven)
-    auth/                 # Clerk authentication (LoginForm, SignUp, SSO)
-    clients/              # Client management (ClientCard, ClientProfile, forms)
-    tasks/                # Task management (Kanban board, TaskCard, TaskDetail)
-    meetings/             # Meeting management (MeetingCard, MeetingDetail)
-    users/                # User/admin management (Profile, Admin panel)
-  shared/
-    components/ui/        # Shadcn UI primitives (50+ components)
-    hooks/                # Utility hooks (useInlineFieldEdit, useSearchFilter, etc.)
-    lib/                  # Utils, date-utils, queryClient
-    types/                # Shared types (imports from Prisma)
-    config/               # Shared configs (meetingConfig)
-
-server/
-  app.ts                  # Express app setup & middleware
-  routes.ts               # API route definitions (~900 lines)
-  storage.ts              # Data access layer (Prisma wrapper, IStorage interface)
-  db.ts                   # Prisma client singleton
-  auth.ts                 # Clerk auth middleware
-  index-dev.ts            # Dev entry (Vite middleware)
-  index-prod.ts           # Prod entry (static serving)
-
-prisma/
-  schema.prisma           # Database schema
+.
+├── client/                 # React frontend
+│   └── src/
+│       ├── app/           # App-level components
+│       ├── features/      # Feature modules (tasks, clients, meetings, auth, users)
+│       └── shared/        # Shared utilities, hooks, components
+├── server/                # Express backend
+│   ├── app.ts            # Express application
+│   ├── auth.ts           # Clerk authentication middleware
+│   └── storage.ts        # Database access layer (DbStorage)
+├── prisma/                # Database schema
+└── .context/              # AI context documentation
 ```
+
+## Key Entry Points
+
+- **Server**: `server/app.ts`, `server/index.ts`
+- **Client**: `client/src/main.tsx`, `client/src/App.tsx`
+- **Database**: `prisma/schema.prisma`
+- **Auth**: `server/auth.ts` (Clerk middleware)
+
+## Feature Modules
+
+| Feature | Location | Description |
+|---------|----------|-------------|
+| Tasks | `client/src/features/tasks/` | Task management with turbo mode |
+| Clients | `client/src/features/clients/` | Client management |
+| Meetings | `client/src/features/meetings/` | Meeting scheduling with AI summaries |
+| Auth | `client/src/features/auth/` | Authentication pages |
+| Users | `client/src/features/users/` | User management |
 
 ## Architecture Patterns
 
 ### Frontend
-- **Feature-based modules:** Each feature (auth, clients, tasks, meetings, users) is self-contained with components, hooks, contexts, types, and lib
-- **Hook-first design:** Business logic extracted into custom hooks
-- **Context API:** Feature-level state (TasksContext, ClientsContext, UsersContext)
-- **Server state:** TanStack Query for all API data fetching and caching
-- **Form state:** React Hook Form + Zod validation schemas
-- **Path aliases:** `@/` (client/src), `@features/`, `@app/`, `@shared/`
+- **Feature-based structure**: Code organized by business domain
+- **Custom hooks**: State and logic in `features/*/hooks/`
+- **TanStack Query**: Server state with caching
+- **shadcn/ui**: Accessible component library
 
 ### Backend
-- RESTful API under `/api` namespace
-- Zod schema validation on request bodies
-- Bearer token auth on all protected routes
-- Storage abstraction layer (IStorage interface -> PrismaStorage)
-- Response format: `{ data }` or `{ error }` with proper HTTP status codes
+- **Repository pattern**: `DbStorage` class in `server/storage.ts`
+- **Middleware chain**: Clerk auth middleware
+- **Prisma ORM**: Type-safe database access
 
-### Database
-- Core entities: User, Group, Client, Meeting, Task, TaskAssignee, TaskHistory, WhatsAppGroup
-- Prisma for type-safe queries with relationship loading (includes)
-- User access control checks on data layer
+## Key Symbols
 
-## Auth & Roles
+### Backend
+- `DbStorage` (class) @ `server/storage.ts` - Data access layer
+- `IStorage` (interface) @ `server/storage.ts` - Storage contract
+- `clerkAuthMiddleware` @ `server/auth.ts` - JWT validation
+- `requireRole`, `requireAdmin` @ `server/auth.ts` - RBAC
 
+### Frontend
+- `apiRequest` @ `client/src/shared/lib/queryClient.ts` - HTTP client
+- `useCurrentUser` @ `client/src/features/users/hooks/` - Auth hook
+- `useTurboMode` @ `client/src/features/tasks/hooks/` - Bulk task processing
+- `cn` @ `client/src/shared/lib/utils.ts` - Class name utility
+
+## Development Commands
+
+```bash
+npm install          # Install dependencies
+npm run dev          # Start dev server
+npm run build        # Build for production
+npm run test         # Run tests
+npx prisma studio    # Database GUI
+npx prisma migrate dev  # Run migrations
 ```
-Roles: administrador, consultor, alocador, concierge
+
+## Code Conventions
+
+### TypeScript
+- Strict mode enabled
+- Interfaces for object shapes
+- Explicit return types
+- No `any` (use `unknown` if needed)
+
+### React
+- Functional components with hooks
+- Custom hooks for reusable logic
+- TanStack Query for server state
+
+### Commits
+Follow Conventional Commits:
+```
+feat(tasks): add turbo mode
+fix(auth): handle session expiry
+refactor(hooks): extract filter logic
 ```
 
-- Clerk handles authentication (OAuth, email/password, SSO)
-- Middleware: `requireAdmin()`, `requireRole()`, `checkClientAccess()`
-- Group-based access: users see only their own or group members' clients
-- First registered user becomes admin automatically
+## Authentication & Authorization
 
-## Design System
+- **Authentication**: Clerk (JWT tokens)
+- **Roles**: admin, manager, user
+- **Middleware**: `clerkAuthMiddleware`, `requireRole()`, `requireAdmin()`
 
-- **Style:** Linear + Notion hybrid, dark mode preferred
-- **Font:** Inter (Google Fonts)
-- **Colors:** CSS variables with HSL format, custom sidebar palette, status colors
-- **Border radius:** 9px/6px/3px tokens
-- **Animations:** Minimal motion approach with Framer Motion
-- Refer to `design_guidelines.md` for full specifications
+## Documentation
 
-## Key Features
+Full documentation available in `.claude/docs/` (also in `.context/docs/`):
+- `architecture.md` - System architecture
+- `data-flow.md` - Data flow diagrams
+- `development-workflow.md` - Dev process
+- `testing-strategy.md` - Test guidelines
+- `security.md` - Security model
+- `glossary.md` - Domain concepts
+- `codebase-map.json` - Symbol index and dependencies
 
-- **Tasks:** Kanban board (To Do, In Progress, Done), drag-and-drop, inline editing, bulk actions, history/audit trail, undo/redo, Pomodoro timer
-- **Clients:** 360-degree view, WhatsApp group management, foundation code validation (N8N webhook), financial data tracking
-- **Meetings:** Scheduling, type-based workflow, AI summary generation, meeting-to-task creation
-- **Admin:** User/group management, invitations with role/group assignment
+## Agent Playbooks
 
-## Conventions
+AI agent playbooks in `.claude/agents/` (also in `.context/agents/`):
+- `architect-specialist.md` - System design
+- `backend-specialist.md` - Server development
+- `frontend-specialist.md` - UI development
+- `bug-fixer.md` - Debugging
+- `code-reviewer.md` - Code review
+- `feature-developer.md` - Feature implementation
+- `test-writer.md` - Test generation
 
-- TypeScript strict mode enabled
-- Conventional Commits for git messages (e.g., `feat(tasks): add bulk delete`)
-- Components use Shadcn/UI primitives as building blocks
-- All API inputs validated with Zod schemas matching Prisma types
-- Portuguese language used in UI labels and business terminology
-- Task status in English (To Do, In Progress, Done), priority in Portuguese (Urgente, Importante, Normal, Baixa)
-- QueryClient staleTime: Infinity - invalidate manually after mutations
+## Skills
 
-## Detailed Context
-
-Full documentation available in `.context/`:
-- [Architecture](.context/docs/architecture.md) - System architecture, tech stack, project structure
-- [API Reference](.context/docs/api-reference.md) - All REST endpoints with schemas
-- [Database](.context/docs/database.md) - Prisma schema, entities, relationships
-- [Frontend](.context/docs/frontend.md) - React features, 36+ hooks, 3 contexts, all components
-- [Auth](.context/docs/auth.md) - Clerk authentication, roles, access control flow
-- [Design System](.context/docs/design-system.md) - UI guidelines, colors, typography
-- [Agent Playbook](.context/agents/README.md) - How to work on this codebase
+Project-specific skills in `.claude/skills/`:
+- `api-design` - RESTful API patterns
+- `bug-investigation` - Debug workflow
+- `code-review` - Review guidelines
+- `commit-message` - Commit conventions
+- `documentation` - Doc standards
+- `feature-breakdown` - Task decomposition
+- `pr-review` - PR checklist
+- `refactoring` - Safe refactoring
+- `security-audit` - Security checklist
+- `test-generation` - Test patterns

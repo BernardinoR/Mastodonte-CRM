@@ -1,73 +1,53 @@
 # Skills
 
-On-demand expertise for AI agents. Skills are task-specific procedures that get activated when relevant.
-
-> Project: workspace
-
-## How Skills Work
-
-1. **Discovery**: AI agents discover available skills
-2. **Matching**: When a task matches a skill's description, it's activated
-3. **Execution**: The skill's instructions guide the AI's behavior
+This directory contains skill definitions for AI agents working on the Task Management System. Each skill provides specialized guidance for specific development tasks.
 
 ## Available Skills
 
-### Built-in Skills
-
 | Skill | Description | Phases |
 |-------|-------------|--------|
-| [Commit Message](./commit-message/SKILL.md) | Generate commit messages following conventional commits with scope detection | E, C |
-| [Pr Review](./pr-review/SKILL.md) | Review pull requests against team standards and best practices | R, V |
-| [Code Review](./code-review/SKILL.md) | Review code quality, patterns, and best practices | R, V |
-| [Test Generation](./test-generation/SKILL.md) | Generate comprehensive test cases for code | E, V |
-| [Documentation](./documentation/SKILL.md) | Generate and update technical documentation | P, C |
-| [Refactoring](./refactoring/SKILL.md) | Safe code refactoring with step-by-step approach | E |
-| [Bug Investigation](./bug-investigation/SKILL.md) | Systematic bug investigation and root cause analysis | E, V |
-| [Feature Breakdown](./feature-breakdown/SKILL.md) | Break down features into implementable tasks | P |
-| [Api Design](./api-design/SKILL.md) | Design RESTful APIs following best practices | P, R |
-| [Security Audit](./security-audit/SKILL.md) | Security review checklist for code and infrastructure | R, V |
+| [API Design](./api-design/SKILL.md) | Design RESTful APIs following project patterns | P, R |
+| [Bug Investigation](./bug-investigation/SKILL.md) | Systematic debugging and root cause analysis | E, V |
+| [Code Review](./code-review/SKILL.md) | Review code quality and best practices | R, V |
+| [Commit Message](./commit-message/SKILL.md) | Generate conventional commit messages | E, C |
+| [Documentation](./documentation/SKILL.md) | Generate and maintain documentation | P, C |
+| [Feature Breakdown](./feature-breakdown/SKILL.md) | Break features into implementable tasks | P |
+| [PR Review](./pr-review/SKILL.md) | Review pull requests against standards | R, V |
+| [Refactoring](./refactoring/SKILL.md) | Safe code refactoring approach | E |
+| [Security Audit](./security-audit/SKILL.md) | Security review checklist | R, V |
+| [Test Generation](./test-generation/SKILL.md) | Generate test cases with Jest | E, V |
 
-## Creating Custom Skills
+## PREVC Phases
 
-Create a new skill by adding a directory with a `SKILL.md` file:
+Skills are tagged with applicable PREVC workflow phases:
 
-```
-.context/skills/
-└── my-skill/
-    ├── SKILL.md          # Required: skill definition
-    └── templates/        # Optional: helper resources
-        └── checklist.md
-```
+| Phase | Name | Description |
+|-------|------|-------------|
+| P | Plan | Design and planning |
+| R | Review | Code and architecture review |
+| E | Execute | Implementation |
+| V | Verify | Testing and validation |
+| C | Commit | Documentation and completion |
 
-### SKILL.md Format
+## Using Skills
 
-```yaml
----
-name: my-skill
-description: When to use this skill
-phases: [P, E, V]  # Optional: PREVC phases
-mode: false        # Optional: mode command?
----
+1. **Identify the task type** - What are you trying to accomplish?
+2. **Select the appropriate skill** - Match task to skill
+3. **Follow the skill guidelines** - Apply project-specific patterns
+4. **Use provided templates** - Maintain consistency
 
-# My Skill
+## Project-Specific Customizations
 
-## When to Use
-[Description of when this skill applies]
+All skills are customized for this codebase:
+- React + TypeScript patterns
+- Feature-based folder structure
+- TanStack Query for server state
+- Prisma for database access
+- Clerk for authentication
+- shadcn/ui components
 
-## Instructions
-1. Step one
-2. Step two
+## Related Resources
 
-## Examples
-[Usage examples]
-```
-
-## PREVC Phase Mapping
-
-| Phase | Name | Skills |
-|-------|------|--------|
-| P | Planning | feature-breakdown, documentation, api-design |
-| R | Review | pr-review, code-review, api-design, security-audit |
-| E | Execution | commit-message, test-generation, refactoring, bug-investigation |
-| V | Validation | pr-review, code-review, test-generation, security-audit |
-| C | Confirmation | commit-message, documentation |
+- [Documentation Index](../docs/README.md)
+- [Agent Playbooks](../agents/README.md)
+- [AGENTS.md](../../AGENTS.md)
