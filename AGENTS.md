@@ -6,16 +6,18 @@
 - Run `npm run check` for TypeScript type checking.
 - Run `npm run build` to create production bundles before deploying.
 - Database changes: edit `prisma/schema.prisma`, then `npm run db:push` or `npm run db:migrate`.
+- Use `npx prisma studio` to browse database with GUI.
 
 ## Testing instructions
-- No test framework is currently configured.
+- Run `npm run test` to execute Jest test suite.
 - Validate changes manually via the dev server preview.
 - Run `npm run check` to catch TypeScript errors before committing.
 
 ## PR instructions
 - Follow Conventional Commits (e.g., `feat(tasks): add bulk delete`, `fix(auth): handle SSO redirect`).
-- Scope by feature: `auth`, `clients`, `tasks`, `meetings`, `users`, `api`, `db`.
+- Scope by feature: `auth`, `clients`, `tasks`, `meetings`, `users`, `api`, `db`, `ui`, `hooks`.
 - Confirm `npm run check` and `npm run build` pass before opening a PR.
+- Review PR checklist in `.claude/skills/pr-review/SKILL.md`.
 
 ## Repository map
 - `client/` — React frontend application. Feature modules in `client/src/features/`, shared UI in `client/src/shared/`.
@@ -27,7 +29,53 @@
 - `vite.config.ts` — Vite build configuration with path aliases.
 - `tailwind.config.ts` — Tailwind CSS theme with custom tokens and dark mode.
 - `tsconfig.json` — TypeScript config with strict mode and path aliases (`@/`, `@features/`, `@app/`, `@shared/`).
-## AI Context References
-- Documentation index: `.context/docs/README.md`
-- Agent playbooks: `.context/agents/README.md`
 
+## AI Context References
+
+### Primary Context
+- **CLAUDE.md** — Main project context for Claude Code (tech stack, patterns, commands)
+
+### Documentation (`.claude/docs/`)
+- `README.md` — Documentation index
+- `architecture.md` — System architecture and patterns
+- `data-flow.md` — Data flow diagrams
+- `development-workflow.md` — Dev process and branching
+- `testing-strategy.md` — Test guidelines
+- `security.md` — Security model and auth
+- `glossary.md` — Domain concepts
+- `tooling.md` — CLI and IDE tools
+- `codebase-map.json` — Symbol index and dependencies
+
+### Agent Playbooks (`.claude/agents/`)
+- `architect-specialist.md` — System design decisions
+- `backend-specialist.md` — Server and API development
+- `frontend-specialist.md` — React and UI development
+- `database-specialist.md` — Prisma and database
+- `bug-fixer.md` — Debugging and fixes
+- `code-reviewer.md` — Code review guidelines
+- `feature-developer.md` — Feature implementation
+- `test-writer.md` — Test generation
+- `security-auditor.md` — Security review
+- `performance-optimizer.md` — Performance tuning
+- `refactoring-specialist.md` — Safe refactoring
+- `documentation-writer.md` — Documentation
+- `devops-specialist.md` — Deployment and CI/CD
+- `mobile-specialist.md` — Mobile responsiveness
+
+### Skills (`.claude/skills/`)
+- `api-design` — RESTful API patterns
+- `bug-investigation` — Debug workflow
+- `code-review` — Review guidelines
+- `commit-message` — Commit conventions
+- `documentation` — Doc standards
+- `feature-breakdown` — Task decomposition
+- `pr-review` — PR checklist
+- `refactoring` — Safe refactoring
+- `security-audit` — Security checklist
+- `test-generation` — Test patterns
+
+### Source Files (`.context/`)
+- Same content as `.claude/` — source of truth for AI context
+- `docs/` — Documentation files
+- `agents/` — Agent playbooks
+- `skills/` — Skill definitions
