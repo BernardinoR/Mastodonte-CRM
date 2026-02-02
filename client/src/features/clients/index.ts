@@ -16,6 +16,7 @@ export { AdvisorPopover } from './components/AdvisorPopover';
 export { EmailsPopover } from './components/EmailsPopover';
 export { FoundationCodeField } from './components/FoundationCodeField';
 export { WhatsAppGroupsTable } from './components/WhatsAppGroupsTable';
+export { ImportClientsDialog } from './components/ImportClientsDialog';
 
 // Client Details Components
 export * from './components/client-details';
@@ -31,10 +32,12 @@ export { useClientsPage } from './hooks/useClientsPage';
 export { useClientHeaderEditing } from './hooks/useClientHeaderEditing';
 export { useInlineClientMeetings } from './hooks/useInlineClientMeetings';
 export { useInlineClientTasks } from './hooks/useInlineClientTasks';
+export { useClientImportExport } from './hooks/useClientImportExport';
 
 // Lib
 export * from './lib/clientSections';
 export * from './lib/clientUtils';
+export * from './lib/clientImportExport';
 
 // Types
 export * from './types/client';

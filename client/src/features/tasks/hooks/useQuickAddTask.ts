@@ -9,9 +9,9 @@ interface UseQuickAddTaskProps {
 }
 
 interface UseQuickAddTaskReturn {
-  handleQuickAdd: (status: TaskStatus) => void;
-  handleQuickAddTop: (status: TaskStatus) => void;
-  handleQuickAddAfter: (afterTaskId: string) => void;
+  handleQuickAdd: (status: TaskStatus) => Promise<void>;
+  handleQuickAddTop: (status: TaskStatus) => Promise<void>;
+  handleQuickAddAfter: (afterTaskId: string) => Promise<void>;
 }
 
 export function useQuickAddTask({
@@ -21,14 +21,14 @@ export function useQuickAddTask({
   const { currentUser } = useUsers();
   const { createTaskAndReturn } = useTasks();
   
-  const handleQuickAdd = useCallback((status: TaskStatus) => {
+  const handleQuickAdd = useCallback(async (status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task (optimistic - instantâneo)
-    const newTask = createTaskAndReturn({
+    // Create task (aguarda resposta do servidor)
+    const newTask = await createTaskAndReturn({
       title: "Nova tarefa",
       status,
       priority: "Normal",
@@ -37,17 +37,19 @@ export function useQuickAddTask({
       order: maxOrder + 1,
     });
     
-    onSetEditingTaskId(newTask.id);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddTop = useCallback((status: TaskStatus) => {
+  const handleQuickAddTop = useCallback(async (status: TaskStatus) => {
     const statusTasks = tasks.filter(t => t.status === status);
     const minOrder = statusTasks.reduce((min, t) => Math.min(min, t.order), 1);
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task (optimistic - instantâneo)
-    const newTask = createTaskAndReturn({
+    // Create task (aguarda resposta do servidor)
+    const newTask = await createTaskAndReturn({
       title: "Nova tarefa",
       status,
       priority: "Normal",
@@ -56,17 +58,19 @@ export function useQuickAddTask({
       order: minOrder - 1,
     });
     
-    onSetEditingTaskId(newTask.id);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
-  const handleQuickAddAfter = useCallback((afterTaskId: string) => {
+  const handleQuickAddAfter = useCallback(async (afterTaskId: string) => {
     const afterTask = tasks.find(t => t.id === afterTaskId);
     if (!afterTask) return;
     
     const defaultAssignee = currentUser?.name || "";
     
-    // Create task (optimistic - instantâneo)
-    const newTask = createTaskAndReturn({
+    // Create task (aguarda resposta do servidor)
+    const newTask = await createTaskAndReturn({
       title: "Nova tarefa",
       status: afterTask.status,
       priority: "Normal",
@@ -75,7 +79,9 @@ export function useQuickAddTask({
       order: afterTask.order + 0.5,
     });
     
-    onSetEditingTaskId(newTask.id);
+    if (newTask) {
+      onSetEditingTaskId(newTask.id);
+    }
   }, [tasks, onSetEditingTaskId, currentUser, createTaskAndReturn]);
 
   return { handleQuickAdd, handleQuickAddTop, handleQuickAddAfter };

@@ -8,6 +8,7 @@ import {
   MEETING_DETAILS_DATA,
   type ClientExtendedData
 } from "@/shared/mocks/clientsMock";
+import type { ClientImportRow } from "../lib/clientImportExport";
 
 // ============================================
 // Supabase DB row types (snake_case)
@@ -167,6 +168,7 @@ interface ClientsContextType {
   addClientMeeting: (clientId: string, meeting: Omit<ClientMeeting, 'id'>) => void;
   updateClientMeeting: (clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, 'id'>>) => void;
   deleteClientMeeting: (clientId: string, meetingId: string) => void;
+  bulkInsertClients: (rows: ClientImportRow[]) => Promise<{ inserted: number; errors: string[] }>;
   dataVersion: number;
 }
 
@@ -596,6 +598,51 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion(v => v + 1);
   }, []);
 
+  // ============================================
+  // Bulk import
+  // ============================================
+
+  const bulkInsertClients = useCallback(async (rows: ClientImportRow[]): Promise<{ inserted: number; errors: string[] }> => {
+    const BATCH_SIZE = 50;
+    let inserted = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+      const batch = rows.slice(i, i + BATCH_SIZE);
+      const dbRows = batch.map((row) => ({
+        name: row.name,
+        initials: deriveInitials(row.name),
+        emails: row.emails,
+        primary_email_index: 0,
+        cpf: row.cpf || null,
+        phone: row.phone || null,
+        status: row.status || "Ativo",
+        patrimony: row.patrimony,
+        client_since: row.clientSince || new Date().toISOString(),
+        foundation_code: row.foundationCode || null,
+        address: row.address || { street: "", complement: "", neighborhood: "", city: "", state: "", zipCode: "" },
+        owner_id: currentUser?.id ?? null,
+      }));
+
+      const { data, error: insertError } = await supabase
+        .from("clients")
+        .insert(dbRows)
+        .select("id");
+
+      if (insertError) {
+        errors.push(`Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${insertError.message}`);
+      } else {
+        inserted += data?.length || 0;
+      }
+    }
+
+    // Refresh all clients after import
+    await fetchClients();
+    setDataVersion((v) => v + 1);
+
+    return { inserted, errors };
+  }, [currentUser, fetchClients]);
+
   const contextValue = useMemo(() => ({
     clients,
     isLoading,
@@ -625,8 +672,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     addClientMeeting,
     updateClientMeeting,
     deleteClientMeeting,
+    bulkInsertClients,
     dataVersion,
-  }), [clients, isLoading, error, refetchClients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addClient, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, dataVersion]);
+  }), [clients, isLoading, error, refetchClients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addClient, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, bulkInsertClients, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>

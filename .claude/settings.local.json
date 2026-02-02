@@ -36,7 +36,11 @@
       "mcp__supabase__get_publishable_keys",
       "mcp__supabase__apply_migration",
       "Bash(node:*)",
-      "mcp__supabase__list_tables"
+      "mcp__supabase__list_tables",
+      "Bash(grep:*)",
+      "Bash(xargs:*)",
+      "mcp__ai-context__explore",
+      "Bash(npx vite build:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

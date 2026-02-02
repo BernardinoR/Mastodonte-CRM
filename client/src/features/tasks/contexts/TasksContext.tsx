@@ -122,8 +122,8 @@ interface TasksContextType {
   updateTask: (taskId: string, updates: Partial<Task>) => void;
   deleteTask: (taskId: string) => void;
   addTask: (task: Task) => void;
-  createTask: (data: CreateTaskData) => void;
-  createTaskAndReturn: (data: CreateTaskData) => Task;
+  createTask: (data: CreateTaskData) => Promise<Task | null>;
+  createTaskAndReturn: (data: CreateTaskData) => Promise<Task | null>;
   retryTaskSync: (taskId: string) => void;
   getTasksByClient: (clientNameOrId: string) => Task[];
   addTaskHistory: (taskId: string, type: string, content: string) => void;
@@ -457,45 +457,79 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     syncTaskToApi(taskId, data);
   }, [syncTaskToApi]);
 
-  // Create task and return it (optimistic - instantâneo)
-  const createTaskAndReturn = useCallback((data: CreateTaskData): Task => {
-    const tempId = `temp-${Date.now()}`;
+  // Create task and return it (aguarda resposta do servidor)
+  const createTaskAndReturn = useCallback(async (data: CreateTaskData): Promise<Task | null> => {
+    try {
+      // Find client by name if clientId not provided
+      let clientId = data.clientId;
+      if (!clientId && data.clientName) {
+        const client = clients.find(c => c.name.toLowerCase() === data.clientName?.toLowerCase());
+        clientId = client?.id;
+      }
 
-    // Resolver assignees localmente
-    const assigneeNames = data.assignees?.length
-      ? data.assignees
-      : currentUser ? [currentUser.name] : [];
+      // Convert assignee names to IDs
+      const assigneeIds: number[] = [];
+      if (data.assignees && data.assignees.length > 0) {
+        for (const name of data.assignees) {
+          const user = teamUsers.find(u => u.name.toLowerCase() === name.toLowerCase());
+          if (user) {
+            assigneeIds.push(user.id);
+          }
+        }
+      } else if (currentUser) {
+        assigneeIds.push(currentUser.id);
+      }
 
-    // Criar tarefa local imediatamente
-    const tempTask: Task = {
-      id: tempId,
-      title: data.title,
-      clientId: data.clientId,
-      clientName: data.clientName,
-      priority: data.priority || "Normal",
-      status: data.status || "To Do",
-      dueDate: data.dueDate || new Date(),
-      order: data.order ?? 0,
-      assignees: assigneeNames,
-      history: [],
-      syncStatus: "pending",
-    };
+      // Insert task via Supabase
+      const { data: created, error: insertError } = await supabase
+        .from('tasks')
+        .insert({
+          title: data.title,
+          priority: data.priority || "Normal",
+          status: data.status || "To Do",
+          due_date: data.dueDate?.toISOString() || new Date().toISOString(),
+          client_id: clientId || null,
+          creator_id: currentUser?.id ?? null,
+          order: data.order ?? 0,
+        })
+        .select('id')
+        .single();
 
-    // Guardar dados para retry
-    pendingCreateData.current.set(tempId, data);
+      if (insertError) throw insertError;
 
-    // Adicionar imediatamente à lista
-    setTasks(prev => [...prev, tempTask]);
+      const realTaskId = created.id;
 
-    // Sync em background (sem await)
-    syncTaskToApi(tempId, data);
+      // Insert assignees
+      if (assigneeIds.length > 0) {
+        await supabase.from('task_assignees').insert(
+          assigneeIds.map(userId => ({ task_id: realTaskId, user_id: userId }))
+        );
+      }
 
-    return tempTask; // Retorna instantaneamente
-  }, [currentUser, syncTaskToApi]);
+      // Fetch the complete task with relations
+      const { data: taskData, error: fetchError } = await supabase
+        .from('tasks')
+        .select(TASK_SELECT)
+        .eq('id', realTaskId)
+        .single();
 
-  // Create task (fire and forget version)
-  const createTask = useCallback((data: CreateTaskData) => {
-    createTaskAndReturn(data);
+      if (fetchError) throw fetchError;
+
+      const newTask = mapDbRowToTask(taskData as DbTask);
+
+      // Adicionar à lista após confirmação do servidor
+      setTasks(prev => [...prev, newTask]);
+
+      return newTask;
+    } catch (err) {
+      console.error("Error creating task:", err);
+      return null;
+    }
+  }, [clients, teamUsers, currentUser]);
+
+  // Create task (async version)
+  const createTask = useCallback(async (data: CreateTaskData): Promise<Task | null> => {
+    return createTaskAndReturn(data);
   }, [createTaskAndReturn]);
 
   // Get tasks by client

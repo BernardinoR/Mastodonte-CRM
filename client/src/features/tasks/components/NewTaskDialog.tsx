@@ -59,7 +59,7 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
       assignees: [formData.assignee],
     };
     onSubmit?.(taskData);
-    onOpenChange(false);
+    // Modal permanece aberto - reset do form para permitir criar múltiplas tasks
     setFormData({
       title: "",
       description: "",

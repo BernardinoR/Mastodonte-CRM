@@ -4,18 +4,21 @@ import { NewClientInlineCard } from "@features/clients";
 import { useClientsPage } from "@features/clients";
 import { useClients } from "@features/clients";
 import { useToast } from "@/shared/hooks/use-toast";
-import { 
-  ClientsToolbar, 
-  ClientsStatsGrid, 
+import {
+  ClientsToolbar,
+  ClientsStatsGrid,
   ClientsListView,
   ClientsFiltersRow
 } from "@features/clients/components/clients-page";
+import { useClientImportExport } from "../hooks/useClientImportExport";
+import { ImportClientsDialog } from "../components/ImportClientsDialog";
 
 export default function Clients() {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
+  const [showImportDialog, setShowImportDialog] = useState(false);
   const { addClient } = useClients();
   const { toast } = useToast();
-  
+
   const {
     viewMode,
     setViewMode,
@@ -31,6 +34,32 @@ export default function Clients() {
     totalClients,
     noMeetingCount,
   } = useClientsPage();
+
+  const {
+    state: importState,
+    validation,
+    importResult,
+    errorMessage,
+    progress,
+    handleFileSelected,
+    confirmImport,
+    exportClients,
+    downloadTemplate,
+    reset: resetImport,
+  } = useClientImportExport();
+
+  const handleImportFile = (file: File) => {
+    setShowImportDialog(true);
+    handleFileSelected(file);
+  };
+
+  const handleExportClients = () => {
+    exportClients();
+    toast({
+      title: "Exportação concluída",
+      description: "O arquivo Excel foi baixado com sucesso.",
+    });
+  };
 
   return (
     <div className="p-6">
@@ -56,6 +85,9 @@ export default function Clients() {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onNewClient={() => setIsCreatingClient(true)}
+        onImportFile={handleImportFile}
+        onExportClients={handleExportClients}
+        onDownloadTemplate={downloadTemplate}
       />
 
       {/* Stats Grid */}
@@ -86,9 +118,9 @@ export default function Clients() {
             />
           )}
           {filteredClients.map(client => (
-            <ClientCard 
-              key={client.id} 
-              client={client} 
+            <ClientCard
+              key={client.id}
+              client={client}
               isCompact={isCompact}
             />
           ))}
@@ -101,6 +133,19 @@ export default function Clients() {
       ) : (
         <ClientsListView clients={filteredClients} />
       )}
+
+      {/* Import Dialog */}
+      <ImportClientsDialog
+        open={showImportDialog}
+        onOpenChange={setShowImportDialog}
+        state={importState}
+        validation={validation}
+        importResult={importResult}
+        errorMessage={errorMessage}
+        progress={progress}
+        onConfirmImport={confirmImport}
+        onReset={resetImport}
+      />
     </div>
   );
 }
