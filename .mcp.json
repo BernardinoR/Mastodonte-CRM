@@ -3,6 +3,18 @@
     "supabase": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp"
+    },
+    "ai-context": {
+      "command": "npx",
+      "args": ["-y", "@ai-coders/context@latest", "mcp"]
+    },
+    "prisma-remote": {
+      "type": "http",
+      "url": "https://mcp.prisma.io/mcp"
+    },
+    "prisma-local": {
+      "command": "npx",
+      "args": ["-y", "prisma", "mcp"]
     }
   }
 }
