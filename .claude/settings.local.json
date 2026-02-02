@@ -23,7 +23,23 @@
       "Bash(npx tsc:*)",
       "Bash(npm run build:*)",
       "Bash(psql:*)",
-      "Bash(kill:*)"
+      "Bash(kill:*)",
+      "WebFetch(domain:supabase.com)",
+      "WebFetch(domain:composio.dev)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(claude mcp:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__execute_sql",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__get_publishable_keys",
+      "mcp__supabase__apply_migration",
+      "Bash(node:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
 }

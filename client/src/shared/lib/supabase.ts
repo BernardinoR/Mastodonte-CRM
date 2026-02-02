@@ -3,25 +3,22 @@ import { createClient, type SupabaseClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Token holder - updated by useSupabaseAuth hook
-let currentToken: string | null = null
+// Access token provider - set by useSupabaseAuth hook
+let accessTokenFn: (() => Promise<string | null>) | null = null
 
-export function setSupabaseToken(token: string | null) {
-  currentToken = token
+export function setAccessTokenProvider(fn: (() => Promise<string | null>) | null) {
+  accessTokenFn = fn
 }
 
 export const supabase: SupabaseClient = createClient(
   supabaseUrl || '',
   supabaseAnonKey || '',
   {
-    global: {
-      fetch: async (input, init) => {
-        const headers = new Headers(init?.headers || {})
-        if (currentToken) {
-          headers.set('Authorization', `Bearer ${currentToken}`)
-        }
-        return fetch(input, { ...init, headers })
-      },
+    accessToken: async () => {
+      if (accessTokenFn) {
+        return await accessTokenFn()
+      }
+      return null
     },
     auth: {
       persistSession: false,
