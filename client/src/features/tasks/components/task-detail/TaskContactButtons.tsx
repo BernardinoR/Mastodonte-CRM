@@ -1,17 +1,24 @@
 import { useState } from "react";
-import { Mail, Phone, MessageCircle } from "lucide-react";
+import { Mail, Phone, MessageCircle, Calendar } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { UI_CLASSES } from "../../lib/statusConfig";
 import type { WhatsAppGroup } from "@features/clients";
+import { useCurrentUser } from "@features/users";
+import { buildSchedulingMessage, buildWhatsAppSchedulingUrl } from "@features/clients/lib/schedulingMessage";
+import { supabase } from "@/shared/lib/supabase";
 
 interface TaskContactButtonsProps {
   clientEmail?: string;
   clientPhone?: string;
+  clientName?: string;
+  clientId?: string;
   whatsappGroups?: WhatsAppGroup[];
 }
 
-export function TaskContactButtons({ clientEmail, clientPhone, whatsappGroups = [] }: TaskContactButtonsProps) {
+export function TaskContactButtons({ clientEmail, clientPhone, clientName, clientId, whatsappGroups = [] }: TaskContactButtonsProps) {
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
+  const { data: currentUserData } = useCurrentUser();
+  const calendarLink = currentUserData?.user?.calendarLink;
 
   if (!clientEmail && !clientPhone) return null;
 
@@ -28,6 +35,26 @@ export function TaskContactButtons({ clientEmail, clientPhone, whatsappGroups = 
       const phone = clientPhone.replace(/\D/g, "");
       window.location.href = `whatsapp://send?phone=${phone}`;
     }
+  };
+
+  const handleSchedulingWhatsApp = async () => {
+    if (!calendarLink || !clientPhone || !clientName) return;
+
+    // Record scheduling message sent
+    if (clientId) {
+      try {
+        await supabase
+          .from('clients')
+          .update({ scheduling_message_sent_at: new Date().toISOString() })
+          .eq('id', clientId);
+      } catch (err) {
+        console.error("Error recording scheduling sent:", err);
+      }
+    }
+
+    const message = buildSchedulingMessage(clientName, calendarLink);
+    const url = buildWhatsAppSchedulingUrl(clientPhone, message);
+    window.open(url, '_blank');
   };
 
   return (
@@ -78,6 +105,19 @@ export function TaskContactButtons({ clientEmail, clientPhone, whatsappGroups = 
                     <MessageCircle className="w-4 h-4" />
                     Chat direto
                   </button>
+                  {calendarLink && clientName && (
+                    <button
+                      onClick={() => {
+                        handleSchedulingWhatsApp();
+                        setWhatsappPopoverOpen(false);
+                      }}
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[#2c2c2c] rounded-md transition-colors text-left"
+                      data-testid="button-whatsapp-scheduling"
+                    >
+                      <Calendar className="w-4 h-4 text-emerald-500" />
+                      Enviar link de agendamento
+                    </button>
+                  )}
                   <div className="border-t border-[#333333] my-1" />
                   <div className="px-3 py-1 text-xs text-muted-foreground uppercase">Grupos</div>
                   {activeWhatsAppGroups.map((group) => (
@@ -94,6 +134,44 @@ export function TaskContactButtons({ clientEmail, clientPhone, whatsappGroups = 
                       {group.name}
                     </button>
                   ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          ) : calendarLink && clientName ? (
+            <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  className={buttonClass}
+                  data-testid="button-whatsapp-client"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  WhatsApp
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 bg-[#202020] border-[#333333]" align="start">
+                <div className="flex flex-col gap-1">
+                  <button
+                    onClick={() => {
+                      handleWhatsApp();
+                      setWhatsappPopoverOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[#2c2c2c] rounded-md transition-colors text-left"
+                    data-testid="button-whatsapp-direct"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    Chat direto
+                  </button>
+                  <button
+                    onClick={() => {
+                      handleSchedulingWhatsApp();
+                      setWhatsappPopoverOpen(false);
+                    }}
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[#2c2c2c] rounded-md transition-colors text-left"
+                    data-testid="button-whatsapp-scheduling"
+                  >
+                    <Calendar className="w-4 h-4 text-emerald-500" />
+                    Enviar link de agendamento
+                  </button>
                 </div>
               </PopoverContent>
             </Popover>

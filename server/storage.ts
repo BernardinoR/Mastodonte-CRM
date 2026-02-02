@@ -9,6 +9,7 @@ export type InsertUser = {
   roles?: UserRole[];
   groupId?: number | null;
   isActive?: boolean;
+  calendarLink?: string | null;
 };
 
 export interface IStorage {

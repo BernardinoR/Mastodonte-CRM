@@ -49,8 +49,18 @@ export function daysSinceLastMeeting(lastMeeting: Date | null | undefined): numb
 
 /**
  * Determina status de atraso: ok (<30d), warning (30-60d), critical (>60d)
+ * Se mensagem de agendamento foi enviada nas últimas 24h, retorna 'ok' (grace period)
  */
-export function getMeetingDelayStatus(days: number): 'ok' | 'warning' | 'critical' {
+export function getMeetingDelayStatus(
+  days: number,
+  schedulingMessageSentAt?: Date | null
+): 'ok' | 'warning' | 'critical' {
+  // Grace period: se mensagem de agendamento foi enviada nas últimas 24h
+  if (schedulingMessageSentAt) {
+    const hoursSinceSent = (Date.now() - new Date(schedulingMessageSentAt).getTime()) / (1000 * 60 * 60);
+    if (hoursSinceSent < 24) return 'ok';
+  }
+
   if (days < 0) return 'critical'; // Sem reunião registrada
   if (days < 30) return 'ok';
   if (days < 60) return 'warning';

@@ -40,11 +40,18 @@
       "Bash(grep:*)",
       "Bash(xargs:*)",
       "mcp__ai-context__explore",
-      "Bash(npx vite build:*)"
+      "Bash(npx vite build:*)",
+      "mcp__ai-context__sync",
+      "Bash(npx prisma generate:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx prisma db push:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "supabase"
+    "supabase",
+    "ai-context",
+    "prisma-remote",
+    "prisma-local"
   ]
 }

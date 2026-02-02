@@ -24,6 +24,7 @@ export interface Client {
   clientSince: string;
   status: ClientStatus;
   folderLink?: string;
+  schedulingMessageSentAt?: Date | null;
 }
 
 export interface ClientStats {

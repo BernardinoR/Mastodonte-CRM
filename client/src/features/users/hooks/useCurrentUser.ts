@@ -11,6 +11,7 @@ export interface CurrentUser {
   roles: UserRole[];
   groupId: number | null;
   isActive: boolean;
+  calendarLink: string | null;
 }
 
 export function useCurrentUser() {

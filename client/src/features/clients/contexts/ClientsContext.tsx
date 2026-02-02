@@ -32,6 +32,7 @@ interface DbClient {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  scheduling_message_sent_at: string | null;
   owner?: { id: number; name: string | null } | null;
   whatsapp_groups?: DbWhatsAppGroup[];
 }
@@ -91,6 +92,7 @@ function mapDbRowToClient(row: DbClient): Client {
     foundationCode: row.foundation_code || "",
     clientSince: formatClientSince(clientSinceDate),
     status: (row.status as ClientStatus) || "Ativo",
+    schedulingMessageSentAt: row.scheduling_message_sent_at ? new Date(row.scheduling_message_sent_at) : null,
   };
 }
 

@@ -59,6 +59,7 @@ interface User {
   roles: UserRole[];
   groupId: number | null;
   isActive: boolean;
+  calendarLink: string | null;
 }
 
 const ROLE_LABELS: Record<UserRole, string> = {
@@ -82,7 +83,7 @@ function mapDbGroup(row: Record<string, unknown>): Group {
   return { id: row.id as number, name: row.name as string, description: row.description as string | null, logoUrl: row.logo_url as string | null, isActive: row.is_active as boolean, createdAt: row.created_at as string };
 }
 function mapDbUser(row: Record<string, unknown>): User {
-  return { id: row.id as number, clerkId: row.clerk_id as string, email: row.email as string, name: row.name as string | null, roles: row.roles as UserRole[], groupId: row.group_id as number | null, isActive: row.is_active as boolean };
+  return { id: row.id as number, clerkId: row.clerk_id as string, email: row.email as string, name: row.name as string | null, roles: row.roles as UserRole[], groupId: row.group_id as number | null, isActive: row.is_active as boolean, calendarLink: (row.calendar_link as string) || null };
 }
 
 export default function Admin() {

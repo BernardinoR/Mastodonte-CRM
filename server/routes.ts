@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { prisma } from "./db";
 import { clerkAuthMiddleware, requireAdmin } from "./auth";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import type { UserRole } from "@shared/types";
@@ -243,6 +244,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Clerk error details:", { code: clerkCode, message: clerkMessage });
       
       return res.status(500).json({ error: errorMessage });
+    }
+  });
+
+  // Update user's calendar link
+  app.patch("/api/users/calendar-link", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const { calendarLink } = req.body;
+
+      if (calendarLink !== null && typeof calendarLink !== "string") {
+        return res.status(400).json({ error: "calendarLink must be a string or null" });
+      }
+
+      const updated = await storage.updateUser(currentUser.id, { calendarLink: calendarLink || null });
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({ user: updated });
+    } catch (error) {
+      console.error("Error updating calendar link:", error);
+      return res.status(500).json({ error: "Failed to update calendar link" });
+    }
+  });
+
+  // Record scheduling message sent timestamp for a client
+  app.patch("/api/clients/:id/scheduling-sent", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const client = await prisma.client.update({
+        where: { id },
+        data: { schedulingMessageSentAt: new Date() },
+      });
+
+      return res.json({ client });
+    } catch (error) {
+      console.error("Error recording scheduling sent:", error);
+      return res.status(500).json({ error: "Failed to record scheduling sent" });
     }
   });
 

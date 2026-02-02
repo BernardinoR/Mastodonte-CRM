@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { User, Camera, Users, Key, Check, X, ExternalLink, Loader2, ArrowLeft } from "lucide-react";
+import { User, Camera, Users, Key, Check, X, ExternalLink, Loader2, ArrowLeft, Calendar } from "lucide-react";
 import { Link } from "wouter";
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
@@ -45,6 +45,9 @@ export default function Profile() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [editingCalendarLink, setEditingCalendarLink] = useState(false);
+  const [calendarLinkValue, setCalendarLinkValue] = useState("");
+  const [savingCalendarLink, setSavingCalendarLink] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const groupId = currentUser?.groupId;
@@ -82,6 +85,7 @@ export default function Profile() {
         roles: r.roles as string[],
         groupId: r.group_id as number | null,
         isActive: (r.is_active as boolean) ?? true,
+        calendarLink: (r.calendar_link as string) || null,
       }));
 
       return { group, members };
@@ -146,6 +150,45 @@ export default function Profile() {
   const handleCancelEditName = () => {
     setEditingName(false);
     setNameValue("");
+  };
+
+  const handleStartEditCalendarLink = () => {
+    setCalendarLinkValue(currentUser?.calendarLink || "");
+    setEditingCalendarLink(true);
+  };
+
+  const handleSaveCalendarLink = async () => {
+    if (savingCalendarLink || !currentUser?.id) return;
+    const trimmed = calendarLinkValue.trim();
+
+    if (trimmed && !trimmed.startsWith("https://calendar.app.google/")) {
+      toast({ title: "Link inválido", description: "O link deve começar com https://calendar.app.google/", variant: "destructive" });
+      return;
+    }
+
+    setSavingCalendarLink(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ calendar_link: trimmed || null })
+        .eq('id', currentUser.id);
+      if (error) throw error;
+
+      queryClient.invalidateQueries({ queryKey: ['/api/auth/me'] });
+      toast({ title: "Link de agendamento atualizado" });
+      setEditingCalendarLink(false);
+      setCalendarLinkValue("");
+    } catch (error) {
+      console.error("Error updating calendar link:", error);
+      toast({ title: "Erro ao salvar link", variant: "destructive" });
+    } finally {
+      setSavingCalendarLink(false);
+    }
+  };
+
+  const handleCancelEditCalendarLink = () => {
+    setEditingCalendarLink(false);
+    setCalendarLinkValue("");
   };
 
   const handleOpenClerkProfile = () => {
@@ -349,6 +392,61 @@ export default function Profile() {
                       <span className="text-sm text-muted-foreground">Nenhuma função atribuída</span>
                     )}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Link de agendamento
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Cole aqui seu link do Google Calendar para enviar aos clientes
+                  </p>
+                  {editingCalendarLink ? (
+                    <div className="flex gap-2">
+                      <Input
+                        value={calendarLinkValue}
+                        onChange={(e) => setCalendarLinkValue(e.target.value)}
+                        placeholder="https://calendar.app.google/..."
+                        data-testid="input-calendar-link"
+                      />
+                      <Button
+                        size="icon"
+                        onClick={handleSaveCalendarLink}
+                        disabled={savingCalendarLink}
+                        data-testid="button-save-calendar-link"
+                      >
+                        {savingCalendarLink ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <Check className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        onClick={handleCancelEditCalendarLink}
+                        disabled={savingCalendarLink}
+                        data-testid="button-cancel-calendar-link"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm truncate max-w-[300px]" data-testid="text-calendar-link">
+                        {currentUser?.calendarLink || "Não configurado"}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={handleStartEditCalendarLink}
+                        data-testid="button-edit-calendar-link"
+                      >
+                        {currentUser?.calendarLink ? "Editar" : "Configurar"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

@@ -36,7 +36,7 @@ export function useClientsPage() {
       
       // Calcula dias desde última reunião
       const days = daysSinceLastMeeting(client.lastMeeting);
-      const meetingDelayStatus = getMeetingDelayStatus(days);
+      const meetingDelayStatus = getMeetingDelayStatus(days, client.schedulingMessageSentAt);
       
       // Conta tasks urgentes
       const clientTasks = getTasksByClient(client.id);

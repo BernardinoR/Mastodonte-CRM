@@ -342,9 +342,11 @@ export function TaskDetailModal({
               />
             </div>
 
-            <TaskContactButtons 
-              clientEmail={linkedClient?.emails?.[linkedClient.primaryEmailIndex] || linkedClient?.emails?.[0] || task.clientEmail} 
+            <TaskContactButtons
+              clientEmail={linkedClient?.emails?.[linkedClient.primaryEmailIndex] || linkedClient?.emails?.[0] || task.clientEmail}
               clientPhone={linkedClient?.phone || task.clientPhone}
+              clientName={linkedClient?.name || task.clientName}
+              clientId={task.clientId}
               whatsappGroups={whatsappGroups}
             />
 

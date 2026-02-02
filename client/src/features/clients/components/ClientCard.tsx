@@ -1,4 +1,4 @@
-import { 
+import {
   Calendar,
   AlertTriangle
 } from "lucide-react";
@@ -7,6 +7,9 @@ import { useCallback } from "react";
 import type { Client, EnrichedClient } from "@features/clients";
 import { cn } from "@/shared/lib/utils";
 import { toast } from "@/shared/hooks/use-toast";
+import { useCurrentUser } from "@features/users";
+import { supabase } from "@/shared/lib/supabase";
+import { buildSchedulingMessage, buildWhatsAppSchedulingUrl } from "../lib/schedulingMessage";
 
 interface ClientCardProps {
   client: Client | EnrichedClient;
@@ -30,6 +33,8 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
   const { id, name, initials, emails, phone, status, advisor, clientSince, address, lastMeeting, cpf } = client;
   const email = emails[client.primaryEmailIndex] || emails[0];
   const [, setLocation] = useLocation();
+  const { data: currentUserData } = useCurrentUser();
+  const calendarLink = currentUserData?.user?.calendarLink;
 
   // Dados enriquecidos (se disponíveis)
   const enriched = isEnrichedClient(client) ? client : null;
@@ -74,9 +79,37 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
     });
   }, []);
 
-  const handleScheduleClick = (e: React.MouseEvent) => {
+  const handleScheduleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    onSchedule?.(client);
+
+    if (!calendarLink) {
+      toast({
+        title: "Link de agendamento não configurado",
+        description: "Configure seu link do Google Calendar no seu perfil",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!phone) {
+      onSchedule?.(client);
+      return;
+    }
+
+    // Record scheduling message sent
+    try {
+      await supabase
+        .from('clients')
+        .update({ scheduling_message_sent_at: new Date().toISOString() })
+        .eq('id', id);
+    } catch (err) {
+      console.error("Error recording scheduling sent:", err);
+    }
+
+    // Open WhatsApp with pre-formatted message
+    const message = buildSchedulingMessage(name, calendarLink);
+    const url = buildWhatsAppSchedulingUrl(phone, message);
+    window.open(url, '_blank');
   };
 
   // Cor do indicador de dias

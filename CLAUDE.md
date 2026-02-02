@@ -1,6 +1,23 @@
-# Claude Code Project Context
+# Project Rules and Guidelines
 
-> Task Management System - Full-stack application for managing clients, tasks, meetings, and team workflows.
+> Auto-generated from .context/docs on 2026-02-02T20:15:06.820Z
+
+## README
+
+# Documentation Index
+
+Welcome to the repository knowledge base. This documentation covers the Task Management System - a full-stack application for managing clients, tasks, meetings, and team workflows.
+
+## Core Guides
+
+- [Project Overview](./project-overview.md) - Purpose, goals, and high-level architecture
+- [Architecture Notes](./architecture.md) - System layers, patterns, and design decisions
+- [Development Workflow](./development-workflow.md) - Branching, CI/CD, and contribution guidelines
+- [Testing Strategy](./testing-strategy.md) - Test configurations and quality gates
+- [Glossary & Domain Concepts](./glossary.md) - Business terminology and domain rules
+- [Data Flow & Integrations](./data-flow.md) - How data moves through the system
+- [Security & Compliance Notes](./security.md) - Authentication, authorization, and security model
+- [Tooling & Productivity Guide](./tooling.md) - CLI scripts and IDE configurations
 
 ## Technology Stack
 
@@ -10,140 +27,42 @@
 | Backend | Node.js, Express |
 | Database | PostgreSQL with Prisma ORM |
 | Authentication | Clerk |
-| UI Components | shadcn/ui |
-| State Management | TanStack Query |
+| Styling | shadcn/ui components |
 
 ## Repository Structure
 
-```
-.
-├── client/                 # React frontend
-│   └── src/
-│       ├── app/           # App-level components
-│       ├── features/      # Feature modules (tasks, clients, meetings, auth, users)
-│       └── shared/        # Shared utilities, hooks, components
-├── server/                # Express backend
-│   ├── app.ts            # Express application
-│   ├── auth.ts           # Clerk authentication middleware
-│   └── storage.ts        # Database access layer (DbStorage)
-├── prisma/                # Database schema
-└── .context/              # AI context documentation
-```
+| Directory | Purpose |
+|-----------|---------|
+| `client/` | React frontend application |
+| `server/` | Express backend API |
+| `prisma/` | Database schema and migrations |
+| `attached_assets/` | Static assets and resources |
 
-## Key Entry Points
+## Quick Links
 
-- **Server**: `server/app.ts`, `server/index.ts`
-- **Client**: `client/src/main.tsx`, `client/src/App.tsx`
-- **Database**: `prisma/schema.prisma`
-- **Auth**: `server/auth.ts` (Clerk middleware)
+- **Entry Points**: [`server/app.ts`](../server/app.ts), [`client/src/main.tsx`](../client/src/main.tsx)
+- **API Routes**: [`server/routes.ts`](../server/routes.ts)
+- **Database Schema**: [`prisma/schema.prisma`](../prisma/schema.prisma)
 
-## Feature Modules
+## Key Features
 
-| Feature | Location | Description |
-|---------|----------|-------------|
-| Tasks | `client/src/features/tasks/` | Task management with turbo mode |
-| Clients | `client/src/features/clients/` | Client management |
-| Meetings | `client/src/features/meetings/` | Meeting scheduling with AI summaries |
-| Auth | `client/src/features/auth/` | Authentication pages |
-| Users | `client/src/features/users/` | User management |
+- **Task Management**: Create, assign, track, and complete tasks with priority and status tracking
+- **Client Management**: Manage client information, contacts, and relationships
+- **Meeting Scheduling**: Schedule and track meetings with AI-powered summaries
+- **User Roles**: Admin, manager, and user role-based access control
+- **Turbo Mode**: Fast task processing workflow for bulk operations
+- **WhatsApp Integration**: Link tasks to WhatsApp groups for communication tracking
 
-## Architecture Patterns
+## Document Map
 
-### Frontend
-- **Feature-based structure**: Code organized by business domain
-- **Custom hooks**: State and logic in `features/*/hooks/`
-- **TanStack Query**: Server state with caching
-- **shadcn/ui**: Accessible component library
+| Guide | File | Primary Inputs |
+|-------|------|----------------|
+| Project Overview | `project-overview.md` | Roadmap, README, stakeholder notes |
+| Architecture Notes | `architecture.md` | ADRs, service boundaries, dependency graphs |
+| Development Workflow | `development-workflow.md` | Branching rules, CI config, contributing guide |
+| Testing Strategy | `testing-strategy.md` | Test configs, CI gates, known flaky suites |
+| Glossary & Domain Concepts | `glossary.md` | Business terminology, user personas, domain rules |
+| Data Flow & Integrations | `data-flow.md` | System diagrams, integration specs |
+| Security & Compliance Notes | `security.md` | Auth model, secrets management |
+| Tooling & Productivity Guide | `tooling.md` | CLI scripts, IDE configs |
 
-### Backend
-- **Repository pattern**: `DbStorage` class in `server/storage.ts`
-- **Middleware chain**: Clerk auth middleware
-- **Prisma ORM**: Type-safe database access
-
-## Key Symbols
-
-### Backend
-- `DbStorage` (class) @ `server/storage.ts` - Data access layer
-- `IStorage` (interface) @ `server/storage.ts` - Storage contract
-- `clerkAuthMiddleware` @ `server/auth.ts` - JWT validation
-- `requireRole`, `requireAdmin` @ `server/auth.ts` - RBAC
-
-### Frontend
-- `apiRequest` @ `client/src/shared/lib/queryClient.ts` - HTTP client
-- `useCurrentUser` @ `client/src/features/users/hooks/` - Auth hook
-- `useTurboMode` @ `client/src/features/tasks/hooks/` - Bulk task processing
-- `cn` @ `client/src/shared/lib/utils.ts` - Class name utility
-
-## Development Commands
-
-```bash
-npm install          # Install dependencies
-npm run dev          # Start dev server
-npm run build        # Build for production
-npm run test         # Run tests
-npx prisma studio    # Database GUI
-npx prisma migrate dev  # Run migrations
-```
-
-## Code Conventions
-
-### TypeScript
-- Strict mode enabled
-- Interfaces for object shapes
-- Explicit return types
-- No `any` (use `unknown` if needed)
-
-### React
-- Functional components with hooks
-- Custom hooks for reusable logic
-- TanStack Query for server state
-
-### Commits
-Follow Conventional Commits:
-```
-feat(tasks): add turbo mode
-fix(auth): handle session expiry
-refactor(hooks): extract filter logic
-```
-
-## Authentication & Authorization
-
-- **Authentication**: Clerk (JWT tokens)
-- **Roles**: admin, manager, user
-- **Middleware**: `clerkAuthMiddleware`, `requireRole()`, `requireAdmin()`
-
-## Documentation
-
-Full documentation available in `.claude/docs/` (also in `.context/docs/`):
-- `architecture.md` - System architecture
-- `data-flow.md` - Data flow diagrams
-- `development-workflow.md` - Dev process
-- `testing-strategy.md` - Test guidelines
-- `security.md` - Security model
-- `glossary.md` - Domain concepts
-- `codebase-map.json` - Symbol index and dependencies
-
-## Agent Playbooks
-
-AI agent playbooks in `.claude/agents/` (also in `.context/agents/`):
-- `architect-specialist.md` - System design
-- `backend-specialist.md` - Server development
-- `frontend-specialist.md` - UI development
-- `bug-fixer.md` - Debugging
-- `code-reviewer.md` - Code review
-- `feature-developer.md` - Feature implementation
-- `test-writer.md` - Test generation
-
-## Skills
-
-Project-specific skills in `.claude/skills/`:
-- `api-design` - RESTful API patterns
-- `bug-investigation` - Debug workflow
-- `code-review` - Review guidelines
-- `commit-message` - Commit conventions
-- `documentation` - Doc standards
-- `feature-breakdown` - Task decomposition
-- `pr-review` - PR checklist
-- `refactoring` - Safe refactoring
-- `security-audit` - Security checklist
-- `test-generation` - Test patterns
