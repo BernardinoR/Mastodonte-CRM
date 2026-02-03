@@ -2,7 +2,8 @@ export function buildSchedulingMessage(
   clientName: string,
   calendarLink: string
 ): string {
-  return `Olá ${clientName}! Gostaria de agendar nossa próxima reunião. Por favor, escolha o melhor horário no link abaixo:\n\n${calendarLink}\n\nAguardo seu retorno!`;
+  const firstName = clientName.split(' ')[0];
+  return `Olá ${firstName}! Gostaria de agendar nossa próxima reunião. Por favor, escolha o melhor horário no link abaixo:\n\n${calendarLink}\n\nAguardo seu retorno!`;
 }
 
 export function buildWhatsAppSchedulingUrl(
