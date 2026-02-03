@@ -17,6 +17,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/aler
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
 import { useToast } from "@/shared/hooks/use-toast";
+import LayoutExamples from "../components/LayoutExamples";
+import FormExamples from "../components/FormExamples";
+import FeedbackExamples from "../components/FeedbackExamples";
+import DataExamples from "../components/DataExamples";
 import {
   AlertCircle,
   Check,
@@ -458,261 +462,296 @@ function ComponentsSection() {
 
       <Separator />
 
-      {/* Exemplos visuais dos componentes principais */}
+      {/* Exemplos visuais organizados por categoria */}
       <div>
         <h3 className="text-sm font-semibold text-muted-foreground mb-4">Exemplos Visuais</h3>
 
-        {/* Button */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Button</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <Button>Default</Button>
-                <Button variant="secondary">Secondary</Button>
-                <Button variant="destructive">Destructive</Button>
-                <Button variant="outline">Outline</Button>
-                <Button variant="ghost">Ghost</Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button size="sm">Small</Button>
-                <Button size="default">Default</Button>
-                <Button size="lg">Large</Button>
-                <Button size="icon"><Check className="h-4 w-4" /></Button>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button disabled>Disabled</Button>
-              </div>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Button } from "@/shared/components/ui/button"`}
-              </code>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="forms" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="forms">Formulários</TabsTrigger>
+            <TabsTrigger value="data">Data Display</TabsTrigger>
+            <TabsTrigger value="feedback">Feedback & Overlay</TabsTrigger>
+            <TabsTrigger value="layout">Layout & Nav</TabsTrigger>
+          </TabsList>
 
-          {/* Badge */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Badge</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-wrap gap-2">
-                <Badge>Default</Badge>
-                <Badge variant="secondary">Secondary</Badge>
-                <Badge variant="destructive">Destructive</Badge>
-                <Badge variant="outline">Outline</Badge>
-              </div>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Badge } from "@/shared/components/ui/badge"`}
-              </code>
-            </CardContent>
-          </Card>
-
-          {/* Input */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Input & Textarea</CardTitle></CardHeader>
-            <CardContent className="space-y-3 max-w-md">
-              <Input placeholder="Placeholder text..." />
-              <Input disabled placeholder="Disabled..." />
-              <Textarea placeholder="Textarea placeholder..." />
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Input } from "@/shared/components/ui/input"`}
-              </code>
-            </CardContent>
-          </Card>
-
-          {/* Select */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Select</CardTitle></CardHeader>
-            <CardContent className="space-y-3 max-w-md">
-              <Select>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione uma opção" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="opt1">Opção 1</SelectItem>
-                  <SelectItem value="opt2">Opção 2</SelectItem>
-                  <SelectItem value="opt3">Opção 3</SelectItem>
-                </SelectContent>
-              </Select>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"`}
-              </code>
-            </CardContent>
-          </Card>
-
-          {/* Checkbox, Switch, Label */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Checkbox & Switch</CardTitle></CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center gap-2">
-                <Checkbox id="check1" />
-                <Label htmlFor="check1">Checkbox label</Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <Switch id="switch1" />
-                <Label htmlFor="switch1">Switch label</Label>
-              </div>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Checkbox } from "@/shared/components/ui/checkbox"`}
-              </code>
-            </CardContent>
-          </Card>
-
-          {/* Card */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Card</CardTitle></CardHeader>
-            <CardContent>
-              <Card className="max-w-sm">
-                <CardHeader>
-                  <CardTitle>Título do Card</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground">Conteúdo do card com texto descritivo.</p>
+          <TabsContent value="forms">
+            <div className="space-y-6">
+              {/* Button */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Button</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Button>Default</Button>
+                    <Button variant="secondary">Secondary</Button>
+                    <Button variant="destructive">Destructive</Button>
+                    <Button variant="outline">Outline</Button>
+                    <Button variant="ghost">Ghost</Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm">Small</Button>
+                    <Button size="default">Default</Button>
+                    <Button size="lg">Large</Button>
+                    <Button size="icon"><Check className="h-4 w-4" /></Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button disabled>Disabled</Button>
+                  </div>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Button } from "@/shared/components/ui/button"`}
+                  </code>
                 </CardContent>
               </Card>
-              <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
-                {`import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"`}
-              </code>
-            </CardContent>
-          </Card>
 
-          {/* Avatar */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Avatar</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex gap-3">
-                <Avatar>
-                  <AvatarImage src="" />
-                  <AvatarFallback>JD</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarFallback>AB</AvatarFallback>
-                </Avatar>
-                <Avatar>
-                  <AvatarFallback>CD</AvatarFallback>
-                </Avatar>
-              </div>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"`}
-              </code>
-            </CardContent>
-          </Card>
+              {/* Input */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Input & Textarea</CardTitle></CardHeader>
+                <CardContent className="space-y-3 max-w-md">
+                  <Input placeholder="Placeholder text..." />
+                  <Input disabled placeholder="Disabled..." />
+                  <Textarea placeholder="Textarea placeholder..." />
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Input } from "@/shared/components/ui/input"`}
+                  </code>
+                </CardContent>
+              </Card>
 
-          {/* Progress */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Progress</CardTitle></CardHeader>
-            <CardContent className="space-y-3 max-w-md">
-              <Progress value={25} />
-              <Progress value={50} />
-              <Progress value={75} />
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Progress } from "@/shared/components/ui/progress"`}
-              </code>
-            </CardContent>
-          </Card>
+              {/* Select */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Select</CardTitle></CardHeader>
+                <CardContent className="space-y-3 max-w-md">
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione uma opção" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="opt1">Opção 1</SelectItem>
+                      <SelectItem value="opt2">Opção 2</SelectItem>
+                      <SelectItem value="opt3">Opção 3</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"`}
+                  </code>
+                </CardContent>
+              </Card>
 
-          {/* Skeleton */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Skeleton</CardTitle></CardHeader>
-            <CardContent className="space-y-3 max-w-md">
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-                <Skeleton className="h-10 w-full" />
-              </div>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Skeleton } from "@/shared/components/ui/skeleton"`}
-              </code>
-            </CardContent>
-          </Card>
+              {/* Checkbox, Switch, Label */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Checkbox & Switch</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Checkbox id="check1" />
+                    <Label htmlFor="check1">Checkbox label</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch id="switch1" />
+                    <Label htmlFor="switch1">Switch label</Label>
+                  </div>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Checkbox } from "@/shared/components/ui/checkbox"`}
+                  </code>
+                </CardContent>
+              </Card>
 
-          {/* Alert */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Alert</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Alert>
-                <Info className="h-4 w-4" />
-                <AlertTitle>Info</AlertTitle>
-                <AlertDescription>Mensagem informativa para o usuário.</AlertDescription>
-              </Alert>
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Erro</AlertTitle>
-                <AlertDescription>Algo deu errado. Tente novamente.</AlertDescription>
-              </Alert>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"`}
-              </code>
-            </CardContent>
-          </Card>
+              {/* Slider, RadioGroup, Toggle, ToggleGroup, Calendar, InputOTP */}
+              <FormExamples />
+            </div>
+          </TabsContent>
 
-          {/* Table */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Table</CardTitle></CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>Empresa Alpha</TableCell>
-                    <TableCell><Badge>Ativo</Badge></TableCell>
-                    <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>Empresa Beta</TableCell>
-                    <TableCell><Badge variant="secondary">Pendente</Badge></TableCell>
-                    <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-              <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
-                {`import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"`}
-              </code>
-            </CardContent>
-          </Card>
+          <TabsContent value="data">
+            <div className="space-y-6">
+              {/* Badge */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Badge</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <Badge>Default</Badge>
+                    <Badge variant="secondary">Secondary</Badge>
+                    <Badge variant="destructive">Destructive</Badge>
+                    <Badge variant="outline">Outline</Badge>
+                  </div>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Badge } from "@/shared/components/ui/badge"`}
+                  </code>
+                </CardContent>
+              </Card>
 
-          {/* Tabs */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Tabs</CardTitle></CardHeader>
-            <CardContent>
-              <Tabs defaultValue="tab1">
-                <TabsList>
-                  <TabsTrigger value="tab1">Aba 1</TabsTrigger>
-                  <TabsTrigger value="tab2">Aba 2</TabsTrigger>
-                  <TabsTrigger value="tab3">Aba 3</TabsTrigger>
-                </TabsList>
-                <TabsContent value="tab1" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 1</TabsContent>
-                <TabsContent value="tab2" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 2</TabsContent>
-                <TabsContent value="tab3" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 3</TabsContent>
-              </Tabs>
-              <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
-                {`import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"`}
-              </code>
-            </CardContent>
-          </Card>
+              {/* Card */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Card</CardTitle></CardHeader>
+                <CardContent>
+                  <Card className="max-w-sm">
+                    <CardHeader>
+                      <CardTitle>Título do Card</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-muted-foreground">Conteúdo do card com texto descritivo.</p>
+                    </CardContent>
+                  </Card>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                    {`import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"`}
+                  </code>
+                </CardContent>
+              </Card>
 
-          {/* Tooltip */}
-          <Card>
-            <CardHeader className="pb-2"><CardTitle className="text-sm">Tooltip</CardTitle></CardHeader>
-            <CardContent className="space-y-3">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline">Passe o mouse aqui</Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Conteúdo do tooltip</p>
-                </TooltipContent>
-              </Tooltip>
-              <code className="text-xs bg-muted px-2 py-1 rounded block">
-                {`import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip"`}
-              </code>
-            </CardContent>
-          </Card>
-        </div>
+              {/* Avatar */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Avatar</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex gap-3">
+                    <Avatar>
+                      <AvatarImage src="" />
+                      <AvatarFallback>JD</AvatarFallback>
+                    </Avatar>
+                    <Avatar>
+                      <AvatarFallback>AB</AvatarFallback>
+                    </Avatar>
+                    <Avatar>
+                      <AvatarFallback>CD</AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Progress */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Progress</CardTitle></CardHeader>
+                <CardContent className="space-y-3 max-w-md">
+                  <Progress value={25} />
+                  <Progress value={50} />
+                  <Progress value={75} />
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Progress } from "@/shared/components/ui/progress"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Skeleton */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Skeleton</CardTitle></CardHeader>
+                <CardContent className="space-y-3 max-w-md">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Skeleton } from "@/shared/components/ui/skeleton"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Table */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Table</CardTitle></CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>Empresa Alpha</TableCell>
+                        <TableCell><Badge>Ativo</Badge></TableCell>
+                        <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>Empresa Beta</TableCell>
+                        <TableCell><Badge variant="secondary">Pendente</Badge></TableCell>
+                        <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                    {`import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* DropdownMenu, ContextMenu, Menubar, Command, Custom Components */}
+              <DataExamples />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="feedback">
+            <div className="space-y-6">
+              {/* Alert */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Alert</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <Alert>
+                    <Info className="h-4 w-4" />
+                    <AlertTitle>Info</AlertTitle>
+                    <AlertDescription>Mensagem informativa para o usuário.</AlertDescription>
+                  </Alert>
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Erro</AlertTitle>
+                    <AlertDescription>Algo deu errado. Tente novamente.</AlertDescription>
+                  </Alert>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Tooltip */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Tooltip</CardTitle></CardHeader>
+                <CardContent className="space-y-3">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button variant="outline">Passe o mouse aqui</Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Conteúdo do tooltip</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                    {`import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Dialog, Sheet, Drawer, AlertDialog, Popover, HoverCard */}
+              <FeedbackExamples />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="layout">
+            <div className="space-y-6">
+              {/* Tabs */}
+              <Card>
+                <CardHeader className="pb-2"><CardTitle className="text-sm">Tabs</CardTitle></CardHeader>
+                <CardContent>
+                  <Tabs defaultValue="tab1">
+                    <TabsList>
+                      <TabsTrigger value="tab1">Aba 1</TabsTrigger>
+                      <TabsTrigger value="tab2">Aba 2</TabsTrigger>
+                      <TabsTrigger value="tab3">Aba 3</TabsTrigger>
+                    </TabsList>
+                    <TabsContent value="tab1" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 1</TabsContent>
+                    <TabsContent value="tab2" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 2</TabsContent>
+                    <TabsContent value="tab3" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 3</TabsContent>
+                  </Tabs>
+                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                    {`import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"`}
+                  </code>
+                </CardContent>
+              </Card>
+
+              {/* Accordion, Breadcrumb, Collapsible, Pagination, ScrollArea, Separator, Resizable, Carousel */}
+              <LayoutExamples />
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </section>
   );

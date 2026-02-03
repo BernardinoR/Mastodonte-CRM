@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ClientCard } from "@features/clients";
 import { NewClientInlineCard } from "@features/clients";
 import { useClientsPage } from "@features/clients";
@@ -16,8 +16,13 @@ import { ImportClientsDialog } from "../components/ImportClientsDialog";
 export default function Clients() {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const { addClient } = useClients();
+  const { addClient, refetchClients } = useClients();
   const { toast } = useToast();
+
+  // Refetch clientes ao montar a página para garantir dados atualizados
+  useEffect(() => {
+    refetchClients();
+  }, [refetchClients]);
 
   const {
     viewMode,
