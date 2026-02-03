@@ -18,6 +18,7 @@ import ClientDetails from "@features/clients/pages/ClientDetails";
 // Feature imports
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
 import { UsersProvider, useCurrentUser, Admin, Profile } from "@features/users";
+import { StyleGuides } from "@features/style-guides";
 
 function AuthenticatedRouter() {
   return (
@@ -28,6 +29,7 @@ function AuthenticatedRouter() {
       <Route path="/tasks" component={Tasks} />
       <Route path="/admin" component={Admin} />
       <Route path="/profile" component={Profile} />
+      <Route path="/style-guides" component={StyleGuides} />
       <Route component={NotFound} />
     </Switch>
   );
