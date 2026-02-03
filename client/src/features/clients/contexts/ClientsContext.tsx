@@ -194,6 +194,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       const { data, error: fetchError } = await supabase
         .from('clients')
         .select(CLIENT_SELECT)
+        .eq('status', 'Ativo')
         .order('created_at', { ascending: false });
 
       if (fetchError) throw fetchError;
