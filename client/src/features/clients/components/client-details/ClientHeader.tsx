@@ -78,6 +78,7 @@ interface ClientHeaderProps {
   editingState: ReturnType<typeof useClientHeaderEditing>;
   onNewMeeting: () => void;
   onNewTask: () => void;
+  onScheduleWhatsApp: () => void;
   onAddEmail: (email: string) => void;
   onRemoveEmail: (index: number) => void;
   onUpdateEmail: (index: number, email: string) => void;
@@ -95,6 +96,7 @@ export function ClientHeader({
   editingState,
   onNewMeeting,
   onNewTask,
+  onScheduleWhatsApp,
   onAddEmail,
   onRemoveEmail,
   onUpdateEmail,
@@ -283,7 +285,7 @@ export function ClientHeader({
 
           <div className="flex gap-3 mt-6 flex-wrap">
             <Button 
-              onClick={onNewMeeting}
+              onClick={onScheduleWhatsApp}
               className="bg-[#2eaadc] hover:bg-[#259bc5] text-white"
               data-testid="button-new-meeting"
             >

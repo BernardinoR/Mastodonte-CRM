@@ -3,6 +3,8 @@ import { useParams, Link } from "wouter";
 import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { toast } from "@/shared/hooks/use-toast";
+import { supabase } from "@/shared/lib/supabase";
 import { WhatsAppGroupsTable } from "@features/clients";
 import { ClientHeader, ClientMeetings, ClientTasks } from "@features/clients/components/client-details";
 import { TasksCompletedCard } from "@features/clients/components/client-details/TasksCompletedCard";
@@ -15,6 +17,7 @@ import { useInlineClientTasks } from "@features/clients";
 import { useInlineClientMeetings } from "@features/clients";
 import { useCurrentUser } from "@features/users";
 import { DISABLED_SECTIONS_TOP, DISABLED_SECTIONS_BOTTOM, type DisabledSectionConfig } from "@features/clients";
+import { buildSchedulingMessage, buildWhatsAppSchedulingUrl } from "@features/clients/lib/schedulingMessage";
 
 function DisabledSection({ section }: { section: DisabledSectionConfig }) {
   const Icon = section.icon;
@@ -85,6 +88,43 @@ export default function ClientDetails() {
 
   const { data: currentUserData } = useCurrentUser();
   const currentUserName = currentUserData?.user?.name || currentUserData?.user?.email || "";
+  const calendarLink = currentUserData?.user?.calendarLink;
+
+  const handleScheduleWhatsApp = async () => {
+    if (!calendarLink) {
+      toast({
+        title: "Link de agendamento não configurado",
+        description: "Configure seu link do Google Calendar no seu perfil",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const clientPhone = clientData?.client.phone;
+    if (!clientPhone) {
+      toast({
+        title: "Telefone não informado",
+        description: "O cliente não possui telefone cadastrado",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Record scheduling message sent
+    try {
+      await supabase
+        .from('clients')
+        .update({ scheduling_message_sent_at: new Date().toISOString() })
+        .eq('id', clientId);
+    } catch (err) {
+      console.error("Error recording scheduling sent:", err);
+    }
+
+    // Open WhatsApp with pre-formatted message
+    const message = buildSchedulingMessage(clientName, calendarLink);
+    const url = buildWhatsAppSchedulingUrl(clientPhone, message);
+    window.open(url, '_blank');
+  };
 
   const inlineTaskProps = useInlineClientTasks({
     clientId,
@@ -136,6 +176,7 @@ export default function ClientDetails() {
         editingState={editingState}
         onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
         onNewTask={inlineTaskProps.handleStartAddTask}
+        onScheduleWhatsApp={handleScheduleWhatsApp}
         onAddEmail={(email) => addClientEmail(client.id, email)}
         onRemoveEmail={(index) => removeClientEmail(client.id, index)}
         onUpdateEmail={(index, email) => updateClientEmail(client.id, index, email)}
