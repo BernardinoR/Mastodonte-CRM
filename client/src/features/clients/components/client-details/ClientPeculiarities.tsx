@@ -54,10 +54,10 @@ export function ClientPeculiarities({
       </div>
 
       {/* Card */}
-      <div className="overflow-hidden rounded-lg border border-[#333] bg-[#1a1a1a]">
+      <div className="overflow-hidden rounded-lg border border-[#3a3a3a] bg-[#1a1a1a]">
         {/* Inline add row — top of card */}
         {isAdding && (
-          <div className="flex items-center gap-3 border-b border-[#333] px-5 py-4">
+          <div className="flex items-center gap-3 border-b border-[#3a3a3a] px-5 py-4">
             <CircleAlert className="h-[18px] w-[18px] shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
@@ -80,7 +80,7 @@ export function ClientPeculiarities({
         {peculiarities.map((item, index) => (
           <div
             key={index}
-            className="group flex items-center justify-between border-b border-[#333] px-5 py-4 transition-colors hover:bg-[#202020]"
+            className="group flex items-center justify-between border-b border-[#3a3a3a] px-5 py-4 transition-colors hover:bg-[#222222]"
           >
             <div className="flex items-center gap-3 overflow-hidden">
               <CircleAlert className="h-[18px] w-[18px] shrink-0 text-amber-500" />
@@ -96,7 +96,7 @@ export function ClientPeculiarities({
         ))}
 
         {/* Toggle row */}
-        <div className="flex items-center justify-between border-b border-[#333] px-5 py-4">
+        <div className="flex items-center justify-between border-b border-[#3a3a3a] px-5 py-4">
           <div className="flex flex-col gap-0.5">
             <span className="text-sm font-medium text-gray-200">Desligar reunião mensal</span>
             <span className="text-xs text-gray-500">
@@ -115,7 +115,7 @@ export function ClientPeculiarities({
         </div>
 
         {/* Footer — always visible */}
-        <div className="bg-[#202020]/50 px-5 py-3">
+        <div className="bg-[#222222]/50 px-5 py-3">
           <button
             onClick={() => setIsAdding(true)}
             className="text-xs font-medium text-[#2eaadc] transition-colors hover:text-sky-400"

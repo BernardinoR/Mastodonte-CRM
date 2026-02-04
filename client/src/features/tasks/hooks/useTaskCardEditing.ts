@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { format } from "date-fns";
 import { parseLocalDate } from "@/shared/lib/date-utils";
-import type { TaskStatus, TaskPriority, TaskUpdates } from "../types/task";
+import type { TaskStatus, TaskPriority, TaskType, TaskUpdates } from "../types/task";
 
 const globalJustClosedEditRef = { current: false };
 let globalCooldownTimeout: NodeJS.Timeout | null = null;
@@ -22,6 +22,7 @@ export interface EditedTaskData {
   clientName: string;
   priority: string;
   status: TaskStatus;
+  taskType: string;
   assignees: string[];
   dueDate: string;
   description: string;
@@ -32,6 +33,7 @@ interface UseTaskCardEditingProps {
   title: string;
   clientName?: string;
   priority?: TaskPriority;
+  taskType?: TaskType;
   status: TaskStatus;
   assignees: string[];
   dueDate: Date;
@@ -68,6 +70,7 @@ export function useTaskCardEditing({
   title,
   clientName,
   priority,
+  taskType,
   status,
   assignees,
   dueDate,
@@ -89,6 +92,7 @@ export function useTaskCardEditing({
     clientName: clientName || "",
     priority: priority || "",
     status,
+    taskType: taskType || "Tarefa",
     assignees: [...safeAssignees],
     dueDate: format(dueDate, "yyyy-MM-dd"),
     description: description || "",
@@ -131,6 +135,7 @@ export function useTaskCardEditing({
         prev.clientName === (clientName || "") &&
         prev.priority === (priority || "") &&
         prev.status === status &&
+        prev.taskType === (taskType || "Tarefa") &&
         prev.assignees.join(",") === newAssignees.join(",") &&
         prev.dueDate === newDueDate &&
         prev.description === (description || "")
@@ -143,6 +148,7 @@ export function useTaskCardEditing({
         clientName: clientName || "",
         priority: priority || "",
         status,
+        taskType: taskType || "Tarefa",
         assignees: [...newAssignees],
         dueDate: newDueDate,
         description: description || "",
@@ -150,7 +156,17 @@ export function useTaskCardEditing({
       latestDraftRef.current = newData;
       return newData;
     });
-  }, [title, clientName, priority, status, assigneesKey, dueDate, description, safeAssignees]);
+  }, [
+    title,
+    clientName,
+    priority,
+    status,
+    taskType,
+    assigneesKey,
+    dueDate,
+    description,
+    safeAssignees,
+  ]);
 
   const flushUpdate = useCallback(
     (data: EditedTaskData) => {
@@ -161,6 +177,7 @@ export function useTaskCardEditing({
         clientName: data.clientName || undefined,
         priority: (data.priority as TaskPriority) || undefined,
         status: data.status as TaskStatus,
+        taskType: data.taskType as TaskType,
         assignees: data.assignees,
         dueDate: parsedDueDate,
       });

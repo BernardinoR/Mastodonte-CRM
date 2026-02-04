@@ -219,7 +219,7 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
     <div
       ref={setNodeRef}
       style={style}
-      className="flex h-9 items-center gap-2 rounded-md border border-[#333] bg-[#1a1a1a] px-2"
+      className="flex h-9 items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] px-2"
       data-testid={`sort-item-${sort.field}`}
     >
       <button
@@ -546,7 +546,7 @@ export function FilterBar({
         <div
           className={cn(
             "relative flex h-8 items-center overflow-hidden rounded-full transition-all duration-300 ease-out",
-            searchExpanded ? "w-52 border border-[#333] bg-[#1a1a1a] px-3" : "w-8",
+            searchExpanded ? "w-52 border border-[#3a3a3a] bg-[#1a1a1a] px-3" : "w-8",
           )}
         >
           <button
@@ -652,7 +652,7 @@ export function FilterBar({
             </button>
           </PopoverTrigger>
           <PopoverContent
-            className="w-64 border border-[#333] bg-[#1a1a1a] p-2"
+            className="w-64 border border-[#3a3a3a] bg-[#1a1a1a] p-2"
             side="bottom"
             align="end"
             sideOffset={8}
@@ -675,14 +675,14 @@ export function FilterBar({
                       "group flex items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
                       isActive
                         ? "border border-amber-500/30 bg-amber-500/10"
-                        : "hover:bg-[#252525]",
+                        : "hover:bg-[#2a2a2a]",
                     )}
                     data-testid={`preset-${preset.id}`}
                   >
                     <div
                       className={cn(
                         "flex h-8 w-8 items-center justify-center rounded-md",
-                        isActive ? "bg-amber-500/20" : "bg-[#252525] group-hover:bg-[#2a2a2a]",
+                        isActive ? "bg-amber-500/20" : "bg-[#2a2a2a] group-hover:bg-[#2a2a2a]",
                       )}
                     >
                       <PresetIcon className="h-4 w-4 text-amber-400" />
@@ -701,7 +701,7 @@ export function FilterBar({
                     <span
                       className={cn(
                         "rounded px-1.5 py-0.5 text-xs font-medium",
-                        isActive ? "bg-amber-500/20 text-amber-400" : "bg-[#252525] text-gray-400",
+                        isActive ? "bg-amber-500/20 text-amber-400" : "bg-[#2a2a2a] text-gray-400",
                       )}
                     >
                       {count}
@@ -776,7 +776,7 @@ export function FilterBar({
       {/* Filter Bar - Expands below when sort or filter button is clicked */}
       {filterBarExpanded && (
         <div
-          className="flex items-center gap-2 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-2 py-2"
+          className="flex items-center gap-2 rounded-lg border border-[#1f1f1f] bg-[#101010] px-2 py-2"
           data-testid="filter-bar"
         >
           {/* Sort Button with Full Sort Management Popover */}
@@ -786,7 +786,7 @@ export function FilterBar({
                 className={cn(
                   "flex h-8 items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
                   sorts.length > 0
-                    ? "border border-[#333] bg-[#1a1a1a] text-gray-200"
+                    ? "border border-[#3a3a3a] bg-[#1a1a1a] text-gray-200"
                     : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200",
                 )}
                 data-testid="button-add-sort"
@@ -815,7 +815,7 @@ export function FilterBar({
               avoidCollisions={true}
             >
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
+              <div className="flex items-center justify-between border-b border-[#3a3a3a] px-3 py-2">
                 <span className="text-sm font-medium text-gray-300">Ordenação</span>
                 {sorts.length > 0 && (
                   <span className="text-xs text-gray-500">{sorts.length} ordenações</span>
@@ -855,7 +855,7 @@ export function FilterBar({
 
               {/* Add More Sorts */}
               {availableSortFields.length > 0 && (
-                <div className="border-t border-[#2a2a2a] p-1">
+                <div className="border-t border-[#3a3a3a] p-1">
                   <div className="px-2 py-1.5 text-xs uppercase text-gray-500">Ordenar por</div>
                   {availableSortFields.map((field) => (
                     <button
@@ -873,7 +873,7 @@ export function FilterBar({
 
               {/* Clear All Sorts */}
               {sorts.length > 0 && (
-                <div className="border-t border-[#2a2a2a] p-2">
+                <div className="border-t border-[#3a3a3a] p-2">
                   <button
                     onClick={handleClearAllSorts}
                     className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-[#2a2a2a] hover:text-red-400"
@@ -954,7 +954,7 @@ export function FilterBar({
                       "flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
                       hasValue()
                         ? "border border-purple-500/30 bg-purple-500/20 text-purple-300"
-                        : "border border-[#333] bg-[#1a1a1a] text-gray-300",
+                        : "border border-[#3a3a3a] bg-[#1a1a1a] text-gray-300",
                     )}
                     data-testid={`button-filter-${filter.type}-${filter.id}`}
                   >

@@ -46,7 +46,7 @@ export function MeetingTasks({ tasks }: MeetingTasksProps) {
             {tasks.length}
           </span>
         </div>
-        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
+        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#3a3a3a] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
           <Plus className="h-3.5 w-3.5" />
           Nova Task
         </button>
@@ -59,7 +59,7 @@ export function MeetingTasks({ tasks }: MeetingTasksProps) {
             <div
               key={task.id}
               className={cn(
-                "flex cursor-pointer items-center gap-3.5 rounded-lg border border-[#363842] bg-[#252730] px-4 py-3.5 transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]",
+                "flex cursor-pointer items-center gap-3.5 rounded-lg border border-[#3a3a3a] bg-[#252730] px-4 py-3.5 transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]",
                 "border-l-4",
                 isCompleted
                   ? "border-l-[#10b981]"

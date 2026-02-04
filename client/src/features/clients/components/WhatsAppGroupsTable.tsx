@@ -102,7 +102,7 @@ export function WhatsAppGroupsTable({
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-[#333333]">
+          <tr className="border-b border-[#3a3a3a]">
             <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
               Nome do Grupo
             </th>
@@ -124,7 +124,7 @@ export function WhatsAppGroupsTable({
           {visibleGroups.map((group) => (
             <tr
               key={group.id}
-              className="group/row border-b border-[#333333]"
+              className="group/row border-b border-[#3a3a3a]"
               onContextMenu={(e) => {
                 e.preventDefault();
                 handleDeleteClick(group.id, group.name);
@@ -134,7 +134,7 @@ export function WhatsAppGroupsTable({
                 <div className="relative flex items-center gap-2">
                   <MessageSquare className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                   <span
-                    className={`-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium text-foreground transition-colors hover:bg-[#2c2c2c] ${isEditing(group.id, "name") ? "invisible" : ""}`}
+                    className={`-mx-1 cursor-pointer rounded px-1 py-0.5 font-medium text-foreground transition-colors hover:bg-[#333333] ${isEditing(group.id, "name") ? "invisible" : ""}`}
                     onClick={() => startEditing(group.id, "name", group.name)}
                     data-testid={`cell-group-name-${group.id}`}
                   >
@@ -157,7 +157,7 @@ export function WhatsAppGroupsTable({
               <td className="px-4 py-3">
                 <div className="relative">
                   <div
-                    className={`-mx-1 cursor-pointer rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#2c2c2c] ${isEditing(group.id, "purpose") ? "invisible" : ""}`}
+                    className={`-mx-1 cursor-pointer rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#333333] ${isEditing(group.id, "purpose") ? "invisible" : ""}`}
                     onClick={() => startEditing(group.id, "purpose", group.purpose)}
                     data-testid={`cell-group-purpose-${group.id}`}
                   >
@@ -225,7 +225,7 @@ export function WhatsAppGroupsTable({
                 >
                   <PopoverTrigger asChild>
                     <div
-                      className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#2c2c2c]"
+                      className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#333333]"
                       onClick={(e) => e.stopPropagation()}
                       data-testid={`cell-group-date-${group.id}`}
                     >
@@ -327,7 +327,7 @@ export function WhatsAppGroupsTable({
             <tr
               ref={newGroupRowRef}
               tabIndex={-1}
-              className="group/row border-b border-[#333333]"
+              className="group/row border-b border-[#3a3a3a]"
               onBlur={handleNewGroupRowBlur}
               onKeyDown={(e) => {
                 if (e.key === "Enter" && newGroupName.trim()) {
@@ -458,7 +458,7 @@ export function WhatsAppGroupsTable({
       </table>
       <div className="flex items-center justify-between">
         <div
-          className="cursor-pointer px-4 py-3 text-sm text-[#2eaadc] transition-colors hover:bg-[#2c2c2c]"
+          className="cursor-pointer px-4 py-3 text-sm text-[#2eaadc] transition-colors hover:bg-[#333333]"
           onClick={handleStartAddGroup}
           data-testid="button-add-whatsapp-group"
         >
@@ -466,7 +466,7 @@ export function WhatsAppGroupsTable({
         </div>
         {hasMore && (
           <div
-            className="cursor-pointer px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-[#2c2c2c] hover:text-foreground"
+            className="cursor-pointer px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-[#333333] hover:text-foreground"
             onClick={handleLoadMore}
             data-testid="button-load-more-groups"
           >
@@ -479,7 +479,7 @@ export function WhatsAppGroupsTable({
         open={!!deleteConfirmOpen}
         onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}
       >
-        <AlertDialogContent className="border-[#333333] bg-[#252525]">
+        <AlertDialogContent className="border-[#3a3a3a] bg-[#2a2a2a]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">Excluir grupo?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">

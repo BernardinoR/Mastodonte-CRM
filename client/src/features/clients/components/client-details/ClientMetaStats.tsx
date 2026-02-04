@@ -18,7 +18,7 @@ export function ClientMetaStats({ stats }: ClientMetaStatsProps) {
       {filteredStats.map((stat, index) => (
         <Card
           key={`${stat.label}-${index}`}
-          className="border-[#333333] bg-[#202020] p-4"
+          className="border-[#3a3a3a] bg-[#1a1a1a] p-4"
           data-testid={`card-stat-${stat.label.toLowerCase().replace(/\s+/g, "-")}`}
         >
           <div

@@ -36,15 +36,15 @@ export function AdvisorPopover({ currentAdvisor, onAdvisorChange }: AdvisorPopov
             Consultor
           </span>
           <span
-            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
             data-testid="text-client-advisor"
           >
             {currentAdvisor || "Não atribuído"}
           </span>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 border-[#333333] bg-[#252525] p-0" align="start">
-        <div className="border-b border-[#333333] px-3 py-2.5">
+      <PopoverContent className="w-80 border-[#3a3a3a] bg-[#2a2a2a] p-0" align="start">
+        <div className="border-b border-[#3a3a3a] px-3 py-2.5">
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -56,7 +56,7 @@ export function AdvisorPopover({ currentAdvisor, onAdvisorChange }: AdvisorPopov
         </div>
 
         {currentAdvisor && (
-          <div className="border-b border-[#333333]">
+          <div className="border-b border-[#3a3a3a]">
             <div className="px-3 py-1.5 text-xs text-gray-500">Consultor atual</div>
             <div className="px-3 py-1">
               <div className="flex items-center gap-2 rounded-md bg-[#2a2a2a] px-2 py-1.5">

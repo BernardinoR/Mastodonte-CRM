@@ -111,7 +111,7 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
       </AlertDialog>
 
       <Dialog open={showReplaceTitleDialog} onOpenChange={setShowReplaceTitleDialog}>
-        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
+        <DialogContent className="max-w-md border-[#3a3a3a] bg-[#1a1a1a]">
           <DialogHeader>
             <DialogTitle>
               Substituir nome{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
@@ -139,7 +139,7 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
       </Dialog>
 
       <Dialog open={showAppendTitleDialog} onOpenChange={setShowAppendTitleDialog}>
-        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
+        <DialogContent className="max-w-md border-[#3a3a3a] bg-[#1a1a1a]">
           <DialogHeader>
             <DialogTitle>
               Adicionar ao final{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
@@ -170,7 +170,7 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
       </Dialog>
 
       <Dialog open={showBulkDatePicker} onOpenChange={setShowBulkDatePicker}>
-        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
+        <DialogContent className="max-w-md border-[#3a3a3a] bg-[#1a1a1a]">
           <DialogHeader>
             <DialogTitle>
               Alterar data{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
@@ -182,7 +182,7 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
               selected={dueDate}
               onSelect={handleDateSelect}
               locale={ptBR}
-              className="rounded-md border border-[#2a2a2a]"
+              className="rounded-md border border-[#3a3a3a]"
             />
           </div>
         </DialogContent>

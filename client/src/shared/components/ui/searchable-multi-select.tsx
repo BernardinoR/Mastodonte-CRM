@@ -97,7 +97,7 @@ export const SearchableMultiSelect = memo(function SearchableMultiSelect({
 
   return (
     <div className="w-full">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -109,7 +109,7 @@ export const SearchableMultiSelect = memo(function SearchableMultiSelect({
       </div>
 
       {selected.length > 0 && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">{selectedLabel}</div>
           <div className="px-3 py-1">
             {selected.map((item) => (

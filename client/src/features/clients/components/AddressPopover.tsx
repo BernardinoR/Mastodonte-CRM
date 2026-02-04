@@ -125,15 +125,15 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
             Endereço
           </span>
           <span
-            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
             data-testid="text-client-address"
           >
             {displayAddress || "Não informado"}
           </span>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 border-[#333333] bg-[#252525] p-0" align="start">
-        <div className="flex items-center justify-between border-b border-[#333333] px-4 py-3">
+      <PopoverContent className="w-80 border-[#3a3a3a] bg-[#2a2a2a] p-0" align="start">
+        <div className="flex items-center justify-between border-b border-[#3a3a3a] px-4 py-3">
           <span className="text-sm font-medium text-foreground">Endereço</span>
           {isEditing ? (
             <div className="flex items-center gap-1">
@@ -181,7 +181,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                   onChange={(e) => updateField("street", e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ex: Av. Paulista, 1000"
-                  className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                  className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
                   data-testid="input-address-street"
                 />
               ) : (
@@ -198,7 +198,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                     onChange={(e) => updateField("complement", e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ex: Apto 501"
-                    className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                    className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
                     data-testid="input-address-complement"
                   />
                 ) : (
@@ -215,7 +215,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                   onChange={(e) => updateField("neighborhood", e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ex: Centro"
-                  className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                  className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
                   data-testid="input-address-neighborhood"
                 />
               ) : (
@@ -232,7 +232,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                     onChange={(e) => updateField("city", e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ex: São Paulo"
-                    className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                    className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
                     data-testid="input-address-city"
                   />
                 </div>
@@ -244,7 +244,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                     onKeyDown={handleKeyDown}
                     placeholder="SP"
                     maxLength={2}
-                    className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm uppercase text-foreground"
+                    className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm uppercase text-foreground"
                     data-testid="input-address-state"
                   />
                 </div>
@@ -266,7 +266,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                   onChange={(e) => updateField("zipCode", e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Ex: 01310-100"
-                  className="h-7 border-[#333333] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                  className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
                   data-testid="input-address-zipcode"
                 />
               ) : (
@@ -276,12 +276,12 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
           </div>
 
           {!isEditing && (
-            <div className="mt-3 border-t border-[#333333] pt-3">
+            <div className="mt-3 border-t border-[#3a3a3a] pt-3">
               <Button
                 size="sm"
                 variant="outline"
                 onClick={handleCopy}
-                className="w-full border-[#333333] hover:bg-[#2c2c2c]"
+                className="w-full border-[#3a3a3a] hover:bg-[#333333]"
                 data-testid="button-copy-address"
               >
                 <Copy className="mr-1.5 h-4 w-4" />

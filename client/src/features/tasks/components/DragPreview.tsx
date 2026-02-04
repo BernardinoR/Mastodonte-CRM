@@ -60,8 +60,8 @@ export const DragPreview = memo(function DragPreview({
     >
       {selectedCount > 1 && (
         <>
-          <div className="absolute inset-0 translate-x-3 translate-y-3 transform rounded-lg border border-[#404040] bg-[#1a1a1a] opacity-40" />
-          <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 transform rounded-lg border border-[#383838] bg-[#222222] opacity-60" />
+          <div className="absolute inset-0 translate-x-3 translate-y-3 transform rounded-lg border border-[#404040] bg-[#1f1f1f] opacity-40" />
+          <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 transform rounded-lg border border-[#3a3a3a] bg-[#222222] opacity-60" />
         </>
       )}
       <div className="relative">
@@ -72,7 +72,7 @@ export const DragPreview = memo(function DragPreview({
         )}
         <div
           className={cn(
-            "cursor-grabbing rounded-lg border border-[#333333] bg-[#202020] p-4 shadow-2xl",
+            "cursor-grabbing rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-4 shadow-2xl",
             isOverdue && "border-l-[3px] border-l-red-700",
           )}
         >
@@ -96,7 +96,7 @@ export const DragPreview = memo(function DragPreview({
           {/* Row 2: Client + Date */}
           <div className="mb-2.5 flex items-center gap-2">
             {clientName && (
-              <span className="truncate rounded border border-[#333333] bg-[#2a2a2a] px-2 py-0.5 text-[10px] text-gray-400">
+              <span className="truncate rounded border border-[#3a3a3a] bg-[#2a2a2a] px-2 py-0.5 text-[10px] text-gray-400">
                 {clientName}
               </span>
             )}
@@ -131,7 +131,7 @@ export const DragPreview = memo(function DragPreview({
               <span className="text-[11px] text-gray-400">{priorityConfig?.label || "Normal"}</span>
             </div>
             {assigneeInitials && (
-              <div className="flex h-6 w-6 items-center justify-center rounded border border-[#333333] bg-[#333] text-[10px] font-bold text-gray-300">
+              <div className="flex h-6 w-6 items-center justify-center rounded border border-[#3a3a3a] bg-[#333333] text-[10px] font-bold text-gray-300">
                 {assigneeInitials}
               </div>
             )}

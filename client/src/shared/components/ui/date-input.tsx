@@ -193,7 +193,7 @@ export function DateInput({
   if (hideIcon) {
     return (
       <div className={cn("w-auto", className)}>
-        <div className="border-b border-[#2a2a2a] p-3">
+        <div className="border-b border-[#3a3a3a] p-3">
           <Input
             ref={inputRef}
             id={dataTestId}
@@ -205,7 +205,7 @@ export function DateInput({
             disabled={disabled}
             className={cn(
               "text-center text-sm font-medium",
-              "border-[#2a2a2a] bg-[#0a0a0a]",
+              "border-[#3a3a3a] bg-[#0f0f0f]",
               "text-white placeholder:text-gray-500",
               "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
               isInvalid && "border-red-500 focus-visible:ring-red-500",
@@ -255,11 +255,11 @@ export function DateInput({
           </PopoverTrigger>
         </div>
         <PopoverContent
-          className="date-input-calendar-popover w-auto border-[#2a2a2a] bg-[#1a1a1a] p-0"
+          className="date-input-calendar-popover w-auto border-[#3a3a3a] bg-[#1a1a1a] p-0"
           align="start"
         >
           {/* Input no topo com visual dark sofisticado */}
-          <div className="border-b border-[#2a2a2a] p-3">
+          <div className="border-b border-[#3a3a3a] p-3">
             <Input
               ref={inputRef}
               id={dataTestId}
@@ -271,7 +271,7 @@ export function DateInput({
               disabled={disabled}
               className={cn(
                 "text-center text-sm font-medium",
-                "border-[#2a2a2a] bg-[#0a0a0a]",
+                "border-[#3a3a3a] bg-[#0f0f0f]",
                 "text-white placeholder:text-gray-500",
                 "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
                 isInvalid && "border-red-500 focus-visible:ring-red-500",

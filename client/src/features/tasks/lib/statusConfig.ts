@@ -3,16 +3,16 @@ import { TaskStatus, TaskPriority, TaskType } from "../types/task";
 // Cores centralizadas da UI
 export const UI_COLORS = {
   // Backgrounds
-  popoverBg: "#1a1a1a",
-  panelBg: "#1E1F24",
+  popoverBg: "#2a2a2a",
+  panelBg: "#222222",
   cardBg: "#252730",
-  elementBg: "#333",
-  hoverBg: "#2a2a2a",
+  elementBg: "#333333",
+  hoverBg: "#333333",
 
   // Borders
-  border: "#2a2a2a",
-  borderLight: "#363842",
-  avatarBorder: "#27282F",
+  border: "#3a3a3a",
+  borderLight: "#3a3a3a",
+  avatarBorder: "#3a3a3a",
 
   // Text
   textMuted: "#64666E",
@@ -20,7 +20,7 @@ export const UI_COLORS = {
 
   // Contact buttons
   contactBtnBg: "white/5",
-  contactBtnBorder: "#363842",
+  contactBtnBorder: "#3a3a3a",
 
   // Task card borders (RGB for inline styles)
   taskBorderBlue: "rgb(66, 129, 220)",
@@ -30,27 +30,27 @@ export const UI_COLORS = {
 
 // Classes Tailwind pré-definidas para reutilização
 export const UI_CLASSES = {
-  popover: "bg-[#1a1a1a] border-[#2a2a2a]",
-  panel: "bg-[#1E1F24]",
-  card: "bg-[#252730] border-[#363842]",
-  hoverItem: "hover:bg-[#2a2a2a]",
-  selectedItem: "bg-[#2a2a2a]",
-  border: "border-[#2a2a2a]",
-  borderLight: "border-[#363842]",
+  popover: "bg-[#2a2a2a] border-[#3a3a3a]",
+  panel: "bg-[#222222]",
+  card: "bg-[#252730] border-[#3a3a3a]",
+  hoverItem: "hover:bg-[#333333]",
+  selectedItem: "bg-[#333333]",
+  border: "border-[#3a3a3a]",
+  borderLight: "border-[#3a3a3a]",
   labelText: "text-[#64666E]",
-  contactBtn: "bg-white/5 border border-[#363842] hover:bg-white/10",
-  historyPanel: "bg-[#1E1F24] border-l border-[#363842]",
-  historyEvent: "bg-[#2B2D33] border border-[#363842]",
-  historyTimeline: "bg-[#363842]",
-  historyIcon: "bg-[#333] border-2 border-[#1E1F24]",
-  commentInput: "bg-[#151619] border border-[#363842]",
+  contactBtn: "bg-white/5 border border-[#3a3a3a] hover:bg-white/10",
+  historyPanel: "bg-[#222222] border-l border-[#3a3a3a]",
+  historyEvent: "bg-[#2a2a2a] border border-[#3a3a3a]",
+  historyTimeline: "bg-[#3a3a3a]",
+  historyIcon: "bg-[#333333] border-2 border-[#222222]",
+  commentInput: "bg-[#1a1a1a] border border-[#3a3a3a]",
   // Modal specific
-  clientBadge: "bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400",
-  avatarBorder: "border-2 border-[#27282F]",
+  clientBadge: "bg-[#333333] px-2.5 py-1 rounded text-xs text-gray-400",
+  avatarBorder: "border-2 border-[#3a3a3a]",
   dropdownItem:
-    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
+    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#333333] transition-colors",
   dropdownItemSelected:
-    "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md",
+    "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#333333] rounded-md",
 } as const;
 
 export interface StatusConfig {

@@ -91,8 +91,8 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
     <div
       ref={cardRef}
       className={cn(
-        "rounded-xl border border-dashed border-[#2a2a2a] bg-[#1a1a1a] p-5 transition-all",
-        "hover:border-[#3a3a3a] hover:bg-[#1f1f1f]",
+        "rounded-xl border border-dashed border-[#3a3a3a] bg-[#1a1a1a] p-5 transition-all",
+        "hover:border-[#444444] hover:bg-[#222222]",
       )}
       onBlur={handleBlur}
     >
@@ -121,7 +121,7 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="email@exemplo.com"
-            className="w-full border-b border-[#333333] bg-transparent pb-1 text-sm text-[#ededed] placeholder:text-[#666666] focus:border-[#2eaadc] focus:outline-none"
+            className="w-full border-b border-[#3a3a3a] bg-transparent pb-1 text-sm text-[#ededed] placeholder:text-[#666666] focus:border-[#2eaadc] focus:outline-none"
             data-testid="input-new-client-email"
           />
         </div>

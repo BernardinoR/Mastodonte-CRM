@@ -424,7 +424,9 @@ export function ClientMeetings({
               className={cn(
                 "relative flex h-8 items-center overflow-hidden rounded-full transition-all duration-300 ease-out",
                 isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
-                searchFilter.isSearchOpen ? "w-52 border border-[#333] bg-[#1a1a1a] px-3" : "w-8",
+                searchFilter.isSearchOpen
+                  ? "w-52 border border-[#3a3a3a] bg-[#1a1a1a] px-3"
+                  : "w-8",
               )}
               style={{ transitionDelay: isFiltersExpanded ? "0ms" : "0ms" }}
             >
@@ -579,7 +581,7 @@ export function ClientMeetings({
           </ExpandableFilterBar>
         </div>
       </div>
-      <Card className="overflow-hidden border-[#333333] bg-[#202020]">
+      <Card className="overflow-hidden border-[#3a3a3a] bg-[#1a1a1a]">
         <MeetingsTable
           meetings={sortedAndFilteredMeetings}
           inlineProps={inlineProps}

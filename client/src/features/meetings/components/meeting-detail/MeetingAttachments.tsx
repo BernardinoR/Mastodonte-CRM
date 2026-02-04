@@ -33,7 +33,7 @@ export function MeetingAttachments({ attachments }: MeetingAttachmentsProps) {
             {attachments.length}
           </span>
         </div>
-        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
+        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#3a3a3a] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
           <Upload className="h-3.5 w-3.5" />
           Upload
         </button>
@@ -47,7 +47,7 @@ export function MeetingAttachments({ attachments }: MeetingAttachmentsProps) {
           return (
             <div
               key={attachment.id}
-              className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3.5 transition-all hover:border-[#3a3a3a] hover:bg-[#202020]"
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] px-4 py-3.5 transition-all hover:border-[#444444] hover:bg-[#222222]"
             >
               <div
                 className={cn(
@@ -81,7 +81,7 @@ export function MeetingAttachments({ attachments }: MeetingAttachmentsProps) {
         })}
 
         {/* Upload Zone */}
-        <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#333333] bg-[#1a1a1a] p-6 transition-all hover:border-[#2eaadc] hover:bg-[#1e1e1e]">
+        <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#3a3a3a] bg-[#1a1a1a] p-6 transition-all hover:border-[#2eaadc] hover:bg-[#222222]">
           <Upload className="h-8 w-8 text-[#8c8c8c]" />
           <div className="text-center text-[0.8125rem] text-[#8c8c8c]">
             Arraste arquivos aqui ou{" "}

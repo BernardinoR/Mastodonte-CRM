@@ -63,7 +63,7 @@ export function ClientsFiltersRow({
       {/* Filters Row */}
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         {/* Search Box */}
-        <div className="flex max-w-[320px] flex-1 items-center gap-2 rounded-md border border-[#333333] bg-[#1a1a1a] px-3 py-2">
+        <div className="flex max-w-[320px] flex-1 items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] px-3 py-2">
           <Search className="h-4 w-4 text-[#8c8c8c]" />
           <input
             type="text"
@@ -87,7 +87,7 @@ export function ClientsFiltersRow({
         <button
           onClick={() => setShowFilterPanel(!showFilterPanel)}
           className={cn(
-            "flex items-center gap-1.5 rounded-md border border-[#333333] bg-[#1a1a1a] px-3 py-2 text-[13px] transition-colors",
+            "flex items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] px-3 py-2 text-[13px] transition-colors",
             showFilterPanel
               ? "border-[#3a5068] bg-[#243041] text-[#6db1d4]"
               : "text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
@@ -148,7 +148,7 @@ export function ClientsFiltersRow({
 
       {/* Filter Panel */}
       {showFilterPanel && (
-        <div className="mb-6 rounded-lg border border-[#333333] bg-[#1a1a1a] p-4">
+        <div className="mb-6 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-4">
           <div className="mb-4 flex items-center justify-between">
             <span className="text-sm font-semibold">Filtros Avançados</span>
             <button
@@ -166,7 +166,7 @@ export function ClientsFiltersRow({
               <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 Consultor
               </label>
-              <select className="cursor-pointer rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed]">
+              <select className="cursor-pointer rounded-md border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 text-[13px] text-[#ededed]">
                 <option value="">Todos</option>
                 <option value="rafael">Rafael Bernardino Silveira</option>
                 <option value="ana">Ana Paula Santos</option>
@@ -181,7 +181,7 @@ export function ClientsFiltersRow({
               <input
                 type="text"
                 placeholder="R$ 0"
-                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
+                className="rounded-md border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
               />
             </div>
 
@@ -193,7 +193,7 @@ export function ClientsFiltersRow({
               <input
                 type="text"
                 placeholder="R$ 100M"
-                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
+                className="rounded-md border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
               />
             </div>
 
@@ -202,7 +202,7 @@ export function ClientsFiltersRow({
               <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 Cidade
               </label>
-              <select className="cursor-pointer rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed]">
+              <select className="cursor-pointer rounded-md border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 text-[13px] text-[#ededed]">
                 <option value="">Todas</option>
                 <option value="sp">São Paulo</option>
                 <option value="blumenau">Blumenau</option>
@@ -217,7 +217,7 @@ export function ClientsFiltersRow({
               </label>
               <input
                 type="month"
-                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none focus:border-[#2eaadc]"
+                className="rounded-md border border-[#3a3a3a] bg-[#2a2a2a] px-3 py-2 text-[13px] text-[#ededed] outline-none focus:border-[#2eaadc]"
               />
             </div>
           </div>

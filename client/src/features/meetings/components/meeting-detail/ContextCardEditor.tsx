@@ -17,7 +17,7 @@ export function ContextCardEditor({ card, onChange, onRemove }: ContextCardEdito
   const IconComponent = card.icon ? getIconComponent(card.icon) : null;
 
   return (
-    <div className="group relative flex items-start gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4 transition-all hover:border-[#333333] hover:bg-[#1e1e1e]">
+    <div className="group relative flex items-start gap-3 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-4 transition-all hover:border-[#444444] hover:bg-[#222222]">
       <div className="mt-0.5 flex-shrink-0">
         <IconPicker
           selectedIcon={card.icon}
@@ -77,7 +77,7 @@ export function ContextSectionEditor({
   };
 
   return (
-    <div className="border-t border-[#2a2a2a] bg-[#151515] p-4 pt-4">
+    <div className="border-t border-[#3a3a3a] bg-[#1a1a1a] p-4 pt-4">
       <div className="mb-4 flex items-center gap-2">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[#a78bfa]">
           CONTEXTO DA CLIENTE -
@@ -105,7 +105,7 @@ export function ContextSectionEditor({
       <button
         type="button"
         onClick={addCard}
-        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#2a2a2a] bg-transparent p-4 text-[0.8125rem] text-[#555555] transition-all hover:border-[#444444] hover:bg-[#1a1a1a] hover:text-[#888888]"
+        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#3a3a3a] bg-transparent p-4 text-[0.8125rem] text-[#555555] transition-all hover:border-[#444444] hover:bg-[#1a1a1a] hover:text-[#888888]"
       >
         <span className="text-lg">+</span>
         Adicionar contexto

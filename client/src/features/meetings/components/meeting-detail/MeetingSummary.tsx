@@ -359,7 +359,7 @@ export function MeetingSummary({
           />
         </div>
 
-        <div className="rounded-[10px] border border-[#2a2a2a] bg-[#1a1a1a] p-6">
+        <div className="rounded-[10px] border border-[#3a3a3a] bg-[#1a1a1a] p-6">
           <p
             className="text-sm leading-[1.7] text-[#a0a0a0]"
             dangerouslySetInnerHTML={{ __html: summary }}
@@ -367,7 +367,7 @@ export function MeetingSummary({
 
           {/* Client Context */}
           {clientContext.points.length > 0 && (
-            <div className="mt-5 border-t border-[#2a2a2a] pt-5">
+            <div className="mt-5 border-t border-[#3a3a3a] pt-5">
               <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#a78bfa]">
                 <User className="h-3.5 w-3.5" />
                 Contexto da Cliente - {clientName}
@@ -378,7 +378,7 @@ export function MeetingSummary({
                   return (
                     <div
                       key={point.id}
-                      className="flex items-start gap-2.5 rounded-lg bg-[#202020] p-3"
+                      className="flex items-start gap-2.5 rounded-lg bg-[#1a1a1a] p-3"
                     >
                       <IconComponent className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6db1d4]" />
                       <span className="text-[0.8125rem] leading-[1.5] text-[#b0b0b0]">
@@ -393,13 +393,13 @@ export function MeetingSummary({
 
           {/* Highlights */}
           {highlights.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2.5 border-t border-[#2a2a2a] pt-5">
+            <div className="mt-5 flex flex-wrap gap-2.5 border-t border-[#3a3a3a] pt-5">
               {highlights.map((highlight) => {
                 const IconComponent = getIconFromName(highlight.icon);
                 return (
                   <span
                     key={highlight.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[#363842] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed]"
                   >
                     <IconComponent
                       className={`h-3 w-3 ${highlight.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"}`}
@@ -442,7 +442,7 @@ export function MeetingSummary({
             type="button"
             onClick={toggleContextSection}
             className={cn(
-              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#333333] bg-[#252525] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
+              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
               showContext && "border-[#a78bfa] bg-[#2d2640] text-[#a78bfa]",
             )}
           >
@@ -462,7 +462,7 @@ export function MeetingSummary({
       </div>
 
       {/* Summary Container */}
-      <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="rounded-xl border border-[#3a3a3a] bg-[#1a1a1a]">
         {/* Main Text Editor */}
         <div className="p-5">
           <div
@@ -491,7 +491,7 @@ export function MeetingSummary({
         )}
 
         {/* Tags Section */}
-        <div className="flex flex-wrap gap-2.5 border-t border-[#2a2a2a] px-6 py-4">
+        <div className="flex flex-wrap gap-2.5 border-t border-[#3a3a3a] px-6 py-4">
           {tags.map((tag) => (
             <TagDisplay key={tag.id} tag={tag} onRemove={() => handleRemoveTag(tag.id)} />
           ))}

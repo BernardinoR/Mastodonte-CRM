@@ -104,7 +104,7 @@ export function IconPicker({ selectedIcon, onSelect, triggerClassName }: IconPic
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "flex h-6 w-6 items-center justify-center rounded-md border border-[#333333] bg-[#252525]",
+          "flex h-6 w-6 items-center justify-center rounded-md border border-[#3a3a3a] bg-[#2a2a2a]",
           "cursor-pointer text-[#666666] transition-all hover:bg-[#333333] hover:text-[#888888]",
           selectedIcon && "bg-[#333333] text-[#888888]",
           triggerClassName,
@@ -114,7 +114,7 @@ export function IconPicker({ selectedIcon, onSelect, triggerClassName }: IconPic
       </button>
 
       {isOpen && (
-        <div className="absolute left-1/2 top-full z-50 mt-2 grid max-h-[300px] -translate-x-1/2 grid-cols-5 gap-1 overflow-y-auto rounded-lg border border-[#333333] bg-[#1a1a1a] p-2 shadow-lg shadow-black/50">
+        <div className="absolute left-1/2 top-full z-50 mt-2 grid max-h-[300px] -translate-x-1/2 grid-cols-5 gap-1 overflow-y-auto rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-2 shadow-lg shadow-black/50">
           {AVAILABLE_ICONS.map(({ name, icon: Icon }) => (
             <button
               key={name}

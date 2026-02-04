@@ -34,7 +34,7 @@ import {
 function DisabledSection({ section }: { section: DisabledSectionConfig }) {
   const Icon = section.icon;
   return (
-    <Card className="border-[#333333] bg-[#202020] p-6 opacity-60">
+    <Card className="border-[#3a3a3a] bg-[#1a1a1a] p-6 opacity-60">
       <div className="flex items-center gap-4">
         <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-[#2c2c2c]">
           <Icon className="h-6 w-6 text-muted-foreground" />
@@ -275,7 +275,7 @@ export default function ClientDetails() {
             + Novo grupo
           </span>
         </div>
-        <Card className="overflow-hidden border-[#333333] bg-[#202020]">
+        <Card className="overflow-hidden border-[#3a3a3a] bg-[#1a1a1a]">
           <WhatsAppGroupsTable
             groups={whatsappGroups}
             clientId={client.id}

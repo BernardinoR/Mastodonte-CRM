@@ -363,7 +363,7 @@ export function MeetingDetailModal({
         hideCloseButton
         className={cn(
           "max-h-[90vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
-          "border-[#333333] bg-[#121212]",
+          "border-[#3a3a3a] bg-[#1a1a1a]",
         )}
       >
         <VisuallyHidden>
@@ -373,9 +373,9 @@ export function MeetingDetailModal({
 
         <div className="flex h-full max-h-[90vh] flex-col">
           {/* Modal Header */}
-          <div className="flex items-start justify-between gap-4 border-b border-[#333333] px-8 py-6">
+          <div className="flex items-start justify-between gap-4 border-b border-[#3a3a3a] px-8 py-6">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[10px] border border-[#363842] bg-[#252730] text-[#8c8c8c]">
+              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[10px] border border-[#3a3a3a] bg-[#252730] text-[#8c8c8c]">
                 <FileText className="h-[22px] w-[22px]" />
               </div>
               <div>
@@ -472,12 +472,12 @@ export function MeetingDetailModal({
           </div>
 
           {/* Meta Info Bar */}
-          <div className="flex flex-wrap items-center gap-8 border-b border-[#333333] bg-[#171717] px-8 py-4">
+          <div className="flex flex-wrap items-center gap-8 border-b border-[#3a3a3a] bg-[#1a1a1a] px-8 py-4">
             <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#252525]"
+                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
                 >
                   <Calendar className="h-4 w-4 text-[#8c8c8c]" />
                   <div className="flex flex-col text-left">
@@ -491,7 +491,7 @@ export function MeetingDetailModal({
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto border-[#2a2a2a] bg-[#1a1a1a] p-0"
+                className="w-auto border-[#3a3a3a] bg-[#1a1a1a] p-0"
                 side="bottom"
                 align="start"
                 sideOffset={6}
@@ -508,7 +508,7 @@ export function MeetingDetailModal({
             <div className="h-8 w-px bg-[#333333]" />
 
             <div
-              className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#252525]"
+              className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
               onClick={!isEditingTime ? handleStartEditTime : undefined}
             >
               <Clock className="h-4 w-4 text-[#8c8c8c]" />
@@ -544,7 +544,7 @@ export function MeetingDetailModal({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#252525]"
+                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
                 >
                   <Video className="h-4 w-4 text-[#8c8c8c]" />
                   <div className="flex flex-col text-left">
@@ -581,7 +581,7 @@ export function MeetingDetailModal({
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="-mx-2 -my-1.5 ml-auto flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#252525]"
+                  className="-mx-2 -my-1.5 ml-auto flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
                 >
                   <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
                     Responsável:
@@ -595,7 +595,7 @@ export function MeetingDetailModal({
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-64 border-[#2a2a2a] bg-[#1a1a1a] p-0"
+                className="w-64 border-[#3a3a3a] bg-[#1a1a1a] p-0"
                 side="bottom"
                 align="end"
                 sideOffset={6}
@@ -645,10 +645,10 @@ export function MeetingDetailModal({
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-[#333333] bg-[#171717] px-8 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-[#3a3a3a] bg-[#1a1a1a] px-8 py-4">
             <button
               onClick={handleClose}
-              className="rounded-lg border border-[#363842] bg-[#252730] px-4 py-2.5 text-sm font-medium text-[#ededed] transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]"
+              className="rounded-lg border border-[#3a3a3a] bg-[#252730] px-4 py-2.5 text-sm font-medium text-[#ededed] transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]"
             >
               Fechar
             </button>

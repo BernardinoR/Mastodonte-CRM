@@ -83,7 +83,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
   );
 
   return (
-    <ContextMenuContent className="w-56 border-[#2a2a2a] bg-[#1a1a1a]">
+    <ContextMenuContent className="w-56 border-[#3a3a3a] bg-[#1a1a1a]">
       {selectedCount > 1 && (
         <>
           <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
@@ -98,7 +98,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <Type className="h-4 w-4" />
           <span>Título</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a]">
           <ContextMenuItem onClick={onShowReplaceTitleDialog} className="flex items-center gap-2">
             <Pencil className="h-4 w-4" />
             <span>Substituir nome</span>
@@ -116,7 +116,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <span>Data</span>
         </ContextMenuSubTrigger>
         <ContextMenuSubContent
-          className="border-[#2a2a2a] bg-[#1a1a1a] p-0"
+          className="border-[#3a3a3a] bg-[#1a1a1a] p-0"
           onPointerDownOutside={(e) => {
             const target = e.target as HTMLElement;
             if (target.closest("[data-calendar-container]")) {
@@ -145,7 +145,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <Briefcase className="h-4 w-4" />
           <span>Cliente</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a] p-0">
+        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a] p-0">
           <ContextMenuClientEditor
             currentClient={currentClient || null}
             isBulk={selectedCount > 1}
@@ -159,7 +159,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <AlertTriangle className="h-4 w-4" />
           <span>Prioridade</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a]">
           {PRIORITY_OPTIONS.map((priority) => (
             <ContextMenuItem
               key={priority}
@@ -177,7 +177,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <Circle className="h-4 w-4" />
           <span>Status</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
+        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a]">
           {STATUS_OPTIONS.map((status) => (
             <ContextMenuItem
               key={status}
@@ -195,7 +195,7 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <Users className="h-4 w-4" />
           <span>Responsável</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a] p-0">
+        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a] p-0">
           <ContextMenuAssigneeEditor
             currentAssignees={currentAssignees || []}
             isBulk={selectedCount > 1}

@@ -207,7 +207,7 @@ export function MeetingSummaryEditor({
       </div>
 
       {/* Summary Container */}
-      <div className="overflow-hidden rounded-xl border border-[#2a2a2a] bg-[#1a1a1a]">
+      <div className="overflow-hidden rounded-xl border border-[#3a3a3a] bg-[#1a1a1a]">
         {/* Main Text Editor */}
         <div className="p-6">
           <div
@@ -236,7 +236,7 @@ export function MeetingSummaryEditor({
         )}
 
         {/* Tags Section */}
-        <div className="flex flex-wrap gap-2.5 border-t border-[#2a2a2a] px-6 py-4">
+        <div className="flex flex-wrap gap-2.5 border-t border-[#3a3a3a] px-6 py-4">
           {tags.map((tag) => (
             <TagDisplay key={tag.id} tag={tag} onRemove={() => handleRemoveTag(tag.id)} />
           ))}
@@ -244,12 +244,12 @@ export function MeetingSummaryEditor({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 border-t border-[#2a2a2a] px-6 py-4">
+        <div className="flex gap-3 border-t border-[#3a3a3a] px-6 py-4">
           <button
             type="button"
             onClick={toggleContextSection}
             className={cn(
-              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#333333] bg-[#252525] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
+              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
               showContext && "border-[#a78bfa] bg-[#2d2640] text-[#a78bfa]",
             )}
           >
@@ -299,7 +299,7 @@ export function MeetingSummaryEditor({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-[#363842] bg-[#252730] px-4 py-2.5 text-sm font-medium text-[#ededed] transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]"
+          className="rounded-lg border border-[#3a3a3a] bg-[#252730] px-4 py-2.5 text-sm font-medium text-[#ededed] transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]"
         >
           Cancelar
         </button>

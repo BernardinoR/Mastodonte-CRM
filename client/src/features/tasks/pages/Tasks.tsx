@@ -554,7 +554,7 @@ export default function Tasks() {
         onCompactModeChange={setIsCompact}
       />
 
-      <div className="mb-6 border-b border-[#333333]" />
+      <div className="mb-6 border-b border-[#3a3a3a]" />
 
       {viewMode === "table" ? (
         <TaskTableView

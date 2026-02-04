@@ -171,7 +171,7 @@ export function FoundationCodeField({ code, onCodeChange }: FoundationCodeFieldP
         ) : (
           <>
             <span
-              className="-mx-1.5 -my-0.5 max-w-[180px] cursor-pointer truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+              className="-mx-1.5 -my-0.5 max-w-[180px] cursor-pointer truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
               onClick={handleStartEditing}
               title={code || "Não informado"}
               data-testid="text-foundation-code"

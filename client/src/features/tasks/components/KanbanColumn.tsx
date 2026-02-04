@@ -80,7 +80,7 @@ export const KanbanColumn = memo(function KanbanColumn({
           </div>
           {onAddTaskTop && (
             <button
-              className="flex h-6 w-6 items-center justify-center rounded text-gray-500 transition-colors hover:bg-[#252525] hover:text-white"
+              className="flex h-6 w-6 items-center justify-center rounded text-gray-500 transition-colors hover:bg-[#2a2a2a] hover:text-white"
               onClick={handleAddTopClick}
               data-testid={`button-add-task-top-${id}`}
             >
@@ -100,7 +100,7 @@ export const KanbanColumn = memo(function KanbanColumn({
 
           {onAddTask && (
             <button
-              className="flex h-8 w-full items-center justify-start gap-2 rounded-md px-3 text-xs text-gray-500 transition-colors hover:bg-[#252525] hover:text-white"
+              className="flex h-8 w-full items-center justify-start gap-2 rounded-md px-3 text-xs text-gray-500 transition-colors hover:bg-[#2a2a2a] hover:text-white"
               onClick={handleAddClick}
               data-testid={`button-add-task-${id}`}
             >

@@ -9,7 +9,7 @@ interface DisabledStatCardProps {
 export function DisabledStatCard({ title }: DisabledStatCardProps) {
   return (
     <Card
-      className="border-[#333333] bg-[#202020] p-4 opacity-60"
+      className="border-[#3a3a3a] bg-[#1a1a1a] p-4 opacity-60"
       data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, "-")}-disabled`}
     >
       <div

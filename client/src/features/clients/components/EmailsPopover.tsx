@@ -113,15 +113,15 @@ export function EmailsPopover({
             )}
           </span>
           <span
-            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
             data-testid="text-client-email"
           >
             {primaryEmail}
           </span>
         </div>
       </PopoverTrigger>
-      <PopoverContent className="w-80 border-[#333333] bg-[#252525] p-0" align="start">
-        <div className="border-b border-[#333333] p-3">
+      <PopoverContent className="w-80 border-[#3a3a3a] bg-[#2a2a2a] p-0" align="start">
+        <div className="border-b border-[#3a3a3a] p-3">
           <h4 className="text-sm font-medium text-foreground">Emails do Cliente</h4>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Clique para definir o email principal
@@ -130,7 +130,7 @@ export function EmailsPopover({
 
         <div className="max-h-[200px] overflow-y-auto">
           {emails.map((email, index) => (
-            <div key={index} className="group flex items-center gap-2 px-3 py-2 hover:bg-[#2c2c2c]">
+            <div key={index} className="group flex items-center gap-2 px-3 py-2 hover:bg-[#333333]">
               <button
                 type="button"
                 onClick={() => onSetPrimaryEmail(index)}
@@ -190,7 +190,7 @@ export function EmailsPopover({
           ))}
         </div>
 
-        <div className="border-t border-[#333333] p-2">
+        <div className="border-t border-[#3a3a3a] p-2">
           {isAddingNew ? (
             <div className="flex items-center gap-2 px-1">
               <input

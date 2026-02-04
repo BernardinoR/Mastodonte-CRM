@@ -21,7 +21,7 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
 
   return (
     <div className="w-full">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -33,7 +33,7 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
       </div>
 
       {selectedClient && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">Cliente selecionado</div>
           <div className="px-3 py-1">
             <div
@@ -153,7 +153,7 @@ export function ContextMenuClientEditor({
 
   return (
     <div className="w-64">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -167,7 +167,7 @@ export function ContextMenuClientEditor({
       </div>
 
       {!isBulk && localClient && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">Cliente atual</div>
           <div className="px-3 py-1">
             <div className="flex items-center gap-2 rounded-md bg-[#2a2a2a] px-2 py-1.5">

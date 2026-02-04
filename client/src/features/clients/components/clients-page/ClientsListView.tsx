@@ -80,9 +80,9 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
   };
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#1a1a1a]">
+    <div className="overflow-hidden rounded-lg border border-[#3a3a3a] bg-[#1a1a1a]">
       {/* Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 border-b border-[#2a2a2a] bg-[#141414] px-4 py-3">
+      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 border-b border-[#3a3a3a] bg-[#1a1a1a] px-4 py-3">
         <div className="flex cursor-pointer items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c] hover:text-[#ededed]">
           Cliente
           <ArrowUpDown className="h-3 w-3" />
@@ -120,7 +120,7 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
         <div
           key={client.id}
           className={cn(
-            "grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] items-center gap-3 border-b border-[#252525] px-4 py-3 transition-colors hover:bg-[#1f1f1f]",
+            "grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] items-center gap-3 border-b border-[#3a3a3a] px-4 py-3 transition-colors hover:bg-[#222222]",
             getRowBorderClass(client),
           )}
           onClick={() => handleRowClick(client.id)}
@@ -207,7 +207,7 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
                   e.stopPropagation();
                   setLocation(`/clients/${client.id}`);
                 }}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[#333333] text-[#8c8c8c] transition-colors hover:bg-[#333333] hover:text-[#ededed]"
+                className="flex h-8 w-8 items-center justify-center rounded-md border border-[#3a3a3a] text-[#8c8c8c] transition-colors hover:bg-[#333333] hover:text-[#ededed]"
                 title="Ver detalhes"
               >
                 <Eye className="h-4 w-4" />

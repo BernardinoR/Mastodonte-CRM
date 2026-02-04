@@ -133,7 +133,7 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
           <div
             key={decision.id}
             className={cn(
-              "flex items-start gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4",
+              "flex items-start gap-3 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-4",
               decision.type === "warning"
                 ? "border-l-[3px] border-l-[#f59e0b]"
                 : "border-l-[3px] border-l-[#a78bfa]",
@@ -187,7 +187,7 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
         ))}
 
         {isEditing && editableDecisions.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#333333] bg-[#1a1a1a] p-8">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#3a3a3a] bg-[#1a1a1a] p-8">
             <Zap className="h-8 w-8 text-[#555]" />
             <p className="text-sm text-[#666]">Nenhuma decisão adicionada</p>
             <button

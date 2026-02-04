@@ -151,8 +151,8 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
   return (
     <div
       className={cn(
-        "cursor-pointer rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition-all",
-        "hover:translate-y-[-2px] hover:border-[#3a3a3a] hover:bg-[#1f1f1f] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
+        "cursor-pointer rounded-xl border border-[#3a3a3a] bg-[#1a1a1a] p-5 transition-all",
+        "hover:translate-y-[-2px] hover:border-[#444444] hover:bg-[#222222] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
         getBorderClass(),
       )}
       data-testid={`card-client-${id}`}
@@ -161,7 +161,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
       {/* Header */}
       <div
         className={cn(
-          "mb-4 flex items-start gap-3 border-b border-[#2a2a2a] pb-4",
+          "mb-4 flex items-start gap-3 border-b border-[#3a3a3a] pb-4",
           isCompact && "mb-0 border-b-0 pb-0",
         )}
       >
@@ -258,7 +258,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
       {/* Footer (oculto no modo compacto) */}
       <div
         className={cn(
-          "mt-4 flex items-center justify-between border-t border-[#2a2a2a] pt-4 transition-all",
+          "mt-4 flex items-center justify-between border-t border-[#3a3a3a] pt-4 transition-all",
           isCompact && "mt-0 max-h-0 overflow-hidden border-t-0 pt-0 opacity-0",
         )}
       >

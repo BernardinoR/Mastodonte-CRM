@@ -92,7 +92,7 @@ export function TaskCardHeader({
               </h3>
               <button
                 onClick={onStartTitleEdit}
-                className="rounded p-1 opacity-0 transition-all hover:bg-[#3a3a3a] group-hover/title:opacity-100"
+                className="rounded p-1 opacity-0 transition-all hover:bg-[#444444] group-hover/title:opacity-100"
                 data-testid={`button-edit-tasktitle-${id}`}
               >
                 <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
@@ -109,7 +109,7 @@ export function TaskCardHeader({
             >
               <Badge
                 className={cn(
-                  "cursor-pointer text-[10px] font-semibold transition-opacity hover:opacity-80",
+                  "cursor-pointer text-[11px] font-semibold transition-opacity hover:opacity-80",
                   typeConfig.className,
                 )}
               >

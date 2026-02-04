@@ -216,19 +216,19 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
             <div
               key={item.id}
               className={cn(
-                "overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#1a1a1a]",
-                isEditing && "border-[#333333]",
+                "overflow-hidden rounded-lg border border-[#3a3a3a] bg-[#1a1a1a]",
+                isEditing && "border-[#3a3a3a]",
               )}
             >
               <div
                 className={cn(
-                  "flex cursor-pointer items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#202020]",
+                  "flex cursor-pointer items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#222222]",
                   isEditing && "cursor-default",
                 )}
                 onClick={() => !isEditing && toggleItem(item.id)}
               >
                 {isEditing && <GripVertical className="h-4 w-4 cursor-grab text-[#555]" />}
-                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border border-[#363842] bg-[#252730] text-xs font-semibold text-[#8c8c8c]">
+                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border border-[#3a3a3a] bg-[#252730] text-xs font-semibold text-[#8c8c8c]">
                   {item.number}
                 </div>
                 {isEditing ? (
@@ -250,7 +250,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                         status: e.target.value as "discussed" | "action_pending",
                       })
                     }
-                    className="rounded-md border border-[#363842] bg-[#252730] px-2 py-1 text-xs text-[#8c8c8c] outline-none"
+                    className="rounded-md border border-[#3a3a3a] bg-[#252730] px-2 py-1 text-xs text-[#8c8c8c] outline-none"
                   >
                     <option value="discussed">Discutido</option>
                     <option value="action_pending">Ação Pendente</option>
@@ -301,7 +301,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                       key={subitem.id}
                       className={cn(
                         "flex items-start gap-2.5 py-2.5",
-                        index !== item.subitems.length - 1 && "border-b border-[#2a2a2a]",
+                        index !== item.subitems.length - 1 && "border-b border-[#3a3a3a]",
                       )}
                     >
                       <div className="mt-[7px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#4281dc]" />
@@ -325,7 +325,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                             }
                             placeholder="Descrição..."
                             rows={2}
-                            className="w-full resize-none rounded-md border border-[#2a2a2a] bg-[#1f1f1f] px-3 py-2 text-xs text-[#8c8c8c] outline-none placeholder:text-[#555]"
+                            className="w-full resize-none rounded-md border border-[#3a3a3a] bg-[#1f1f1f] px-3 py-2 text-xs text-[#8c8c8c] outline-none placeholder:text-[#555]"
                           />
                         </div>
                       ) : (
@@ -351,7 +351,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                   {isEditing && (
                     <button
                       onClick={() => addSubitem(item.id)}
-                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-xs text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#3a3a3a] bg-transparent px-3 py-1.5 text-xs text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
                     >
                       <Plus className="h-3 w-3" />
                       Adicionar sub-item

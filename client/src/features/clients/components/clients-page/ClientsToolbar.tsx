@@ -26,7 +26,7 @@ export function ClientsToolbar({
   return (
     <div className="mb-5 flex items-center gap-4">
       {/* View Toggle Container */}
-      <div className="flex rounded-md border border-[#333333] bg-[#1a1a1a] p-1">
+      <div className="flex rounded-md border border-[#3a3a3a] bg-[#1a1a1a] p-1">
         <button
           onClick={() => onViewModeChange("cards")}
           className={cn(
@@ -94,7 +94,7 @@ export function ClientsToolbar({
             "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors",
             filterMode === "all"
               ? "border-[#3a5068] bg-[#243041] text-[#6db1d4]"
-              : "border-[#333333] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
+              : "border-[#3a3a3a] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
           )}
           data-testid="filter-all"
         >
@@ -117,7 +117,7 @@ export function ClientsToolbar({
             "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors",
             filterMode === "noMeeting"
               ? "border-[#5a3d2d] bg-[#422c24] text-[#dcb092]"
-              : "border-[#333333] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
+              : "border-[#3a3a3a] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
           )}
           data-testid="filter-noMeeting"
         >
@@ -140,7 +140,7 @@ export function ClientsToolbar({
             "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[13px] transition-colors",
             filterMode === "byAum"
               ? "border-[#3a5068] bg-[#243041] text-[#6db1d4]"
-              : "border-[#333333] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
+              : "border-[#3a3a3a] bg-[#1a1a1a] text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
           )}
           data-testid="filter-byAum"
         >

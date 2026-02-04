@@ -172,10 +172,10 @@ export function ClientHeader({
   const hasWhatsAppGroups = activeWhatsAppGroups.length > 0;
 
   return (
-    <header className="mb-6 border-b border-[#333333] pb-5">
+    <header className="mb-6 border-b border-[#3a3a3a] pb-5">
       <div className="flex flex-wrap items-start gap-6">
         <div
-          className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#2c2c2c] text-2xl font-bold text-muted-foreground"
+          className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#2a2a2a] text-2xl font-bold text-muted-foreground"
           data-testid="avatar-client-initials"
         >
           {client.initials}
@@ -196,7 +196,7 @@ export function ClientHeader({
               />
             ) : (
               <h1
-                className="-mx-2 -my-1 cursor-pointer rounded-md px-2 py-1 text-3xl font-bold text-foreground transition-colors hover:bg-[#2c2c2c]"
+                className="-mx-2 -my-1 cursor-pointer rounded-md px-2 py-1 text-3xl font-bold text-foreground transition-colors hover:bg-[#333333]"
                 onClick={startEditingName}
                 data-testid="text-client-name"
               >
@@ -225,7 +225,7 @@ export function ClientHeader({
                 />
               ) : (
                 <span
-                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
                   onClick={startEditingCpf}
                   data-testid="text-client-cpf"
                 >
@@ -251,7 +251,7 @@ export function ClientHeader({
                 />
               ) : (
                 <span
-                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
+                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
                   onClick={startEditingPhone}
                   data-testid="text-client-phone"
                 >
@@ -294,7 +294,7 @@ export function ClientHeader({
             <Button
               variant="outline"
               onClick={onNewTask}
-              className="border-[#333333] hover:bg-[#2c2c2c]"
+              className="border-[#3a3a3a] hover:bg-[#333333]"
               data-testid="button-new-task"
             >
               <Plus className="mr-2 h-4 w-4" />
@@ -305,27 +305,27 @@ export function ClientHeader({
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
-                    className="border-[#333333] hover:bg-[#2c2c2c]"
+                    className="border-[#3a3a3a] hover:bg-[#333333]"
                     data-testid="button-whatsapp"
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     WhatsApp
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 border-[#333333] bg-[#202020] p-2" align="start">
+                <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
                   <div className="flex flex-col gap-1">
                     <button
                       onClick={() => {
                         handleWhatsApp();
                         setWhatsappPopoverOpen(false);
                       }}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                       data-testid="button-whatsapp-direct"
                     >
                       <MessageSquare className="h-4 w-4" />
                       Chat direto
                     </button>
-                    <div className="my-1 border-t border-[#333333]" />
+                    <div className="my-1 border-t border-[#3a3a3a]" />
                     <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
                     {activeWhatsAppGroups.map((group) => (
                       <button
@@ -334,7 +334,7 @@ export function ClientHeader({
                           handleWhatsApp(group.link || undefined, true);
                           setWhatsappPopoverOpen(false);
                         }}
-                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                         data-testid={`button-whatsapp-group-${group.id}`}
                       >
                         <MessageSquare className="h-4 w-4 text-emerald-500" />
@@ -348,7 +348,7 @@ export function ClientHeader({
               <Button
                 variant="outline"
                 onClick={() => handleWhatsApp()}
-                className="border-[#333333] hover:bg-[#2c2c2c]"
+                className="border-[#3a3a3a] hover:bg-[#333333]"
                 data-testid="button-whatsapp"
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
@@ -358,7 +358,7 @@ export function ClientHeader({
             <Button
               variant="outline"
               onClick={handleEmail}
-              className="border-[#333333] hover:bg-[#2c2c2c]"
+              className="border-[#3a3a3a] hover:bg-[#333333]"
               data-testid="button-send-email"
             >
               <Mail className="mr-2 h-4 w-4" />
@@ -369,7 +369,7 @@ export function ClientHeader({
                 <Button
                   variant="outline"
                   onClick={cancelAllChanges}
-                  className="border-[#333333] hover:bg-[#2c2c2c]"
+                  className="border-[#3a3a3a] hover:bg-[#333333]"
                   data-testid="button-cancel-edit"
                 >
                   <X className="mr-2 h-4 w-4" />
@@ -388,7 +388,7 @@ export function ClientHeader({
               <Button
                 variant="outline"
                 onClick={handleEditClient}
-                className="border-[#333333] hover:bg-[#2c2c2c]"
+                className="border-[#3a3a3a] hover:bg-[#333333]"
                 data-testid="button-edit-client"
               >
                 <Edit className="mr-2 h-4 w-4" />

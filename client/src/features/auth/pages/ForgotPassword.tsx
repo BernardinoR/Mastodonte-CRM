@@ -126,7 +126,7 @@ export default function ForgotPassword() {
           {step === "email" && (
             <>
               <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-full border border-[#333] bg-[#222] p-3">
+                <div className="rounded-full border border-[#3a3a3a] bg-[#222222] p-3">
                   <Mail className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -183,7 +183,7 @@ export default function ForgotPassword() {
           {step === "code" && (
             <>
               <div className="mb-6 flex items-center gap-3">
-                <div className="rounded-full border border-[#333] bg-[#222] p-3">
+                <div className="rounded-full border border-[#3a3a3a] bg-[#222222] p-3">
                   <KeyRound className="h-6 w-6 text-white" />
                 </div>
                 <div>

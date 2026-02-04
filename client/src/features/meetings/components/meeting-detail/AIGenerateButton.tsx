@@ -98,7 +98,7 @@ export function AIGenerateButton({
         sideOffset={8}
         className={cn(
           "w-auto min-w-[600px] p-0",
-          "bg-[#0d0d0d]/98 backdrop-blur-xl",
+          "bg-[#101010]/98 backdrop-blur-xl",
           "rounded-xl border border-white/10",
           "shadow-2xl shadow-purple-500/10",
         )}

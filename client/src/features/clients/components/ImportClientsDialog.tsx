@@ -127,10 +127,10 @@ export function ImportClientsDialog({
                   <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8c8c8c]">
                     Preview ({Math.min(validation.valid.length, 5)} de {validation.valid.length})
                   </p>
-                  <div className="overflow-hidden rounded-lg border border-[#333333]">
+                  <div className="overflow-hidden rounded-lg border border-[#3a3a3a]">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="border-b border-[#333333] bg-[#1a1a1a]">
+                        <tr className="border-b border-[#3a3a3a] bg-[#1a1a1a]">
                           <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Nome</th>
                           <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">E-mail</th>
                           <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Status</th>
@@ -139,7 +139,7 @@ export function ImportClientsDialog({
                       </thead>
                       <tbody>
                         {validation.valid.slice(0, 5).map((row, i) => (
-                          <tr key={i} className="border-b border-[#252525] last:border-0">
+                          <tr key={i} className="border-b border-[#3a3a3a] last:border-0">
                             <td className="px-3 py-2 text-[#ededed]">{row.name}</td>
                             <td className="px-3 py-2 text-[#b0b0b0]">{row.emails[0]}</td>
                             <td className="px-3 py-2 text-[#b0b0b0]">{row.status}</td>
@@ -158,10 +158,10 @@ export function ImportClientsDialog({
                   <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8c8c8c]">
                     Linhas com erros
                   </p>
-                  <div className="max-h-32 overflow-y-auto rounded-lg border border-[#333333]">
+                  <div className="max-h-32 overflow-y-auto rounded-lg border border-[#3a3a3a]">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="sticky top-0 border-b border-[#333333] bg-[#1a1a1a]">
+                        <tr className="sticky top-0 border-b border-[#3a3a3a] bg-[#1a1a1a]">
                           <th className="w-16 px-3 py-2 text-left font-medium text-[#8c8c8c]">
                             Linha
                           </th>
@@ -170,7 +170,7 @@ export function ImportClientsDialog({
                       </thead>
                       <tbody>
                         {validation.invalid.map((inv, i) => (
-                          <tr key={i} className="border-b border-[#252525] last:border-0">
+                          <tr key={i} className="border-b border-[#3a3a3a] last:border-0">
                             <td className="px-3 py-2 font-mono text-red-300">{inv.row}</td>
                             <td className="px-3 py-2 text-red-200">{inv.errors.join("; ")}</td>
                           </tr>

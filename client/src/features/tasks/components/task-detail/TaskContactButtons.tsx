@@ -94,14 +94,14 @@ export function TaskContactButtons({
                   WhatsApp
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 border-[#333333] bg-[#202020] p-2" align="start">
+              <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
                 <div className="flex flex-col gap-1">
                   <button
                     onClick={() => {
                       handleWhatsApp();
                       setWhatsappPopoverOpen(false);
                     }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                     data-testid="button-whatsapp-direct"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -113,14 +113,14 @@ export function TaskContactButtons({
                         handleSchedulingWhatsApp();
                         setWhatsappPopoverOpen(false);
                       }}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                       data-testid="button-whatsapp-scheduling"
                     >
                       <Calendar className="h-4 w-4 text-emerald-500" />
                       Enviar link de agendamento
                     </button>
                   )}
-                  <div className="my-1 border-t border-[#333333]" />
+                  <div className="my-1 border-t border-[#3a3a3a]" />
                   <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
                   {activeWhatsAppGroups.map((group) => (
                     <button
@@ -129,7 +129,7 @@ export function TaskContactButtons({
                         handleWhatsApp(group.link || undefined, true);
                         setWhatsappPopoverOpen(false);
                       }}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                       data-testid={`button-whatsapp-group-${group.id}`}
                     >
                       <MessageCircle className="h-4 w-4 text-emerald-500" />
@@ -147,14 +147,14 @@ export function TaskContactButtons({
                   WhatsApp
                 </button>
               </PopoverTrigger>
-              <PopoverContent className="w-64 border-[#333333] bg-[#202020] p-2" align="start">
+              <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
                 <div className="flex flex-col gap-1">
                   <button
                     onClick={() => {
                       handleWhatsApp();
                       setWhatsappPopoverOpen(false);
                     }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                     data-testid="button-whatsapp-direct"
                   >
                     <MessageCircle className="h-4 w-4" />
@@ -165,7 +165,7 @@ export function TaskContactButtons({
                       handleSchedulingWhatsApp();
                       setWhatsappPopoverOpen(false);
                     }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
+                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
                     data-testid="button-whatsapp-scheduling"
                   >
                     <Calendar className="h-4 w-4 text-emerald-500" />

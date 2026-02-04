@@ -85,7 +85,7 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px] border-[#333333] bg-[#1a1a1a] p-6">
+      <DialogContent className="max-w-[400px] border-[#3a3a3a] bg-[#1a1a1a] p-6">
         <VisuallyHidden>
           <DialogTitle>Adicionar Tag</DialogTitle>
           <DialogDescription>Adicione uma tag ao resumo da reunião</DialogDescription>
@@ -99,7 +99,7 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Digite o texto da tag..."
-          className="mb-4 w-full rounded-lg border border-[#333333] bg-[#252525] px-4 py-3 text-sm text-[#ededed] outline-none transition-colors focus:border-[#a78bfa]"
+          className="mb-4 w-full rounded-lg border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-3 text-sm text-[#ededed] outline-none transition-colors focus:border-[#a78bfa]"
           autoFocus
         />
 
@@ -110,7 +110,7 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
               type="button"
               onClick={() => setSelectedType(type)}
               className={cn(
-                "flex-1 cursor-pointer rounded-lg border-2 border-[#333333] bg-[#252525] p-3 text-center transition-all hover:border-[#444444]",
+                "flex-1 cursor-pointer rounded-lg border-2 border-[#3a3a3a] bg-[#2a2a2a] p-3 text-center transition-all hover:border-[#444444]",
                 selectedType === type && "border-[#a78bfa] bg-[#2d2640]",
               )}
             >
@@ -131,7 +131,7 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="cursor-pointer rounded-lg border border-[#333333] bg-transparent px-4 py-2.5 text-sm text-[#888888] transition-all hover:bg-[#252525] hover:text-[#ededed]"
+            className="cursor-pointer rounded-lg border border-[#3a3a3a] bg-transparent px-4 py-2.5 text-sm text-[#888888] transition-all hover:bg-[#2a2a2a] hover:text-[#ededed]"
           >
             Cancelar
           </button>
@@ -161,7 +161,7 @@ export function TagDisplay({ tag, onRemove, editable = true }: TagDisplayProps) 
   return (
     <span
       className={cn(
-        "group inline-flex cursor-default items-center gap-1.5 rounded-md border border-[#363842] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed] transition-all",
+        "group inline-flex cursor-default items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed] transition-all",
       )}
     >
       <IconComponent
@@ -252,7 +252,7 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
       <button
         type="button"
         onClick={() => setIsExpanded(true)}
-        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3.5 py-2 text-[0.8125rem] text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
+        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[#3a3a3a] bg-transparent px-3.5 py-2 text-[0.8125rem] text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
       >
         <Plus className="h-3 w-3" />
         Adicionar tag
@@ -262,7 +262,7 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
 
   return (
     <div ref={containerRef} className="inline-flex flex-wrap items-center gap-2">
-      <div className="flex items-center gap-2 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2">
+      <div className="flex items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] px-3 py-2">
         <input
           ref={inputRef}
           type="text"

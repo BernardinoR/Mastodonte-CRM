@@ -91,7 +91,7 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
 
   return (
     <div className="w-full">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -103,7 +103,7 @@ export function AssigneeSelector({ selectedAssignees, onSelect, onRemove }: Assi
       </div>
 
       {selectedConsultants.length > 0 && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {selectedConsultants.length} selecionado{selectedConsultants.length > 1 ? "s" : ""}
           </div>
@@ -254,7 +254,7 @@ export function ContextMenuAssigneeEditor({
   if (showSetSingle && isBulk && onSetSingle) {
     return (
       <div className="w-64">
-        <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+        <div className="border-b border-[#3a3a3a] px-3 py-2.5">
           <div className="flex items-center gap-2">
             <button
               onClick={(e) => {
@@ -306,7 +306,7 @@ export function ContextMenuAssigneeEditor({
   // Default view
   return (
     <div className="w-64">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -320,7 +320,7 @@ export function ContextMenuAssigneeEditor({
 
       {isBulk && onSetSingle && (
         <div
-          className="flex cursor-pointer items-center gap-2 border-b border-[#2a2a2a] px-3 py-2 transition-colors hover:bg-[#2a2a2a]"
+          className="flex cursor-pointer items-center gap-2 border-b border-[#3a3a3a] px-3 py-2 transition-colors hover:bg-[#2a2a2a]"
           onClick={(e) => {
             e.stopPropagation();
             setShowSetSingle(true);
@@ -334,7 +334,7 @@ export function ContextMenuAssigneeEditor({
       )}
 
       {selectedConsultants.length > 0 && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">
             {localAssignees.length} selecionado{localAssignees.length > 1 ? "s" : ""}
           </div>
@@ -404,7 +404,7 @@ export function SingleAssigneeSelector({
 
   return (
     <div className="w-full">
-      <div className="border-b border-[#2a2a2a] px-3 py-2.5">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -418,7 +418,7 @@ export function SingleAssigneeSelector({
       </div>
 
       {selectedConsultant && (
-        <div className="border-b border-[#2a2a2a]">
+        <div className="border-b border-[#3a3a3a]">
           <div className="px-3 py-1.5 text-xs text-gray-500">Responsável atual</div>
           <UserListItem user={selectedConsultant} variant="current" onClick={() => {}} />
         </div>

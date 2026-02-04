@@ -106,7 +106,7 @@ export function TasksCompletedCard({ tasks }: TasksCompletedCardProps) {
   const isEqual = done === previousDone;
 
   return (
-    <Card className="relative border-[#333333] bg-[#202020] p-4" data-testid="card-tasks-completed">
+    <Card className="relative border-[#3a3a3a] bg-[#1a1a1a] p-4" data-testid="card-tasks-completed">
       {/* Toggle no canto superior direito */}
       <div className="absolute right-4 top-4">
         <ToggleGroup

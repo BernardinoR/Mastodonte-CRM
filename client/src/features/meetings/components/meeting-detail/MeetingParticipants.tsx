@@ -22,7 +22,7 @@ export function MeetingParticipants({ participants }: MeetingParticipantsProps) 
         {participants.map((participant) => (
           <div
             key={participant.id}
-            className="flex items-center gap-2.5 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-3.5 py-2.5 transition-all hover:border-[#3a3a3a] hover:bg-[#202020]"
+            className="flex items-center gap-2.5 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] px-3.5 py-2.5 transition-all hover:border-[#444444] hover:bg-[#222222]"
           >
             <div
               className="flex h-8 w-8 items-center justify-center rounded-full text-[0.6875rem] font-semibold text-white"

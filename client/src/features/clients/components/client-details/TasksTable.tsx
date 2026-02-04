@@ -142,7 +142,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
     <tr
       ref={setNewTaskRowRef}
       tabIndex={-1}
-      className="group/row border-b border-[#333333]"
+      className="group/row border-b border-[#3a3a3a]"
       onKeyDown={handleKeyDown}
       onBlur={handleNewTaskRowBlur}
     >
@@ -259,7 +259,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
         <Popover open={newDatePopoverOpen} onOpenChange={setNewDatePopoverOpen}>
           <PopoverTrigger asChild>
             <div
-              className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#2c2c2c]"
+              className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#333333]"
               data-testid="select-new-task-date"
             >
               <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -294,7 +294,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
           <Popover open={newAssigneePopoverOpen} onOpenChange={setNewAssigneePopoverOpen}>
             <PopoverTrigger asChild>
               <div
-                className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-[#2c2c2c]"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-[#333333]"
                 data-testid="select-new-task-assignee"
               >
                 {newTaskAssignees.length === 0 ? (
@@ -348,7 +348,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
       <div className="overflow-x-auto">
         <table className="w-full table-fixed text-sm">
           <thead>
-            <tr className="border-b border-[#333333]">
+            <tr className="border-b border-[#3a3a3a]">
               <th className="w-[280px] px-4 py-3 text-left text-xs font-medium uppercase tracking-wide text-muted-foreground">
                 Tarefa
               </th>
@@ -370,7 +370,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
             {visibleTasks.map((task) => (
               <tr
                 key={task.id}
-                className="group/row cursor-pointer border-b border-[#333333] transition-colors hover:bg-[#2c2c2c]"
+                className="group/row cursor-pointer border-b border-[#3a3a3a] transition-colors hover:bg-[#333333]"
                 onClick={(e) => handleRowClick(task.id, e)}
               >
                 <td className="px-4 py-3">
@@ -505,7 +505,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
                   >
                     <PopoverTrigger asChild data-popover-trigger>
                       <div
-                        className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#2c2c2c]"
+                        className="-mx-1 inline-flex cursor-pointer items-center gap-1.5 rounded px-1 py-0.5 text-foreground transition-colors hover:bg-[#333333]"
                         data-testid={`cell-task-date-${task.id}`}
                       >
                         <CalendarIcon className="h-3.5 w-3.5 text-muted-foreground" />
@@ -541,7 +541,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
                     >
                       <PopoverTrigger asChild data-popover-trigger>
                         <div
-                          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-[#2c2c2c]"
+                          className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 transition-colors hover:bg-[#333333]"
                           data-testid={`cell-task-assignee-${task.id}`}
                         >
                           {(task.assignees?.length || 0) === 0 ? (
@@ -587,7 +587,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
         <div className="flex items-center justify-between">
           {!isAddingTask && (
             <div
-              className="cursor-pointer px-4 py-3 text-sm text-[#2eaadc] transition-colors hover:bg-[#2c2c2c]"
+              className="cursor-pointer px-4 py-3 text-sm text-[#2eaadc] transition-colors hover:bg-[#333333]"
               onClick={handleStartAddTask}
               data-testid="button-add-task-table"
             >
@@ -597,7 +597,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
           {isAddingTask && <div />}
           {hasMore && (
             <div
-              className="cursor-pointer px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-[#2c2c2c] hover:text-foreground"
+              className="cursor-pointer px-4 py-3 text-sm text-muted-foreground transition-colors hover:bg-[#333333] hover:text-foreground"
               onClick={loadMore}
               data-testid="button-load-more-tasks"
             >
@@ -611,7 +611,7 @@ export function TasksTable({ tasks, inlineProps }: TasksTableProps) {
         open={!!deleteConfirmOpen}
         onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}
       >
-        <AlertDialogContent className="border-[#333333] bg-[#252525]">
+        <AlertDialogContent className="border-[#3a3a3a] bg-[#2a2a2a]">
           <AlertDialogHeader>
             <AlertDialogTitle className="text-foreground">Excluir tarefa?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">

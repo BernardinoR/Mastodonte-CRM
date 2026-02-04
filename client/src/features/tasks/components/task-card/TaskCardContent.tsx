@@ -103,8 +103,8 @@ export function TaskCardContent({
               className={cn(
                 "cursor-pointer truncate rounded border px-2 py-0.5 text-[11px] font-medium transition-colors",
                 clientName
-                  ? "border-[#333333] bg-[#2a2a2a] text-gray-400 hover:bg-[#333]"
-                  : "border-dashed border-[#444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
+                  ? "border-[#3a3a3a] bg-[#2a2a2a] text-gray-400 hover:bg-[#333333]"
+                  : "border-dashed border-[#444444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
               )}
               onClick={(e) => {
                 e.stopPropagation();
@@ -183,7 +183,7 @@ export function TaskCardContent({
       </div>
 
       {/* Row 3: Priority Popover + Pencil + Avatar/Assignee Popover */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-end justify-between">
         {/* Priority Popover */}
         <Popover
           open={activePopover === "priority"}
@@ -194,7 +194,7 @@ export function TaskCardContent({
               className={cn(
                 "flex cursor-pointer items-center gap-2 transition-colors",
                 activePopover === "priority"
-                  ? "-ml-1 rounded border border-[#333] bg-[#2a2a2a] p-1"
+                  ? "-ml-1 rounded border border-[#3a3a3a] bg-[#2a2a2a] p-1"
                   : "",
               )}
               onClick={(e) => {
@@ -216,7 +216,7 @@ export function TaskCardContent({
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className="w-40 rounded-lg border border-[#333] bg-[#1a1a1a] p-1 shadow-2xl"
+            className="w-40 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-1 shadow-2xl"
             side="bottom"
             align="start"
             sideOffset={6}
@@ -231,8 +231,8 @@ export function TaskCardContent({
                     className={cn(
                       "flex items-center gap-2 rounded-md px-2 py-1.5 font-jakarta text-xs transition-colors",
                       isSelected
-                        ? "bg-[#252525] text-white"
-                        : "text-gray-400 hover:bg-[#252525] hover:text-white",
+                        ? "bg-[#2a2a2a] text-white"
+                        : "text-gray-400 hover:bg-[#2a2a2a] hover:text-white",
                     )}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -254,7 +254,7 @@ export function TaskCardContent({
         <div className="flex items-center gap-1.5">
           {/* Pencil - visible on hover */}
           <button
-            className="flex h-6 w-6 items-center justify-center rounded text-gray-500 opacity-0 transition-all hover:bg-[#333] hover:text-gray-300 group-hover/task-card:opacity-100"
+            className="flex h-6 w-6 items-center justify-center rounded text-gray-500 opacity-0 transition-all hover:bg-[#333333] hover:text-gray-300 group-hover/task-card:opacity-100"
             onClick={onEditClick}
             data-popover-trigger
             data-testid={`button-edit-${id}`}
@@ -272,8 +272,8 @@ export function TaskCardContent({
                 className={cn(
                   "flex h-6 w-6 cursor-pointer items-center justify-center rounded border text-[10px] font-bold transition-colors",
                   assigneeInitials
-                    ? "border-[#333333] bg-[#333] text-gray-300 hover:border-gray-500"
-                    : "border-dashed border-[#444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
+                    ? "border-[#3a3a3a] bg-[#333333] text-gray-300 hover:border-gray-500"
+                    : "border-dashed border-[#444444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
                 )}
                 onClick={(e) => {
                   e.stopPropagation();

@@ -57,7 +57,7 @@ function SubMenu({ label, icon, children }: SubMenuProps) {
         <ChevronRight className="h-4 w-4" />
       </div>
       <div className="invisible absolute left-full top-0 z-50 ml-1 opacity-0 transition-all duration-150 group-hover/submenu:visible group-hover/submenu:opacity-100">
-        <div className="min-w-[180px] rounded-md border border-[#2a2a2a] bg-[#1a1a1a] shadow-lg">
+        <div className="min-w-[180px] rounded-md border border-[#3a3a3a] bg-[#1a1a1a] shadow-lg">
           {children}
         </div>
       </div>
@@ -150,7 +150,7 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 w-56 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] shadow-lg"
+      className="fixed z-50 w-56 rounded-md border border-[#3a3a3a] bg-[#1a1a1a] shadow-lg"
       style={{
         top: "50%",
         left: "50%",

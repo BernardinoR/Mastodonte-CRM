@@ -211,7 +211,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
       {/* Compact single-row bar */}
       <div
         className={cn(
-          "h-12 border-b bg-[#18181B]",
+          "h-12 border-b bg-background",
           showFlash ? "border-emerald-500/50" : "border-orange-500/30",
         )}
       >
