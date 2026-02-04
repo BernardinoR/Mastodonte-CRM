@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { AlertTriangle, Plus, X, CircleAlert } from "lucide-react";
-import { Switch } from "@/shared/components/ui/switch";
+import { useState, useRef, useEffect } from "react";
+import { AlertTriangle, X, CircleAlert } from "lucide-react";
 
 interface ClientPeculiaritiesProps {
   peculiarities: string[];
@@ -18,12 +17,21 @@ export function ClientPeculiarities({
   onToggleMonthlyMeeting,
 }: ClientPeculiaritiesProps) {
   const [newItem, setNewItem] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isAdding && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isAdding]);
 
   const handleAdd = () => {
     const trimmed = newItem.trim();
     if (!trimmed) return;
     onAddPeculiarity(trimmed);
     setNewItem("");
+    setIsAdding(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -31,75 +39,94 @@ export function ClientPeculiarities({
       e.preventDefault();
       handleAdd();
     }
+    if (e.key === "Escape") {
+      setNewItem("");
+      setIsAdding(false);
+    }
   };
 
   return (
-    <div className="bg-[#1a1a1a] rounded-xl shadow-2xl overflow-hidden border border-[#333333] flex flex-col">
-      {/* Header */}
-      <div className="px-6 py-5 border-b border-[#333333] flex items-center gap-3 bg-[#1e1e1e]">
-        <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-orange-500/10 text-orange-500 shrink-0">
-          <AlertTriangle className="w-5 h-5" />
-        </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">Peculiaridades</h2>
+    <div>
+      {/* Header - outside the card */}
+      <div className="flex items-center gap-2 mb-4">
+        <AlertTriangle className="w-4 h-4 text-orange-500" />
+        <h2 className="text-base font-semibold text-foreground">Peculiaridades</h2>
       </div>
 
-      {/* Content */}
-      <div className="p-8 flex flex-col gap-6">
-        {peculiarities.length > 0 && (
-          <ul className="flex flex-col gap-3">
-            {peculiarities.map((item, index) => (
-              <li
-                key={index}
-                className="group flex items-center justify-between p-4 rounded-lg bg-[#252525] border border-transparent hover:border-[#333333] transition-all duration-200"
-              >
-                <div className="flex items-center gap-3 overflow-hidden">
-                  <CircleAlert className="w-5 h-5 text-amber-500 shrink-0 fill-amber-500 stroke-[#252525]" />
-                  <span className="text-gray-200 text-sm font-medium">{item}</span>
-                </div>
-                <button
-                  onClick={() => onRemovePeculiarity(index)}
-                  className="text-gray-400 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-md hover:bg-[#333333] flex items-center justify-center"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </li>
-            ))}
-          </ul>
+      {/* Card */}
+      <div className="bg-[#1a1a1a] border border-[#333] rounded-lg overflow-hidden">
+        {/* Inline add row — top of card */}
+        {isAdding && (
+          <div className="flex items-center gap-3 px-5 py-4 border-b border-[#333]">
+            <CircleAlert className="w-[18px] h-[18px] text-muted-foreground shrink-0" />
+            <input
+              ref={inputRef}
+              value={newItem}
+              onChange={(e) => setNewItem(e.target.value)}
+              onKeyDown={handleKeyDown}
+              onBlur={() => {
+                if (!newItem.trim()) {
+                  setNewItem("");
+                  setIsAdding(false);
+                }
+              }}
+              placeholder="Nova peculiaridade..."
+              className="flex-1 bg-transparent text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none border-b border-[#2eaadc]"
+            />
+          </div>
         )}
 
-        {/* Input row */}
-        <div className="flex items-center gap-3">
-          <input
-            value={newItem}
-            onChange={(e) => setNewItem(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Adicionar nova peculiaridade..."
-            className="flex-1 bg-[#252525] text-white placeholder-gray-500 border border-[#404040] rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#2eaadc]/50 focus:border-[#2eaadc] transition-all shadow-sm"
-          />
-          <button
-            onClick={handleAdd}
-            disabled={!newItem.trim()}
-            className="bg-[#2eaadc] hover:bg-sky-500 disabled:opacity-40 disabled:cursor-not-allowed text-[#121617] text-sm font-bold py-3 px-6 rounded-lg transition-colors flex items-center gap-2 shadow-lg shadow-[#2eaadc]/20 shrink-0"
+        {/* Peculiarity rows */}
+        {peculiarities.map((item, index) => (
+          <div
+            key={index}
+            className="flex items-center justify-between px-5 py-4 border-b border-[#333] hover:bg-[#202020] transition-colors group"
           >
-            <Plus className="w-[18px] h-[18px]" />
-            <span>Add</span>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <CircleAlert className="w-[18px] h-[18px] text-amber-500 shrink-0" />
+              <span className="text-gray-300 text-sm font-medium truncate">
+                {item}
+              </span>
+            </div>
+            <button
+              onClick={() => onRemovePeculiarity(index)}
+              className="text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity p-1"
+            >
+              <X className="w-[18px] h-[18px]" />
+            </button>
+          </div>
+        ))}
+
+        {/* Toggle row */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-[#333]">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-gray-200 text-sm font-medium">
+              Desligar reunião mensal
+            </span>
+            <span className="text-gray-500 text-xs">
+              Remove alertas de atraso e exclui dos filtros de reunião.
+            </span>
+          </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              className="sr-only peer"
+              checked={monthlyMeetingDisabled}
+              onChange={(e) => onToggleMonthlyMeeting(e.target.checked)}
+            />
+            <div className="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#2eaadc]/30 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all border-gray-600 peer-checked:bg-[#2eaadc]" />
+          </label>
+        </div>
+
+        {/* Footer — always visible */}
+        <div className="px-5 py-3 bg-[#202020]/50">
+          <button
+            onClick={() => setIsAdding(true)}
+            className="text-[#2eaadc] text-xs hover:text-sky-400 font-medium transition-colors"
+          >
+            + Nova peculiaridade
           </button>
         </div>
-      </div>
-
-      {/* Divider */}
-      <div className="h-px w-full bg-[#333333]" />
-
-      {/* Footer toggle */}
-      <div className="px-8 py-6 flex items-center justify-between bg-[#1e1e1e]">
-        <div className="flex flex-col gap-1">
-          <span className="text-white text-sm font-semibold">Desligar reunião mensal</span>
-          <span className="text-gray-400 text-xs">Remove alertas de atraso e exclui dos filtros de reunião.</span>
-        </div>
-        <Switch
-          checked={monthlyMeetingDisabled}
-          onCheckedChange={onToggleMonthlyMeeting}
-        />
       </div>
     </div>
   );
