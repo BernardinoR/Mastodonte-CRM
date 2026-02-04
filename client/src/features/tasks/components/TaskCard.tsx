@@ -297,6 +297,7 @@ export const TaskCard = memo(function TaskCard({
               onSaveTitleEdit={() => {
                 handleUpdate("title", editedTask.title);
               }}
+              onConfirmTitleEdit={() => onFinishEditing?.(id)}
               onTypeChange={(type) => handleUpdate("taskType", type)}
             />
 

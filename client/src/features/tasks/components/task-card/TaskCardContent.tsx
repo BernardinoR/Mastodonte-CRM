@@ -90,9 +90,9 @@ export function TaskCardContent({
   const assigneeInitials = firstAssignee ? getInitials(firstAssignee) : null;
 
   return (
-    <div className="space-y-2.5 px-4 pb-4 pt-3">
+    <div className="px-4 pb-4 pt-2">
       {/* Row 2: Client Popover + Date Popover */}
-      <div className="flex items-center gap-2">
+      <div className="mb-3 flex items-center gap-2">
         {/* Client Popover */}
         <Popover
           open={activePopover === "client"}

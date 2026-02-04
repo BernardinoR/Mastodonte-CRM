@@ -17,6 +17,7 @@ interface TaskCardHeaderProps {
   onEditingTitleChange: (value: string) => void;
   onStartTitleEdit: (e: React.MouseEvent) => void;
   onSaveTitleEdit: () => void;
+  onConfirmTitleEdit?: () => void;
   onTypeChange?: (taskType: TaskType) => void;
 }
 
@@ -30,6 +31,7 @@ export function TaskCardHeader({
   onEditingTitleChange,
   onStartTitleEdit,
   onSaveTitleEdit,
+  onConfirmTitleEdit,
   onTypeChange,
 }: TaskCardHeaderProps) {
   const [typePopoverOpen, setTypePopoverOpen] = useState(false);
@@ -39,13 +41,15 @@ export function TaskCardHeader({
       if (e.key === "Enter") {
         e.preventDefault();
         onSaveTitleEdit();
+        onConfirmTitleEdit?.();
       }
       if (e.key === "Escape") {
         e.preventDefault();
         onSaveTitleEdit();
+        onConfirmTitleEdit?.();
       }
     },
-    [onSaveTitleEdit],
+    [onSaveTitleEdit, onConfirmTitleEdit],
   );
 
   const handleTypeSelect = useCallback(

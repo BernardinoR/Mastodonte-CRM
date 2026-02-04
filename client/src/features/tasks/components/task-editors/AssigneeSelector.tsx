@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Check, Plus, X, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useUsers, type TeamUser } from "@features/users";
@@ -52,11 +51,14 @@ function UserListItem({ user, onClick, variant, testId }: UserListItemProps) {
       }}
       data-testid={testId}
     >
-      <Avatar className="h-5 w-5 shrink-0">
-        <AvatarFallback className={cn("text-[9px] font-normal text-white", user.avatarColor)}>
-          {user.initials}
-        </AvatarFallback>
-      </Avatar>
+      <div
+        className={cn(
+          "flex h-5 w-5 shrink-0 items-center justify-center rounded text-[9px] font-bold text-white",
+          user.avatarColor,
+        )}
+      >
+        {user.initials}
+      </div>
       <span className="flex-1 text-sm text-foreground">{user.name}</span>
       {icon}
     </div>
