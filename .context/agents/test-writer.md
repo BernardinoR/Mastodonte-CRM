@@ -1,3 +1,8 @@
+---
+name: Test Writer
+description: Creates and maintains unit tests, component tests, and integration tests
+---
+
 # Test Writer Agent Playbook
 
 ## Mission

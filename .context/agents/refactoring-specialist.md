@@ -1,3 +1,8 @@
+---
+name: Refactoring Specialist
+description: Improves code quality and maintainability through cleanup, pattern improvements, and debt reduction
+---
+
 # Refactoring Specialist Agent Playbook
 
 ## Mission

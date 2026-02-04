@@ -1,3 +1,8 @@
+---
+name: Performance Optimizer
+description: Identifies and resolves performance bottlenecks in rendering, API, and database layers
+---
+
 # Performance Optimizer Agent Playbook
 
 ## Mission

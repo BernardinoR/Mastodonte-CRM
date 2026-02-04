@@ -25,6 +25,8 @@ export interface Client {
   status: ClientStatus;
   folderLink?: string;
   schedulingMessageSentAt?: Date | null;
+  peculiarities: string[];
+  monthlyMeetingDisabled: boolean;
 }
 
 export interface ClientStats {

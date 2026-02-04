@@ -20,23 +20,26 @@ import { AddressPopover } from "@features/clients";
 import { FoundationCodeField } from "@features/clients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { cn } from "@/shared/lib/utils";
 import type { Address, WhatsAppGroup } from "@features/clients";
 import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { useClientHeaderEditing } from "@features/clients";
 
-function MetaItem({ 
-  icon: Icon, 
-  label, 
-  value, 
-  highlight = false 
-}: { 
-  icon: React.ComponentType<{ className?: string }>; 
-  label: string; 
-  value: string; 
+function MetaItem({
+  icon: Icon,
+  label,
+  value,
+  highlight = false,
+  disabled = false,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  label: string;
+  value: string;
   highlight?: boolean;
+  disabled?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={cn("flex flex-col gap-1", disabled && "opacity-40")}>
       <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
         <Icon className="w-3.5 h-3.5" />
         {label}
@@ -72,6 +75,7 @@ interface ClientHeaderProps {
     foundationCode: string;
     clientSince: string;
     status: ClientStatus;
+    monthlyMeetingDisabled: boolean;
   };
   meetings: ClientMeeting[];
   whatsappGroups: WhatsAppGroup[];
@@ -267,10 +271,11 @@ export function ClientHeader({
               currentAdvisor={client.advisor}
               onAdvisorChange={onUpdateAdvisor}
             />
-            <MetaItem 
-              icon={CalendarIcon} 
-              label="Última Reunião" 
-              value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} 
+            <MetaItem
+              icon={CalendarIcon}
+              label="Última Reunião"
+              value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+              disabled={client.monthlyMeetingDisabled}
             />
             <AddressPopover
               address={client.address}

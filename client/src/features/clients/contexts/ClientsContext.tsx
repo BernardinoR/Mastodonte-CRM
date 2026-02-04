@@ -33,6 +33,8 @@ interface DbClient {
   created_at: string;
   updated_at: string;
   scheduling_message_sent_at: string | null;
+  peculiarities: string[];
+  monthly_meeting_disabled: boolean;
   owner?: { id: number; name: string | null } | null;
   whatsapp_groups?: DbWhatsAppGroup[];
 }
@@ -93,6 +95,8 @@ function mapDbRowToClient(row: DbClient): Client {
     clientSince: formatClientSince(clientSinceDate),
     status: (row.status as ClientStatus) || "Ativo",
     schedulingMessageSentAt: row.scheduling_message_sent_at ? new Date(row.scheduling_message_sent_at) : null,
+    peculiarities: row.peculiarities || [],
+    monthlyMeetingDisabled: row.monthly_meeting_disabled ?? false,
   };
 }
 
@@ -124,6 +128,8 @@ const FIELD_MAP: Record<string, string> = {
   patrimony: 'patrimony',
   ownerId: 'owner_id',
   isActive: 'is_active',
+  peculiarities: 'peculiarities',
+  monthlyMeetingDisabled: 'monthly_meeting_disabled',
 };
 
 function mapUpdatesToDb(updates: Record<string, unknown>): Record<string, unknown> {
@@ -167,6 +173,8 @@ interface ClientsContextType {
   updateClientAdvisor: (clientId: string, advisor: string) => void;
   updateClientAddress: (clientId: string, address: Address) => Promise<void>;
   updateClientFoundationCode: (clientId: string, foundationCode: string) => Promise<void>;
+  updateClientPeculiarities: (clientId: string, peculiarities: string[]) => Promise<void>;
+  updateClientMonthlyMeetingDisabled: (clientId: string, disabled: boolean) => Promise<void>;
   addClientMeeting: (clientId: string, meeting: Omit<ClientMeeting, 'id'>) => void;
   updateClientMeeting: (clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, 'id'>>) => void;
   deleteClientMeeting: (clientId: string, meetingId: string) => void;
@@ -548,6 +556,22 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     await updateClientApi(clientId, { foundationCode });
   }, [updateClientApi]);
 
+  const updateClientPeculiarities = useCallback(async (clientId: string, peculiarities: string[]) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, peculiarities } : client
+    ));
+    setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { peculiarities });
+  }, [updateClientApi]);
+
+  const updateClientMonthlyMeetingDisabled = useCallback(async (clientId: string, disabled: boolean) => {
+    setClients(prev => prev.map(client =>
+      client.id === clientId ? { ...client, monthlyMeetingDisabled: disabled } : client
+    ));
+    setDataVersion(v => v + 1);
+    await updateClientApi(clientId, { monthlyMeetingDisabled: disabled });
+  }, [updateClientApi]);
+
   // Meetings are still managed locally for now
   const addClientMeeting = useCallback((clientId: string, meeting: Omit<ClientMeeting, 'id'>) => {
     setExtendedData(prev => {
@@ -672,12 +696,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     updateClientAdvisor,
     updateClientAddress,
     updateClientFoundationCode,
+    updateClientPeculiarities,
+    updateClientMonthlyMeetingDisabled,
     addClientMeeting,
     updateClientMeeting,
     deleteClientMeeting,
     bulkInsertClients,
     dataVersion,
-  }), [clients, isLoading, error, refetchClients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addClient, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, addClientMeeting, updateClientMeeting, deleteClientMeeting, bulkInsertClients, dataVersion]);
+  }), [clients, isLoading, error, refetchClients, getClientById, getClientByName, getFullClientData, getAllClients, getMeetingDetail, addClient, addWhatsAppGroup, updateWhatsAppGroup, deleteWhatsAppGroup, updateClientStatus, updateClientName, updateClientCpf, updateClientPhone, updateClientEmails, addClientEmail, removeClientEmail, updateClientEmail, setClientPrimaryEmail, updateClientAdvisor, updateClientAddress, updateClientFoundationCode, updateClientPeculiarities, updateClientMonthlyMeetingDisabled, addClientMeeting, updateClientMeeting, deleteClientMeeting, bulkInsertClients, dataVersion]);
 
   return (
     <ClientsContext.Provider value={contextValue}>

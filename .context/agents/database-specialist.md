@@ -1,3 +1,8 @@
+---
+name: Database Specialist
+description: Manages database schema design, migrations, query optimization, and data modeling
+---
+
 # Database Specialist Agent Playbook
 
 ## Mission

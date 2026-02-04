@@ -1,3 +1,8 @@
+---
+name: Code Reviewer
+description: Evaluates code changes for quality, consistency, and adherence to project standards
+---
+
 # Code Reviewer Agent Playbook
 
 ## Mission

@@ -1,3 +1,8 @@
+---
+name: Design System
+description: Frontend specialist for creating consistent UI following the design system with a mock-first workflow
+---
+
 # Design System Agent Playbook
 
 ## Mission

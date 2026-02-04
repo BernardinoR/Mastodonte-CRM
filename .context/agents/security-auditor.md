@@ -1,3 +1,8 @@
+---
+name: Security Auditor
+description: Reviews code and configurations for security vulnerabilities and compliance issues
+---
+
 # Security Auditor Agent Playbook
 
 ## Mission

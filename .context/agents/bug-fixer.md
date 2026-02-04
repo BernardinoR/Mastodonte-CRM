@@ -1,3 +1,8 @@
+---
+name: Bug Fixer
+description: Analyzes bug reports, identifies root causes, and implements targeted fixes with regression tests
+---
+
 # Bug Fixer Agent Playbook
 
 ## Mission

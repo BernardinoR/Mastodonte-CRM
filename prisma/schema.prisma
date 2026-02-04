@@ -71,6 +71,8 @@ model Client {
   createdAt         DateTime  @default(now()) @map("created_at")
   updatedAt               DateTime  @updatedAt @map("updated_at")
   schedulingMessageSentAt DateTime? @map("scheduling_message_sent_at")
+  peculiarities           String[]  @default([])
+  monthlyMeetingDisabled  Boolean   @default(false) @map("monthly_meeting_disabled")
 
   // Relações
   owner          User?           @relation("ClientOwner", fields: [ownerId], references: [id])

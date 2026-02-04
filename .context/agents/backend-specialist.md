@@ -1,3 +1,8 @@
+---
+name: Backend Specialist
+description: Implements server-side functionality including API development, database operations, and business logic
+---
+
 # Backend Specialist Agent Playbook
 
 ## Mission

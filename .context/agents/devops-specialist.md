@@ -1,3 +1,8 @@
+---
+name: DevOps Specialist
+description: Manages deployment, CI/CD pipelines, infrastructure, and environment configuration
+---
+
 # DevOps Specialist Agent Playbook
 
 ## Mission

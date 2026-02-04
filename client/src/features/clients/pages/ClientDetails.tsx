@@ -6,7 +6,7 @@ import { Badge } from "@/shared/components/ui/badge";
 import { toast } from "@/shared/hooks/use-toast";
 import { supabase } from "@/shared/lib/supabase";
 import { WhatsAppGroupsTable } from "@features/clients";
-import { ClientHeader, ClientMeetings, ClientTasks } from "@features/clients/components/client-details";
+import { ClientHeader, ClientMeetings, ClientTasks, ClientPeculiarities } from "@features/clients/components/client-details";
 import { TasksCompletedCard } from "@features/clients/components/client-details/TasksCompletedCard";
 import { MeetingsCard } from "@features/clients/components/client-details/MeetingsCard";
 import { DisabledStatCard } from "@features/clients/components/client-details/DisabledStatCard";
@@ -63,8 +63,10 @@ export default function ClientDetails() {
     setClientPrimaryEmail, 
     updateClientAdvisor, 
     updateClientAddress, 
-    updateClientFoundationCode, 
-    dataVersion 
+    updateClientFoundationCode,
+    updateClientPeculiarities,
+    updateClientMonthlyMeetingDisabled,
+    dataVersion
   } = useClients();
   
   void dataVersion;
@@ -161,6 +163,18 @@ export default function ClientDetails() {
   }
   
   const { client, meetings, whatsappGroups } = clientData;
+
+  const handleAddPeculiarity = (text: string) => {
+    updateClientPeculiarities(client.id, [...client.peculiarities, text]);
+  };
+
+  const handleRemovePeculiarity = (index: number) => {
+    updateClientPeculiarities(client.id, client.peculiarities.filter((_, i) => i !== index));
+  };
+
+  const handleToggleMonthlyMeeting = (disabled: boolean) => {
+    updateClientMonthlyMeetingDisabled(client.id, disabled);
+  };
 
   return (
     <div className="p-6 max-w-6xl mx-auto" data-testid="page-client-details">
@@ -263,6 +277,16 @@ export default function ClientDetails() {
             }}
           />
         </Card>
+      </div>
+
+      <div className="mb-8">
+        <ClientPeculiarities
+          peculiarities={client.peculiarities}
+          monthlyMeetingDisabled={client.monthlyMeetingDisabled}
+          onAddPeculiarity={handleAddPeculiarity}
+          onRemovePeculiarity={handleRemovePeculiarity}
+          onToggleMonthlyMeeting={handleToggleMonthlyMeeting}
+        />
       </div>
     </div>
   );

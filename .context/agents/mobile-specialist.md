@@ -1,3 +1,8 @@
+---
+name: Mobile Specialist
+description: Ensures responsive design, touch interactions, and mobile-specific optimizations
+---
+
 # Mobile Specialist Agent Playbook
 
 ## Mission

@@ -1,3 +1,8 @@
+---
+name: Architect Specialist
+description: Designs system architecture, evaluates patterns, and makes technical trade-off decisions
+---
+
 # Architect Specialist Agent Playbook
 
 ## Mission

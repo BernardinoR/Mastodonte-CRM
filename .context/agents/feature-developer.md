@@ -1,3 +1,8 @@
+---
+name: Feature Developer
+description: Implements new features end-to-end spanning frontend and backend
+---
+
 # Feature Developer Agent Playbook
 
 ## Mission

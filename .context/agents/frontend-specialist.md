@@ -1,3 +1,8 @@
+---
+name: Frontend Specialist
+description: Designs and implements React UI components, state management, and frontend architecture
+---
+
 # Frontend Specialist Agent Playbook
 
 ## Mission

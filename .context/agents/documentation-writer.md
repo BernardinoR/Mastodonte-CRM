@@ -1,3 +1,8 @@
+---
+name: Documentation Writer
+description: Creates and maintains README files, API documentation, user guides, and technical docs
+---
+
 # Documentation Writer Agent Playbook
 
 ## Mission

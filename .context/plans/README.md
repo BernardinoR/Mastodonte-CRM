@@ -6,6 +6,7 @@ This directory contains plans for coordinating work across documentation and pla
 1. [Fix Rls Auth](./fix-rls-auth.md)
 2. [Google Calendar Whatsapp Scheduling](./google-calendar-whatsapp-scheduling.md)
 3. [Optimize Client Task Creation](./optimize-client-task-creation.md)
+4. [Peculiaridades](./peculiaridades.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.
