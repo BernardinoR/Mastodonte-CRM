@@ -19,34 +19,39 @@ import ClientDetails from "@features/clients/pages/ClientDetails";
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
 import { UsersProvider, useCurrentUser, Admin, Profile } from "@features/users";
 import { StyleGuides } from "@features/style-guides";
+import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
 function AuthenticatedRouter() {
   return (
-    <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/clients" component={Clients} />
-      <Route path="/clients/:id" component={ClientDetails} />
-      <Route path="/tasks" component={Tasks} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/profile" component={Profile} />
-      <Route path="/style-guides" component={StyleGuides} />
-      <Route component={NotFound} />
-    </Switch>
+    <ErrorBoundary level="page">
+      <Switch>
+        <Route path="/" component={Dashboard} />
+        <Route path="/clients" component={Clients} />
+        <Route path="/clients/:id" component={ClientDetails} />
+        <Route path="/tasks" component={Tasks} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/profile" component={Profile} />
+        <Route path="/style-guides" component={StyleGuides} />
+        <Route component={NotFound} />
+      </Switch>
+    </ErrorBoundary>
   );
 }
 
 function PublicRouter() {
   return (
-    <Switch>
-      <Route path="/sign-in" component={SignIn} />
-      <Route path="/sign-up" component={SignUp} />
-      <Route path="/sso-callback" component={SSOCallback} />
-      <Route path="/forgot-password" component={ForgotPassword} />
-      <Route path="/clerk-login" component={ClerkLogin} />
-      <Route>
-        <Redirect to="/sign-in" />
-      </Route>
-    </Switch>
+    <ErrorBoundary level="page">
+      <Switch>
+        <Route path="/sign-in" component={SignIn} />
+        <Route path="/sign-up" component={SignUp} />
+        <Route path="/sso-callback" component={SSOCallback} />
+        <Route path="/forgot-password" component={ForgotPassword} />
+        <Route path="/clerk-login" component={ClerkLogin} />
+        <Route>
+          <Redirect to="/sign-in" />
+        </Route>
+      </Switch>
+    </ErrorBoundary>
   );
 }
 
@@ -127,22 +132,24 @@ export default function App() {
   }
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {DEV_BYPASS_AUTH ? (
-          <AuthenticatedApp />
-        ) : (
-          <>
-            <SignedIn>
-              <AuthenticatedApp />
-            </SignedIn>
-            <SignedOut>
-              <PublicRouter />
-            </SignedOut>
-          </>
-        )}
-        <Toaster />
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary level="page">
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          {DEV_BYPASS_AUTH ? (
+            <AuthenticatedApp />
+          ) : (
+            <>
+              <SignedIn>
+                <AuthenticatedApp />
+              </SignedIn>
+              <SignedOut>
+                <PublicRouter />
+              </SignedOut>
+            </>
+          )}
+          <Toaster />
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
