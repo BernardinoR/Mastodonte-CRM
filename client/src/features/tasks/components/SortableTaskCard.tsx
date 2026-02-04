@@ -62,6 +62,7 @@ export const SortableTaskCard = memo(
     if (prev.title !== next.title) return false;
     if (prev.clientName !== next.clientName) return false;
     if (prev.priority !== next.priority) return false;
+    if (prev.taskType !== next.taskType) return false;
     if (prev.status !== next.status) return false;
     if (prev.dueDate?.getTime() !== next.dueDate?.getTime()) return false;
     if (prev.description !== next.description) return false;

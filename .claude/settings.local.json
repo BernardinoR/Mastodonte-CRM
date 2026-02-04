@@ -51,11 +51,18 @@
       "Bash(npx prettier:*)",
       "Bash(npx vitest:*)",
       "Bash(npx eslint:*)",
-      "Bash(npx:*)"
+      "Bash(npx:*)",
+      "mcp__stitch__list_projects",
+      "mcp__stitch__create_project",
+      "Bash(gcloud auth print-access-token:*)",
+      "Bash(env)",
+      "mcp__stitch__generate_screen_from_text",
+      "mcp__ai-context__skill"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
+    "stitch",
     "supabase",
     "ai-context",
     "prisma-remote",

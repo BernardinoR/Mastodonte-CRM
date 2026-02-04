@@ -1,5 +1,6 @@
 export type TaskStatus = "To Do" | "In Progress" | "Done";
 export type TaskPriority = "Urgente" | "Importante" | "Normal" | "Baixa";
+export type TaskType = "Tarefa" | "Alocação" | "Experiência";
 export type SyncStatus = "pending" | "error";
 
 // Filter system types
@@ -111,6 +112,7 @@ export interface Task {
   clientEmail?: string;
   clientPhone?: string;
   priority?: TaskPriority;
+  taskType?: TaskType;
   status: TaskStatus;
   assignees: string[];
   dueDate: Date;
@@ -126,6 +128,7 @@ export type TaskUpdates = Partial<Omit<Task, "id">>;
 
 export const STATUS_OPTIONS: TaskStatus[] = ["To Do", "In Progress", "Done"];
 export const PRIORITY_OPTIONS: TaskPriority[] = ["Urgente", "Importante", "Normal", "Baixa"];
+export const TASK_TYPE_OPTIONS: TaskType[] = ["Tarefa", "Alocação", "Experiência"];
 
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   "To Do": "A Fazer",

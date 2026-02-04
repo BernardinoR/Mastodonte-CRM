@@ -1,5 +1,4 @@
 import { memo, useCallback } from "react";
-import { useLocation } from "wouter";
 import { Card } from "@/shared/components/ui/card";
 import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
 import { AlertCircle, RefreshCw } from "lucide-react";
@@ -13,7 +12,7 @@ import { useTaskCardFieldHandlers } from "../hooks/useTaskCardFieldHandlers";
 import { TaskCardDialogs } from "./task-card-dialogs";
 import { TaskCardContextMenu } from "./task-context-menu";
 import { TaskCardQuickDetails, TaskCardHeader, TaskCardContent } from "./task-card";
-import type { TaskStatus, TaskPriority, TaskUpdates, SyncStatus } from "../types/task";
+import type { TaskStatus, TaskPriority, TaskType, TaskUpdates, SyncStatus } from "../types/task";
 
 export interface TaskCardProps {
   id: string;
@@ -21,6 +20,7 @@ export interface TaskCardProps {
   clientId?: string;
   clientName?: string;
   priority?: TaskPriority;
+  taskType?: TaskType;
   status: TaskStatus;
   assignees: string[];
   dueDate: Date;
@@ -64,6 +64,7 @@ const PRIMITIVE_KEYS = [
   "clientId",
   "clientName",
   "priority",
+  "taskType",
   "status",
   "description",
   "syncStatus",
@@ -96,6 +97,7 @@ export const TaskCard = memo(function TaskCard({
   clientId,
   clientName,
   priority,
+  taskType,
   status,
   assignees,
   dueDate,
@@ -122,8 +124,6 @@ export const TaskCard = memo(function TaskCard({
   onBulkRemoveAssignee,
   onEditStateChange,
 }: TaskCardProps) {
-  const [, navigate] = useLocation();
-
   const {
     isEditing,
     editedTask,
@@ -136,7 +136,6 @@ export const TaskCard = memo(function TaskCard({
     handleUpdate,
     handleTitleEdit,
     handleEditClick,
-    handleCloseEditing,
     isJustClosedEdit,
     stableAssignees,
   } = useTaskCardEditing({
@@ -257,7 +256,8 @@ export const TaskCard = memo(function TaskCard({
         target.closest("button") ||
         target.closest("[contenteditable]") ||
         target.closest('[role="combobox"]') ||
-        target.closest("[data-radix-collection-item]");
+        target.closest("[data-radix-collection-item]") ||
+        target.closest("[data-popover-trigger]");
 
       if (!isInteractive && !isJustClosedEdit()) {
         clickTimeoutRef.current = setTimeout(() => {
@@ -278,33 +278,22 @@ export const TaskCard = memo(function TaskCard({
           <Card
             ref={cardRef}
             className={cn(
-              "group/task-card hover-elevate active-elevate-2 cursor-pointer border transition-all",
-              !isEditing && "select-none",
-              isEditing && "shadow-lg ring-2 ring-primary",
+              "group/task-card cursor-pointer select-none rounded-lg border border-[#333333] bg-[#202020] shadow-sm transition-all hover:border-gray-600",
               isSelected && !isEditing && "shadow-lg ring-2 ring-blue-500",
-              isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
-              status === "To Do" && "border-[#363636] bg-[#262626]",
-              status === "In Progress" && "border-[#344151] bg-[#243041]",
-              status === "Done" && "border-[rgb(45,55,48)] bg-[rgb(35,43,38)]",
+              isOverdue && "border-y border-l-[3px] border-r border-[#333333] border-l-red-700",
             )}
             onClick={handleCardClick}
-            onDoubleClick={handleEditClick}
             data-testid={`card-task-${id}`}
           >
-            {(!isCompact || isEditing) && (
-              <TaskCardHeader
-                id={id}
-                title={title}
-                status={status}
-                isEditing={isEditing}
-                isCompact={isCompact}
-                titleRef={titleRef}
-                onTitleEdit={handleTitleEdit}
-                onEditClick={handleEditClick}
-                onCloseEditing={handleCloseEditing}
-                onDeleteClick={() => setShowDeleteConfirm(true)}
-              />
-            )}
+            <TaskCardHeader
+              id={id}
+              title={title}
+              status={status}
+              taskType={taskType}
+              isEditing={isEditing}
+              titleRef={titleRef}
+              onTitleEdit={handleTitleEdit}
+            />
 
             <TaskCardContent
               id={id}
@@ -312,9 +301,8 @@ export const TaskCard = memo(function TaskCard({
               clientId={clientId}
               clientName={clientName}
               priority={priority}
+              taskType={taskType}
               status={status}
-              isEditing={isEditing}
-              isCompact={isCompact}
               editedTask={editedTask}
               stableAssignees={stableAssignees}
               activePopover={activePopover}
@@ -324,11 +312,9 @@ export const TaskCard = memo(function TaskCard({
               onDateChange={handleDateChange}
               onClientChange={handleClientChange}
               onPriorityChange={handlePriorityChange}
-              onStatusChange={handleStatusChange}
               onAddAssignee={addAssignee}
               onRemoveAssignee={removeAssignee}
               onEditClick={handleEditClick}
-              onNavigate={navigate}
             />
 
             {/* Indicador de erro de sincronização */}

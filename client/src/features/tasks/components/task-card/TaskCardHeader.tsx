@@ -1,34 +1,26 @@
-import { useRef, useCallback } from "react";
-import { Button } from "@/shared/components/ui/button";
-import { Separator } from "@/shared/components/ui/separator";
-import { Pencil, Trash2, Check } from "lucide-react";
+import { useCallback } from "react";
 import { cn } from "@/shared/lib/utils";
-import type { TaskStatus } from "../../types/task";
+import type { TaskStatus, TaskType } from "../../types/task";
+import { getTaskTypeConfig } from "../../lib/statusConfig";
 
 interface TaskCardHeaderProps {
   id: string;
   title: string;
   status: TaskStatus;
+  taskType?: TaskType;
   isEditing: boolean;
-  isCompact: boolean;
   titleRef: React.RefObject<HTMLDivElement>;
   onTitleEdit: (e: React.FocusEvent<HTMLDivElement>) => void;
-  onEditClick: (e: React.MouseEvent) => void;
-  onCloseEditing: () => void;
-  onDeleteClick: () => void;
 }
 
 export function TaskCardHeader({
   id,
   title,
   status,
+  taskType,
   isEditing,
-  isCompact,
   titleRef,
   onTitleEdit,
-  onEditClick,
-  onCloseEditing,
-  onDeleteClick,
 }: TaskCardHeaderProps) {
   const handleTitleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -49,84 +41,43 @@ export function TaskCardHeader({
     [isEditing],
   );
 
-  const handleDeleteButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      e.stopPropagation();
-      onDeleteClick();
-    },
-    [onDeleteClick],
-  );
-
-  const handleEditButtonClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (isEditing) {
-        e.stopPropagation();
-        onCloseEditing();
-      } else {
-        onEditClick(e);
-      }
-    },
-    [isEditing, onCloseEditing, onEditClick],
-  );
-
-  if (isCompact && !isEditing) {
-    return null;
-  }
+  const typeConfig = taskType ? getTaskTypeConfig(taskType) : null;
+  const isDone = status === "Done";
 
   return (
-    <div className="space-y-1 p-3 md:p-4">
+    <div className="p-4 pb-0">
       <div className="flex items-start justify-between gap-2">
-        <div
-          ref={titleRef}
-          contentEditable={isEditing}
-          suppressContentEditableWarning
-          onBlur={onTitleEdit}
-          onClick={handleTitleClick}
-          onKeyDown={handleTitleKeyDown}
-          className={cn(
-            "flex-1 text-xs font-bold leading-tight md:text-sm",
-            isEditing &&
-              "-mx-2 -my-1 cursor-text rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500/50",
-            isEditing &&
-              status === "In Progress" &&
-              "bg-[#1a2535] hover:bg-[#1e2a3d] focus:bg-[#1e2a3d]",
-            isEditing &&
-              status === "Done" &&
-              "bg-[rgb(25,32,28)] hover:bg-[rgb(30,38,33)] focus:bg-[rgb(30,38,33)]",
-            isEditing && status === "To Do" && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]",
-          )}
-          data-testid={`text-tasktitle-${id}`}
-        >
-          {title}
-        </div>
-        <div className="flex gap-1">
-          {isEditing && (
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
-              onClick={handleDeleteButtonClick}
-              data-testid={`button-delete-${id}`}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
-          <Button
-            size="icon"
-            variant="ghost"
+        <div className="flex min-w-0 flex-1 items-start gap-2">
+          <div
+            ref={titleRef}
+            contentEditable={isEditing}
+            suppressContentEditableWarning
+            onBlur={onTitleEdit}
+            onClick={handleTitleClick}
+            onKeyDown={handleTitleKeyDown}
             className={cn(
-              "h-8 w-8 shrink-0",
-              !isEditing &&
-                "pointer-events-none opacity-0 transition-opacity focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary group-hover/task-card:pointer-events-auto group-hover/task-card:opacity-100",
+              "min-w-0 flex-1 text-sm font-semibold leading-tight text-gray-200",
+              isDone && !isEditing && "text-gray-400 line-through decoration-gray-600",
+              isEditing &&
+                "-mx-2 -my-1 cursor-text rounded px-2 py-1 outline-none focus:ring-1 focus:ring-blue-500/50",
+              isEditing && "bg-[#2a2a2a] hover:bg-[#333333] focus:bg-[#333333]",
             )}
-            onClick={handleEditButtonClick}
-            data-testid={`button-edit-${id}`}
+            data-testid={`text-tasktitle-${id}`}
           >
-            {isEditing ? <Check className="h-4 w-4" /> : <Pencil className="h-4 w-4" />}
-          </Button>
+            {title}
+          </div>
+          {typeConfig && (
+            <span
+              className={cn(
+                "shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold",
+                typeConfig.className,
+              )}
+            >
+              {typeConfig.label}
+            </span>
+          )}
         </div>
       </div>
-      <Separator className="mt-2 bg-[#64635E]" />
     </div>
   );
 }

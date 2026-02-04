@@ -1,4 +1,4 @@
-import { TaskStatus, TaskPriority } from "../types/task";
+import { TaskStatus, TaskPriority, TaskType } from "../types/task";
 
 // Cores centralizadas da UI
 export const UI_COLORS = {
@@ -134,6 +134,30 @@ export const PRIORITY_CONFIG: Record<TaskPriority, PriorityConfig> = {
     textColor: "text-white",
     dotColor: "bg-blue-500",
   },
+};
+
+export interface TaskTypeConfig {
+  label: string;
+  className: string;
+}
+
+export const TASK_TYPE_CONFIG: Record<TaskType, TaskTypeConfig> = {
+  Tarefa: {
+    label: "Tarefa",
+    className: "bg-gray-700/40 text-gray-400 border border-gray-700/50",
+  },
+  Alocação: {
+    label: "Alocação",
+    className: "bg-blue-500/10 text-blue-400 border border-blue-500/20",
+  },
+  Experiência: {
+    label: "Experiência",
+    className: "bg-purple-500/10 text-purple-400 border border-purple-500/20",
+  },
+};
+
+export const getTaskTypeConfig = (taskType: TaskType): TaskTypeConfig => {
+  return TASK_TYPE_CONFIG[taskType] || TASK_TYPE_CONFIG["Tarefa"];
 };
 
 export const getStatusConfig = (status: TaskStatus): StatusConfig => {

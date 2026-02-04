@@ -58,7 +58,6 @@ interface UseTaskCardEditingReturn {
   handleSave: () => void;
   handleTitleEdit: (e: React.FocusEvent<HTMLDivElement>) => void;
   handleEditClick: (e: React.MouseEvent) => void;
-  handleCloseEditing: () => void;
   isJustClosedEdit: () => boolean;
   safeAssignees: string[];
   stableAssignees: string[];
@@ -306,11 +305,6 @@ export function useTaskCardEditing({
     setIsEditing(true);
   }, []);
 
-  const handleCloseEditing = useCallback(() => {
-    activateCooldown();
-    handleSave();
-  }, [handleSave]);
-
   const isJustClosedEdit = useCallback(() => {
     return globalJustClosedEditRef.current;
   }, []);
@@ -334,7 +328,6 @@ export function useTaskCardEditing({
     handleSave,
     handleTitleEdit,
     handleEditClick,
-    handleCloseEditing,
     isJustClosedEdit,
     safeAssignees,
     stableAssignees,

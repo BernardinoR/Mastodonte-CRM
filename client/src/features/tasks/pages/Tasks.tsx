@@ -7,7 +7,7 @@ import { TurboModeOverlay } from "../components/TurboModeOverlay";
 import { TurboSummaryModal } from "../components/TurboSummaryModal";
 import { TaskTableView } from "../components/TaskTableView";
 import { Button } from "@/shared/components/ui/button";
-import { Plus, Circle, CheckCircle2, ChevronDown } from "lucide-react";
+import { Plus, ChevronDown } from "lucide-react";
 import { NewTaskDialog } from "../components/NewTaskDialog";
 import { TaskDetailModal } from "../components/TaskDetailModal";
 import {
@@ -502,7 +502,7 @@ export default function Tasks() {
   return (
     <div
       className="p-6"
-      onClick={(e) => {
+      onClick={(e: React.MouseEvent) => {
         // Clear selection when clicking on empty area
         const target = e.target as HTMLElement;
         // Don't clear selection if clicking inside a task card, context menu, dialog, or any Radix UI component
@@ -530,6 +530,8 @@ export default function Tasks() {
         }
       }}
     >
+      <h1 className="mb-4 text-3xl font-bold tracking-tight text-white">Tarefas</h1>
+
       <FilterBar
         viewMode={viewMode}
         onViewModeChange={setViewMode}
@@ -580,25 +582,15 @@ export default function Tasks() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex items-stretch gap-4 pb-4">
+          <div className="flex items-start gap-6 overflow-x-auto pb-4">
             <KanbanColumn
               id="To Do"
-              title=""
+              title="To Do"
               count={todoTasks.length}
-              color="text-blue-400"
-              borderColor="border-[#303030]"
-              backgroundColor="bg-[#202020]"
+              accentColor="#9B9A97"
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              addButtonTextColor="#8E8B86"
-              addButtonHoverBgColor="#262626"
               isCompact={isCompact}
-              customIcon={
-                <div className="flex items-center gap-1.5 rounded-full bg-[#64635E] px-2 py-0.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-[#8E8B86]" />
-                  <span className="text-xs text-white">To Do</span>
-                </div>
-              }
             >
               <SortableContext items={visibleTodoTaskIds} strategy={verticalListSortingStrategy}>
                 {renderTasksWithPlaceholder(todoTasks, "To Do")}
@@ -607,22 +599,12 @@ export default function Tasks() {
 
             <KanbanColumn
               id="In Progress"
-              title=""
+              title="In Progress"
               count={inProgressTasks.length}
-              color="text-blue-400"
-              borderColor="border-[#1C2027]"
-              backgroundColor="bg-[#1C2027]"
+              accentColor="#4281DC"
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              addButtonTextColor="rgb(66,129,220)"
-              addButtonHoverBgColor="#243041"
               isCompact={isCompact}
-              customIcon={
-                <div className="flex items-center gap-1.5 rounded-full bg-[rgb(64,97,145)] px-2 py-0.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-[rgb(66,129,220)]" />
-                  <span className="text-xs text-white">In Progress</span>
-                </div>
-              }
             >
               <SortableContext
                 items={visibleInProgressTaskIds}
@@ -634,22 +616,13 @@ export default function Tasks() {
 
             <KanbanColumn
               id="Done"
-              title=""
+              title="Done"
               count={doneTasks.length}
-              color="text-green-400"
-              borderColor="border-[rgb(27,33,29)]"
-              backgroundColor="bg-[rgb(27,33,29)]"
+              accentColor="#46A171"
+              isDoneColumn
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              addButtonTextColor="rgb(70,161,113)"
-              addButtonHoverBgColor="rgb(35,43,38)"
               isCompact={isCompact}
-              customIcon={
-                <div className="flex items-center gap-1.5 rounded-full bg-[rgb(56,108,78)] px-2 py-0.5">
-                  <div className="h-1.5 w-1.5 rounded-full bg-[rgb(70,161,113)]" />
-                  <span className="text-xs text-white">Done</span>
-                </div>
-              }
             >
               <SortableContext items={visibleDoneTaskIds} strategy={verticalListSortingStrategy}>
                 {renderTasksWithPlaceholder(doneTasks, "Done")}

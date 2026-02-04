@@ -1,8 +1,6 @@
 import { memo, useCallback } from "react";
-import { Badge } from "@/shared/components/ui/badge";
-import { Button } from "@/shared/components/ui/button";
 import { useDroppable } from "@dnd-kit/core";
-import { LucideIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import type { TaskStatus } from "../types/task";
 
@@ -11,15 +9,10 @@ interface KanbanColumnProps {
   title: string;
   count: number;
   children: React.ReactNode;
-  color?: string;
-  borderColor?: string;
-  backgroundColor?: string;
-  icon?: LucideIcon;
-  customIcon?: React.ReactNode;
+  accentColor: string;
+  isDoneColumn?: boolean;
   onAddTask?: (status: TaskStatus) => void;
   onAddTaskTop?: (status: TaskStatus) => void;
-  addButtonTextColor?: string;
-  addButtonHoverBgColor?: string;
   isCompact?: boolean;
 }
 
@@ -28,15 +21,10 @@ export const KanbanColumn = memo(function KanbanColumn({
   title,
   count,
   children,
-  color = "text-foreground",
-  borderColor,
-  backgroundColor,
-  icon: Icon,
-  customIcon,
+  accentColor,
+  isDoneColumn = false,
   onAddTask,
   onAddTaskTop,
-  addButtonTextColor,
-  addButtonHoverBgColor,
   isCompact = false,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
@@ -66,44 +54,34 @@ export const KanbanColumn = memo(function KanbanColumn({
   return (
     <div
       ref={setNodeRef}
-      className={cn(
-        "flex flex-1 flex-col",
-        isCompact ? "min-w-[200px] max-w-[300px]" : "min-w-[200px] max-w-[340px]",
-      )}
+      className={cn("flex flex-1 flex-col", isCompact ? "min-w-[200px]" : "min-w-[280px]")}
     >
       <div
         className={cn(
-          "w-full rounded-lg transition-all duration-200",
-          borderColor && `border-2 ${borderColor}`,
-          backgroundColor,
+          "w-full rounded-xl border-l-2 p-4 transition-all duration-200",
           isOver && "ring-2 ring-inset ring-accent",
         )}
+        style={{
+          backgroundColor: `color-mix(in srgb, ${accentColor} 3%, transparent)`,
+          borderLeftColor: `color-mix(in srgb, ${accentColor} 50%, transparent)`,
+        }}
       >
-        <div className="flex items-center justify-between p-3 pb-2">
-          <div
-            className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}
-          >
-            {customIcon ? customIcon : Icon && <Icon className="h-4 w-4" />}
-            <span>{title}</span>
-            <Badge variant="secondary" className="ml-1 text-xs">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-300">{title}</h3>
+            <span
+              className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
+                color: accentColor,
+              }}
+            >
               {count}
-            </Badge>
+            </span>
           </div>
           {onAddTaskTop && (
             <button
-              className="flex h-6 w-6 items-center justify-center rounded transition-colors"
-              style={{
-                color: addButtonTextColor,
-                backgroundColor: "transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (addButtonHoverBgColor) {
-                  e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
+              className="flex h-6 w-6 items-center justify-center rounded text-gray-500 transition-colors hover:bg-[#252525] hover:text-white"
               onClick={handleAddTopClick}
               data-testid={`button-add-task-top-${id}`}
             >
@@ -111,34 +89,24 @@ export const KanbanColumn = memo(function KanbanColumn({
             </button>
           )}
         </div>
+
         <div
           className={cn(
-            "space-y-3 p-2 pb-3 pt-0 transition-colors duration-200",
+            "space-y-3 transition-colors duration-200",
             isOver && "bg-accent/10",
+            isDoneColumn && "[&>div]:opacity-70 [&>div]:hover:opacity-100",
           )}
         >
           {children}
 
           {onAddTask && (
             <button
-              className="flex h-9 w-full items-center justify-start gap-2 rounded-md px-3 transition-colors"
-              style={{
-                color: addButtonTextColor,
-                backgroundColor: "transparent",
-              }}
-              onMouseEnter={(e) => {
-                if (addButtonHoverBgColor) {
-                  e.currentTarget.style.backgroundColor = addButtonHoverBgColor;
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
+              className="flex h-8 w-full items-center justify-start gap-2 rounded-md px-3 text-xs text-gray-500 transition-colors hover:bg-[#252525] hover:text-white"
               onClick={handleAddClick}
               data-testid={`button-add-task-${id}`}
             >
-              <Plus className="h-4 w-4" />
-              <span>Nova task</span>
+              <Plus className="h-3.5 w-3.5" />
+              <span>Adicionar</span>
             </button>
           )}
         </div>

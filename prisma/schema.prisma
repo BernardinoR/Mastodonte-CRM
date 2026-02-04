@@ -126,6 +126,7 @@ model Task {
   description String?
   priority    String    @default("Normal") // Urgente, Importante, Normal, Baixa
   status      String    @default("To Do")  // To Do, In Progress, Done
+  taskType    String    @default("Tarefa") @map("task_type")
   dueDate     DateTime? @map("due_date")
   order       Int       @default(0)
   clientId    String?   @map("client_id")

@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "../types/task";
+import type { Task, TaskStatus, TaskPriority, TaskType, TaskHistoryEvent } from "../types/task";
 import { useClients } from "@features/clients";
 import { useUsers } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
@@ -37,6 +37,7 @@ interface DbTask {
   description: string | null;
   priority: string;
   status: string;
+  task_type: string;
   due_date: string | null;
   order: number;
   client_id: string | null;
@@ -58,6 +59,7 @@ function mapDbRowToTask(row: DbTask): Task {
     description: row.description || undefined,
     priority: (row.priority as TaskPriority) || "Normal",
     status: (row.status as TaskStatus) || "To Do",
+    taskType: (row.task_type as TaskType) || "Tarefa",
     dueDate: row.due_date ? new Date(row.due_date) : new Date(),
     order: row.order,
     clientId: row.client_id || undefined,
@@ -85,6 +87,7 @@ const TASK_FIELD_MAP: Record<string, string> = {
   order: "order",
   clientId: "client_id",
   meetingId: "meeting_id",
+  taskType: "task_type",
 };
 
 function mapTaskUpdatesToDb(updates: Record<string, unknown>): Record<string, unknown> {
@@ -117,6 +120,7 @@ interface CreateTaskData {
   clientName?: string;
   priority?: TaskPriority;
   status?: TaskStatus;
+  taskType?: TaskType;
   assignees?: string[];
   dueDate?: Date;
   order?: number;
@@ -250,6 +254,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         if (updates.description !== undefined) apiUpdates.description = updates.description;
         if (updates.priority !== undefined) apiUpdates.priority = updates.priority;
         if (updates.status !== undefined) apiUpdates.status = updates.status;
+        if (updates.taskType !== undefined) apiUpdates.taskType = updates.taskType;
         if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate?.toISOString();
         if (updates.order !== undefined) apiUpdates.order = updates.order;
         if (updates.clientId !== undefined) apiUpdates.clientId = updates.clientId;
@@ -370,6 +375,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             title: data.title,
             priority: data.priority || "Normal",
             status: data.status || "To Do",
+            task_type: data.taskType || "Tarefa",
             due_date: data.dueDate?.toISOString() || new Date().toISOString(),
             client_id: clientId || null,
             creator_id: currentUser?.id ?? null,
@@ -527,6 +533,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             title: data.title,
             priority: data.priority || "Normal",
             status: data.status || "To Do",
+            task_type: data.taskType || "Tarefa",
             due_date: data.dueDate?.toISOString() || new Date().toISOString(),
             client_id: clientId || null,
             creator_id: currentUser?.id ?? null,
