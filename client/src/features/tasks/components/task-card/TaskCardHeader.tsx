@@ -144,7 +144,10 @@ export function TaskCardHeader({
                     <div
                       key={t}
                       className={UI_CLASSES.dropdownItem}
-                      onClick={() => handleTypeSelect(t)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleTypeSelect(t);
+                      }}
                       data-testid={`option-task-type-${id}-${t}`}
                     >
                       <Badge className={cn("text-xs", config.className)}>{config.label}</Badge>

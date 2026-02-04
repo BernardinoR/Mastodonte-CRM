@@ -101,7 +101,7 @@ export function TaskCardContent({
           <PopoverTrigger asChild>
             <span
               className={cn(
-                "cursor-pointer truncate rounded border px-2 py-0.5 text-[10px] font-medium transition-colors",
+                "cursor-pointer truncate rounded border px-2 py-0.5 text-[11px] font-medium transition-colors",
                 clientName
                   ? "border-[#333333] bg-[#2a2a2a] text-gray-400 hover:bg-[#333]"
                   : "border-dashed border-[#444] text-gray-500 hover:border-gray-400 hover:text-gray-400",

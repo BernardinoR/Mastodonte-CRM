@@ -584,7 +584,7 @@ export default function Tasks() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="grid max-w-[1280px] grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid w-full max-w-[1280px] grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
             <KanbanColumn
               id="To Do"
               title="To Do"
