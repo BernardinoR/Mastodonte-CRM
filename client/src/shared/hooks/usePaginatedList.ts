@@ -2,14 +2,14 @@ import { useState, useMemo, useCallback } from "react";
 
 /**
  * Hook genérico para paginação de listas com "load more"
- * 
+ *
  * @example
  * ```tsx
  * const { visibleItems, hasMore, remainingCount, loadMore, reset } = usePaginatedList(meetings, 5);
- * 
+ *
  * // Renderizar
  * {visibleItems.map(meeting => <MeetingRow key={meeting.id} meeting={meeting} />)}
- * 
+ *
  * {hasMore && (
  *   <button onClick={loadMore}>
  *     Ver mais {remainingCount} itens
@@ -45,29 +45,25 @@ export interface UsePaginatedListReturn<T> {
 
 export function usePaginatedList<T>(
   items: T[],
-  options: UsePaginatedListOptions | number = {}
+  options: UsePaginatedListOptions | number = {},
 ): UsePaginatedListReturn<T> {
   // Suportar tanto objeto de opções quanto número direto para pageSize
-  const normalizedOptions: UsePaginatedListOptions = typeof options === "number" 
-    ? { pageSize: options } 
-    : options;
-  
+  const normalizedOptions: UsePaginatedListOptions =
+    typeof options === "number" ? { pageSize: options } : options;
+
   const { pageSize = 5, initialCount } = normalizedOptions;
   const effectiveInitialCount = initialCount ?? pageSize;
 
   const [visibleCount, setVisibleCount] = useState(effectiveInitialCount);
 
-  const visibleItems = useMemo(
-    () => items.slice(0, visibleCount),
-    [items, visibleCount]
-  );
+  const visibleItems = useMemo(() => items.slice(0, visibleCount), [items, visibleCount]);
 
   const hasMore = items.length > visibleCount;
   const remainingCount = Math.max(0, items.length - visibleCount);
   const totalCount = items.length;
 
   const loadMore = useCallback(() => {
-    setVisibleCount(prev => Math.min(prev + pageSize, items.length));
+    setVisibleCount((prev) => Math.min(prev + pageSize, items.length));
   }, [pageSize, items.length]);
 
   const reset = useCallback(() => {
@@ -85,4 +81,3 @@ export function usePaginatedList<T>(
     setVisibleCount,
   };
 }
-

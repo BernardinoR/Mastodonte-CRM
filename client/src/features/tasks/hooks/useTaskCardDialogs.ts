@@ -53,7 +53,7 @@ export function useTaskCardDialogs({
   const [newTitleText, setNewTitleText] = useState("");
   const [appendTitleText, setAppendTitleText] = useState("");
   const [showBulkDatePicker, setShowBulkDatePicker] = useState(false);
-  
+
   const datePopoverContentRef = useRef<HTMLDivElement>(null);
   const prevEditStateRef = useRef<boolean | null>(null);
 
@@ -84,10 +84,13 @@ export function useTaskCardDialogs({
     setShowAppendTitleDialog(false);
   }, [handleAppendTitleSubmit, appendTitleText]);
 
-  const onContextDateChange = useCallback((newDate: Date) => {
-    handleContextDateChange(newDate);
-    setShowBulkDatePicker(false);
-  }, [handleContextDateChange]);
+  const onContextDateChange = useCallback(
+    (newDate: Date) => {
+      handleContextDateChange(newDate);
+      setShowBulkDatePicker(false);
+    },
+    [handleContextDateChange],
+  );
 
   const openDetails = useCallback(() => {
     if (onOpenDetail) {

@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 
 /**
  * Hook genérico para edição inline de campos de texto
- * 
+ *
  * @example
  * ```tsx
  * const inlineEdit = useInlineEdit({
@@ -10,7 +10,7 @@ import { useState, useCallback } from "react";
  *   getId: (meeting) => meeting.id,
  *   getValue: (meeting) => meeting.name,
  * });
- * 
+ *
  * // No componente
  * {inlineEdit.isEditing(item.id) ? (
  *   <input
@@ -63,13 +63,16 @@ export function useInlineEdit<T>({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState("");
 
-  const startEdit = useCallback((item: T, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    setEditingId(getId(item));
-    setEditingValue(getValue(item));
-  }, [getId, getValue]);
+  const startEdit = useCallback(
+    (item: T, e?: React.MouseEvent) => {
+      if (e) {
+        e.stopPropagation();
+      }
+      setEditingId(getId(item));
+      setEditingValue(getValue(item));
+    },
+    [getId, getValue],
+  );
 
   const save = useCallback(() => {
     if (editingId && editingValue.trim()) {
@@ -85,16 +88,19 @@ export function useInlineEdit<T>({
     onCancel?.();
   }, [onCancel]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      save();
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      cancel();
-    }
-  }, [save, cancel]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        save();
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        cancel();
+      }
+    },
+    [save, cancel],
+  );
 
   const isEditing = useCallback((id: string) => editingId === id, [editingId]);
 

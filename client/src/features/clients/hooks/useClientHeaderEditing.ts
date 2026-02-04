@@ -44,7 +44,8 @@ const formatPhone = (value: string): string => {
 };
 
 export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
-  const { clientId, clientName, clientCpf, clientPhone, onUpdateName, onUpdateCpf, onUpdatePhone } = options;
+  const { clientId, clientName, clientCpf, clientPhone, onUpdateName, onUpdateCpf, onUpdatePhone } =
+    options;
 
   const [isBulkEditing, setIsBulkEditing] = useState(false);
 
@@ -104,7 +105,18 @@ export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
     }
 
     setIsBulkEditing(false);
-  }, [nameField.draft, cpfField.draft, phoneField.draft, clientName, clientCpf, clientPhone, clientId, onUpdateName, onUpdateCpf, onUpdatePhone]);
+  }, [
+    nameField.draft,
+    cpfField.draft,
+    phoneField.draft,
+    clientName,
+    clientCpf,
+    clientPhone,
+    clientId,
+    onUpdateName,
+    onUpdateCpf,
+    onUpdatePhone,
+  ]);
 
   const handleEditClient = useCallback(() => {
     nameField.setDraft(clientName);

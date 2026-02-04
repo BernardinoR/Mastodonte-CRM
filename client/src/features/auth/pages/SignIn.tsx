@@ -13,18 +13,18 @@ type AuthView = "login" | "email-verification" | "two-factor";
 
 export default function SignIn() {
   const { signIn, isLoaded, setActive } = useSignIn();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-  
+
   const [authView, setAuthView] = useState<AuthView>("login");
   const [verificationCode, setVerificationCode] = useState("");
   const [emailAddressId, setEmailAddressId] = useState<string | null>(null);
-  
+
   const [secondFactorCode, setSecondFactorCode] = useState("");
   const [secondFactorStrategy, setSecondFactorStrategy] = useState<TwoFactorStrategy | null>(null);
   const [secondFactorEmailId, setSecondFactorEmailId] = useState<string | null>(null);
@@ -68,7 +68,7 @@ export default function SignIn() {
         redirectAfterAuth("/");
       } else if (result.status === "needs_first_factor") {
         const emailFactor = result.supportedFirstFactors?.find(
-          (factor) => factor.strategy === "email_code"
+          (factor) => factor.strategy === "email_code",
         );
         if (emailFactor && "emailAddressId" in emailFactor) {
           const factorEmailId = emailFactor.emailAddressId;
@@ -102,19 +102,23 @@ export default function SignIn() {
     }
   };
 
-  const handleSecondFactorSetup = async (result: { supportedSecondFactors?: Array<{ strategy: string; phoneNumberId?: string; emailAddressId?: string }> | null }) => {
+  const handleSecondFactorSetup = async (result: {
+    supportedSecondFactors?: Array<{
+      strategy: string;
+      phoneNumberId?: string;
+      emailAddressId?: string;
+    }> | null;
+  }) => {
     if (!signIn) return;
-    
-    const totpFactor = result.supportedSecondFactors?.find(
-      (factor) => factor.strategy === "totp"
-    );
+
+    const totpFactor = result.supportedSecondFactors?.find((factor) => factor.strategy === "totp");
     const phoneFactor = result.supportedSecondFactors?.find(
-      (factor) => factor.strategy === "phone_code"
+      (factor) => factor.strategy === "phone_code",
     );
     const backupCodeFactor = result.supportedSecondFactors?.find(
-      (factor) => factor.strategy === "backup_code"
+      (factor) => factor.strategy === "backup_code",
     );
-    
+
     if (totpFactor) {
       setSecondFactorStrategy("totp");
       setAuthView("two-factor");
@@ -134,7 +138,7 @@ export default function SignIn() {
       setError("");
     } else {
       const emailCodeFactor = result.supportedSecondFactors?.find(
-        (factor) => factor.strategy === "email_code"
+        (factor) => factor.strategy === "email_code",
       );
       if (emailCodeFactor && emailCodeFactor.emailAddressId) {
         const factorEmailId = emailCodeFactor.emailAddressId;
@@ -147,8 +151,11 @@ export default function SignIn() {
         setAuthView("two-factor");
         setError("");
       } else {
-        const factorStrategies = result.supportedSecondFactors?.map(f => f.strategy).join(", ") || "nenhum";
-        setError(`Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`);
+        const factorStrategies =
+          result.supportedSecondFactors?.map((f) => f.strategy).join(", ") || "nenhum";
+        setError(
+          `Método de 2FA não suportado (${factorStrategies}). Entre em contato com o suporte.`,
+        );
       }
     }
   };
@@ -303,7 +310,7 @@ export default function SignIn() {
             onBack={resetToLogin}
           />
         );
-      
+
       case "two-factor":
         return secondFactorStrategy ? (
           <TwoFactorForm
@@ -319,7 +326,7 @@ export default function SignIn() {
             onBack={resetToLogin}
           />
         ) : null;
-      
+
       default:
         return (
           <LoginForm
@@ -344,7 +351,7 @@ export default function SignIn() {
 
       {/* LEFT SIDE: LOGIN FORM */}
       <div
-        className="flex-1 flex flex-col justify-center items-center p-10 relative z-10"
+        className="relative z-10 flex flex-1 flex-col items-center justify-center p-10"
         style={{
           backgroundColor: "#191919",
           borderRight: "1px solid #2a2a2a",
@@ -360,26 +367,26 @@ export default function SignIn() {
 
       {/* RIGHT SIDE: VISUAL QUOTES */}
       <div
-        className="hidden lg:flex flex-[1.2] relative items-center justify-center overflow-hidden transition-all duration-500"
+        className="relative hidden flex-[1.2] items-center justify-center overflow-hidden transition-all duration-500 lg:flex"
         style={{ background: currentQuote.background }}
         key={currentQuote.id}
       >
         <VisualEffect effect={currentQuote.effect} />
 
         <div
-          className="max-w-[600px] p-10 text-center z-10 relative"
+          className="relative z-10 max-w-[600px] p-10 text-center"
           style={{ animation: "fadeInOption 0.8s ease forwards" }}
         >
           <p
-            className={`text-[32px] leading-tight font-bold text-white mb-6 tracking-tight ${
+            className={`mb-6 text-[32px] font-bold leading-tight tracking-tight text-white ${
               currentQuote.effect === "speed-lines" ? "shine-text" : ""
-            } ${currentQuote.effect === "track-lines" ? "italic font-light" : ""}`}
+            } ${currentQuote.effect === "track-lines" ? "font-light italic" : ""}`}
           >
             {currentQuote.text}
           </p>
           {currentQuote.effect === "pulse-bg" && (
             <div
-              className="w-[60px] h-[3px] mx-auto mb-5 rounded-sm"
+              className="mx-auto mb-5 h-[3px] w-[60px] rounded-sm"
               style={{
                 backgroundColor: "#C5A059",
                 boxShadow: "0 0 10px rgba(197, 160, 89, 0.3)",
@@ -387,7 +394,7 @@ export default function SignIn() {
             />
           )}
           <p
-            className="text-[13px] uppercase tracking-[3px] font-semibold"
+            className="text-[13px] font-semibold uppercase tracking-[3px]"
             style={{
               color: currentQuote.effect === "pulse-bg" ? "#C5A059" : "#888",
             }}
@@ -397,15 +404,13 @@ export default function SignIn() {
         </div>
 
         {/* Navigation dots */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="absolute bottom-8 left-1/2 flex -translate-x-1/2 gap-2">
           {quotes.map((q, idx) => (
             <button
               key={q.id}
               onClick={() => setCurrentQuoteIndex(idx)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                idx === currentQuoteIndex
-                  ? "bg-white w-6"
-                  : "bg-white/30 hover:bg-white/50"
+              className={`h-2 w-2 rounded-full transition-all ${
+                idx === currentQuoteIndex ? "w-6 bg-white" : "bg-white/30 hover:bg-white/50"
               }`}
               data-testid={`quote-dot-${idx}`}
             />

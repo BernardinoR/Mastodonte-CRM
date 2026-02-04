@@ -5,6 +5,7 @@ This document covers the development process, branching strategy, and contributi
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js 18+
 - PostgreSQL database
 - npm or pnpm
@@ -28,26 +29,26 @@ npm run dev
 
 ## Development Commands
 
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Start development server with hot reload |
-| `npm run build` | Build production bundle |
-| `npm run test` | Run test suite |
-| `npm run lint` | Run ESLint |
-| `npx prisma studio` | Open Prisma database GUI |
-| `npx prisma migrate dev` | Apply database migrations |
+| Command                  | Purpose                                  |
+| ------------------------ | ---------------------------------------- |
+| `npm run dev`            | Start development server with hot reload |
+| `npm run build`          | Build production bundle                  |
+| `npm run test`           | Run test suite                           |
+| `npm run lint`           | Run ESLint                               |
+| `npx prisma studio`      | Open Prisma database GUI                 |
+| `npx prisma migrate dev` | Apply database migrations                |
 
 ## Branching Strategy
 
 ### Branch Types
 
-| Branch | Purpose | Example |
-|--------|---------|---------|
-| `main` | Production-ready code | - |
-| `develop` | Integration branch | - |
-| `feature/*` | New features | `feature/turbo-mode` |
-| `fix/*` | Bug fixes | `fix/task-status-update` |
-| `refactor/*` | Code refactoring | `refactor/hooks-cleanup` |
+| Branch       | Purpose               | Example                  |
+| ------------ | --------------------- | ------------------------ |
+| `main`       | Production-ready code | -                        |
+| `develop`    | Integration branch    | -                        |
+| `feature/*`  | New features          | `feature/turbo-mode`     |
+| `fix/*`      | Bug fixes             | `fix/task-status-update` |
+| `refactor/*` | Code refactoring      | `refactor/hooks-cleanup` |
 
 ### Workflow
 
@@ -88,15 +89,15 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/):
 
 ### Types
 
-| Type | Description |
-|------|-------------|
-| `feat` | New feature |
-| `fix` | Bug fix |
-| `docs` | Documentation |
-| `style` | Formatting, no code change |
-| `refactor` | Code restructuring |
-| `test` | Adding tests |
-| `chore` | Maintenance tasks |
+| Type       | Description                |
+| ---------- | -------------------------- |
+| `feat`     | New feature                |
+| `fix`      | Bug fix                    |
+| `docs`     | Documentation              |
+| `style`    | Formatting, no code change |
+| `refactor` | Code restructuring         |
+| `test`     | Adding tests               |
+| `chore`    | Maintenance tasks          |
 
 ### Examples
 
@@ -110,12 +111,14 @@ refactor(hooks): extract common filter logic
 ## Code Review Guidelines
 
 ### For Authors
+
 - Keep PRs focused and reasonably sized
 - Write descriptive PR descriptions
 - Respond to feedback constructively
 - Ensure tests pass before requesting review
 
 ### For Reviewers
+
 - Review within 24 hours when possible
 - Be constructive and specific
 - Approve when satisfied, don't nitpick
@@ -124,18 +127,21 @@ refactor(hooks): extract common filter logic
 ## Code Style
 
 ### TypeScript
+
 - Use strict mode
 - Prefer interfaces over types for object shapes
 - Use explicit return types for functions
 - Avoid `any`, use `unknown` when necessary
 
 ### React
+
 - Functional components with hooks
 - Extract complex logic to custom hooks
 - Use meaningful component names
 - Keep components focused and composable
 
 ### File Organization
+
 ```
 feature/
 ├── components/       # React components
@@ -152,12 +158,12 @@ See [Testing Strategy](./testing-strategy.md) for detailed testing guidelines.
 
 ## Environment Variables
 
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `CLERK_PUBLISHABLE_KEY` | Clerk public key | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
-| `NODE_ENV` | Environment (development/production) | No |
+| Variable                | Description                          | Required |
+| ----------------------- | ------------------------------------ | -------- |
+| `DATABASE_URL`          | PostgreSQL connection string         | Yes      |
+| `CLERK_PUBLISHABLE_KEY` | Clerk public key                     | Yes      |
+| `CLERK_SECRET_KEY`      | Clerk secret key                     | Yes      |
+| `NODE_ENV`              | Environment (development/production) | No       |
 
 ## Related Resources
 

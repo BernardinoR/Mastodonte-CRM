@@ -28,20 +28,20 @@ export interface ValidationResult {
 // ============================================
 
 const COLUMN_MAP: Record<string, string> = {
-  "Nome": "name",
+  Nome: "name",
   "E-mail": "emails",
-  "CPF": "cpf",
-  "Telefone": "phone",
-  "Status": "status",
-  "Patrimônio": "patrimony",
+  CPF: "cpf",
+  Telefone: "phone",
+  Status: "status",
+  Patrimônio: "patrimony",
   "Cliente Desde": "clientSince",
   "Código Foundation": "foundationCode",
-  "Logradouro": "address.street",
-  "Complemento": "address.complement",
-  "Bairro": "address.neighborhood",
-  "Cidade": "address.city",
-  "Estado": "address.state",
-  "CEP": "address.zipCode",
+  Logradouro: "address.street",
+  Complemento: "address.complement",
+  Bairro: "address.neighborhood",
+  Cidade: "address.city",
+  Estado: "address.state",
+  CEP: "address.zipCode",
 };
 
 const VALID_STATUSES = ["Ativo", "Prospect", "Distrato", "Inativo"];
@@ -108,9 +108,7 @@ function parseEmails(value: string): string[] {
 // File Parsing
 // ============================================
 
-export async function parseFile(
-  file: File
-): Promise<Record<string, string>[]> {
+export async function parseFile(file: File): Promise<Record<string, string>[]> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -141,9 +139,7 @@ export async function parseFile(
 // Validation
 // ============================================
 
-export function validateRows(
-  rawRows: Record<string, string>[]
-): ValidationResult {
+export function validateRows(rawRows: Record<string, string>[]): ValidationResult {
   const valid: ClientImportRow[] = [];
   const invalid: ValidationResult["invalid"] = [];
   const warnings: string[] = [];
@@ -208,7 +204,9 @@ export function validateRows(
     if (rawClientSince) {
       clientSince = parseClientSince(rawClientSince);
       if (!clientSince) {
-        errors.push(`Data "Cliente Desde" inválida: "${rawClientSince}". Use DD/MM/YYYY ou YYYY-MM-DD`);
+        errors.push(
+          `Data "Cliente Desde" inválida: "${rawClientSince}". Use DD/MM/YYYY ou YYYY-MM-DD`,
+        );
       }
     }
 
@@ -253,20 +251,20 @@ export function generateTemplate(): XLSX.WorkBook {
   // Sheet 1: Clientes (headers + example row)
   const exampleData = [
     {
-      "Nome": "João da Silva",
+      Nome: "João da Silva",
       "E-mail": "joao@email.com;joao.pessoal@email.com",
-      "CPF": "123.456.789-00",
-      "Telefone": "+55 (11) 98888-7777",
-      "Status": "Ativo",
-      "Patrimônio": "R$ 1.500.000,00",
+      CPF: "123.456.789-00",
+      Telefone: "+55 (11) 98888-7777",
+      Status: "Ativo",
+      Patrimônio: "R$ 1.500.000,00",
       "Cliente Desde": "15/03/2022",
       "Código Foundation": "FDN-001",
-      "Logradouro": "Rua das Flores, 123",
-      "Complemento": "Apt 45",
-      "Bairro": "Jardim Paulista",
-      "Cidade": "São Paulo",
-      "Estado": "SP",
-      "CEP": "01234-567",
+      Logradouro: "Rua das Flores, 123",
+      Complemento: "Apt 45",
+      Bairro: "Jardim Paulista",
+      Cidade: "São Paulo",
+      Estado: "SP",
+      CEP: "01234-567",
     },
   ];
 
@@ -286,7 +284,7 @@ export function generateTemplate(): XLSX.WorkBook {
     { wch: 20 }, // Complemento
     { wch: 20 }, // Bairro
     { wch: 20 }, // Cidade
-    { wch: 8 },  // Estado
+    { wch: 8 }, // Estado
     { wch: 12 }, // CEP
   ];
 
@@ -342,29 +340,39 @@ export function generateExport(clients: ExportableClient[]): XLSX.WorkBook {
   const workbook = XLSX.utils.book_new();
 
   const rows = clients.map((client) => ({
-    "Nome": client.name,
+    Nome: client.name,
     "E-mail": client.emails.join(";"),
-    "CPF": client.cpf || "",
-    "Telefone": client.phone || "",
-    "Status": client.status || "",
-    "Patrimônio": client.patrimony != null ? String(client.patrimony) : "",
+    CPF: client.cpf || "",
+    Telefone: client.phone || "",
+    Status: client.status || "",
+    Patrimônio: client.patrimony != null ? String(client.patrimony) : "",
     "Cliente Desde": client.clientSince || "",
     "Código Foundation": client.foundationCode || "",
-    "Logradouro": client.address?.street || "",
-    "Complemento": client.address?.complement || "",
-    "Bairro": client.address?.neighborhood || "",
-    "Cidade": client.address?.city || "",
-    "Estado": client.address?.state || "",
-    "CEP": client.address?.zipCode || "",
+    Logradouro: client.address?.street || "",
+    Complemento: client.address?.complement || "",
+    Bairro: client.address?.neighborhood || "",
+    Cidade: client.address?.city || "",
+    Estado: client.address?.state || "",
+    CEP: client.address?.zipCode || "",
   }));
 
   const sheet = XLSX.utils.json_to_sheet(rows);
 
   sheet["!cols"] = [
-    { wch: 25 }, { wch: 40 }, { wch: 18 }, { wch: 22 },
-    { wch: 12 }, { wch: 20 }, { wch: 16 }, { wch: 20 },
-    { wch: 30 }, { wch: 20 }, { wch: 20 }, { wch: 20 },
-    { wch: 8 }, { wch: 12 },
+    { wch: 25 },
+    { wch: 40 },
+    { wch: 18 },
+    { wch: 22 },
+    { wch: 12 },
+    { wch: 20 },
+    { wch: 16 },
+    { wch: 20 },
+    { wch: 30 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 20 },
+    { wch: 8 },
+    { wch: 12 },
   ];
 
   XLSX.utils.book_append_sheet(workbook, sheet, "Clientes");

@@ -28,11 +28,13 @@ sequenceDiagram
 ## Module Dependencies
 
 ### Server Dependencies
+
 - **server/** → `prisma/client`, `@clerk/express`
 - **server/storage.ts** → `@prisma/client` for database operations
 - **server/auth.ts** → `@clerk/express` for authentication
 
 ### Client Dependencies
+
 - **client/src/app/** → `features/*`, `shared/*`
 - **client/src/features/tasks/** → `shared/hooks`, `shared/components`, `shared/lib`
 - **client/src/features/clients/** → `shared/hooks`, `shared/components`, `features/tasks/lib`
@@ -42,6 +44,7 @@ sequenceDiagram
 ## Service Layer
 
 ### Backend Services
+
 - [`DbStorage`](../server/storage.ts) - Primary data access class
   - User operations: `getUser`, `createUser`, `updateUser`
   - Task operations: `getTasks`, `createTask`, `updateTask`, `deleteTask`
@@ -49,6 +52,7 @@ sequenceDiagram
   - Meeting operations: `getMeetings`, `createMeeting`
 
 ### Frontend Services
+
 - [`apiRequest`](../client/src/shared/lib/queryClient.ts) - HTTP client wrapper
 - [`useCurrentUser`](../client/src/features/users/hooks/useCurrentUser.ts) - User context hook
 
@@ -79,11 +83,13 @@ sequenceDiagram
 ## Internal Movement
 
 ### State Management
+
 - **Server State**: Managed by TanStack Query with automatic caching and background refetching
 - **Client State**: React useState/useReducer for local UI state
 - **URL State**: React Router for navigation and URL parameters
 
 ### Cross-Feature Communication
+
 - **Context Providers**: `ClientsProvider` shares client state across components
 - **Query Keys**: Consistent query keys enable cross-feature cache invalidation
 - **Shared Types**: Common type definitions ensure data consistency
@@ -91,12 +97,14 @@ sequenceDiagram
 ## External Integrations
 
 ### Clerk Authentication
+
 - **Purpose**: User authentication and session management
 - **Flow**: JWT tokens passed in Authorization header
 - **Middleware**: `clerkAuthMiddleware` validates tokens
 - **User Data**: User ID and metadata available via `req.auth`
 
 ### AI Summary (Meetings)
+
 - **Purpose**: Generate meeting summaries using AI
 - **Payload**: Meeting notes, context, agenda items
 - **Response**: Structured summary with highlights, decisions, action items
@@ -104,16 +112,19 @@ sequenceDiagram
 ## Observability & Failure Modes
 
 ### Logging
+
 - Server logging via `server/app.ts` `log()` function
 - Request/response logging for API calls
 - Error tracking for failed operations
 
 ### Error Handling
+
 - **API Errors**: Express error middleware returns structured error responses
 - **Query Errors**: TanStack Query handles retries and error states
 - **Auth Errors**: Clerk handles session expiration and refresh
 
 ### Retry Strategy
+
 - TanStack Query: 3 retries with exponential backoff
 - Network errors: Automatic retry on reconnection
 - Auth errors: Redirect to login on 401

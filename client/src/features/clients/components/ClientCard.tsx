@@ -1,7 +1,4 @@
-import {
-  Calendar,
-  AlertTriangle
-} from "lucide-react";
+import { Calendar, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
 import { useCallback } from "react";
 import type { Client, EnrichedClient } from "@features/clients";
@@ -19,18 +16,43 @@ interface ClientCardProps {
 
 // Type guard para verificar se é EnrichedClient
 function isEnrichedClient(client: Client | EnrichedClient): client is EnrichedClient {
-  return 'aum' in client && 'daysSinceLastMeeting' in client;
+  return "aum" in client && "daysSinceLastMeeting" in client;
 }
 
 // Formatar data para exibição no formato "1 Dez 2025"
 function formatMeetingDate(date: Date): string {
-  const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  const months = [
+    "Jan",
+    "Fev",
+    "Mar",
+    "Abr",
+    "Mai",
+    "Jun",
+    "Jul",
+    "Ago",
+    "Set",
+    "Out",
+    "Nov",
+    "Dez",
+  ];
   const d = new Date(date);
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 export function ClientCard({ client, isCompact = false, onSchedule }: ClientCardProps) {
-  const { id, name, initials, emails, phone, status, advisor, clientSince, address, lastMeeting, cpf } = client;
+  const {
+    id,
+    name,
+    initials,
+    emails,
+    phone,
+    status,
+    advisor,
+    clientSince,
+    address,
+    lastMeeting,
+    cpf,
+  } = client;
   const email = emails[client.primaryEmailIndex] || emails[0];
   const [, setLocation] = useLocation();
   const { data: currentUserData } = useCurrentUser();
@@ -43,12 +65,12 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
   const isIncompleteRegistration = () => {
     const hasCpf = cpf && cpf.trim().length > 0;
     const hasPhone = phone && phone.trim().length > 0;
-    const hasAddress = address && (
-      address.street?.trim() || 
-      address.city?.trim() || 
-      address.state?.trim() || 
-      address.zipCode?.trim()
-    );
+    const hasAddress =
+      address &&
+      (address.street?.trim() ||
+        address.city?.trim() ||
+        address.state?.trim() ||
+        address.zipCode?.trim());
     return !hasCpf && !hasPhone && !hasAddress;
   };
 
@@ -57,13 +79,13 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
   // Determinar classe de borda lateral
   const getBorderClass = () => {
     // Borda vermelha completa se cadastro incompleto
-    if (incomplete) return 'border-[#e07a7a]';
-    
-    if (!enriched) return '';
-    if (enriched.urgentTasksCount > 0) return 'border-l-[4px] border-l-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'critical') return 'border-l-[4px] border-l-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'warning') return 'border-l-[4px] border-l-[#dcb092]';
-    return '';
+    if (incomplete) return "border-[#e07a7a]";
+
+    if (!enriched) return "";
+    if (enriched.urgentTasksCount > 0) return "border-l-[4px] border-l-[#e07a7a]";
+    if (enriched.meetingDelayStatus === "critical") return "border-l-[4px] border-l-[#e07a7a]";
+    if (enriched.meetingDelayStatus === "warning") return "border-l-[4px] border-l-[#dcb092]";
+    return "";
   };
 
   const handleCardClick = () => {
@@ -74,7 +96,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
     e.stopPropagation();
     navigator.clipboard.writeText(value);
     toast({
-      title: 'Copiado!',
+      title: "Copiado!",
       description: `${label} copiado para a área de transferência`,
     });
   }, []);
@@ -99,9 +121,9 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
     // Record scheduling message sent
     try {
       await supabase
-        .from('clients')
+        .from("clients")
         .update({ scheduling_message_sent_at: new Date().toISOString() })
-        .eq('id', id);
+        .eq("id", id);
     } catch (err) {
       console.error("Error recording scheduling sent:", err);
     }
@@ -109,83 +131,90 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
     // Open WhatsApp with pre-formatted message
     const message = buildSchedulingMessage(name, calendarLink);
     const url = buildWhatsAppSchedulingUrl(phone, message);
-    window.open(url, '_blank');
+    window.open(url, "_blank");
   };
 
   // Cor do indicador de dias
   const getDaysIndicatorColor = () => {
-    if (!enriched) return 'text-[#8c8c8c]';
-    if (enriched.meetingDelayStatus === 'critical') return 'text-[#e07a7a]';
-    if (enriched.meetingDelayStatus === 'warning') return 'text-[#dcb092]';
-    return 'text-[#8c8c8c]';
+    if (!enriched) return "text-[#8c8c8c]";
+    if (enriched.meetingDelayStatus === "critical") return "text-[#e07a7a]";
+    if (enriched.meetingDelayStatus === "warning") return "text-[#dcb092]";
+    return "text-[#8c8c8c]";
   };
 
   // Cidade/Estado formatado
-  const cityState = address?.city && address?.state 
-    ? `${address.city}/${address.state}` 
-    : enriched?.cityState || '';
+  const cityState =
+    address?.city && address?.state
+      ? `${address.city}/${address.state}`
+      : enriched?.cityState || "";
 
   return (
-    <div 
+    <div
       className={cn(
-        "bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl p-5 cursor-pointer transition-all",
-        "hover:bg-[#1f1f1f] hover:border-[#3a3a3a] hover:translate-y-[-2px] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
-        getBorderClass()
+        "cursor-pointer rounded-xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 transition-all",
+        "hover:translate-y-[-2px] hover:border-[#3a3a3a] hover:bg-[#1f1f1f] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3)]",
+        getBorderClass(),
       )}
       data-testid={`card-client-${id}`}
       onClick={handleCardClick}
     >
       {/* Header */}
-      <div className={cn(
-        "flex items-start gap-3 pb-4 mb-4 border-b border-[#2a2a2a]",
-        isCompact && "border-b-0 pb-0 mb-0"
-      )}>
+      <div
+        className={cn(
+          "mb-4 flex items-start gap-3 border-b border-[#2a2a2a] pb-4",
+          isCompact && "mb-0 border-b-0 pb-0",
+        )}
+      >
         {/* Avatar */}
-        <div className="w-11 h-11 rounded-full bg-[#2a2a2a] flex items-center justify-center text-sm font-semibold text-[#8c8c8c] flex-shrink-0">
+        <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-[#2a2a2a] text-sm font-semibold text-[#8c8c8c]">
           {initials}
         </div>
-        
+
         {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col gap-0 min-h-[52px]">
-          <div className="text-[15px] font-semibold text-[#ededed] leading-[1.3] m-0 p-0">{name}</div>
-          <div 
-            className="text-xs text-[#6c6c6c] leading-[1.3] m-0 p-0 cursor-pointer hover:text-[#b0b0b0] hover:bg-[rgba(176,176,176,0.1)] rounded px-1 py-0.5 -mx-1 -my-0.5 transition-colors inline-block"
-            onClick={(e) => handleCopyClick(e, email, 'Email')}
+        <div className="flex min-h-[52px] min-w-0 flex-1 flex-col gap-0">
+          <div className="m-0 p-0 text-[15px] font-semibold leading-[1.3] text-[#ededed]">
+            {name}
+          </div>
+          <div
+            className="m-0 -mx-1 -my-0.5 inline-block cursor-pointer rounded p-0 px-1 py-0.5 text-xs leading-[1.3] text-[#6c6c6c] transition-colors hover:bg-[rgba(176,176,176,0.1)] hover:text-[#b0b0b0]"
+            onClick={(e) => handleCopyClick(e, email, "Email")}
           >
             {email}
           </div>
         </div>
-        
+
         {/* Badge */}
-        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[#1a2e1a] text-[#6ecf8e]">
-          <span className="w-1.5 h-1.5 rounded-full bg-current" />
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a2e1a] px-2.5 py-1 text-[11px] font-semibold text-[#6ecf8e]">
+          <span className="h-1.5 w-1.5 rounded-full bg-current" />
           {status}
         </span>
       </div>
 
       {/* Body - Grid de campos (oculto no modo compacto) */}
-      <div className={cn(
-        "grid grid-cols-2 gap-x-6 gap-y-4 mt-4 transition-all",
-        isCompact && "max-h-0 opacity-0 overflow-hidden mt-0"
-      )}>
+      <div
+        className={cn(
+          "mt-4 grid grid-cols-2 gap-x-6 gap-y-4 transition-all",
+          isCompact && "mt-0 max-h-0 overflow-hidden opacity-0",
+        )}
+      >
         {/* AUM Total */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             AUM Total
           </span>
           <span className="text-[14px] font-semibold text-[#6ecf8e]">
-            {enriched?.aumFormatted || 'R$ 0'}
+            {enriched?.aumFormatted || "R$ 0"}
           </span>
         </div>
 
         {/* Telefone */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             Telefone
           </span>
-          <span 
-            className="text-[14px] font-medium text-[#ededed] cursor-pointer hover:text-[#b0b0b0] hover:bg-[rgba(176,176,176,0.1)] rounded px-1 py-0.5 -mx-1 transition-colors inline-block whitespace-nowrap"
-            onClick={(e) => handleCopyClick(e, phone, 'Telefone')}
+          <span
+            className="-mx-1 inline-block cursor-pointer whitespace-nowrap rounded px-1 py-0.5 text-[14px] font-medium text-[#ededed] transition-colors hover:bg-[rgba(176,176,176,0.1)] hover:text-[#b0b0b0]"
+            onClick={(e) => handleCopyClick(e, phone, "Telefone")}
           >
             {phone}
           </span>
@@ -193,69 +222,72 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
 
         {/* Última Reunião */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             Última Reunião
           </span>
           <span className="text-[14px] font-medium text-[#ededed]">
-            {lastMeeting ? formatMeetingDate(lastMeeting) : '-'}
+            {lastMeeting ? formatMeetingDate(lastMeeting) : "-"}
           </span>
         </div>
 
         {/* Consultor */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             Consultor
           </span>
-          <span className="text-[14px] font-medium text-[#ededed] truncate block">
-            {advisor}
-          </span>
+          <span className="block truncate text-[14px] font-medium text-[#ededed]">{advisor}</span>
         </div>
 
         {/* Cidade */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             Cidade
           </span>
-          <span className="text-[14px] font-medium text-[#ededed]">
-            {cityState || '-'}
-          </span>
+          <span className="text-[14px] font-medium text-[#ededed]">{cityState || "-"}</span>
         </div>
 
         {/* Cliente Desde */}
         <div className="flex flex-col gap-1">
-          <span className="text-[10px] font-semibold text-[#5c5c5c] uppercase tracking-wide">
+          <span className="text-[10px] font-semibold uppercase tracking-wide text-[#5c5c5c]">
             Cliente Desde
           </span>
-          <span className="text-[14px] font-medium text-[#ededed]">
-            {clientSince}
-          </span>
+          <span className="text-[14px] font-medium text-[#ededed]">{clientSince}</span>
         </div>
       </div>
 
       {/* Footer (oculto no modo compacto) */}
-      <div className={cn(
-        "flex items-center justify-between pt-4 border-t border-[#2a2a2a] mt-4 transition-all",
-        isCompact && "max-h-0 opacity-0 overflow-hidden pt-0 mt-0 border-t-0"
-      )}>
+      <div
+        className={cn(
+          "mt-4 flex items-center justify-between border-t border-[#2a2a2a] pt-4 transition-all",
+          isCompact && "mt-0 max-h-0 overflow-hidden border-t-0 pt-0 opacity-0",
+        )}
+      >
         {/* Indicadores */}
-        <div className="flex items-center gap-4 min-w-[100px]">
+        <div className="flex min-w-[100px] items-center gap-4">
           {/* Dias desde última reunião */}
-          <span className={cn("inline-flex items-center gap-1 text-[13px] font-semibold", getDaysIndicatorColor())}>
-            <Calendar className="w-4 h-4" />
-            {enriched?.daysSinceLastMeeting !== undefined ? `${enriched.daysSinceLastMeeting}d` : '-'}
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 text-[13px] font-semibold",
+              getDaysIndicatorColor(),
+            )}
+          >
+            <Calendar className="h-4 w-4" />
+            {enriched?.daysSinceLastMeeting !== undefined
+              ? `${enriched.daysSinceLastMeeting}d`
+              : "-"}
           </span>
 
           {/* Cadastro incompleto */}
           {incomplete && (
             <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#e07a7a]">
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="h-4 w-4" />
             </span>
           )}
 
           {/* Tasks urgentes */}
           {enriched && enriched.urgentTasksCount > 0 && (
             <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#e07a7a]">
-              <AlertTriangle className="w-4 h-4" />
+              <AlertTriangle className="h-4 w-4" />
               {enriched.urgentTasksCount}
             </span>
           )}
@@ -264,7 +296,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
         {/* Botão Agendar */}
         <button
           onClick={handleScheduleClick}
-          className="px-4 py-2 rounded-lg border border-[#3a5a3a] bg-transparent text-[#6ecf8e] text-xs font-semibold hover:bg-[#1a2e1a] hover:border-[#6ecf8e] transition-colors"
+          className="rounded-lg border border-[#3a5a3a] bg-transparent px-4 py-2 text-xs font-semibold text-[#6ecf8e] transition-colors hover:border-[#6ecf8e] hover:bg-[#1a2e1a]"
         >
           Agendar
         </button>

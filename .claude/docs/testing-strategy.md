@@ -15,7 +15,8 @@ This document outlines the testing approach, tools, and best practices for the T
 
 Testing individual functions and components in isolation.
 
-**Scope**: 
+**Scope**:
+
 - Utility functions (`client/src/shared/lib/`)
 - Custom hooks (`client/src/features/*/hooks/`)
 - Pure components
@@ -25,16 +26,16 @@ Testing individual functions and components in isolation.
 
 ```typescript
 // Example: Testing a utility function
-import { calculateIsOverdue } from './date-utils';
+import { calculateIsOverdue } from "./date-utils";
 
-describe('calculateIsOverdue', () => {
-  it('returns true for past dates', () => {
-    const pastDate = new Date('2020-01-01');
+describe("calculateIsOverdue", () => {
+  it("returns true for past dates", () => {
+    const pastDate = new Date("2020-01-01");
     expect(calculateIsOverdue(pastDate)).toBe(true);
   });
 
-  it('returns false for future dates', () => {
-    const futureDate = new Date('2030-01-01');
+  it("returns false for future dates", () => {
+    const futureDate = new Date("2030-01-01");
     expect(calculateIsOverdue(futureDate)).toBe(false);
   });
 });
@@ -45,6 +46,7 @@ describe('calculateIsOverdue', () => {
 Testing how components work together.
 
 **Scope**:
+
 - API routes with database
 - Component trees with state
 - Hook interactions
@@ -53,17 +55,17 @@ Testing how components work together.
 
 ```typescript
 // Example: API route test
-import request from 'supertest';
-import { app } from '../app';
+import request from "supertest";
+import { app } from "../app";
 
-describe('GET /api/tasks', () => {
-  it('returns tasks for authenticated user', async () => {
+describe("GET /api/tasks", () => {
+  it("returns tasks for authenticated user", async () => {
     const response = await request(app)
-      .get('/api/tasks')
-      .set('Authorization', `Bearer ${validToken}`);
-    
+      .get("/api/tasks")
+      .set("Authorization", `Bearer ${validToken}`);
+
     expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('tasks');
+    expect(response.body).toHaveProperty("tasks");
   });
 });
 ```
@@ -88,7 +90,7 @@ describe('TaskCard', () => {
   it('calls onStatusChange when status is updated', () => {
     const onStatusChange = jest.fn();
     render(<TaskCard task={mockTask} onStatusChange={onStatusChange} />);
-    
+
     fireEvent.click(screen.getByRole('button', { name: /complete/i }));
     expect(onStatusChange).toHaveBeenCalledWith('completed');
   });
@@ -102,17 +104,13 @@ describe('TaskCard', () => {
 ```javascript
 // jest.config.js
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'jsdom',
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  preset: "ts-jest",
+  testEnvironment: "jsdom",
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/main.tsx',
-  ],
+  collectCoverageFrom: ["src/**/*.{ts,tsx}", "!src/**/*.d.ts", "!src/main.tsx"],
 };
 ```
 
@@ -120,13 +118,13 @@ module.exports = {
 
 ```typescript
 // jest.setup.ts
-import '@testing-library/jest-dom';
+import "@testing-library/jest-dom";
 
 // Mock environment variables
-process.env.CLERK_PUBLISHABLE_KEY = 'test_key';
+process.env.CLERK_PUBLISHABLE_KEY = "test_key";
 
 // Global mocks
-jest.mock('@clerk/clerk-react', () => ({
+jest.mock("@clerk/clerk-react", () => ({
   useUser: () => ({ user: mockUser }),
   useAuth: () => ({ isSignedIn: true }),
 }));
@@ -134,25 +132,26 @@ jest.mock('@clerk/clerk-react', () => ({
 
 ## Running Tests
 
-| Command | Description |
-|---------|-------------|
-| `npm run test` | Run all tests |
-| `npm run test -- --watch` | Watch mode for development |
-| `npm run test -- --coverage` | Generate coverage report |
-| `npm run test -- path/to/file` | Run specific test file |
+| Command                        | Description                |
+| ------------------------------ | -------------------------- |
+| `npm run test`                 | Run all tests              |
+| `npm run test -- --watch`      | Watch mode for development |
+| `npm run test -- --coverage`   | Generate coverage report   |
+| `npm run test -- path/to/file` | Run specific test file     |
 
 ## Coverage Goals
 
-| Metric | Target | Current |
-|--------|--------|---------|
-| Statements | 70% | - |
-| Branches | 60% | - |
-| Functions | 70% | - |
-| Lines | 70% | - |
+| Metric     | Target | Current |
+| ---------- | ------ | ------- |
+| Statements | 70%    | -       |
+| Branches   | 60%    | -       |
+| Functions  | 70%    | -       |
+| Lines      | 70%    | -       |
 
 ## Testing Best Practices
 
 ### Do's
+
 - Write tests before fixing bugs (TDD for bugs)
 - Use descriptive test names
 - Keep tests independent (no shared state)
@@ -160,6 +159,7 @@ jest.mock('@clerk/clerk-react', () => ({
 - Use meaningful assertions
 
 ### Don'ts
+
 - Don't test implementation details
 - Don't test third-party libraries
 - Don't write flaky tests
@@ -172,13 +172,13 @@ jest.mock('@clerk/clerk-react', () => ({
 
 ```typescript
 // Using MSW for API mocking
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
+import { rest } from "msw";
+import { setupServer } from "msw/node";
 
 const server = setupServer(
-  rest.get('/api/tasks', (req, res, ctx) => {
+  rest.get("/api/tasks", (req, res, ctx) => {
     return res(ctx.json({ tasks: mockTasks }));
-  })
+  }),
 );
 
 beforeAll(() => server.listen());
@@ -198,6 +198,7 @@ jest.mock('./ComplexChild', () => ({
 ## CI Integration
 
 Tests run automatically on:
+
 - Pull request creation
 - Push to main/develop branches
 - Scheduled nightly builds

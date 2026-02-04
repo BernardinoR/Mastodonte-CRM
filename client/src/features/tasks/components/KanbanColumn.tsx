@@ -23,15 +23,15 @@ interface KanbanColumnProps {
   isCompact?: boolean;
 }
 
-export const KanbanColumn = memo(function KanbanColumn({ 
-  id, 
-  title, 
-  count, 
-  children, 
-  color = "text-foreground", 
-  borderColor, 
-  backgroundColor, 
-  icon: Icon, 
+export const KanbanColumn = memo(function KanbanColumn({
+  id,
+  title,
+  count,
+  children,
+  color = "text-foreground",
+  borderColor,
+  backgroundColor,
+  icon: Icon,
   customIcon,
   onAddTask,
   onAddTaskTop,
@@ -43,50 +43,58 @@ export const KanbanColumn = memo(function KanbanColumn({
     id: id,
   });
 
-  const handleAddClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onAddTask) {
-      onAddTask(id as TaskStatus);
-    }
-  }, [onAddTask, id]);
+  const handleAddClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onAddTask) {
+        onAddTask(id as TaskStatus);
+      }
+    },
+    [onAddTask, id],
+  );
 
-  const handleAddTopClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onAddTaskTop) {
-      onAddTaskTop(id as TaskStatus);
-    }
-  }, [onAddTaskTop, id]);
+  const handleAddTopClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (onAddTaskTop) {
+        onAddTaskTop(id as TaskStatus);
+      }
+    },
+    [onAddTaskTop, id],
+  );
 
   return (
-    <div 
+    <div
       ref={setNodeRef}
       className={cn(
-        "flex-1 flex flex-col",
-        isCompact ? "min-w-[200px] max-w-[300px]" : "min-w-[200px] max-w-[340px]"
+        "flex flex-1 flex-col",
+        isCompact ? "min-w-[200px] max-w-[300px]" : "min-w-[200px] max-w-[340px]",
       )}
     >
-      <div 
+      <div
         className={cn(
           "w-full rounded-lg transition-all duration-200",
           borderColor && `border-2 ${borderColor}`,
           backgroundColor,
-          isOver && "ring-2 ring-accent ring-inset"
+          isOver && "ring-2 ring-inset ring-accent",
         )}
       >
         <div className="flex items-center justify-between p-3 pb-2">
-          <div className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}>
-            {customIcon ? customIcon : Icon && <Icon className="w-4 h-4" />}
+          <div
+            className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide ${color}`}
+          >
+            {customIcon ? customIcon : Icon && <Icon className="h-4 w-4" />}
             <span>{title}</span>
-            <Badge variant="secondary" className="text-xs ml-1">
+            <Badge variant="secondary" className="ml-1 text-xs">
               {count}
             </Badge>
           </div>
           {onAddTaskTop && (
             <button
-              className="flex items-center justify-center w-6 h-6 rounded transition-colors"
+              className="flex h-6 w-6 items-center justify-center rounded transition-colors"
               style={{
                 color: addButtonTextColor,
-                backgroundColor: 'transparent',
+                backgroundColor: "transparent",
               }}
               onMouseEnter={(e) => {
                 if (addButtonHoverBgColor) {
@@ -94,29 +102,29 @@ export const KanbanColumn = memo(function KanbanColumn({
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.backgroundColor = "transparent";
               }}
               onClick={handleAddTopClick}
               data-testid={`button-add-task-top-${id}`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
             </button>
           )}
         </div>
-        <div 
+        <div
           className={cn(
-            "space-y-3 p-2 pt-0 pb-3 transition-colors duration-200",
-            isOver && "bg-accent/10"
+            "space-y-3 p-2 pb-3 pt-0 transition-colors duration-200",
+            isOver && "bg-accent/10",
           )}
         >
           {children}
-          
+
           {onAddTask && (
             <button
-              className="w-full flex items-center justify-start gap-2 h-9 px-3 rounded-md transition-colors"
+              className="flex h-9 w-full items-center justify-start gap-2 rounded-md px-3 transition-colors"
               style={{
                 color: addButtonTextColor,
-                backgroundColor: 'transparent',
+                backgroundColor: "transparent",
               }}
               onMouseEnter={(e) => {
                 if (addButtonHoverBgColor) {
@@ -124,12 +132,12 @@ export const KanbanColumn = memo(function KanbanColumn({
                 }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = 'transparent';
+                e.currentTarget.style.backgroundColor = "transparent";
               }}
               onClick={handleAddClick}
               data-testid={`button-add-task-${id}`}
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               <span>Nova task</span>
             </button>
           )}

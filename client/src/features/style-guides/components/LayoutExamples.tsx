@@ -1,12 +1,46 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/shared/components/ui/accordion";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/shared/components/ui/breadcrumb";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible";
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/shared/components/ui/pagination";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/shared/components/ui/accordion";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/shared/components/ui/breadcrumb";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/shared/components/ui/collapsible";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/shared/components/ui/pagination";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Separator } from "@/shared/components/ui/separator";
-import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/shared/components/ui/resizable";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/shared/components/ui/carousel";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/shared/components/ui/resizable";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/shared/components/ui/carousel";
 import { Button } from "@/shared/components/ui/button";
 import { ChevronsUpDown } from "lucide-react";
 import { useState } from "react";
@@ -18,13 +52,16 @@ export default function LayoutExamples() {
     <div className="space-y-6">
       {/* Accordion */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Accordion</CardTitle></CardHeader>
-        <CardContent className="space-y-3 max-w-lg">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Accordion</CardTitle>
+        </CardHeader>
+        <CardContent className="max-w-lg space-y-3">
           <Accordion type="single" collapsible>
             <AccordionItem value="item-1">
               <AccordionTrigger>O que é o design system?</AccordionTrigger>
               <AccordionContent>
-                Um conjunto de padrões, componentes e diretrizes para manter a consistência visual do projeto.
+                Um conjunto de padrões, componentes e diretrizes para manter a consistência visual
+                do projeto.
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="item-2">
@@ -36,11 +73,15 @@ export default function LayoutExamples() {
             <AccordionItem value="item-3">
               <AccordionTrigger>Como adicionar um novo componente?</AccordionTrigger>
               <AccordionContent>
-                Use <code className="bg-muted px-1 rounded text-xs">npx shadcn@latest add [componente]</code> para instalar.
+                Use{" "}
+                <code className="rounded bg-muted px-1 text-xs">
+                  npx shadcn@latest add [componente]
+                </code>{" "}
+                para instalar.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/shared/components/ui/accordion"`}
           </code>
         </CardContent>
@@ -48,7 +89,9 @@ export default function LayoutExamples() {
 
       {/* Breadcrumb */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Breadcrumb</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Breadcrumb</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <Breadcrumb>
             <BreadcrumbList>
@@ -65,7 +108,7 @@ export default function LayoutExamples() {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/shared/components/ui/breadcrumb"`}
           </code>
         </CardContent>
@@ -73,8 +116,10 @@ export default function LayoutExamples() {
 
       {/* Collapsible */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Collapsible</CardTitle></CardHeader>
-        <CardContent className="space-y-3 max-w-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Collapsible</CardTitle>
+        </CardHeader>
+        <CardContent className="max-w-md space-y-3">
           <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">3 itens disponíveis</span>
@@ -84,13 +129,13 @@ export default function LayoutExamples() {
                 </Button>
               </CollapsibleTrigger>
             </div>
-            <div className="rounded-md border px-3 py-2 text-sm mt-2">Item principal</div>
-            <CollapsibleContent className="space-y-2 mt-2">
+            <div className="mt-2 rounded-md border px-3 py-2 text-sm">Item principal</div>
+            <CollapsibleContent className="mt-2 space-y-2">
               <div className="rounded-md border px-3 py-2 text-sm">Item secundário 1</div>
               <div className="rounded-md border px-3 py-2 text-sm">Item secundário 2</div>
             </CollapsibleContent>
           </Collapsible>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/shared/components/ui/collapsible"`}
           </code>
         </CardContent>
@@ -98,7 +143,9 @@ export default function LayoutExamples() {
 
       {/* Pagination */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Pagination</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Pagination</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <Pagination>
             <PaginationContent>
@@ -109,7 +156,9 @@ export default function LayoutExamples() {
                 <PaginationLink href="#">1</PaginationLink>
               </PaginationItem>
               <PaginationItem>
-                <PaginationLink href="#" isActive>2</PaginationLink>
+                <PaginationLink href="#" isActive>
+                  2
+                </PaginationLink>
               </PaginationItem>
               <PaginationItem>
                 <PaginationLink href="#">3</PaginationLink>
@@ -122,7 +171,7 @@ export default function LayoutExamples() {
               </PaginationItem>
             </PaginationContent>
           </Pagination>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious, PaginationEllipsis } from "@/shared/components/ui/pagination"`}
           </code>
         </CardContent>
@@ -130,18 +179,20 @@ export default function LayoutExamples() {
 
       {/* ScrollArea */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">ScrollArea</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">ScrollArea</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <ScrollArea className="h-40 w-full max-w-md rounded-md border p-3">
             <div className="space-y-2">
               {Array.from({ length: 15 }, (_, i) => (
-                <div key={i} className="text-sm py-1 border-b border-border last:border-0">
+                <div key={i} className="border-b border-border py-1 text-sm last:border-0">
                   Item {i + 1} — Conteúdo scrollável
                 </div>
               ))}
             </div>
           </ScrollArea>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { ScrollArea } from "@/shared/components/ui/scroll-area"`}
           </code>
         </CardContent>
@@ -149,21 +200,23 @@ export default function LayoutExamples() {
 
       {/* Separator */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Separator</CardTitle></CardHeader>
-        <CardContent className="space-y-3 max-w-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Separator</CardTitle>
+        </CardHeader>
+        <CardContent className="max-w-md space-y-3">
           <div>
             <p className="text-sm">Conteúdo acima</p>
             <Separator className="my-3" />
             <p className="text-sm">Conteúdo abaixo</p>
           </div>
-          <div className="flex items-center h-6 gap-3">
+          <div className="flex h-6 items-center gap-3">
             <span className="text-sm">Item A</span>
             <Separator orientation="vertical" />
             <span className="text-sm">Item B</span>
             <Separator orientation="vertical" />
             <span className="text-sm">Item C</span>
           </div>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Separator } from "@/shared/components/ui/separator"`}
           </code>
         </CardContent>
@@ -171,7 +224,9 @@ export default function LayoutExamples() {
 
       {/* Resizable */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Resizable</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Resizable</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <ResizablePanelGroup direction="horizontal" className="max-w-lg rounded-lg border">
             <ResizablePanel defaultSize={50}>
@@ -186,7 +241,7 @@ export default function LayoutExamples() {
               </div>
             </ResizablePanel>
           </ResizablePanelGroup>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/shared/components/ui/resizable"`}
           </code>
         </CardContent>
@@ -194,7 +249,9 @@ export default function LayoutExamples() {
 
       {/* Carousel */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Carousel</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Carousel</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <div className="mx-auto max-w-xs">
             <Carousel>
@@ -213,7 +270,7 @@ export default function LayoutExamples() {
               <CarouselNext />
             </Carousel>
           </div>
-          <code className="text-xs bg-muted px-2 py-1 rounded block">
+          <code className="block rounded bg-muted px-2 py-1 text-xs">
             {`import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/shared/components/ui/carousel"`}
           </code>
         </CardContent>

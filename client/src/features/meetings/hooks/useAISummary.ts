@@ -59,7 +59,7 @@ interface UseAISummaryReturn {
     text: string,
     clientName: string,
     meetingDate: string,
-    options: GenerateOption[]
+    options: GenerateOption[],
   ) => Promise<AIResponse | null>;
   clearError: () => void;
 }
@@ -73,7 +73,7 @@ export function useAISummary(): UseAISummaryReturn {
       text: string,
       clientName: string,
       meetingDate: string,
-      options: GenerateOption[]
+      options: GenerateOption[],
     ): Promise<AIResponse | null> => {
       setIsLoading(true);
       setError(null);
@@ -128,7 +128,7 @@ export function useAISummary(): UseAISummaryReturn {
         setIsLoading(false);
       }
     },
-    []
+    [],
   );
 
   const clearError = useCallback(() => {

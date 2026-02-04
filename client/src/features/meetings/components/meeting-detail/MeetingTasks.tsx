@@ -12,11 +12,11 @@ interface MeetingTasksProps {
 
 export function MeetingTasks({ tasks }: MeetingTasksProps) {
   const [completedTasks, setCompletedTasks] = useState<Set<string>>(
-    new Set(tasks.filter(t => t.completed).map(t => t.id))
+    new Set(tasks.filter((t) => t.completed).map((t) => t.id)),
   );
 
   const toggleTask = (taskId: string) => {
-    setCompletedTasks(prev => {
+    setCompletedTasks((prev) => {
       const next = new Set(prev);
       if (next.has(taskId)) {
         next.delete(taskId);
@@ -28,21 +28,26 @@ export function MeetingTasks({ tasks }: MeetingTasksProps) {
   };
 
   const getInitials = (name: string) => {
-    return name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <CheckSquare className="w-[18px] h-[18px] text-[#8c8c8c]" />
+          <CheckSquare className="h-[18px] w-[18px] text-[#8c8c8c]" />
           <h2 className="text-sm font-semibold text-[#ededed]">Tasks Vinculadas</h2>
-          <span className="bg-[#333333] text-[#8c8c8c] text-xs font-medium px-2 py-0.5 rounded">
+          <span className="rounded bg-[#333333] px-2 py-0.5 text-xs font-medium text-[#8c8c8c]">
             {tasks.length}
           </span>
         </div>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-transparent border border-dashed border-[#333333] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#1c3847] hover:border-[#2eaadc] transition-all">
-          <Plus className="w-3.5 h-3.5" />
+        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
+          <Plus className="h-3.5 w-3.5" />
           Nova Task
         </button>
       </div>
@@ -51,64 +56,62 @@ export function MeetingTasks({ tasks }: MeetingTasksProps) {
         {tasks.map((task) => {
           const isCompleted = completedTasks.has(task.id);
           return (
-            <div 
+            <div
               key={task.id}
               className={cn(
-                "flex items-center gap-3.5 px-4 py-3.5 bg-[#252730] border border-[#363842] rounded-lg cursor-pointer transition-all hover:bg-[#2a2d38] hover:border-[#4a4f5c]",
+                "flex cursor-pointer items-center gap-3.5 rounded-lg border border-[#363842] bg-[#252730] px-4 py-3.5 transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]",
                 "border-l-4",
-                isCompleted 
-                  ? "border-l-[#10b981]" 
-                  : task.priority === "Importante" 
-                    ? "border-l-[#f59e0b]" 
-                    : "border-l-[#4281dc]"
+                isCompleted
+                  ? "border-l-[#10b981]"
+                  : task.priority === "Importante"
+                    ? "border-l-[#f59e0b]"
+                    : "border-l-[#4281dc]",
               )}
               onClick={() => toggleTask(task.id)}
             >
-              <div 
+              <div
                 className={cn(
-                  "w-[18px] h-[18px] border-2 rounded flex items-center justify-center flex-shrink-0 transition-all",
-                  isCompleted 
-                    ? "bg-[#10b981] border-[#10b981]" 
-                    : "border-[#444]"
+                  "flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border-2 transition-all",
+                  isCompleted ? "border-[#10b981] bg-[#10b981]" : "border-[#444]",
                 )}
               >
-                {isCompleted && <Check className="w-3 h-3 text-[#121212]" />}
+                {isCompleted && <Check className="h-3 w-3 text-[#121212]" />}
               </div>
 
-              <div className="flex-1 min-w-0">
-                <div 
+              <div className="min-w-0 flex-1">
+                <div
                   className={cn(
-                    "text-sm font-medium mb-1",
-                    isCompleted ? "text-[#8c8c8c] line-through" : "text-[#ededed]"
+                    "mb-1 text-sm font-medium",
+                    isCompleted ? "text-[#8c8c8c] line-through" : "text-[#ededed]",
                   )}
                 >
                   {task.title}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-[#8c8c8c]">
                   <span className="flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
+                    <Calendar className="h-3 w-3" />
                     {format(task.dueDate, "dd MMM yyyy", { locale: ptBR })}
                   </span>
                   <span className="flex items-center gap-1">
-                    <User className="w-3 h-3" />
+                    <User className="h-3 w-3" />
                     {task.assignee}
                   </span>
                 </div>
               </div>
 
-              <Badge 
+              <Badge
                 className={cn(
                   "text-[0.6875rem]",
-                  task.priority === "Importante" 
-                    ? "bg-[#422c24] text-[#f59e0b]" 
-                    : "bg-[#333333] text-[#a0a0a0]"
+                  task.priority === "Importante"
+                    ? "bg-[#422c24] text-[#f59e0b]"
+                    : "bg-[#333333] text-[#a0a0a0]",
                 )}
               >
                 {task.priority}
               </Badge>
 
-              <div 
-                className="w-[26px] h-[26px] rounded-full flex items-center justify-center text-[0.625rem] font-semibold text-white"
+              <div
+                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[0.625rem] font-semibold text-white"
                 style={{ backgroundColor: "#2563eb" }}
               >
                 {getInitials(task.assignee)}

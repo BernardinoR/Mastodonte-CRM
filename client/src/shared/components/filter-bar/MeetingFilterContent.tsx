@@ -4,15 +4,15 @@
  */
 import { memo } from "react";
 import { BadgeFilterContent } from "./BadgeFilterContent";
-import { 
-  MEETING_TYPE_COLORS, 
+import {
+  MEETING_TYPE_COLORS,
   MEETING_TYPE_OPTIONS,
   MEETING_STATUS_OPTIONS,
   MEETING_LOCATION_OPTIONS,
   MEETING_LOCATION_COLORS,
   type MeetingType,
   type MeetingStatus,
-  type MeetingLocation
+  type MeetingLocation,
 } from "@shared/config/meetingConfig";
 import { MEETING_STATUS_BADGE_COLORS } from "@features/tasks/lib/statusConfig";
 
@@ -74,4 +74,3 @@ export const MeetingLocationFilterContent = memo(function MeetingLocationFilterC
     />
   );
 });
-

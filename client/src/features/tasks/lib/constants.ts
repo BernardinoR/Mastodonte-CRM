@@ -10,10 +10,10 @@ import type { TaskPriority } from "../types/task";
  * Valores menores = maior prioridade
  */
 export const PRIORITY_ORDER: Record<TaskPriority, number> = {
-  "Urgente": 0,
-  "Importante": 1,
-  "Normal": 2,
-  "Baixa": 3,
+  Urgente: 0,
+  Importante: 1,
+  Normal: 2,
+  Baixa: 3,
 };
 
 /**

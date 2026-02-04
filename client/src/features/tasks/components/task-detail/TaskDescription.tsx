@@ -14,7 +14,7 @@ export function TaskDescription({ description, onChange, onSave }: TaskDescripti
 
   useEffect(() => {
     if (descriptionRef.current) {
-      descriptionRef.current.style.height = 'auto';
+      descriptionRef.current.style.height = "auto";
       descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`;
     }
   }, [description]);
@@ -24,18 +24,20 @@ export function TaskDescription({ description, onChange, onSave }: TaskDescripti
   }, [onSave]);
 
   return (
-    <div className="flex-[0.6] min-h-0 flex flex-col">
-      <label className={cn("block text-xs font-bold uppercase mb-3 flex-shrink-0", UI_CLASSES.labelText)}>
+    <div className="flex min-h-0 flex-[0.6] flex-col">
+      <label
+        className={cn("mb-3 block flex-shrink-0 text-xs font-bold uppercase", UI_CLASSES.labelText)}
+      >
         Descrição
       </label>
-      <div className="flex-1 min-h-0 -ml-2 -mr-2">
+      <div className="-ml-2 -mr-2 min-h-0 flex-1">
         <Textarea
           ref={descriptionRef}
           value={description}
           onChange={(e) => onChange(e.target.value)}
           onBlur={handleBlur}
           placeholder="Adicione detalhes..."
-          className="w-full h-full bg-transparent !border-none !outline-none text-gray-300 text-base leading-relaxed resize-none focus:text-white !ring-0 focus:!ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0 px-2 py-1 rounded-md hover:bg-gray-700/80 focus:bg-transparent focus:hover:bg-transparent transition-colors cursor-pointer"
+          className="h-full w-full cursor-pointer resize-none rounded-md !border-none bg-transparent px-2 py-1 text-base leading-relaxed text-gray-300 !outline-none !ring-0 transition-colors hover:bg-gray-700/80 focus:bg-transparent focus:text-white focus:!ring-0 focus:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
           data-testid="textarea-description"
         />
       </div>

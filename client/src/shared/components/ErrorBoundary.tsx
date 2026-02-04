@@ -41,19 +41,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
       if (this.props.level === "section") {
         return (
-          <div className="flex items-center gap-3 p-4 border border-border rounded-md bg-background">
-            <AlertTriangle className="h-5 w-5 text-muted-foreground shrink-0" />
-            <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 rounded-md border border-border bg-background p-4">
+            <AlertTriangle className="h-5 w-5 shrink-0 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
               <p className="text-sm text-foreground">Algo deu errado nesta seção.</p>
               {this.state.error && (
-                <p className="text-xs text-muted-foreground truncate mt-0.5">
+                <p className="mt-0.5 truncate text-xs text-muted-foreground">
                   {this.state.error.message}
                 </p>
               )}
             </div>
             <button
               onClick={this.handleRetry}
-              className="text-sm text-foreground underline underline-offset-2 hover:text-muted-foreground shrink-0"
+              className="shrink-0 text-sm text-foreground underline underline-offset-2 hover:text-muted-foreground"
             >
               Tentar novamente
             </button>
@@ -63,22 +63,22 @@ export class ErrorBoundary extends Component<Props, State> {
 
       // level="page" (default)
       return (
-        <div className="flex flex-col items-center justify-center h-screen bg-background gap-4">
+        <div className="flex h-screen flex-col items-center justify-center gap-4 bg-background">
           <AlertTriangle className="h-10 w-10 text-muted-foreground" />
-          <div className="text-center space-y-1">
+          <div className="space-y-1 text-center">
             <h2 className="text-lg font-semibold text-foreground">Algo deu errado</h2>
-            <p className="text-sm text-muted-foreground max-w-md">
+            <p className="max-w-md text-sm text-muted-foreground">
               Ocorreu um erro inesperado. Tente novamente ou navegue para outra página.
             </p>
             {this.state.error && (
-              <p className="text-xs text-muted-foreground font-mono mt-2">
+              <p className="mt-2 font-mono text-xs text-muted-foreground">
                 {this.state.error.message}
               </p>
             )}
           </div>
           <button
             onClick={this.handleRetry}
-            className="px-4 py-2 text-sm font-medium rounded-md border border-border bg-background text-foreground hover:bg-accent transition-colors"
+            className="rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
             Tentar novamente
           </button>

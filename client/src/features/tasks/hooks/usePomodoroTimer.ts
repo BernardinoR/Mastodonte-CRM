@@ -12,7 +12,7 @@ export interface UsePomodoroTimerReturn {
 
 export function usePomodoroTimer(
   isActive: boolean,
-  onTimerEnd?: () => void
+  onTimerEnd?: () => void,
 ): UsePomodoroTimerReturn {
   const [remainingSeconds, setRemainingSeconds] = useState(POMODORO_DURATION);
   const [timerRunning, setTimerRunning] = useState(false);

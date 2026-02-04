@@ -1,13 +1,19 @@
 import { memo, useState, useCallback, useMemo, useEffect } from "react";
 import { Calendar } from "@/shared/components/ui/calendar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Input } from "@/shared/components/ui/input";
 import { ScrollArea } from "@/shared/components/ui/scroll-area";
 import { Button } from "@/shared/components/ui/button";
 import { cn } from "@/shared/lib/utils";
 import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
-import { 
-  startOfDay, 
+import {
+  startOfDay,
   endOfDay,
   format,
   isValid,
@@ -15,7 +21,7 @@ import {
   addMonths,
   subWeeks,
   subMonths,
-  isBefore
+  isBefore,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { DateRange } from "react-day-picker";
@@ -37,7 +43,7 @@ const PRESET_OPTIONS = [
 
 function getPresetDateRange(preset: string): { from: Date; to: Date } | undefined {
   const today = startOfDay(new Date());
-  
+
   switch (preset) {
     case "today":
       return { from: today, to: endOfDay(new Date()) };
@@ -50,9 +56,13 @@ function getPresetDateRange(preset: string): { from: Date; to: Date } | undefine
   }
 }
 
-function getRelativeDateRange(direction: "past" | "future", amount: number, unit: "weeks" | "months"): { from: Date; to: Date } {
+function getRelativeDateRange(
+  direction: "past" | "future",
+  amount: number,
+  unit: "weeks" | "months",
+): { from: Date; to: Date } {
   const today = startOfDay(new Date());
-  
+
   if (direction === "past") {
     const startDate = unit === "weeks" ? subWeeks(today, amount) : subMonths(today, amount);
     return { from: startDate, to: endOfDay(new Date()) };
@@ -67,13 +77,11 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   onChange,
 }: DateRangeFilterContentProps) {
   const [relativeDirection, setRelativeDirection] = useState<"past" | "future">(
-    value.relativeDirection || "past"
+    value.relativeDirection || "past",
   );
-  const [relativeAmount, setRelativeAmount] = useState<number>(
-    value.relativeAmount || 4
-  );
+  const [relativeAmount, setRelativeAmount] = useState<number>(value.relativeAmount || 4);
   const [relativeUnit, setRelativeUnit] = useState<"weeks" | "months">(
-    value.relativeUnit || "weeks"
+    value.relativeUnit || "weeks",
   );
 
   // Custom range selection state
@@ -115,19 +123,22 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     return undefined;
   }, [value]);
 
-  const handlePresetChange = useCallback((preset: string) => {
-    if (preset === "all") {
-      onChange({ type: "all" });
-    } else {
-      const range = getPresetDateRange(preset);
-      onChange({ 
-        type: "preset", 
-        preset,
-        startDate: range?.from,
-        endDate: range?.to,
-      });
-    }
-  }, [onChange]);
+  const handlePresetChange = useCallback(
+    (preset: string) => {
+      if (preset === "all") {
+        onChange({ type: "all" });
+      } else {
+        const range = getPresetDateRange(preset);
+        onChange({
+          type: "preset",
+          preset,
+          startDate: range?.from,
+          endDate: range?.to,
+        });
+      }
+    },
+    [onChange],
+  );
 
   const applyRelativeFilter = useCallback(() => {
     const range = getRelativeDateRange(relativeDirection, relativeAmount, relativeUnit);
@@ -141,69 +152,78 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
     });
   }, [onChange, relativeDirection, relativeAmount, relativeUnit]);
 
-  const handleDirectionChange = useCallback((dir: string) => {
-    const newDir = dir as "past" | "future";
-    setRelativeDirection(newDir);
-    const range = getRelativeDateRange(newDir, relativeAmount, relativeUnit);
-    onChange({
-      type: "relative",
-      relativeDirection: newDir,
-      relativeAmount,
-      relativeUnit,
-      startDate: range.from,
-      endDate: range.to,
-    });
-  }, [onChange, relativeAmount, relativeUnit]);
+  const handleDirectionChange = useCallback(
+    (dir: string) => {
+      const newDir = dir as "past" | "future";
+      setRelativeDirection(newDir);
+      const range = getRelativeDateRange(newDir, relativeAmount, relativeUnit);
+      onChange({
+        type: "relative",
+        relativeDirection: newDir,
+        relativeAmount,
+        relativeUnit,
+        startDate: range.from,
+        endDate: range.to,
+      });
+    },
+    [onChange, relativeAmount, relativeUnit],
+  );
 
   const handleAmountChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = Math.max(1, Math.min(52, parseInt(e.target.value) || 1));
     setRelativeAmount(val);
   }, []);
 
-  const handleUnitChange = useCallback((unit: string) => {
-    const newUnit = unit as "weeks" | "months";
-    setRelativeUnit(newUnit);
-    const range = getRelativeDateRange(relativeDirection, relativeAmount, newUnit);
-    onChange({
-      type: "relative",
-      relativeDirection,
-      relativeAmount,
-      relativeUnit: newUnit,
-      startDate: range.from,
-      endDate: range.to,
-    });
-  }, [onChange, relativeDirection, relativeAmount]);
+  const handleUnitChange = useCallback(
+    (unit: string) => {
+      const newUnit = unit as "weeks" | "months";
+      setRelativeUnit(newUnit);
+      const range = getRelativeDateRange(relativeDirection, relativeAmount, newUnit);
+      onChange({
+        type: "relative",
+        relativeDirection,
+        relativeAmount,
+        relativeUnit: newUnit,
+        startDate: range.from,
+        endDate: range.to,
+      });
+    },
+    [onChange, relativeDirection, relativeAmount],
+  );
 
   // Custom day click handler for two-click selection
-  const handleDayClick = useCallback((day: Date) => {
-    if (selectionPhase === "start") {
-      const newStartDate = startOfDay(day);
-      setPendingStartDate(newStartDate);
-      onChange({
-        type: "range",
-        startDate: newStartDate,
-        endDate: undefined,
-      });
-      setSelectionPhase("end");
-    } else {
-      const startDate = pendingStartDate || value.startDate || day;
-      let newStart = startDate;
-      let newEnd = day;
-      
-      if (isBefore(day, startDate)) {
-        newStart = day;
-        newEnd = startDate;
+  const handleDayClick = useCallback(
+    (day: Date) => {
+      if (selectionPhase === "start") {
+        const newStartDate = startOfDay(day);
+        setPendingStartDate(newStartDate);
+        onChange({
+          type: "range",
+          startDate: newStartDate,
+          endDate: undefined,
+        });
+        setSelectionPhase("end");
+      } else {
+        const startDate = pendingStartDate || value.startDate || day;
+        let newStart = startDate;
+        let newEnd = day;
+
+        if (isBefore(day, startDate)) {
+          newStart = day;
+          newEnd = startDate;
+        }
+
+        onChange({
+          type: "range",
+          startDate: startOfDay(newStart),
+          endDate: endOfDay(newEnd),
+        });
+        setSelectionPhase("start");
+        setPendingStartDate(null);
       }
-      
-      onChange({
-        type: "range",
-        startDate: startOfDay(newStart),
-        endDate: endOfDay(newEnd),
-      });
-      setSelectionPhase("start");
-      setPendingStartDate(null);
-    }
-  }, [selectionPhase, pendingStartDate, value.startDate, onChange]);
+    },
+    [selectionPhase, pendingStartDate, value.startDate, onChange],
+  );
 
   const getDisplayText = () => {
     if (value.type === "range" && value.startDate) {
@@ -227,23 +247,20 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
   return (
     <div className="w-[300px] max-w-[calc(100vw-32px)]">
       <ScrollArea className="max-h-[calc(100vh-120px)]">
-        <div className={cn("px-3 py-3 border-b", UI_CLASSES.border)}>
-          <div className="text-xs text-gray-500 mb-2">Filtro rápido</div>
-          <Select 
-            value={currentPresetValue} 
-            onValueChange={handlePresetChange}
-          >
-            <SelectTrigger 
-              className="w-full bg-[#1a1a1a] border-[#333] text-gray-200"
+        <div className={cn("border-b px-3 py-3", UI_CLASSES.border)}>
+          <div className="mb-2 text-xs text-gray-500">Filtro rápido</div>
+          <Select value={currentPresetValue} onValueChange={handlePresetChange}>
+            <SelectTrigger
+              className="w-full border-[#333] bg-[#1a1a1a] text-gray-200"
               data-testid="select-date-preset"
             >
               <SelectValue placeholder="Selecione..." />
             </SelectTrigger>
             <SelectContent className={UI_CLASSES.popover}>
               {PRESET_OPTIONS.map((option) => (
-                <SelectItem 
-                  key={option.value} 
-                  value={option.value} 
+                <SelectItem
+                  key={option.value}
+                  value={option.value}
                   className="text-gray-200"
                   data-testid={`option-filter-date-${option.value}`}
                 >
@@ -254,25 +271,26 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
           </Select>
         </div>
 
-        <div className={cn("px-3 py-3 border-b", UI_CLASSES.border)}>
-          <div className="text-xs text-gray-500 mb-2">Intervalo relativo</div>
+        <div className={cn("border-b px-3 py-3", UI_CLASSES.border)}>
+          <div className="mb-2 text-xs text-gray-500">Intervalo relativo</div>
           <div className="flex items-center gap-2">
-            <Select 
-              value={relativeDirection} 
-              onValueChange={handleDirectionChange}
-            >
-              <SelectTrigger 
-                className="h-8 w-[100px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm"
+            <Select value={relativeDirection} onValueChange={handleDirectionChange}>
+              <SelectTrigger
+                className="h-8 w-[100px] border-[#333] bg-[#1a1a1a] text-sm text-gray-200"
                 data-testid="select-relative-direction"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className={UI_CLASSES.popover}>
-                <SelectItem value="past" className="text-gray-200">Últimas</SelectItem>
-                <SelectItem value="future" className="text-gray-200">Próximas</SelectItem>
+                <SelectItem value="past" className="text-gray-200">
+                  Últimas
+                </SelectItem>
+                <SelectItem value="future" className="text-gray-200">
+                  Próximas
+                </SelectItem>
               </SelectContent>
             </Select>
-            
+
             <Input
               type="number"
               min={1}
@@ -281,32 +299,33 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
               onChange={handleAmountChange}
               onBlur={applyRelativeFilter}
               onKeyDown={(e) => e.key === "Enter" && applyRelativeFilter()}
-              className="h-8 w-[50px] bg-[#1a1a1a] border-[#333] text-gray-200 text-sm text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="h-8 w-[50px] border-[#333] bg-[#1a1a1a] text-center text-sm text-gray-200 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               data-testid="input-relative-amount"
             />
-            
-            <Select 
-              value={relativeUnit} 
-              onValueChange={handleUnitChange}
-            >
-              <SelectTrigger 
-                className="h-8 flex-1 bg-[#1a1a1a] border-[#333] text-gray-200 text-sm"
+
+            <Select value={relativeUnit} onValueChange={handleUnitChange}>
+              <SelectTrigger
+                className="h-8 flex-1 border-[#333] bg-[#1a1a1a] text-sm text-gray-200"
                 data-testid="select-relative-unit"
               >
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className={UI_CLASSES.popover}>
-                <SelectItem value="weeks" className="text-gray-200">semanas</SelectItem>
-                <SelectItem value="months" className="text-gray-200">meses</SelectItem>
+                <SelectItem value="weeks" className="text-gray-200">
+                  semanas
+                </SelectItem>
+                <SelectItem value="months" className="text-gray-200">
+                  meses
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
-          
+
           <Button
             onClick={applyRelativeFilter}
             variant={isRelativeActive ? "default" : "secondary"}
             size="sm"
-            className="w-full mt-2"
+            className="mt-2 w-full"
             data-testid="button-apply-relative"
           >
             {isRelativeActive ? "Selecionado" : "Aplicar"}
@@ -315,8 +334,8 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
         <div className="pt-1">
           <div className="px-3 py-1.5 text-xs text-gray-500">
-            {selectionPhase === "start" 
-              ? "Clique para selecionar a data inicial" 
+            {selectionPhase === "start"
+              ? "Clique para selecionar a data inicial"
               : "Clique para selecionar a data final"}
           </div>
           <div className="flex justify-center">
@@ -334,14 +353,14 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
             />
           </div>
         </div>
-        
+
         {displayText && (
-          <div className="px-3 py-2 text-sm text-gray-300 border-t border-[#333] text-center">
+          <div className="border-t border-[#333] px-3 py-2 text-center text-sm text-gray-300">
             {displayText}
           </div>
         )}
-        
-        <div className="px-3 py-2 text-[10px] text-gray-500 border-t border-[#333]">
+
+        <div className="border-t border-[#333] px-3 py-2 text-[10px] text-gray-500">
           Clique fora para confirmar
         </div>
       </ScrollArea>
@@ -351,12 +370,12 @@ export const DateRangeFilterContent = memo(function DateRangeFilterContent({
 
 export function formatDateFilterLabel(value: DateFilterValue | undefined | null): string {
   if (!value || value.type === "all") return "Data";
-  
+
   if (value.type === "preset") {
-    const preset = PRESET_OPTIONS.find(p => p.value === value.preset);
+    const preset = PRESET_OPTIONS.find((p) => p.value === value.preset);
     return preset?.label || "Data";
   }
-  
+
   if (value.type === "relative") {
     const amount = value.relativeAmount && !isNaN(value.relativeAmount) ? value.relativeAmount : 0;
     if (amount > 0 && value.relativeUnit) {
@@ -366,7 +385,7 @@ export function formatDateFilterLabel(value: DateFilterValue | undefined | null)
     }
     return "Data";
   }
-  
+
   if (value.type === "range" && value.startDate && isValid(value.startDate)) {
     const start = format(value.startDate, "dd/MM", { locale: ptBR });
     if (value.endDate && isValid(value.endDate)) {
@@ -375,6 +394,6 @@ export function formatDateFilterLabel(value: DateFilterValue | undefined | null)
     }
     return start;
   }
-  
+
   return "Data";
 }

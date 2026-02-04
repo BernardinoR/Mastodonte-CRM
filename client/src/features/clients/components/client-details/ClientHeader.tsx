@@ -40,8 +40,8 @@ function MetaItem({
 }) {
   return (
     <div className={cn("flex flex-col gap-1", disabled && "opacity-40")}>
-      <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-        <Icon className="w-3.5 h-3.5" />
+      <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+        <Icon className="h-3.5 w-3.5" />
         {label}
       </span>
       <span className={`text-sm font-medium ${highlight ? "text-emerald-400" : "text-foreground"}`}>
@@ -115,7 +115,7 @@ export function ClientHeader({
   // Calcular última reunião mensal realizada (tipo "Mensal" + status "Realizada")
   const lastMonthlyMeetingDate = useMemo(() => {
     const monthlyMeetings = meetings
-      .filter(m => m.type === "Mensal" && m.status === "Realizada")
+      .filter((m) => m.type === "Mensal" && m.status === "Realizada")
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     return monthlyMeetings[0]?.date || client.lastMeeting;
   }, [meetings, client.lastMeeting]);
@@ -161,25 +161,28 @@ export function ClientHeader({
   const handleEmail = () => {
     const primaryEmail = client.emails[client.primaryEmailIndex] || client.emails[0];
     if (primaryEmail) {
-      window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}`, "_blank");
+      window.open(
+        `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(primaryEmail)}`,
+        "_blank",
+      );
     }
   };
 
-  const activeWhatsAppGroups = whatsappGroups.filter(g => g.status === "Ativo" && g.link);
+  const activeWhatsAppGroups = whatsappGroups.filter((g) => g.status === "Ativo" && g.link);
   const hasWhatsAppGroups = activeWhatsAppGroups.length > 0;
 
   return (
-    <header className="mb-6 pb-5 border-b border-[#333333]">
-      <div className="flex items-start gap-6 flex-wrap">
-        <div 
-          className="w-20 h-20 bg-[#2c2c2c] rounded-lg flex items-center justify-center text-2xl font-bold text-muted-foreground flex-shrink-0"
+    <header className="mb-6 border-b border-[#333333] pb-5">
+      <div className="flex flex-wrap items-start gap-6">
+        <div
+          className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#2c2c2c] text-2xl font-bold text-muted-foreground"
           data-testid="avatar-client-initials"
         >
           {client.initials}
         </div>
-        
-        <div className="flex-1 min-w-[300px]">
-          <div className="flex items-center gap-3 flex-wrap mb-2">
+
+        <div className="min-w-[300px] flex-1">
+          <div className="mb-2 flex flex-wrap items-center gap-3">
             {isEditingName ? (
               <input
                 ref={nameInputRef}
@@ -188,28 +191,25 @@ export function ClientHeader({
                 onChange={(e) => setDraftName(e.target.value)}
                 onKeyDown={handleNameKeyDown}
                 onBlur={handleNameBlur}
-                className="text-3xl font-bold text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none min-w-[200px]"
+                className="min-w-[200px] border-b-2 border-[#2eaadc] bg-transparent text-3xl font-bold text-foreground outline-none"
                 data-testid="input-client-name"
               />
             ) : (
-              <h1 
-                className="text-3xl font-bold text-foreground cursor-pointer px-2 py-1 -mx-2 -my-1 rounded-md hover:bg-[#2c2c2c] transition-colors"
+              <h1
+                className="-mx-2 -my-1 cursor-pointer rounded-md px-2 py-1 text-3xl font-bold text-foreground transition-colors hover:bg-[#2c2c2c]"
                 onClick={startEditingName}
                 data-testid="text-client-name"
               >
                 {client.name}
               </h1>
             )}
-            <ClientStatusBadge 
-              status={client.status}
-              onStatusChange={onUpdateStatus}
-            />
+            <ClientStatusBadge status={client.status} onStatusChange={onUpdateStatus} />
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="mt-6 grid grid-cols-2 gap-4 md:grid-cols-4">
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <IdCard className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                <IdCard className="h-3.5 w-3.5" />
                 CPF
               </span>
               {isEditingCpf ? (
@@ -220,12 +220,12 @@ export function ClientHeader({
                   onChange={handleCpfChange}
                   onKeyDown={handleCpfKeyDown}
                   onBlur={handleCpfBlur}
-                  className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none"
+                  className="border-b-2 border-[#2eaadc] bg-transparent text-sm font-medium text-foreground outline-none"
                   data-testid="input-client-cpf"
                 />
               ) : (
-                <span 
-                  className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors"
+                <span
+                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
                   onClick={startEditingCpf}
                   data-testid="text-client-cpf"
                 >
@@ -234,8 +234,8 @@ export function ClientHeader({
               )}
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5" />
+              <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+                <Phone className="h-3.5 w-3.5" />
                 Telefone
               </span>
               {isEditingPhone ? (
@@ -246,12 +246,12 @@ export function ClientHeader({
                   onChange={handlePhoneChange}
                   onKeyDown={handlePhoneKeyDown}
                   onBlur={handlePhoneBlur}
-                  className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none"
+                  className="border-b-2 border-[#2eaadc] bg-transparent text-sm font-medium text-foreground outline-none"
                   data-testid="input-client-phone"
                 />
               ) : (
-                <span 
-                  className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors"
+                <span
+                  className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
                   onClick={startEditingPhone}
                   data-testid="text-client-phone"
                 >
@@ -267,20 +267,14 @@ export function ClientHeader({
               onUpdateEmail={onUpdateEmail}
               onSetPrimaryEmail={onSetPrimaryEmail}
             />
-            <AdvisorPopover
-              currentAdvisor={client.advisor}
-              onAdvisorChange={onUpdateAdvisor}
-            />
+            <AdvisorPopover currentAdvisor={client.advisor} onAdvisorChange={onUpdateAdvisor} />
             <MetaItem
               icon={CalendarIcon}
               label="Última Reunião"
               value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
               disabled={client.monthlyMeetingDisabled}
             />
-            <AddressPopover
-              address={client.address}
-              onAddressChange={onUpdateAddress}
-            />
+            <AddressPopover address={client.address} onAddressChange={onUpdateAddress} />
             <FoundationCodeField
               code={client.foundationCode}
               onCodeChange={onUpdateFoundationCode}
@@ -288,51 +282,51 @@ export function ClientHeader({
             <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
           </div>
 
-          <div className="flex gap-3 mt-6 flex-wrap">
-            <Button 
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button
               onClick={onScheduleWhatsApp}
-              className="bg-[#2eaadc] hover:bg-[#259bc5] text-white"
+              className="bg-[#2eaadc] text-white hover:bg-[#259bc5]"
               data-testid="button-new-meeting"
             >
-              <CalendarIcon className="w-4 h-4 mr-2" />
+              <CalendarIcon className="mr-2 h-4 w-4" />
               Agendar Reunião
             </Button>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={onNewTask}
               className="border-[#333333] hover:bg-[#2c2c2c]"
               data-testid="button-new-task"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Nova Task
             </Button>
             {hasWhatsAppGroups ? (
               <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
                 <PopoverTrigger asChild>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="border-[#333333] hover:bg-[#2c2c2c]"
                     data-testid="button-whatsapp"
                   >
-                    <MessageSquare className="w-4 h-4 mr-2" />
+                    <MessageSquare className="mr-2 h-4 w-4" />
                     WhatsApp
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 p-2 bg-[#202020] border-[#333333]" align="start">
+                <PopoverContent className="w-64 border-[#333333] bg-[#202020] p-2" align="start">
                   <div className="flex flex-col gap-1">
                     <button
                       onClick={() => {
                         handleWhatsApp();
                         setWhatsappPopoverOpen(false);
                       }}
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[#2c2c2c] rounded-md transition-colors text-left"
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
                       data-testid="button-whatsapp-direct"
                     >
-                      <MessageSquare className="w-4 h-4" />
+                      <MessageSquare className="h-4 w-4" />
                       Chat direto
                     </button>
-                    <div className="border-t border-[#333333] my-1" />
-                    <div className="px-3 py-1 text-xs text-muted-foreground uppercase">Grupos</div>
+                    <div className="my-1 border-t border-[#333333]" />
+                    <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
                     {activeWhatsAppGroups.map((group) => (
                       <button
                         key={group.id}
@@ -340,10 +334,10 @@ export function ClientHeader({
                           handleWhatsApp(group.link || undefined, true);
                           setWhatsappPopoverOpen(false);
                         }}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-[#2c2c2c] rounded-md transition-colors text-left"
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#2c2c2c]"
                         data-testid={`button-whatsapp-group-${group.id}`}
                       >
-                        <MessageSquare className="w-4 h-4 text-emerald-500" />
+                        <MessageSquare className="h-4 w-4 text-emerald-500" />
                         {group.name}
                       </button>
                     ))}
@@ -351,53 +345,53 @@ export function ClientHeader({
                 </PopoverContent>
               </Popover>
             ) : (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => handleWhatsApp()}
                 className="border-[#333333] hover:bg-[#2c2c2c]"
                 data-testid="button-whatsapp"
               >
-                <MessageSquare className="w-4 h-4 mr-2" />
+                <MessageSquare className="mr-2 h-4 w-4" />
                 WhatsApp
               </Button>
             )}
-            <Button 
+            <Button
               variant="outline"
               onClick={handleEmail}
               className="border-[#333333] hover:bg-[#2c2c2c]"
               data-testid="button-send-email"
             >
-              <Mail className="w-4 h-4 mr-2" />
+              <Mail className="mr-2 h-4 w-4" />
               Enviar Email
             </Button>
             {isBulkEditing ? (
               <>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={cancelAllChanges}
                   className="border-[#333333] hover:bg-[#2c2c2c]"
                   data-testid="button-cancel-edit"
                 >
-                  <X className="w-4 h-4 mr-2" />
+                  <X className="mr-2 h-4 w-4" />
                   Cancelar
                 </Button>
-                <Button 
+                <Button
                   onClick={commitAllChanges}
-                  className="bg-[#2eaadc] hover:bg-[#259bc5] text-white"
+                  className="bg-[#2eaadc] text-white hover:bg-[#259bc5]"
                   data-testid="button-save-edit"
                 >
-                  <Check className="w-4 h-4 mr-2" />
+                  <Check className="mr-2 h-4 w-4" />
                   Salvar
                 </Button>
               </>
             ) : (
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={handleEditClient}
                 className="border-[#333333] hover:bg-[#2c2c2c]"
                 data-testid="button-edit-client"
               >
-                <Edit className="w-4 h-4 mr-2" />
+                <Edit className="mr-2 h-4 w-4" />
                 Editar
               </Button>
             )}

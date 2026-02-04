@@ -14,12 +14,15 @@ export function usePopoverState() {
   }, []);
 
   const toggleField = useCallback((field: Exclude<PopoverField, null>) => {
-    setOpenPopover(prev => prev === field ? null : field);
+    setOpenPopover((prev) => (prev === field ? null : field));
   }, []);
 
-  const isOpen = useCallback((field: Exclude<PopoverField, null>) => {
-    return openPopover === field;
-  }, [openPopover]);
+  const isOpen = useCallback(
+    (field: Exclude<PopoverField, null>) => {
+      return openPopover === field;
+    },
+    [openPopover],
+  );
 
   const handleOpenChange = useCallback((field: Exclude<PopoverField, null>) => {
     return (open: boolean) => {

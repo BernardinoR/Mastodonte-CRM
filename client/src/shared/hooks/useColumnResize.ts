@@ -12,10 +12,10 @@ interface ColumnWidths {
 function parseWidth(width: string): number {
   const match = width.match(/(\d+)px/);
   if (match) return parseInt(match[1], 10);
-  
+
   const minmaxMatch = width.match(/minmax\((\d+)px/);
   if (minmaxMatch) return parseInt(minmaxMatch[1], 10);
-  
+
   return 100;
 }
 
@@ -40,8 +40,8 @@ export function useColumnResize(initialColumns: Column[]) {
   const [columns, setColumns] = useState<Column[]>(() => {
     const savedWidths = loadSavedWidths();
     if (Object.keys(savedWidths).length === 0) return initialColumns;
-    
-    return initialColumns.map(col => ({
+
+    return initialColumns.map((col) => ({
       ...col,
       width: savedWidths[col.id] ? `${savedWidths[col.id]}px` : col.width,
     }));
@@ -53,33 +53,36 @@ export function useColumnResize(initialColumns: Column[]) {
     startWidth: number;
     lastClientX: number;
   } | null>(null);
-  
+
   const rafRef = useRef<number | null>(null);
   const columnsRef = useRef(columns);
-  
+
   useEffect(() => {
     columnsRef.current = columns;
   }, [columns]);
 
   const getColumnWidth = useCallback((columnId: string): number => {
-    const col = columnsRef.current.find(c => c.id === columnId);
+    const col = columnsRef.current.find((c) => c.id === columnId);
     if (!col) return 100;
     return parseWidth(col.width);
   }, []);
 
-  const handleResizeStart = useCallback((columnId: string, clientX: number) => {
-    const currentWidth = getColumnWidth(columnId);
-    resizingRef.current = {
-      columnId,
-      startX: clientX,
-      startWidth: currentWidth,
-      lastClientX: clientX,
-    };
-  }, [getColumnWidth]);
+  const handleResizeStart = useCallback(
+    (columnId: string, clientX: number) => {
+      const currentWidth = getColumnWidth(columnId);
+      resizingRef.current = {
+        columnId,
+        startX: clientX,
+        startWidth: currentWidth,
+        lastClientX: clientX,
+      };
+    },
+    [getColumnWidth],
+  );
 
   const handleResizeMove = useCallback((clientX: number) => {
     if (!resizingRef.current) return;
-    
+
     resizingRef.current.lastClientX = clientX;
 
     if (rafRef.current) {
@@ -88,14 +91,14 @@ export function useColumnResize(initialColumns: Column[]) {
 
     rafRef.current = requestAnimationFrame(() => {
       if (!resizingRef.current) return;
-      
+
       const { columnId, startX, startWidth, lastClientX } = resizingRef.current;
       const delta = lastClientX - startX;
       const newWidth = Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, startWidth + delta));
 
-      setColumns(prev => prev.map(col => 
-        col.id === columnId ? { ...col, width: `${newWidth}px` } : col
-      ));
+      setColumns((prev) =>
+        prev.map((col) => (col.id === columnId ? { ...col, width: `${newWidth}px` } : col)),
+      );
     });
   }, []);
 
@@ -111,17 +114,17 @@ export function useColumnResize(initialColumns: Column[]) {
       const delta = clientX - startX;
       const newWidth = Math.min(MAX_COLUMN_WIDTH, Math.max(MIN_COLUMN_WIDTH, startWidth + delta));
 
-      setColumns(prev => {
-        const updated = prev.map(col => 
-          col.id === columnId ? { ...col, width: `${newWidth}px` } : col
+      setColumns((prev) => {
+        const updated = prev.map((col) =>
+          col.id === columnId ? { ...col, width: `${newWidth}px` } : col,
         );
-        
+
         const widths: ColumnWidths = {};
-        updated.forEach(col => {
+        updated.forEach((col) => {
           widths[col.id] = parseWidth(col.width);
         });
         saveWidths(widths);
-        
+
         return updated;
       });
     }

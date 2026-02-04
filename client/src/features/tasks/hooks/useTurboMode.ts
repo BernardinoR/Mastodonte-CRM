@@ -58,7 +58,9 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     playTimerEndSound();
 
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
-    const tasksWithHistory = Object.values(navigation.taskStatuses).filter((s) => s.hadAction).length;
+    const tasksWithHistory = Object.values(navigation.taskStatuses).filter(
+      (s) => s.hadAction,
+    ).length;
     const totalVisited = Object.values(navigation.taskStatuses).filter((s) => s.visited).length;
     const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
 
@@ -109,7 +111,9 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
 
   const exitTurboMode = useCallback(() => {
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
-    const tasksWithHistory = Object.values(navigation.taskStatuses).filter((s) => s.hadAction).length;
+    const tasksWithHistory = Object.values(navigation.taskStatuses).filter(
+      (s) => s.hadAction,
+    ).length;
     const totalVisited = Object.values(navigation.taskStatuses).filter((s) => s.visited).length;
     const avgTime = totalVisited > 0 ? Math.floor(sessionDuration / totalVisited) : 0;
 

@@ -59,9 +59,19 @@ const arraysEqual = (a: string[], b: string[]): boolean => {
 
 // Chaves primitivas que podem ser comparadas diretamente
 const PRIMITIVE_KEYS = [
-  'id', 'title', 'clientId', 'clientName', 'priority', 'status',
-  'description', 'syncStatus', 'isSelected', 'selectedCount',
-  'isDragActive', 'initialEditMode', 'isCompact'
+  "id",
+  "title",
+  "clientId",
+  "clientName",
+  "priority",
+  "status",
+  "description",
+  "syncStatus",
+  "isSelected",
+  "selectedCount",
+  "isDragActive",
+  "initialEditMode",
+  "isCompact",
 ] as const;
 
 const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
@@ -81,83 +91,183 @@ const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
 };
 
 export const TaskCard = memo(function TaskCard({
-  id, title, clientId, clientName, priority, status, assignees, dueDate, description, notes,
+  id,
+  title,
+  clientId,
+  clientName,
+  priority,
+  status,
+  assignees,
+  dueDate,
+  description,
+  notes,
   syncStatus,
-  isSelected = false, selectedCount = 0, isDragActive = false,
-  initialEditMode = false, isCompact = false,
-  onSelect, onUpdate, onDelete, onFinishEditing, onOpenDetail, onRetrySync,
-  onBulkUpdate, onBulkDelete, onBulkAppendTitle, onBulkReplaceTitle,
-  onBulkAddAssignee, onBulkSetAssignees, onBulkRemoveAssignee, onEditStateChange,
+  isSelected = false,
+  selectedCount = 0,
+  isDragActive = false,
+  initialEditMode = false,
+  isCompact = false,
+  onSelect,
+  onUpdate,
+  onDelete,
+  onFinishEditing,
+  onOpenDetail,
+  onRetrySync,
+  onBulkUpdate,
+  onBulkDelete,
+  onBulkAppendTitle,
+  onBulkReplaceTitle,
+  onBulkAddAssignee,
+  onBulkSetAssignees,
+  onBulkRemoveAssignee,
+  onEditStateChange,
 }: TaskCardProps) {
   const [, navigate] = useLocation();
-  
+
   const {
-    isEditing, editedTask, setEditedTask, activePopover, setActivePopover,
-    cardRef, titleRef, clickTimeoutRef, handleUpdate, handleTitleEdit,
-    handleEditClick, handleCloseEditing, isJustClosedEdit, stableAssignees,
+    isEditing,
+    editedTask,
+    setEditedTask,
+    activePopover,
+    setActivePopover,
+    cardRef,
+    titleRef,
+    clickTimeoutRef,
+    handleUpdate,
+    handleTitleEdit,
+    handleEditClick,
+    handleCloseEditing,
+    isJustClosedEdit,
+    stableAssignees,
   } = useTaskCardEditing({
-    id, title, clientName, priority, status, assignees, dueDate, description,
-    onUpdate, onFinishEditing, initialEditMode,
+    id,
+    title,
+    clientName,
+    priority,
+    status,
+    assignees,
+    dueDate,
+    description,
+    onUpdate,
+    onFinishEditing,
+    initialEditMode,
   });
-  
-  const updateAssigneesInEditedTask = useCallback((newAssignees: string[]) => {
-    setEditedTask(prev => ({ ...prev, assignees: newAssignees }));
-  }, [setEditedTask]);
-  
-  const { addAssignee, removeAssignee, handleContextAdd, handleContextRemove, handleContextSetSingle } = useTaskAssignees({
-    taskId: id, assignees: editedTask.assignees, selectedCount, onUpdate,
-    onBulkAddAssignee, onBulkRemoveAssignee, onBulkSetAssignees,
+
+  const updateAssigneesInEditedTask = useCallback(
+    (newAssignees: string[]) => {
+      setEditedTask((prev) => ({ ...prev, assignees: newAssignees }));
+    },
+    [setEditedTask],
+  );
+
+  const {
+    addAssignee,
+    removeAssignee,
+    handleContextAdd,
+    handleContextRemove,
+    handleContextSetSingle,
+  } = useTaskAssignees({
+    taskId: id,
+    assignees: editedTask.assignees,
+    selectedCount,
+    onUpdate,
+    onBulkAddAssignee,
+    onBulkRemoveAssignee,
+    onBulkSetAssignees,
     updateEditedTask: updateAssigneesInEditedTask,
   });
 
   const {
-    handleContextPriorityChange, handleContextStatusChange, handleContextDelete,
-    handleContextClientChange, handleContextDateChange, handleReplaceTitleSubmit, handleAppendTitleSubmit,
+    handleContextPriorityChange,
+    handleContextStatusChange,
+    handleContextDelete,
+    handleContextClientChange,
+    handleContextDateChange,
+    handleReplaceTitleSubmit,
+    handleAppendTitleSubmit,
   } = useTaskContextMenu({
-    id, title, selectedCount, onUpdate, onDelete, onBulkUpdate, onBulkDelete, onBulkReplaceTitle, onBulkAppendTitle,
+    id,
+    title,
+    selectedCount,
+    onUpdate,
+    onDelete,
+    onBulkUpdate,
+    onBulkDelete,
+    onBulkReplaceTitle,
+    onBulkAppendTitle,
   });
-  
+
   const {
-    showDetails, setShowDetails, showDeleteConfirm, setShowDeleteConfirm,
-    showReplaceTitleDialog, setShowReplaceTitleDialog, showAppendTitleDialog, setShowAppendTitleDialog,
-    showBulkDatePicker, setShowBulkDatePicker, newTitleText, setNewTitleText,
-    appendTitleText, setAppendTitleText, datePopoverContentRef,
-    handleDelete, onReplaceTitleSubmit, onAppendTitleSubmit, onContextDateChange, openDetails,
+    showDetails,
+    setShowDetails,
+    showDeleteConfirm,
+    setShowDeleteConfirm,
+    showReplaceTitleDialog,
+    setShowReplaceTitleDialog,
+    showAppendTitleDialog,
+    setShowAppendTitleDialog,
+    showBulkDatePicker,
+    setShowBulkDatePicker,
+    newTitleText,
+    setNewTitleText,
+    appendTitleText,
+    setAppendTitleText,
+    datePopoverContentRef,
+    handleDelete,
+    onReplaceTitleSubmit,
+    onAppendTitleSubmit,
+    onContextDateChange,
+    openDetails,
   } = useTaskCardDialogs({
-    id, isEditing, activePopover, onDelete, onEditStateChange, onOpenDetail,
-    handleReplaceTitleSubmit, handleAppendTitleSubmit, handleContextDateChange,
+    id,
+    isEditing,
+    activePopover,
+    onDelete,
+    onEditStateChange,
+    onOpenDetail,
+    handleReplaceTitleSubmit,
+    handleAppendTitleSubmit,
+    handleContextDateChange,
   });
 
-  const { handleDateChange, handlePriorityChange, handleStatusChange, handleClientChange } = useTaskCardFieldHandlers({
-    handleUpdate, setActivePopover,
-  });
+  const { handleDateChange, handlePriorityChange, handleStatusChange, handleClientChange } =
+    useTaskCardFieldHandlers({
+      handleUpdate,
+      setActivePopover,
+    });
 
-  const handleCardClick = useCallback((e: React.MouseEvent) => {
-    if (clickTimeoutRef.current) {
-      clearTimeout(clickTimeoutRef.current);
-      clickTimeoutRef.current = null;
-    }
-    
-    if ((e.shiftKey || e.ctrlKey || e.metaKey) && onSelect) {
-      e.preventDefault();
-      e.stopPropagation();
-      onSelect(id, e.shiftKey, e.ctrlKey || e.metaKey);
-      return;
-    }
-    
-    if (isEditing) return;
-    
-    const target = e.target as HTMLElement;
-    const isInteractive = target.closest('button') || target.closest('[contenteditable]') ||
-      target.closest('[role="combobox"]') || target.closest('[data-radix-collection-item]');
-    
-    if (!isInteractive && !isJustClosedEdit()) {
-      clickTimeoutRef.current = setTimeout(() => {
-        if (!isEditing) openDetails();
+  const handleCardClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (clickTimeoutRef.current) {
+        clearTimeout(clickTimeoutRef.current);
         clickTimeoutRef.current = null;
-      }, 250);
-    }
-  }, [onSelect, id, isEditing, isJustClosedEdit, openDetails, clickTimeoutRef]);
+      }
+
+      if ((e.shiftKey || e.ctrlKey || e.metaKey) && onSelect) {
+        e.preventDefault();
+        e.stopPropagation();
+        onSelect(id, e.shiftKey, e.ctrlKey || e.metaKey);
+        return;
+      }
+
+      if (isEditing) return;
+
+      const target = e.target as HTMLElement;
+      const isInteractive =
+        target.closest("button") ||
+        target.closest("[contenteditable]") ||
+        target.closest('[role="combobox"]') ||
+        target.closest("[data-radix-collection-item]");
+
+      if (!isInteractive && !isJustClosedEdit()) {
+        clickTimeoutRef.current = setTimeout(() => {
+          if (!isEditing) openDetails();
+          clickTimeoutRef.current = null;
+        }, 250);
+      }
+    },
+    [onSelect, id, isEditing, isJustClosedEdit, openDetails, clickTimeoutRef],
+  );
 
   const isOverdue = calculateIsOverdue(isEditing, editedTask.dueDate, dueDate);
 
@@ -168,14 +278,14 @@ export const TaskCard = memo(function TaskCard({
           <Card
             ref={cardRef}
             className={cn(
-              "group/task-card cursor-pointer transition-all hover-elevate active-elevate-2 border",
+              "group/task-card hover-elevate active-elevate-2 cursor-pointer border transition-all",
               !isEditing && "select-none",
-              isEditing && "ring-2 ring-primary shadow-lg",
-              isSelected && !isEditing && "ring-2 ring-blue-500 shadow-lg",
+              isEditing && "shadow-lg ring-2 ring-primary",
+              isSelected && !isEditing && "shadow-lg ring-2 ring-blue-500",
               isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
-              status === "To Do" && "bg-[#262626] border-[#363636]",
-              status === "In Progress" && "bg-[#243041] border-[#344151]",
-              status === "Done" && "bg-[rgb(35,43,38)] border-[rgb(45,55,48)]"
+              status === "To Do" && "border-[#363636] bg-[#262626]",
+              status === "In Progress" && "border-[#344151] bg-[#243041]",
+              status === "Done" && "border-[rgb(45,55,48)] bg-[rgb(35,43,38)]",
             )}
             onClick={handleCardClick}
             onDoubleClick={handleEditClick}
@@ -183,23 +293,44 @@ export const TaskCard = memo(function TaskCard({
           >
             {(!isCompact || isEditing) && (
               <TaskCardHeader
-                id={id} title={title} status={status} isEditing={isEditing} isCompact={isCompact}
-                titleRef={titleRef} onTitleEdit={handleTitleEdit} onEditClick={handleEditClick}
-                onCloseEditing={handleCloseEditing} onDeleteClick={() => setShowDeleteConfirm(true)}
+                id={id}
+                title={title}
+                status={status}
+                isEditing={isEditing}
+                isCompact={isCompact}
+                titleRef={titleRef}
+                onTitleEdit={handleTitleEdit}
+                onEditClick={handleEditClick}
+                onCloseEditing={handleCloseEditing}
+                onDeleteClick={() => setShowDeleteConfirm(true)}
               />
             )}
 
             <TaskCardContent
-              id={id} title={title} clientId={clientId} clientName={clientName} priority={priority} status={status}
-              isEditing={isEditing} isCompact={isCompact} editedTask={editedTask}
-              stableAssignees={stableAssignees} activePopover={activePopover}
-              setActivePopover={setActivePopover} datePopoverContentRef={datePopoverContentRef}
-              clickTimeoutRef={clickTimeoutRef} onDateChange={handleDateChange}
-              onClientChange={handleClientChange} onPriorityChange={handlePriorityChange}
-              onStatusChange={handleStatusChange} onAddAssignee={addAssignee}
-              onRemoveAssignee={removeAssignee} onEditClick={handleEditClick} onNavigate={navigate}
+              id={id}
+              title={title}
+              clientId={clientId}
+              clientName={clientName}
+              priority={priority}
+              status={status}
+              isEditing={isEditing}
+              isCompact={isCompact}
+              editedTask={editedTask}
+              stableAssignees={stableAssignees}
+              activePopover={activePopover}
+              setActivePopover={setActivePopover}
+              datePopoverContentRef={datePopoverContentRef}
+              clickTimeoutRef={clickTimeoutRef}
+              onDateChange={handleDateChange}
+              onClientChange={handleClientChange}
+              onPriorityChange={handlePriorityChange}
+              onStatusChange={handleStatusChange}
+              onAddAssignee={addAssignee}
+              onRemoveAssignee={removeAssignee}
+              onEditClick={handleEditClick}
+              onNavigate={navigate}
             />
-            
+
             {/* Indicador de erro de sincronização */}
             {syncStatus === "error" && (
               <div className="px-3 pb-2">
@@ -208,11 +339,11 @@ export const TaskCard = memo(function TaskCard({
                     e.stopPropagation();
                     onRetrySync?.(id);
                   }}
-                  className="flex items-center gap-1.5 text-red-400 text-xs hover:text-red-300 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-red-400 transition-colors hover:text-red-300"
                 >
-                  <AlertCircle className="w-3 h-3" />
+                  <AlertCircle className="h-3 w-3" />
                   <span>Erro ao salvar</span>
-                  <RefreshCw className="w-3 h-3 ml-1" />
+                  <RefreshCw className="ml-1 h-3 w-3" />
                   <span>Tentar novamente</span>
                 </button>
               </div>
@@ -220,31 +351,52 @@ export const TaskCard = memo(function TaskCard({
           </Card>
         </ContextMenuTrigger>
         <TaskCardContextMenu
-          selectedCount={selectedCount} currentDate={editedTask.dueDate}
-          currentClient={editedTask.clientName || ""} currentAssignees={editedTask.assignees || []}
+          selectedCount={selectedCount}
+          currentDate={editedTask.dueDate}
+          currentClient={editedTask.clientName || ""}
+          currentAssignees={editedTask.assignees || []}
           onShowReplaceTitleDialog={() => setShowReplaceTitleDialog(true)}
           onShowAppendTitleDialog={() => setShowAppendTitleDialog(true)}
-          onDateChange={handleContextDateChange} onClientChange={handleContextClientChange}
-          onPriorityChange={handleContextPriorityChange} onStatusChange={handleContextStatusChange}
-          onAddAssignee={handleContextAdd} onRemoveAssignee={handleContextRemove}
-          onSetSingleAssignee={handleContextSetSingle} onDelete={handleContextDelete}
+          onDateChange={handleContextDateChange}
+          onClientChange={handleContextClientChange}
+          onPriorityChange={handleContextPriorityChange}
+          onStatusChange={handleContextStatusChange}
+          onAddAssignee={handleContextAdd}
+          onRemoveAssignee={handleContextRemove}
+          onSetSingleAssignee={handleContextSetSingle}
+          onDelete={handleContextDelete}
         />
       </ContextMenu>
       <TaskCardQuickDetails
-        id={id} title={title} description={editedTask.description} notes={notes}
-        open={showDetails} onOpenChange={setShowDetails} onUpdate={onUpdate}
+        id={id}
+        title={title}
+        description={editedTask.description}
+        notes={notes}
+        open={showDetails}
+        onOpenChange={setShowDetails}
+        onUpdate={onUpdate}
         onDelete={() => setShowDeleteConfirm(true)}
       />
       <TaskCardDialogs
-        id={id} dueDate={dueDate} selectedCount={selectedCount}
-        showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm}
-        showReplaceTitleDialog={showReplaceTitleDialog} setShowReplaceTitleDialog={setShowReplaceTitleDialog}
-        showAppendTitleDialog={showAppendTitleDialog} setShowAppendTitleDialog={setShowAppendTitleDialog}
-        showBulkDatePicker={showBulkDatePicker} setShowBulkDatePicker={setShowBulkDatePicker}
-        newTitleText={newTitleText} setNewTitleText={setNewTitleText}
-        appendTitleText={appendTitleText} setAppendTitleText={setAppendTitleText}
-        onDelete={handleDelete} onReplaceTitleSubmit={onReplaceTitleSubmit}
-        onAppendTitleSubmit={onAppendTitleSubmit} onContextDateChange={onContextDateChange}
+        id={id}
+        dueDate={dueDate}
+        selectedCount={selectedCount}
+        showDeleteConfirm={showDeleteConfirm}
+        setShowDeleteConfirm={setShowDeleteConfirm}
+        showReplaceTitleDialog={showReplaceTitleDialog}
+        setShowReplaceTitleDialog={setShowReplaceTitleDialog}
+        showAppendTitleDialog={showAppendTitleDialog}
+        setShowAppendTitleDialog={setShowAppendTitleDialog}
+        showBulkDatePicker={showBulkDatePicker}
+        setShowBulkDatePicker={setShowBulkDatePicker}
+        newTitleText={newTitleText}
+        setNewTitleText={setNewTitleText}
+        appendTitleText={appendTitleText}
+        setAppendTitleText={setAppendTitleText}
+        onDelete={handleDelete}
+        onReplaceTitleSubmit={onReplaceTitleSubmit}
+        onAppendTitleSubmit={onAppendTitleSubmit}
+        onContextDateChange={onContextDateChange}
       />
     </>
   );

@@ -3,7 +3,13 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { useState, useEffect } from "react";
 import { useUsers } from "@features/users";
@@ -27,13 +33,18 @@ interface NewTaskDialogProps {
   preSelectedClient?: string;
 }
 
-export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient }: NewTaskDialogProps) {
+export function NewTaskDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  preSelectedClient,
+}: NewTaskDialogProps) {
   const { clients } = useClients();
   const { teamUsers, currentUser } = useUsers();
-  
+
   // Default assignee is the current user
   const defaultAssignee = currentUser?.name || "";
-  
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -46,13 +57,13 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
   // Update assignee when currentUser loads
   useEffect(() => {
     if (currentUser && !formData.assignee) {
-      setFormData(prev => ({ ...prev, assignee: currentUser.name }));
+      setFormData((prev) => ({ ...prev, assignee: currentUser.name }));
     }
   }, [currentUser, formData.assignee]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    const selectedClient = clients.find(c => c.id === formData.clientId);
+    const selectedClient = clients.find((c) => c.id === formData.clientId);
     const taskData = {
       ...formData,
       clientName: selectedClient?.name,
@@ -102,7 +113,7 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
                 data-testid="input-description"
               />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="client" className="text-xs font-medium uppercase tracking-wide">
                   Cliente *
@@ -156,8 +167,10 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
                     {teamUsers.map((user) => (
                       <SelectItem key={user.id} value={user.name}>
                         <div className="flex items-center gap-2">
-                          <Avatar className="w-5 h-5">
-                            <AvatarFallback className={cn("text-[10px] text-white", user.avatarColor)}>
+                          <Avatar className="h-5 w-5">
+                            <AvatarFallback
+                              className={cn("text-[10px] text-white", user.avatarColor)}
+                            >
                               {user.initials}
                             </AvatarFallback>
                           </Avatar>
@@ -186,7 +199,12 @@ export function NewTaskDialog({ open, onOpenChange, onSubmit, preSelectedClient 
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              data-testid="button-cancel"
+            >
               Cancelar
             </Button>
             <Button type="submit" data-testid="button-save">

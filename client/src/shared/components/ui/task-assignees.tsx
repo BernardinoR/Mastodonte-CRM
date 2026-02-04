@@ -5,9 +5,9 @@ import { useUsers } from "@features/users";
 
 export const getInitials = (name: string): string => {
   return name
-    .split(' ')
-    .map(word => word[0])
-    .join('')
+    .split(" ")
+    .map((word) => word[0])
+    .join("")
     .substring(0, 2)
     .toUpperCase();
 };
@@ -15,13 +15,13 @@ export const getInitials = (name: string): string => {
 export const abbreviateName = (fullName: string): string => {
   const parts = fullName.trim().split(/\s+/);
   if (parts.length <= 2) return fullName;
-  
+
   const firstName = parts[0];
   const lastName = parts[parts.length - 1];
   const middleNames = parts.slice(1, -1);
-  
-  const abbreviatedMiddle = middleNames.map(name => `${name[0].toUpperCase()}.`).join(' ');
-  
+
+  const abbreviatedMiddle = middleNames.map((name) => `${name[0].toUpperCase()}.`).join(" ");
+
   return `${firstName} ${abbreviatedMiddle} ${lastName}`;
 };
 
@@ -41,16 +41,16 @@ export const AssigneeBadge = memo(function AssigneeBadge({
   name,
   size = "md",
   showName = true,
-  className
+  className,
 }: AssigneeBadgeProps) {
   const { getUserByName } = useUsers();
   const user = getUserByName(name);
   const avatarColor = user?.avatarColor || "bg-gray-600";
-  
+
   const avatarSize = size === "sm" ? "w-5 h-5" : "w-6 h-6";
   const textSize = size === "sm" ? "text-[9px]" : "text-[10px]";
   const nameSize = size === "sm" ? "text-xs" : "text-[13px]";
-  
+
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Avatar className={cn(avatarSize, "shrink-0")}>
@@ -58,11 +58,7 @@ export const AssigneeBadge = memo(function AssigneeBadge({
           {user?.initials || getInitials(name)}
         </AvatarFallback>
       </Avatar>
-      {showName && (
-        <span className={cn(nameSize, "font-normal")}>
-          {abbreviateName(name)}
-        </span>
-      )}
+      {showName && <span className={cn(nameSize, "font-normal")}>{abbreviateName(name)}</span>}
     </div>
   );
 });
@@ -75,17 +71,17 @@ interface AssigneeListProps {
   className?: string;
 }
 
-export const AssigneeList = memo(function AssigneeList({ 
-  assignees, 
-  isEditing = false, 
+export const AssigneeList = memo(function AssigneeList({
+  assignees,
+  isEditing = false,
   taskId,
   maxDisplay,
-  className
+  className,
 }: AssigneeListProps) {
   if (assignees.length === 0) {
     return (
-      <span 
-        className="inline-flex px-2 py-0.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-gray-700/80 text-xs md:text-sm"
+      <span
+        className="inline-flex rounded-full px-2 py-0.5 text-xs text-muted-foreground hover:bg-gray-700/80 hover:text-foreground md:text-sm"
         data-testid={`button-add-assignee-${taskId}`}
       >
         + Adicionar Responsável
@@ -99,24 +95,22 @@ export const AssigneeList = memo(function AssigneeList({
   return (
     <div className={cn("space-y-0.5", className)}>
       {displayAssignees.map((assignee, index) => (
-        <div 
-          key={index} 
+        <div
+          key={index}
           className={cn(
-            "flex items-center rounded-full group/edit-assignee",
+            "group/edit-assignee flex items-center rounded-full",
             isEditing ? "px-2 py-0.5" : "py-0.5",
-            "hover:bg-gray-700/80"
+            "hover:bg-gray-700/80",
           )}
         >
-          <AssigneeBadge 
+          <AssigneeBadge
             name={assignee}
             data-testid={index === 0 ? `text-assignee-${taskId}` : undefined}
           />
         </div>
       ))}
       {remainingCount > 0 && (
-        <span className="text-xs text-muted-foreground pl-2">
-          +{remainingCount} mais
-        </span>
+        <span className="pl-2 text-xs text-muted-foreground">+{remainingCount} mais</span>
       )}
     </div>
   );
@@ -133,10 +127,10 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
   assignees,
   maxDisplay = 3,
   size = "sm",
-  className
+  className,
 }: AssigneeAvatarStackProps) {
   const { getUserByName } = useUsers();
-  
+
   if (assignees.length === 0) return null;
 
   const displayAssignees = assignees.slice(0, maxDisplay);
@@ -151,14 +145,14 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
       {displayAssignees.map((assignee, index) => {
         const user = getUserByName(assignee);
         const avatarColor = user?.avatarColor || "bg-gray-600";
-        
+
         return (
-          <Avatar 
+          <Avatar
             key={index}
             className={cn(
               avatarSize,
               "shrink-0 ring-2 ring-background",
-              index > 0 && overlapMargin
+              index > 0 && overlapMargin,
             )}
           >
             <AvatarFallback className={cn(textSize, "font-normal text-white", avatarColor)}>
@@ -168,9 +162,7 @@ export const AssigneeAvatarStack = memo(function AssigneeAvatarStack({
         );
       })}
       {remainingCount > 0 && (
-        <span className={cn("text-xs text-muted-foreground ml-1.5")}>
-          +{remainingCount}
-        </span>
+        <span className={cn("ml-1.5 text-xs text-muted-foreground")}>+{remainingCount}</span>
       )}
     </div>
   );

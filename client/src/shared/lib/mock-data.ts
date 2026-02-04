@@ -26,7 +26,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Normal",
     status: "To Do",
     assignees: ["Rafael Bernardino Silveira"],
-    dueDate: new Date('2025-11-19'),
+    dueDate: new Date("2025-11-19"),
     order: 0,
     history: [
       {
@@ -34,7 +34,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-11-10T09:00:00'),
+        timestamp: new Date("2025-11-10T09:00:00"),
       },
     ],
   },
@@ -46,7 +46,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Importante",
     status: "To Do",
     assignees: ["Rafael Bernardino Silveira", "Maria Santos"],
-    dueDate: new Date('2025-11-15'),
+    dueDate: new Date("2025-11-15"),
     order: 1,
     history: [
       {
@@ -54,7 +54,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-11-08T14:30:00'),
+        timestamp: new Date("2025-11-08T14:30:00"),
       },
     ],
   },
@@ -63,7 +63,7 @@ export const INITIAL_TASKS: Task[] = [
     title: "Aguardar retorno sobre apresentação do Ariel",
     status: "To Do",
     assignees: ["Rafael Bernardino Silveira"],
-    dueDate: new Date('2025-11-16'),
+    dueDate: new Date("2025-11-16"),
     order: 2,
     history: [
       {
@@ -71,7 +71,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-11-12T11:00:00'),
+        timestamp: new Date("2025-11-12T11:00:00"),
       },
     ],
   },
@@ -83,7 +83,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Baixa",
     status: "To Do",
     assignees: ["Rafael Bernardino Silveira", "João Silva", "Ana Costa"],
-    dueDate: new Date('2025-11-20'),
+    dueDate: new Date("2025-11-20"),
     order: 3,
     history: [
       {
@@ -91,7 +91,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-11-05T16:00:00'),
+        timestamp: new Date("2025-11-05T16:00:00"),
       },
     ],
   },
@@ -103,8 +103,9 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira"],
-    dueDate: new Date('2025-01-20'),
-    description: "Cliente solicitou realocação urgente dos ativos de renda fixa. Verificar disponibilidade de lastro em debêntures incentivadas e enviar opções até o final do dia.\n\nObs: Cliente prefere contato após as 14h.",
+    dueDate: new Date("2025-01-20"),
+    description:
+      "Cliente solicitou realocação urgente dos ativos de renda fixa. Verificar disponibilidade de lastro em debêntures incentivadas e enviar opções até o final do dia.\n\nObs: Cliente prefere contato após as 14h.",
     order: 0,
     history: [
       {
@@ -112,28 +113,29 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-15T10:30:00'),
+        timestamp: new Date("2025-01-15T10:30:00"),
       },
       {
         id: "h2",
         type: "comment",
-        content: "Entrei em contato com a cliente, ela confirmou interesse em debêntures incentivadas com prazo de 5 anos.",
+        content:
+          "Entrei em contato com a cliente, ela confirmou interesse em debêntures incentivadas com prazo de 5 anos.",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-16T14:45:00'),
+        timestamp: new Date("2025-01-16T14:45:00"),
       },
       {
         id: "h3",
         type: "status_change",
         content: "Status alterado de 'A Fazer' para 'Em Progresso'",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-17T09:00:00'),
+        timestamp: new Date("2025-01-17T09:00:00"),
       },
       {
         id: "h4",
         type: "comment",
         content: "Aguardando retorno da mesa de operações sobre disponibilidade de lastro.",
         author: "Pedro Oliveira",
-        timestamp: new Date('2025-01-18T11:20:00'),
+        timestamp: new Date("2025-01-18T11:20:00"),
       },
     ],
   },
@@ -145,7 +147,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira", "Pedro Oliveira"],
-    dueDate: new Date('2025-01-20'),
+    dueDate: new Date("2025-01-20"),
     order: 1,
     history: [
       {
@@ -153,7 +155,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-14T08:30:00'),
+        timestamp: new Date("2025-01-14T08:30:00"),
       },
     ],
   },
@@ -165,7 +167,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira"],
-    dueDate: new Date('2025-01-20'),
+    dueDate: new Date("2025-01-20"),
     order: 2,
     history: [
       {
@@ -173,7 +175,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-13T10:00:00'),
+        timestamp: new Date("2025-01-13T10:00:00"),
       },
     ],
   },
@@ -185,7 +187,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira"],
-    dueDate: new Date('2025-01-20'),
+    dueDate: new Date("2025-01-20"),
     order: 3,
     history: [
       {
@@ -193,7 +195,7 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-12T15:00:00'),
+        timestamp: new Date("2025-01-12T15:00:00"),
       },
     ],
   },
@@ -205,7 +207,7 @@ export const INITIAL_TASKS: Task[] = [
     priority: "Urgente",
     status: "In Progress",
     assignees: ["Rafael Bernardino Silveira", "Carla Mendes"],
-    dueDate: new Date('2025-01-21'),
+    dueDate: new Date("2025-01-21"),
     order: 4,
     history: [
       {
@@ -213,18 +215,22 @@ export const INITIAL_TASKS: Task[] = [
         type: "created",
         content: "Tarefa criada",
         author: "Rafael Bernardino Silveira",
-        timestamp: new Date('2025-01-11T09:30:00'),
+        timestamp: new Date("2025-01-11T09:30:00"),
       },
     ],
   },
 ];
 
-export const createNewTask = (partial: Partial<Task>, existingTasks: Task[], author: string = "Sistema"): Task => {
+export const createNewTask = (
+  partial: Partial<Task>,
+  existingTasks: Task[],
+  author: string = "Sistema",
+): Task => {
   const maxId = existingTasks.reduce((max, t) => Math.max(max, parseInt(t.id)), 0);
-  const statusTasks = existingTasks.filter(t => t.status === (partial.status || "To Do"));
+  const statusTasks = existingTasks.filter((t) => t.status === (partial.status || "To Do"));
   const maxOrder = statusTasks.reduce((max, t) => Math.max(max, t.order), -1);
   const newTaskId = String(maxId + 1);
-  
+
   const createdEvent: TaskHistoryEvent = {
     id: `h-${newTaskId}-created`,
     type: "created",
@@ -232,7 +238,7 @@ export const createNewTask = (partial: Partial<Task>, existingTasks: Task[], aut
     author,
     timestamp: new Date(),
   };
-  
+
   return {
     id: newTaskId,
     title: partial.title || "Nova tarefa",

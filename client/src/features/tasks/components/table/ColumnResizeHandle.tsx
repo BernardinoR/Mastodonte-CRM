@@ -28,47 +28,50 @@ export const ColumnResizeHandle = memo(function ColumnResizeHandle({
     }
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    cleanup();
-    
-    const startX = e.clientX;
-    let lastX = startX;
-    
-    const handleMouseMove = (moveEvent: MouseEvent) => {
-      lastX = moveEvent.clientX;
-      onResizeMove(moveEvent.clientX);
-    };
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    const handleMouseUp = (upEvent: MouseEvent) => {
       cleanup();
-      setIsDragging(false);
-      onResizeEnd(upEvent.clientX);
-    };
 
-    handlersRef.current = { move: handleMouseMove, up: handleMouseUp };
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    
-    setIsDragging(true);
-    onResizeStart(columnId, startX);
-  }, [columnId, onResizeStart, onResizeMove, onResizeEnd, cleanup]);
+      const startX = e.clientX;
+      let lastX = startX;
+
+      const handleMouseMove = (moveEvent: MouseEvent) => {
+        lastX = moveEvent.clientX;
+        onResizeMove(moveEvent.clientX);
+      };
+
+      const handleMouseUp = (upEvent: MouseEvent) => {
+        cleanup();
+        setIsDragging(false);
+        onResizeEnd(upEvent.clientX);
+      };
+
+      handlersRef.current = { move: handleMouseMove, up: handleMouseUp };
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+
+      setIsDragging(true);
+      onResizeStart(columnId, startX);
+    },
+    [columnId, onResizeStart, onResizeMove, onResizeEnd, cleanup],
+  );
 
   return (
     <div
       className={cn(
-        "w-4 h-full cursor-col-resize z-20 flex items-center justify-center group/resize",
+        "group/resize z-20 flex h-full w-4 cursor-col-resize items-center justify-center",
       )}
       onMouseDown={handleMouseDown}
       data-testid={`resize-handle-${columnId}`}
     >
-      <div 
+      <div
         className={cn(
-          "w-0.5 h-full transition-colors",
+          "h-full w-0.5 transition-colors",
           "group-hover/resize:bg-primary/50",
-          isDragging && "bg-primary"
+          isDragging && "bg-primary",
         )}
       />
     </div>

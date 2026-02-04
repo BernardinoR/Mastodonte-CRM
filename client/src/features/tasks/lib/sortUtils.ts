@@ -21,18 +21,17 @@ export function createSorter<T>(fields: SortField<T>[]): (a: T, b: T) => number 
 
   return (a: T, b: T) => {
     for (const field of sortedFields) {
-      const getValue = typeof field.key === "function"
-        ? field.key
-        : (item: T) => item[field.key as keyof T];
-      
+      const getValue =
+        typeof field.key === "function" ? field.key : (item: T) => item[field.key as keyof T];
+
       const valueA = getValue(a);
       const valueB = getValue(b);
-      
+
       // Tratar valores nulos/undefined
       if (valueA == null && valueB == null) continue;
       if (valueA == null) return field.order === "asc" ? -1 : 1;
       if (valueB == null) return field.order === "asc" ? 1 : -1;
-      
+
       // Comparação numérica
       if (typeof valueA === "number" && typeof valueB === "number") {
         const diff = valueA - valueB;
@@ -41,7 +40,7 @@ export function createSorter<T>(fields: SortField<T>[]): (a: T, b: T) => number 
         }
         continue;
       }
-      
+
       // Comparação de datas
       if (valueA instanceof Date && valueB instanceof Date) {
         const diff = valueA.getTime() - valueB.getTime();
@@ -50,7 +49,7 @@ export function createSorter<T>(fields: SortField<T>[]): (a: T, b: T) => number 
         }
         continue;
       }
-      
+
       // Comparação de strings
       const strA = String(valueA);
       const strB = String(valueB);
@@ -59,7 +58,7 @@ export function createSorter<T>(fields: SortField<T>[]): (a: T, b: T) => number 
         return field.order === "desc" ? -diff : diff;
       }
     }
-    
+
     return 0;
   };
 }
@@ -71,4 +70,3 @@ export function sortBy<T>(items: T[], ...fields: SortField<T>[]): T[] {
   const sorter = createSorter(fields);
   return [...items].sort(sorter);
 }
-

@@ -8,9 +8,9 @@ export function useTaskHistory(initialTasks: Task[]) {
   const historyRef = useRef<Task[][]>([]);
 
   const setTasksWithHistory = useCallback((updater: (prev: Task[]) => Task[]) => {
-    setTasks(prevTasks => {
+    setTasks((prevTasks) => {
       // Deep copy each task object to prevent mutation issues with undo
-      const deepCopy = prevTasks.map(task => ({
+      const deepCopy = prevTasks.map((task) => ({
         ...task,
         assignees: [...task.assignees],
       }));
@@ -35,14 +35,14 @@ export function useTaskHistory(initialTasks: Task[]) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && !e.shiftKey) {
         e.preventDefault();
         undo();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo]);
 
   return {

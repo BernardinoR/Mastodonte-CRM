@@ -10,12 +10,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avat
 import { Switch } from "@/shared/components/ui/switch";
 import { Label } from "@/shared/components/ui/label";
 import { Checkbox } from "@/shared/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Progress } from "@/shared/components/ui/progress";
 import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/shared/components/ui/table";
 import { useToast } from "@/shared/hooks/use-toast";
 import LayoutExamples from "../components/LayoutExamples";
 import FormExamples from "../components/FormExamples";
@@ -61,7 +74,11 @@ const COLOR_GROUPS = [
       { name: "--accent", twClass: "bg-accent", label: "Accent" },
       { name: "--accent-foreground", twClass: "bg-accent-foreground", label: "Accent FG" },
       { name: "--destructive", twClass: "bg-destructive", label: "Destructive" },
-      { name: "--destructive-foreground", twClass: "bg-destructive-foreground", label: "Destructive FG" },
+      {
+        name: "--destructive-foreground",
+        twClass: "bg-destructive-foreground",
+        label: "Destructive FG",
+      },
     ],
   },
   {
@@ -102,37 +119,79 @@ const COMPONENT_CATEGORIES = [
   {
     title: "Layout & Navegação",
     items: [
-      "accordion", "breadcrumb", "carousel", "collapsible", "navigation-menu",
-      "pagination", "resizable", "scroll-area", "separator", "sidebar", "tabs",
+      "accordion",
+      "breadcrumb",
+      "carousel",
+      "collapsible",
+      "navigation-menu",
+      "pagination",
+      "resizable",
+      "scroll-area",
+      "separator",
+      "sidebar",
+      "tabs",
     ],
   },
   {
     title: "Formulários & Inputs",
     items: [
-      "button", "calendar", "checkbox", "date-input", "form", "input",
-      "input-otp", "label", "radio-group", "searchable-multi-select", "select",
-      "slider", "switch", "textarea", "toggle", "toggle-group",
+      "button",
+      "calendar",
+      "checkbox",
+      "date-input",
+      "form",
+      "input",
+      "input-otp",
+      "label",
+      "radio-group",
+      "searchable-multi-select",
+      "select",
+      "slider",
+      "switch",
+      "textarea",
+      "toggle",
+      "toggle-group",
     ],
   },
   {
     title: "Feedback & Overlay",
     items: [
-      "alert", "alert-dialog", "dialog", "drawer", "hover-card", "popover",
-      "sheet", "toast", "toaster", "tooltip",
+      "alert",
+      "alert-dialog",
+      "dialog",
+      "drawer",
+      "hover-card",
+      "popover",
+      "sheet",
+      "toast",
+      "toaster",
+      "tooltip",
     ],
   },
   {
     title: "Data Display",
     items: [
-      "avatar", "badge", "card", "chart", "context-menu", "dropdown-menu",
-      "menubar", "progress", "skeleton", "table",
+      "avatar",
+      "badge",
+      "card",
+      "chart",
+      "context-menu",
+      "dropdown-menu",
+      "menubar",
+      "progress",
+      "skeleton",
+      "table",
     ],
   },
   {
     title: "Utilitários",
     items: [
-      "aspect-ratio", "command", "editable-cell", "expandable-filter-bar",
-      "task-assignees", "task-badges",
+      "aspect-ratio",
+      "command",
+      "editable-cell",
+      "expandable-filter-bar",
+      "task-assignees",
+      "task-badges",
     ],
   },
 ];
@@ -169,13 +228,13 @@ function ColorSwatch({ name, twClass, label }: { name: string; twClass: string; 
     <button
       type="button"
       onClick={() => copy(name)}
-      className="flex flex-col items-center gap-1.5 group cursor-pointer"
+      className="group flex cursor-pointer flex-col items-center gap-1.5"
     >
       <div
-        className={`w-16 h-16 rounded-md border border-border ${twClass} group-hover:ring-2 group-hover:ring-ring transition-shadow`}
+        className={`h-16 w-16 rounded-md border border-border ${twClass} transition-shadow group-hover:ring-2 group-hover:ring-ring`}
       />
-      <span className="text-[11px] font-medium text-foreground leading-tight">{label}</span>
-      <span className="text-[10px] text-muted-foreground font-mono leading-tight">{name}</span>
+      <span className="text-[11px] font-medium leading-tight text-foreground">{label}</span>
+      <span className="font-mono text-[10px] leading-tight text-muted-foreground">{name}</span>
     </button>
   );
 }
@@ -188,18 +247,20 @@ function ColorsSection() {
   return (
     <section id="colors" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Palette className="h-5 w-5 text-primary" />
           Paleta de Cores
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Todas as cores utilizam variáveis CSS HSL definidas em <code className="text-xs bg-muted px-1.5 py-0.5 rounded">index.css</code>. Clique para copiar.
+        <p className="mt-1 text-sm text-muted-foreground">
+          Todas as cores utilizam variáveis CSS HSL definidas em{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">index.css</code>. Clique para
+          copiar.
         </p>
       </div>
 
       {COLOR_GROUPS.map((group) => (
         <div key={group.title}>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3">{group.title}</h3>
+          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">{group.title}</h3>
           <div className="flex flex-wrap gap-4">
             {group.colors.map((c) => (
               <ColorSwatch key={c.name} {...c} />
@@ -212,9 +273,16 @@ function ColorsSection() {
         <CardHeader className="pb-2">
           <CardTitle className="text-sm">Como usar</CardTitle>
         </CardHeader>
-        <CardContent className="text-sm space-y-2 font-mono">
-          <p>Tailwind: <code className="bg-muted px-1.5 py-0.5 rounded">className="bg-primary text-primary-foreground"</code></p>
-          <p>CSS: <code className="bg-muted px-1.5 py-0.5 rounded">color: hsl(var(--primary));</code></p>
+        <CardContent className="space-y-2 font-mono text-sm">
+          <p>
+            Tailwind:{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5">
+              className="bg-primary text-primary-foreground"
+            </code>
+          </p>
+          <p>
+            CSS: <code className="rounded bg-muted px-1.5 py-0.5">color: hsl(var(--primary));</code>
+          </p>
         </CardContent>
       </Card>
     </section>
@@ -243,36 +311,49 @@ function TypographySection() {
   return (
     <section id="typography" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Type className="h-5 w-5 text-primary" />
           Tipografia
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Fontes definidas via <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--font-sans</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--font-serif</code>, <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--font-mono</code>.
+        <p className="mt-1 text-sm text-muted-foreground">
+          Fontes definidas via{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--font-sans</code>,{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--font-serif</code>,{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--font-mono</code>.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Sans (Inter)</CardTitle></CardHeader>
-          <CardContent className="font-sans text-lg">O rato roeu a roupa do rei de Roma.</CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Sans (Inter)</CardTitle>
+          </CardHeader>
+          <CardContent className="font-sans text-lg">
+            O rato roeu a roupa do rei de Roma.
+          </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Serif (Georgia)</CardTitle></CardHeader>
-          <CardContent className="font-serif text-lg">O rato roeu a roupa do rei de Roma.</CardContent>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Serif (Georgia)</CardTitle>
+          </CardHeader>
+          <CardContent className="font-serif text-lg">
+            O rato roeu a roupa do rei de Roma.
+          </CardContent>
         </Card>
         <Card>
-          <CardHeader className="pb-2"><CardTitle className="text-sm">Mono (Menlo)</CardTitle></CardHeader>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm">Mono (Menlo)</CardTitle>
+          </CardHeader>
           <CardContent className="font-mono text-lg">const x = 42;</CardContent>
         </Card>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Tamanhos</h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Tamanhos</h3>
         <div className="space-y-3">
           {sizes.map(({ cls, label }) => (
             <div key={cls} className="flex items-baseline gap-4">
-              <code className="text-xs text-muted-foreground font-mono w-40 shrink-0">{label}</code>
+              <code className="w-40 shrink-0 font-mono text-xs text-muted-foreground">{label}</code>
               <span className={cls}>O rato roeu a roupa do rei de Roma</span>
             </div>
           ))}
@@ -280,11 +361,11 @@ function TypographySection() {
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Pesos</h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Pesos</h3>
         <div className="space-y-3">
           {weights.map(({ cls, label }) => (
             <div key={cls} className="flex items-baseline gap-4">
-              <code className="text-xs text-muted-foreground font-mono w-40 shrink-0">{label}</code>
+              <code className="w-40 shrink-0 font-mono text-xs text-muted-foreground">{label}</code>
               <span className={`text-lg ${cls}`}>O rato roeu a roupa do rei de Roma</span>
             </div>
           ))}
@@ -298,45 +379,58 @@ function ElevationSection() {
   return (
     <section id="elevation" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Layers className="h-5 w-5 text-primary" />
           Elevação & Sombras
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Sistema de elevação baseado em overlay de opacidade. Sombras definidas via <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--shadow-*</code>.
+        <p className="mt-1 text-sm text-muted-foreground">
+          Sistema de elevação baseado em overlay de opacidade. Sombras definidas via{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--shadow-*</code>.
         </p>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Elevation Utilities</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Elevation Utilities</h3>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <Card className="hover-elevate cursor-pointer">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">hover-elevate</CardTitle></CardHeader>
-            <CardContent className="text-sm text-muted-foreground">Passe o mouse para ver o efeito de elevação sutil.</CardContent>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">hover-elevate</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Passe o mouse para ver o efeito de elevação sutil.
+            </CardContent>
           </Card>
           <Card className="hover-elevate-2 cursor-pointer">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">hover-elevate-2</CardTitle></CardHeader>
-            <CardContent className="text-sm text-muted-foreground">Passe o mouse — efeito mais intenso.</CardContent>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">hover-elevate-2</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Passe o mouse — efeito mais intenso.
+            </CardContent>
           </Card>
           <Card className="active-elevate cursor-pointer">
-            <CardHeader className="pb-2"><CardTitle className="text-sm">active-elevate</CardTitle></CardHeader>
-            <CardContent className="text-sm text-muted-foreground">Clique e segure para ver o efeito.</CardContent>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm">active-elevate</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm text-muted-foreground">
+              Clique e segure para ver o efeito.
+            </CardContent>
           </Card>
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Variáveis de Sombra</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Variáveis de Sombra</h3>
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-7">
           {["2xs", "xs", "sm", "DEFAULT", "md", "lg", "xl", "2xl"].map((size) => {
             const varName = size === "DEFAULT" ? "--shadow" : `--shadow-${size}`;
             return (
               <div key={size} className="flex flex-col items-center gap-2">
                 <div
-                  className="w-20 h-20 rounded-md bg-card border border-border"
+                  className="h-20 w-20 rounded-md border border-border bg-card"
                   style={{ boxShadow: `var(${varName})` }}
                 />
-                <code className="text-[10px] text-muted-foreground font-mono">{varName}</code>
+                <code className="font-mono text-[10px] text-muted-foreground">{varName}</code>
               </div>
             );
           })}
@@ -344,12 +438,28 @@ function ElevationSection() {
       </div>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Uso do sistema de elevação</CardTitle></CardHeader>
-        <CardContent className="text-sm font-mono space-y-1">
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">className="hover-elevate"</code> — hover sutil</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">className="hover-elevate-2"</code> — hover intenso</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">className="active-elevate"</code> — ao clicar</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">className="toggle-elevate toggle-elevated"</code> — toggle ativo</p>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Uso do sistema de elevação</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 font-mono text-sm">
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">className="hover-elevate"</code> —
+            hover sutil
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">className="hover-elevate-2"</code> —
+            hover intenso
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">className="active-elevate"</code> — ao
+            clicar
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">
+              className="toggle-elevate toggle-elevated"
+            </code>{" "}
+            — toggle ativo
+          </p>
         </CardContent>
       </Card>
     </section>
@@ -377,50 +487,62 @@ function SpacingSection() {
   return (
     <section id="spacing" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Box className="h-5 w-5 text-primary" />
           Espaçamento & Border Radius
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Base spacing: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--spacing: 0.25rem</code> · Base radius: <code className="text-xs bg-muted px-1.5 py-0.5 rounded">--radius: 0.5rem</code>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Base spacing:{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--spacing: 0.25rem</code> · Base
+          radius: <code className="rounded bg-muted px-1.5 py-0.5 text-xs">--radius: 0.5rem</code>
         </p>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Border Radius</h3>
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Border Radius</h3>
         <div className="flex flex-wrap gap-4">
           {radii.map(({ cls, label }) => (
             <div key={cls} className="flex flex-col items-center gap-2">
-              <div className={`w-20 h-20 bg-primary/20 border-2 border-primary ${cls}`} />
-              <code className="text-[10px] text-muted-foreground font-mono">{label}</code>
+              <div className={`h-20 w-20 border-2 border-primary bg-primary/20 ${cls}`} />
+              <code className="font-mono text-[10px] text-muted-foreground">{label}</code>
             </div>
           ))}
         </div>
       </div>
 
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-3">Espaçamento (padding)</h3>
-        <div className="flex flex-wrap gap-4 items-end">
+        <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Espaçamento (padding)</h3>
+        <div className="flex flex-wrap items-end gap-4">
           {spacings.map(({ cls, label }) => (
             <div key={cls} className="flex flex-col items-center gap-2">
-              <div className="bg-muted rounded-md inline-flex">
+              <div className="inline-flex rounded-md bg-muted">
                 <div className={cls}>
-                  <div className="w-8 h-8 bg-primary/30 rounded-sm" />
+                  <div className="h-8 w-8 rounded-sm bg-primary/30" />
                 </div>
               </div>
-              <code className="text-[10px] text-muted-foreground font-mono">{label}</code>
+              <code className="font-mono text-[10px] text-muted-foreground">{label}</code>
             </div>
           ))}
         </div>
       </div>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Padrões de espaçamento usados no projeto</CardTitle></CardHeader>
-        <CardContent className="text-sm font-mono space-y-1">
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">p-6</code> — padding de página</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">space-y-6</code> — gap entre seções</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">gap-4</code> — gap entre cards em grid</p>
-          <p><code className="bg-muted px-1.5 py-0.5 rounded">p-4</code> — padding interno de cards</p>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Padrões de espaçamento usados no projeto</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-1 font-mono text-sm">
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">p-6</code> — padding de página
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">space-y-6</code> — gap entre seções
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">gap-4</code> — gap entre cards em grid
+          </p>
+          <p>
+            <code className="rounded bg-muted px-1.5 py-0.5">p-4</code> — padding interno de cards
+          </p>
         </CardContent>
       </Card>
     </section>
@@ -432,25 +554,26 @@ function ComponentsSection() {
   return (
     <section id="components" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <Component className="h-5 w-5 text-primary" />
           Componentes Disponíveis
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          52 componentes shadcn/ui instalados em <code className="text-xs bg-muted px-1.5 py-0.5 rounded">@/shared/components/ui/</code>
+        <p className="mt-1 text-sm text-muted-foreground">
+          52 componentes shadcn/ui instalados em{" "}
+          <code className="rounded bg-muted px-1.5 py-0.5 text-xs">@/shared/components/ui/</code>
         </p>
       </div>
 
       {COMPONENT_CATEGORIES.map((cat) => (
         <div key={cat.title}>
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3">{cat.title}</h3>
+          <h3 className="mb-3 text-sm font-semibold text-muted-foreground">{cat.title}</h3>
           <div className="flex flex-wrap gap-2">
             {cat.items.map((name) => (
               <button
                 key={name}
                 type="button"
                 onClick={() => copy(`@/shared/components/ui/${name}`)}
-                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-mono bg-muted rounded-md hover:bg-accent transition-colors cursor-pointer"
+                className="inline-flex cursor-pointer items-center gap-1 rounded-md bg-muted px-2.5 py-1 font-mono text-xs transition-colors hover:bg-accent"
               >
                 {name}
                 <Copy className="h-3 w-3 text-muted-foreground" />
@@ -464,7 +587,7 @@ function ComponentsSection() {
 
       {/* Exemplos visuais organizados por categoria */}
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground mb-4">Exemplos Visuais</h3>
+        <h3 className="mb-4 text-sm font-semibold text-muted-foreground">Exemplos Visuais</h3>
 
         <Tabs defaultValue="forms" className="w-full">
           <TabsList className="mb-4">
@@ -478,7 +601,9 @@ function ComponentsSection() {
             <div className="space-y-6">
               {/* Button */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Button</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Button</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     <Button>Default</Button>
@@ -491,12 +616,14 @@ function ComponentsSection() {
                     <Button size="sm">Small</Button>
                     <Button size="default">Default</Button>
                     <Button size="lg">Large</Button>
-                    <Button size="icon"><Check className="h-4 w-4" /></Button>
+                    <Button size="icon">
+                      <Check className="h-4 w-4" />
+                    </Button>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button disabled>Disabled</Button>
                   </div>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Button } from "@/shared/components/ui/button"`}
                   </code>
                 </CardContent>
@@ -504,12 +631,14 @@ function ComponentsSection() {
 
               {/* Input */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Input & Textarea</CardTitle></CardHeader>
-                <CardContent className="space-y-3 max-w-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Input & Textarea</CardTitle>
+                </CardHeader>
+                <CardContent className="max-w-md space-y-3">
                   <Input placeholder="Placeholder text..." />
                   <Input disabled placeholder="Disabled..." />
                   <Textarea placeholder="Textarea placeholder..." />
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Input } from "@/shared/components/ui/input"`}
                   </code>
                 </CardContent>
@@ -517,8 +646,10 @@ function ComponentsSection() {
 
               {/* Select */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Select</CardTitle></CardHeader>
-                <CardContent className="space-y-3 max-w-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Select</CardTitle>
+                </CardHeader>
+                <CardContent className="max-w-md space-y-3">
                   <Select>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione uma opção" />
@@ -529,7 +660,7 @@ function ComponentsSection() {
                       <SelectItem value="opt3">Opção 3</SelectItem>
                     </SelectContent>
                   </Select>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select"`}
                   </code>
                 </CardContent>
@@ -537,7 +668,9 @@ function ComponentsSection() {
 
               {/* Checkbox, Switch, Label */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Checkbox & Switch</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Checkbox & Switch</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-2">
                     <Checkbox id="check1" />
@@ -547,7 +680,7 @@ function ComponentsSection() {
                     <Switch id="switch1" />
                     <Label htmlFor="switch1">Switch label</Label>
                   </div>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Checkbox } from "@/shared/components/ui/checkbox"`}
                   </code>
                 </CardContent>
@@ -562,7 +695,9 @@ function ComponentsSection() {
             <div className="space-y-6">
               {/* Badge */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Badge</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Badge</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex flex-wrap gap-2">
                     <Badge>Default</Badge>
@@ -570,7 +705,7 @@ function ComponentsSection() {
                     <Badge variant="destructive">Destructive</Badge>
                     <Badge variant="outline">Outline</Badge>
                   </div>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Badge } from "@/shared/components/ui/badge"`}
                   </code>
                 </CardContent>
@@ -578,17 +713,21 @@ function ComponentsSection() {
 
               {/* Card */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Card</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Card</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <Card className="max-w-sm">
                     <CardHeader>
                       <CardTitle>Título do Card</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <p className="text-sm text-muted-foreground">Conteúdo do card com texto descritivo.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Conteúdo do card com texto descritivo.
+                      </p>
                     </CardContent>
                   </Card>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                  <code className="mt-3 block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"`}
                   </code>
                 </CardContent>
@@ -596,7 +735,9 @@ function ComponentsSection() {
 
               {/* Avatar */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Avatar</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Avatar</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="flex gap-3">
                     <Avatar>
@@ -610,7 +751,7 @@ function ComponentsSection() {
                       <AvatarFallback>CD</AvatarFallback>
                     </Avatar>
                   </div>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar"`}
                   </code>
                 </CardContent>
@@ -618,12 +759,14 @@ function ComponentsSection() {
 
               {/* Progress */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Progress</CardTitle></CardHeader>
-                <CardContent className="space-y-3 max-w-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Progress</CardTitle>
+                </CardHeader>
+                <CardContent className="max-w-md space-y-3">
                   <Progress value={25} />
                   <Progress value={50} />
                   <Progress value={75} />
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Progress } from "@/shared/components/ui/progress"`}
                   </code>
                 </CardContent>
@@ -631,14 +774,16 @@ function ComponentsSection() {
 
               {/* Skeleton */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Skeleton</CardTitle></CardHeader>
-                <CardContent className="space-y-3 max-w-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Skeleton</CardTitle>
+                </CardHeader>
+                <CardContent className="max-w-md space-y-3">
                   <div className="space-y-2">
                     <Skeleton className="h-4 w-3/4" />
                     <Skeleton className="h-4 w-1/2" />
                     <Skeleton className="h-10 w-full" />
                   </div>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Skeleton } from "@/shared/components/ui/skeleton"`}
                   </code>
                 </CardContent>
@@ -646,7 +791,9 @@ function ComponentsSection() {
 
               {/* Table */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Table</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Table</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <Table>
                     <TableHeader>
@@ -659,17 +806,29 @@ function ComponentsSection() {
                     <TableBody>
                       <TableRow>
                         <TableCell>Empresa Alpha</TableCell>
-                        <TableCell><Badge>Ativo</Badge></TableCell>
-                        <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
+                        <TableCell>
+                          <Badge>Ativo</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">
+                            Ver <ChevronRight className="ml-1 h-3 w-3" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell>Empresa Beta</TableCell>
-                        <TableCell><Badge variant="secondary">Pendente</Badge></TableCell>
-                        <TableCell><Button variant="ghost" size="sm">Ver <ChevronRight className="h-3 w-3 ml-1" /></Button></TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">Pendente</Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">
+                            Ver <ChevronRight className="ml-1 h-3 w-3" />
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                  <code className="mt-3 block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/shared/components/ui/table"`}
                   </code>
                 </CardContent>
@@ -684,7 +843,9 @@ function ComponentsSection() {
             <div className="space-y-6">
               {/* Alert */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Alert</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Alert</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <Alert>
                     <Info className="h-4 w-4" />
@@ -696,7 +857,7 @@ function ComponentsSection() {
                     <AlertTitle>Erro</AlertTitle>
                     <AlertDescription>Algo deu errado. Tente novamente.</AlertDescription>
                   </Alert>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Alert, AlertDescription, AlertTitle } from "@/shared/components/ui/alert"`}
                   </code>
                 </CardContent>
@@ -704,7 +865,9 @@ function ComponentsSection() {
 
               {/* Tooltip */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Tooltip</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Tooltip</CardTitle>
+                </CardHeader>
                 <CardContent className="space-y-3">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -714,7 +877,7 @@ function ComponentsSection() {
                       <p>Conteúdo do tooltip</p>
                     </TooltipContent>
                   </Tooltip>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block">
+                  <code className="block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/components/ui/tooltip"`}
                   </code>
                 </CardContent>
@@ -729,7 +892,9 @@ function ComponentsSection() {
             <div className="space-y-6">
               {/* Tabs */}
               <Card>
-                <CardHeader className="pb-2"><CardTitle className="text-sm">Tabs</CardTitle></CardHeader>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm">Tabs</CardTitle>
+                </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="tab1">
                     <TabsList>
@@ -737,11 +902,17 @@ function ComponentsSection() {
                       <TabsTrigger value="tab2">Aba 2</TabsTrigger>
                       <TabsTrigger value="tab3">Aba 3</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="tab1" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 1</TabsContent>
-                    <TabsContent value="tab2" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 2</TabsContent>
-                    <TabsContent value="tab3" className="p-4 text-sm text-muted-foreground">Conteúdo da aba 3</TabsContent>
+                    <TabsContent value="tab1" className="p-4 text-sm text-muted-foreground">
+                      Conteúdo da aba 1
+                    </TabsContent>
+                    <TabsContent value="tab2" className="p-4 text-sm text-muted-foreground">
+                      Conteúdo da aba 2
+                    </TabsContent>
+                    <TabsContent value="tab3" className="p-4 text-sm text-muted-foreground">
+                      Conteúdo da aba 3
+                    </TabsContent>
                   </Tabs>
-                  <code className="text-xs bg-muted px-2 py-1 rounded block mt-3">
+                  <code className="mt-3 block rounded bg-muted px-2 py-1 text-xs">
                     {`import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs"`}
                   </code>
                 </CardContent>
@@ -764,21 +935,26 @@ function PatternsSection() {
   return (
     <section id="patterns" className="space-y-8">
       <div>
-        <h2 className="text-xl font-semibold flex items-center gap-2">
+        <h2 className="flex items-center gap-2 text-xl font-semibold">
           <BookOpen className="h-5 w-5 text-primary" />
           Padrões de Uso
         </h2>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="mt-1 text-sm text-muted-foreground">
           Padrões comuns usados no projeto para feedback, loading e confirmação.
         </p>
       </div>
 
       {/* Toast */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">useToast()</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">useToast()</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Import: <code className="bg-muted px-1.5 py-0.5 rounded text-xs">{"import { useToast } from \"@/shared/hooks/use-toast\""}</code>
+            Import:{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs">
+              {'import { useToast } from "@/shared/hooks/use-toast"'}
+            </code>
           </p>
           <div className="flex gap-2">
             <Button
@@ -804,7 +980,7 @@ function PatternsSection() {
               Toast Destructive
             </Button>
           </div>
-          <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">{`const { toast } = useToast();
+          <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{`const { toast } = useToast();
 
 // Sucesso
 toast({
@@ -823,7 +999,9 @@ toast({
 
       {/* Loading Skeleton */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Loading com Skeleton</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Loading com Skeleton</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <Button variant="outline" size="sm" onClick={() => setShowSkeleton((v) => !v)}>
             {showSkeleton ? "Mostrar conteúdo" : "Simular loading"}
@@ -841,13 +1019,13 @@ toast({
               <>
                 <p className="font-medium">Lista de clientes</p>
                 <p className="text-sm text-muted-foreground">3 resultados encontrados</p>
-                <div className="border rounded-md p-3 text-sm">Empresa Alpha</div>
-                <div className="border rounded-md p-3 text-sm">Empresa Beta</div>
-                <div className="border rounded-md p-3 text-sm">Empresa Gamma</div>
+                <div className="rounded-md border p-3 text-sm">Empresa Alpha</div>
+                <div className="rounded-md border p-3 text-sm">Empresa Beta</div>
+                <div className="rounded-md border p-3 text-sm">Empresa Gamma</div>
               </>
             )}
           </div>
-          <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">{`import { Skeleton } from "@/shared/components/ui/skeleton";
+          <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{`import { Skeleton } from "@/shared/components/ui/skeleton";
 
 if (isLoading) {
   return (
@@ -862,12 +1040,14 @@ if (isLoading) {
 
       {/* AlertDialog */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Confirmação com AlertDialog</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Confirmação com AlertDialog</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Usar para ações destrutivas (exclusão, cancelamento).
           </p>
-          <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">{`import {
+          <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{`import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -903,12 +1083,14 @@ if (isLoading) {
 
       {/* TanStack Query pattern */}
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Padrão TanStack Query</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-sm">Padrão TanStack Query</CardTitle>
+        </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             Padrão para hooks de query e mutation usados no projeto.
           </p>
-          <pre className="bg-muted p-3 rounded-md text-xs overflow-auto">{`// Hook de leitura
+          <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{`// Hook de leitura
 import { useQuery } from "@tanstack/react-query";
 
 export function useClients() {
@@ -964,10 +1146,10 @@ export function useCreateClient() {
 // ---------------------------------------------------------------------------
 export default function StyleGuides() {
   return (
-    <div className="p-6 space-y-12 max-w-6xl mx-auto">
+    <div className="mx-auto max-w-6xl space-y-12 p-6">
       <header>
         <h1 className="text-3xl font-bold">Style Guides</h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="mt-2 text-muted-foreground">
           Documentação viva do design system. Consulte antes de criar qualquer UI.
         </p>
       </header>
@@ -978,7 +1160,7 @@ export default function StyleGuides() {
           <a
             key={id}
             href={`#${id}`}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md bg-muted hover:bg-accent transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 text-sm transition-colors hover:bg-accent"
           >
             <Icon className="h-3.5 w-3.5" />
             {label}

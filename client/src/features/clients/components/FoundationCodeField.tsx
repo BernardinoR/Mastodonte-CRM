@@ -14,10 +14,7 @@ interface FoundationCodeFieldProps {
 
 type ValidationStatus = "idle" | "loading" | "valid" | "invalid";
 
-export function FoundationCodeField({
-  code,
-  onCodeChange,
-}: FoundationCodeFieldProps) {
+export function FoundationCodeField({ code, onCodeChange }: FoundationCodeFieldProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [draftCode, setDraftCode] = useState(code);
   const [validationStatus, setValidationStatus] = useState<ValidationStatus>("idle");
@@ -50,10 +47,10 @@ export function FoundationCodeField({
     mutationFn: async (codeToValidate: string) => {
       const token = await getToken();
       const response = await apiRequest(
-        "POST", 
-        "/api/validate-foundation", 
+        "POST",
+        "/api/validate-foundation",
         { code: codeToValidate },
-        { "Authorization": `Bearer ${token}` }
+        { Authorization: `Bearer ${token}` },
       );
       return response.json();
     },
@@ -94,7 +91,7 @@ export function FoundationCodeField({
       clearTimeout(blurTimeoutRef.current);
       blurTimeoutRef.current = null;
     }
-    
+
     const trimmed = draftCode.trim();
     if (trimmed !== code) {
       onCodeChange(trimmed);
@@ -142,11 +139,11 @@ export function FoundationCodeField({
   const renderValidationIcon = () => {
     switch (validationStatus) {
       case "loading":
-        return <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />;
+        return <Loader2 className="h-4 w-4 animate-spin text-gray-400" />;
       case "valid":
-        return <Check className="w-4 h-4 text-emerald-500" />;
+        return <Check className="h-4 w-4 text-emerald-500" />;
       case "invalid":
-        return <X className="w-4 h-4 text-red-500" />;
+        return <X className="h-4 w-4 text-red-500" />;
       default:
         return null;
     }
@@ -154,8 +151,8 @@ export function FoundationCodeField({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-        <Hash className="w-3.5 h-3.5" />
+      <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+        <Hash className="h-3.5 w-3.5" />
         Código Foundation
       </span>
       <div className="flex items-center gap-2">
@@ -168,13 +165,13 @@ export function FoundationCodeField({
             onKeyDown={handleKeyDown}
             onBlur={handleBlur}
             placeholder="UUID do Foundation"
-            className="text-sm font-medium text-foreground bg-transparent border-b-2 border-[#2eaadc] outline-none flex-1 min-w-0"
+            className="min-w-0 flex-1 border-b-2 border-[#2eaadc] bg-transparent text-sm font-medium text-foreground outline-none"
             data-testid="input-foundation-code"
           />
         ) : (
           <>
-            <span 
-              className="text-sm font-medium text-foreground cursor-pointer px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors truncate max-w-[180px]"
+            <span
+              className="-mx-1.5 -my-0.5 max-w-[180px] cursor-pointer truncate rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
               onClick={handleStartEditing}
               title={code || "Não informado"}
               data-testid="text-foundation-code"
@@ -191,9 +188,9 @@ export function FoundationCodeField({
               data-testid="button-validate-foundation"
             >
               {validateMutation.isPending ? (
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
-                <RefreshCw className="w-3.5 h-3.5" />
+                <RefreshCw className="h-3.5 w-3.5" />
               )}
             </Button>
           </>

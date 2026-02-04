@@ -13,7 +13,7 @@ import { useState, useRef, useCallback, useMemo } from "react";
 export function createPopoverAdapter<TFieldType extends string>(
   fieldName: TFieldType,
   openPopover: (field: TFieldType, id: string) => void,
-  closePopover: (field: TFieldType) => void
+  closePopover: (field: TFieldType) => void,
 ): (value: string | null) => void {
   return (value: string | null) => {
     if (value === null) closePopover(fieldName);
@@ -67,16 +67,25 @@ export interface DeleteConfirmState {
  * Elimina duplicação entre useInlineTaskEdit e useInlineMeetingEdit
  */
 export function useInlineFieldEdit<TFieldType extends string = string>(
-  config: UseInlineFieldEditConfig<TFieldType>
+  config: UseInlineFieldEditConfig<TFieldType>,
 ) {
-  const { fields, onUpdate, onDelete, hasDateField = false, deleteConfirmKeys = { id: "id", title: "title" } } = config;
+  const {
+    fields,
+    onUpdate,
+    onDelete,
+    hasDateField = false,
+    deleteConfirmKeys = { id: "id", title: "title" },
+  } = config;
 
   // Estados de popovers - um para cada campo
   const [popoverStates, setPopoverStates] = useState<Record<TFieldType, string | null>>(
-    fields.reduce((acc, field) => {
-      acc[field.name as TFieldType] = null;
-      return acc;
-    }, {} as Record<TFieldType, string | null>)
+    fields.reduce(
+      (acc, field) => {
+        acc[field.name as TFieldType] = null;
+        return acc;
+      },
+      {} as Record<TFieldType, string | null>,
+    ),
   );
 
   // Estado de confirmação de delete
@@ -89,67 +98,63 @@ export function useInlineFieldEdit<TFieldType extends string = string>(
    * Abre um popover específico para uma entidade
    */
   const openPopover = useCallback((fieldName: TFieldType, entityId: string) => {
-    setPopoverStates(prev => ({ ...prev, [fieldName]: entityId }));
+    setPopoverStates((prev) => ({ ...prev, [fieldName]: entityId }));
   }, []);
 
   /**
    * Fecha um popover específico
    */
   const closePopover = useCallback((fieldName: TFieldType) => {
-    setPopoverStates(prev => ({ ...prev, [fieldName]: null }));
+    setPopoverStates((prev) => ({ ...prev, [fieldName]: null }));
   }, []);
 
   /**
    * Handler genérico para mudança de campo simples
    */
-  const handleFieldChange = useCallback((
-    fieldName: TFieldType,
-    entityId: string,
-    value: any
-  ) => {
-    const field = fields.find(f => f.name === fieldName);
-    const updateKey = field?.updateKey || fieldName;
+  const handleFieldChange = useCallback(
+    (fieldName: TFieldType, entityId: string, value: any) => {
+      const field = fields.find((f) => f.name === fieldName);
+      const updateKey = field?.updateKey || fieldName;
 
-    onUpdate(entityId, { [updateKey]: value });
-    closePopover(fieldName);
-  }, [fields, onUpdate, closePopover]);
+      onUpdate(entityId, { [updateKey]: value });
+      closePopover(fieldName);
+    },
+    [fields, onUpdate, closePopover],
+  );
 
   /**
    * Handler para mudança de data
    */
-  const handleDateChange = useCallback((
-    fieldName: TFieldType,
-    entityId: string,
-    date: Date | undefined
-  ) => {
-    if (date) {
-      handleFieldChange(fieldName, entityId, date);
-    }
-  }, [handleFieldChange]);
+  const handleDateChange = useCallback(
+    (fieldName: TFieldType, entityId: string, date: Date | undefined) => {
+      if (date) {
+        handleFieldChange(fieldName, entityId, date);
+      }
+    },
+    [handleFieldChange],
+  );
 
   /**
    * Handler para adicionar assignee
    */
-  const handleAddAssignee = useCallback((
-    entityId: string,
-    currentAssignees: string[],
-    assignee: string
-  ) => {
-    if (!currentAssignees.includes(assignee)) {
-      onUpdate(entityId, { assignees: [...currentAssignees, assignee] });
-    }
-  }, [onUpdate]);
+  const handleAddAssignee = useCallback(
+    (entityId: string, currentAssignees: string[], assignee: string) => {
+      if (!currentAssignees.includes(assignee)) {
+        onUpdate(entityId, { assignees: [...currentAssignees, assignee] });
+      }
+    },
+    [onUpdate],
+  );
 
   /**
    * Handler para remover assignee
    */
-  const handleRemoveAssignee = useCallback((
-    entityId: string,
-    currentAssignees: string[],
-    assignee: string
-  ) => {
-    onUpdate(entityId, { assignees: currentAssignees.filter(a => a !== assignee) });
-  }, [onUpdate]);
+  const handleRemoveAssignee = useCallback(
+    (entityId: string, currentAssignees: string[], assignee: string) => {
+      onUpdate(entityId, { assignees: currentAssignees.filter((a) => a !== assignee) });
+    },
+    [onUpdate],
+  );
 
   /**
    * Handler para click em delete
@@ -171,15 +176,18 @@ export function useInlineFieldEdit<TFieldType extends string = string>(
   /**
    * Handler para interact outside do date popover
    */
-  const handleInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
-    if (!hasDateField) return;
+  const handleInteractOutside = useCallback(
+    (e: CustomEvent<{ originalEvent?: Event }>) => {
+      if (!hasDateField) return;
 
-    const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
-    const target = originalTarget || (e.target as HTMLElement);
-    if (datePopoverRef?.current?.contains(target) || target?.closest('.rdp')) {
-      e.preventDefault();
-    }
-  }, [hasDateField]);
+      const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
+      const target = originalTarget || (e.target as HTMLElement);
+      if (datePopoverRef?.current?.contains(target) || target?.closest(".rdp")) {
+        e.preventDefault();
+      }
+    },
+    [hasDateField],
+  );
 
   return {
     // Estados de popovers individuais

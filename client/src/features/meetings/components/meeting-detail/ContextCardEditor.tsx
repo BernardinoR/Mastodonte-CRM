@@ -17,8 +17,8 @@ export function ContextCardEditor({ card, onChange, onRemove }: ContextCardEdito
   const IconComponent = card.icon ? getIconComponent(card.icon) : null;
 
   return (
-    <div className="group relative flex items-start gap-3 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg transition-all hover:bg-[#1e1e1e] hover:border-[#333333]">
-      <div className="flex-shrink-0 mt-0.5">
+    <div className="group relative flex items-start gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4 transition-all hover:border-[#333333] hover:bg-[#1e1e1e]">
+      <div className="mt-0.5 flex-shrink-0">
         <IconPicker
           selectedIcon={card.icon}
           onSelect={(iconName) => onChange({ ...card, icon: iconName })}
@@ -30,15 +30,15 @@ export function ContextCardEditor({ card, onChange, onRemove }: ContextCardEdito
         onChange={(e) => onChange({ ...card, text: e.target.value })}
         placeholder="Descreva um contexto relevante..."
         rows={2}
-        className="flex-1 bg-transparent border-none outline-none text-[0.8125rem] text-[#b0b0b0] leading-[1.5] resize-none font-inherit placeholder:text-[#555555]"
+        className="font-inherit flex-1 resize-none border-none bg-transparent text-[0.8125rem] leading-[1.5] text-[#b0b0b0] outline-none placeholder:text-[#555555]"
       />
 
       <button
         type="button"
         onClick={onRemove}
-        className="absolute top-2 right-2 w-5 h-5 bg-transparent border-none rounded flex items-center justify-center text-[#555555] cursor-pointer opacity-0 group-hover:opacity-100 transition-all hover:bg-[#3d2424] hover:text-[#ef4444]"
+        className="absolute right-2 top-2 flex h-5 w-5 cursor-pointer items-center justify-center rounded border-none bg-transparent text-[#555555] opacity-0 transition-all hover:bg-[#3d2424] hover:text-[#ef4444] group-hover:opacity-100"
       >
-        <X className="w-3 h-3" />
+        <X className="h-3 w-3" />
       </button>
     </div>
   );
@@ -77,8 +77,8 @@ export function ContextSectionEditor({
   };
 
   return (
-    <div className="p-4 pt-4 bg-[#151515] border-t border-[#2a2a2a]">
-      <div className="flex items-center gap-2 mb-4">
+    <div className="border-t border-[#2a2a2a] bg-[#151515] p-4 pt-4">
+      <div className="mb-4 flex items-center gap-2">
         <span className="text-[0.6875rem] font-semibold uppercase tracking-wider text-[#a78bfa]">
           CONTEXTO DA CLIENTE -
         </span>
@@ -87,11 +87,11 @@ export function ContextSectionEditor({
           value={clientName}
           onChange={(e) => onClientNameChange(e.target.value)}
           placeholder="NOME"
-          className="bg-transparent border-none outline-none text-[0.6875rem] font-semibold uppercase tracking-wider text-[#a78bfa] w-32 placeholder:text-[#7c5cbf]"
+          className="w-32 border-none bg-transparent text-[0.6875rem] font-semibold uppercase tracking-wider text-[#a78bfa] outline-none placeholder:text-[#7c5cbf]"
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {cards.map((card, index) => (
           <ContextCardEditor
             key={card.id}
@@ -105,7 +105,7 @@ export function ContextSectionEditor({
       <button
         type="button"
         onClick={addCard}
-        className="mt-3 w-full flex items-center justify-center gap-2 p-4 bg-transparent border-2 border-dashed border-[#2a2a2a] rounded-lg text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#444444] hover:text-[#888888]"
+        className="mt-3 flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#2a2a2a] bg-transparent p-4 text-[0.8125rem] text-[#555555] transition-all hover:border-[#444444] hover:bg-[#1a1a1a] hover:text-[#888888]"
       >
         <span className="text-lg">+</span>
         Adicionar contexto

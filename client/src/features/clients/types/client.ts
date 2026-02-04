@@ -68,7 +68,7 @@ export interface EnrichedClient extends Client {
   aum: number;
   aumFormatted: string;
   daysSinceLastMeeting: number;
-  meetingDelayStatus: 'ok' | 'warning' | 'critical';
+  meetingDelayStatus: "ok" | "warning" | "critical";
   urgentTasksCount: number;
   cityState: string;
 }
@@ -90,9 +90,9 @@ export interface ClientsPageStats {
 /**
  * Modo de visualização da página de clientes
  */
-export type ClientsViewMode = 'cards' | 'list';
+export type ClientsViewMode = "cards" | "list";
 
 /**
  * Modo de filtro da página de clientes
  */
-export type ClientsFilterMode = 'all' | 'noMeeting' | 'urgentTasks' | 'byAum';
+export type ClientsFilterMode = "all" | "noMeeting" | "urgentTasks" | "byAum";

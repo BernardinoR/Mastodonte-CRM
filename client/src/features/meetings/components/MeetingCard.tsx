@@ -22,28 +22,35 @@ export function MeetingCard({ id, date, type, notes, clientName, onClick }: Meet
   };
 
   return (
-    <Card 
-      className="hover-elevate active-elevate-2 cursor-pointer" 
+    <Card
+      className="hover-elevate active-elevate-2 cursor-pointer"
       onClick={onClick}
       data-testid={`card-meeting-${id}`}
     >
       <CardContent className="p-4">
         <div className="flex gap-4">
-          <div className="flex flex-col items-center justify-start pt-1 min-w-[60px]">
+          <div className="flex min-w-[60px] flex-col items-center justify-start pt-1">
             <span className="text-2xl font-semibold">{format(date, "dd", { locale: ptBR })}</span>
-            <span className="text-xs text-muted-foreground uppercase">{format(date, "MMM", { locale: ptBR })}</span>
-            <span className="text-xs text-muted-foreground">{format(date, "yyyy", { locale: ptBR })}</span>
+            <span className="text-xs uppercase text-muted-foreground">
+              {format(date, "MMM", { locale: ptBR })}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {format(date, "yyyy", { locale: ptBR })}
+            </span>
           </div>
-          <div className="flex-1 min-w-0 border-l-2 border-border pl-4">
-            <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <div className="min-w-0 flex-1 border-l-2 border-border pl-4">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className={`text-xs ${typeColors[type] || ""}`}>
                 {type}
               </Badge>
-              {clientName && (
-                <span className="text-xs text-muted-foreground">{clientName}</span>
-              )}
+              {clientName && <span className="text-xs text-muted-foreground">{clientName}</span>}
             </div>
-            <p className="text-sm leading-relaxed line-clamp-3" data-testid={`text-meetingnotes-${id}`}>{notes}</p>
+            <p
+              className="line-clamp-3 text-sm leading-relaxed"
+              data-testid={`text-meetingnotes-${id}`}
+            >
+              {notes}
+            </p>
           </div>
         </div>
       </CardContent>

@@ -27,47 +27,53 @@ export function MeetingAttachments({ attachments }: MeetingAttachmentsProps) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2.5">
-          <Paperclip className="w-[18px] h-[18px] text-[#8c8c8c]" />
+          <Paperclip className="h-[18px] w-[18px] text-[#8c8c8c]" />
           <h2 className="text-sm font-semibold text-[#ededed]">Anexos</h2>
-          <span className="bg-[#333333] text-[#8c8c8c] text-xs font-medium px-2 py-0.5 rounded">
+          <span className="rounded bg-[#333333] px-2 py-0.5 text-xs font-medium text-[#8c8c8c]">
             {attachments.length}
           </span>
         </div>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-transparent border border-dashed border-[#333333] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#1c3847] hover:border-[#2eaadc] transition-all">
-          <Upload className="w-3.5 h-3.5" />
+        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
+          <Upload className="h-3.5 w-3.5" />
           Upload
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
         {attachments.map((attachment) => {
           const config = typeConfig[attachment.type] || typeConfig.pdf;
           const IconComponent = config.icon;
-          
+
           return (
-            <div 
+            <div
               key={attachment.id}
-              className="flex items-center gap-3 px-4 py-3.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg cursor-pointer hover:bg-[#202020] hover:border-[#3a3a3a] transition-all"
+              className="flex cursor-pointer items-center gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] px-4 py-3.5 transition-all hover:border-[#3a3a3a] hover:bg-[#202020]"
             >
-              <div className={cn("w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0", config.bg)}>
-                <IconComponent className={cn("w-5 h-5", config.color)} />
+              <div
+                className={cn(
+                  "flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg",
+                  config.bg,
+                )}
+              >
+                <IconComponent className={cn("h-5 w-5", config.color)} />
               </div>
-              
-              <div className="flex-1 min-w-0">
-                <div className="text-[0.8125rem] font-medium text-[#ededed] truncate">
+
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-[0.8125rem] font-medium text-[#ededed]">
                   {attachment.name}
                 </div>
-                <div className="text-[0.6875rem] text-[#8c8c8c] mt-0.5">
-                  {typeLabels[attachment.type]} • {attachment.size} • Adicionado em {format(attachment.addedAt, "dd MMM", { locale: ptBR })}
+                <div className="mt-0.5 text-[0.6875rem] text-[#8c8c8c]">
+                  {typeLabels[attachment.type]} • {attachment.size} • Adicionado em{" "}
+                  {format(attachment.addedAt, "dd MMM", { locale: ptBR })}
                 </div>
               </div>
 
               <div className="flex gap-1">
-                <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#8c8c8c] hover:bg-[#333333] hover:text-[#ededed] transition-all">
-                  <Download className="w-3.5 h-3.5" />
+                <button className="flex h-7 w-7 items-center justify-center rounded-md text-[#8c8c8c] transition-all hover:bg-[#333333] hover:text-[#ededed]">
+                  <Download className="h-3.5 w-3.5" />
                 </button>
-                <button className="w-7 h-7 rounded-md flex items-center justify-center text-[#8c8c8c] hover:bg-[#333333] hover:text-[#ededed] transition-all">
-                  <ExternalLink className="w-3.5 h-3.5" />
+                <button className="flex h-7 w-7 items-center justify-center rounded-md text-[#8c8c8c] transition-all hover:bg-[#333333] hover:text-[#ededed]">
+                  <ExternalLink className="h-3.5 w-3.5" />
                 </button>
               </div>
             </div>
@@ -75,10 +81,11 @@ export function MeetingAttachments({ attachments }: MeetingAttachmentsProps) {
         })}
 
         {/* Upload Zone */}
-        <div className="flex flex-col items-center justify-center gap-2 p-6 bg-[#1a1a1a] border-2 border-dashed border-[#333333] rounded-lg cursor-pointer hover:bg-[#1e1e1e] hover:border-[#2eaadc] transition-all">
-          <Upload className="w-8 h-8 text-[#8c8c8c]" />
-          <div className="text-[0.8125rem] text-[#8c8c8c] text-center">
-            Arraste arquivos aqui ou <span className="text-[#2eaadc] font-medium">clique para selecionar</span>
+        <div className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-[#333333] bg-[#1a1a1a] p-6 transition-all hover:border-[#2eaadc] hover:bg-[#1e1e1e]">
+          <Upload className="h-8 w-8 text-[#8c8c8c]" />
+          <div className="text-center text-[0.8125rem] text-[#8c8c8c]">
+            Arraste arquivos aqui ou{" "}
+            <span className="font-medium text-[#2eaadc]">clique para selecionar</span>
           </div>
         </div>
       </div>

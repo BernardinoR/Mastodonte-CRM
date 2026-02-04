@@ -1,5 +1,5 @@
-import { useCallback } from 'react';
-import type { TaskStatus, TaskPriority, TaskUpdates } from '../types/task';
+import { useCallback } from "react";
+import type { TaskStatus, TaskPriority, TaskUpdates } from "../types/task";
 
 interface UseTaskContextMenuParams {
   id: string;
@@ -34,22 +34,27 @@ export function useTaskContextMenu({
   onBulkReplaceTitle,
   onBulkAppendTitle,
 }: UseTaskContextMenuParams): UseTaskContextMenuReturn {
+  const handleContextPriorityChange = useCallback(
+    (newPriority: TaskPriority) => {
+      if (selectedCount > 1 && onBulkUpdate) {
+        onBulkUpdate({ priority: newPriority });
+      } else {
+        onUpdate(id, { priority: newPriority });
+      }
+    },
+    [selectedCount, onBulkUpdate, onUpdate, id],
+  );
 
-  const handleContextPriorityChange = useCallback((newPriority: TaskPriority) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ priority: newPriority });
-    } else {
-      onUpdate(id, { priority: newPriority });
-    }
-  }, [selectedCount, onBulkUpdate, onUpdate, id]);
-
-  const handleContextStatusChange = useCallback((newStatus: TaskStatus) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ status: newStatus });
-    } else {
-      onUpdate(id, { status: newStatus });
-    }
-  }, [selectedCount, onBulkUpdate, onUpdate, id]);
+  const handleContextStatusChange = useCallback(
+    (newStatus: TaskStatus) => {
+      if (selectedCount > 1 && onBulkUpdate) {
+        onBulkUpdate({ status: newStatus });
+      } else {
+        onUpdate(id, { status: newStatus });
+      }
+    },
+    [selectedCount, onBulkUpdate, onUpdate, id],
+  );
 
   const handleContextDelete = useCallback(() => {
     if (selectedCount > 1 && onBulkDelete) {
@@ -59,51 +64,63 @@ export function useTaskContextMenu({
     }
   }, [selectedCount, onBulkDelete, onDelete, id]);
 
-  const handleContextClientChange = useCallback((clientId: string, clientName: string) => {
-    if (clientId === "_none") {
-      if (selectedCount > 1 && onBulkUpdate) {
-        onBulkUpdate({ clientId: undefined, clientName: undefined });
+  const handleContextClientChange = useCallback(
+    (clientId: string, clientName: string) => {
+      if (clientId === "_none") {
+        if (selectedCount > 1 && onBulkUpdate) {
+          onBulkUpdate({ clientId: undefined, clientName: undefined });
+        } else {
+          onUpdate(id, { clientId: undefined, clientName: undefined });
+        }
       } else {
-        onUpdate(id, { clientId: undefined, clientName: undefined });
+        if (selectedCount > 1 && onBulkUpdate) {
+          onBulkUpdate({ clientId, clientName });
+        } else {
+          onUpdate(id, { clientId, clientName });
+        }
       }
-    } else {
+    },
+    [selectedCount, onBulkUpdate, onUpdate, id],
+  );
+
+  const handleContextDateChange = useCallback(
+    (newDate: Date) => {
       if (selectedCount > 1 && onBulkUpdate) {
-        onBulkUpdate({ clientId, clientName });
+        onBulkUpdate({ dueDate: newDate });
       } else {
-        onUpdate(id, { clientId, clientName });
+        onUpdate(id, { dueDate: newDate });
       }
-    }
-  }, [selectedCount, onBulkUpdate, onUpdate, id]);
+    },
+    [selectedCount, onBulkUpdate, onUpdate, id],
+  );
 
-  const handleContextDateChange = useCallback((newDate: Date) => {
-    if (selectedCount > 1 && onBulkUpdate) {
-      onBulkUpdate({ dueDate: newDate });
-    } else {
-      onUpdate(id, { dueDate: newDate });
-    }
-  }, [selectedCount, onBulkUpdate, onUpdate, id]);
+  const handleReplaceTitleSubmit = useCallback(
+    (newTitleText: string) => {
+      if (!newTitleText.trim()) return;
+      if (selectedCount > 1 && onBulkReplaceTitle) {
+        onBulkReplaceTitle(newTitleText.trim());
+      } else {
+        onUpdate(id, { title: newTitleText.trim() });
+      }
+    },
+    [selectedCount, onBulkReplaceTitle, onUpdate, id],
+  );
 
-  const handleReplaceTitleSubmit = useCallback((newTitleText: string) => {
-    if (!newTitleText.trim()) return;
-    if (selectedCount > 1 && onBulkReplaceTitle) {
-      onBulkReplaceTitle(newTitleText.trim());
-    } else {
-      onUpdate(id, { title: newTitleText.trim() });
-    }
-  }, [selectedCount, onBulkReplaceTitle, onUpdate, id]);
-
-  const handleAppendTitleSubmit = useCallback((appendText: string) => {
-    if (!appendText.trim()) return;
-    const textToAppend = appendText.trim();
-    const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
-    const needsSpace = title.length > 0 && !/\s$/.test(title) && startsWithAlphanumeric;
-    const suffix = needsSpace ? " " + textToAppend : textToAppend;
-    if (selectedCount > 1 && onBulkAppendTitle) {
-      onBulkAppendTitle(textToAppend);
-    } else {
-      onUpdate(id, { title: title + suffix });
-    }
-  }, [selectedCount, onBulkAppendTitle, onUpdate, id, title]);
+  const handleAppendTitleSubmit = useCallback(
+    (appendText: string) => {
+      if (!appendText.trim()) return;
+      const textToAppend = appendText.trim();
+      const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
+      const needsSpace = title.length > 0 && !/\s$/.test(title) && startsWithAlphanumeric;
+      const suffix = needsSpace ? " " + textToAppend : textToAppend;
+      if (selectedCount > 1 && onBulkAppendTitle) {
+        onBulkAppendTitle(textToAppend);
+      } else {
+        onUpdate(id, { title: title + suffix });
+      }
+    },
+    [selectedCount, onBulkAppendTitle, onUpdate, id, title],
+  );
 
   return {
     handleContextPriorityChange,

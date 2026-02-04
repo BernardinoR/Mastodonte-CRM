@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useLocation } from "wouter";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -8,7 +13,12 @@ import { TaskContactButtons, TaskDescription, TaskHistory } from "./task-detail"
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { parseLocalDate } from "@/shared/lib/date-utils";
 import { DateInput } from "@/shared/components/ui/date-input";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
+import {
+  PriorityBadge,
+  StatusBadge,
+  PRIORITY_OPTIONS,
+  STATUS_OPTIONS,
+} from "@/shared/components/ui/task-badges";
 import { TaskClientPopover, TaskAssigneesPopover } from "./task-popovers";
 import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "../types/task";
 import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "../lib/statusConfig";
@@ -27,7 +37,7 @@ interface TaskDetailModalProps {
 
 function isTaskOverdue(dueDate: string | Date): boolean {
   const today = startOfDay(new Date());
-  const dueDateObj = typeof dueDate === 'string' ? parseLocalDate(dueDate) : dueDate;
+  const dueDateObj = typeof dueDate === "string" ? parseLocalDate(dueDate) : dueDate;
   return isBefore(startOfDay(dueDateObj), today);
 }
 
@@ -35,15 +45,15 @@ function getDaysSinceLastUpdate(history?: TaskHistoryEvent[]): string {
   if (!history || history.length === 0) {
     return "Sem atualizações";
   }
-  
-  const sortedHistory = [...history].sort((a, b) => 
-    new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
   );
-  
+
   const lastUpdate = new Date(sortedHistory[0].timestamp);
   const today = startOfDay(new Date());
   const days = differenceInDays(today, startOfDay(lastUpdate));
-  
+
   if (days === 0) {
     return "Atualizado hoje";
   } else if (days === 1) {
@@ -75,7 +85,7 @@ export function TaskDetailModal({
   const [assigneesPopoverOpen, setAssigneesPopoverOpen] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [noteType, setNoteType] = useState<"note" | "email" | "call" | "whatsapp">("note");
-  
+
   const titleInputRef = useRef<HTMLTextAreaElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const prevTaskRef = useRef<{ id: string; title: string; description: string } | null>(null);
@@ -94,7 +104,7 @@ export function TaskDetailModal({
     if (task) {
       const newDesc = task.description || "";
       const newTitle = task.title || "";
-      
+
       // Only update if values actually changed to prevent infinite loops
       if (
         !prevTaskRef.current ||
@@ -113,16 +123,16 @@ export function TaskDetailModal({
     if (editingTitle && titleInputRef.current) {
       titleInputRef.current.focus();
       titleInputRef.current.select();
-      titleInputRef.current.style.height = 'auto';
-      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + 'px';
+      titleInputRef.current.style.height = "auto";
+      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + "px";
     }
   }, [editingTitle]);
 
   const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setTitleValue(e.target.value);
     if (titleInputRef.current) {
-      titleInputRef.current.style.height = 'auto';
-      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + 'px';
+      titleInputRef.current.style.height = "auto";
+      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + "px";
     }
   }, []);
 
@@ -136,15 +146,18 @@ export function TaskDetailModal({
     setEditingTitle(false);
   }, [titleValue, task, onUpdateTask]);
 
-  const handleClientSelect = useCallback((clientId: string, clientName: string) => {
-    if (!task) return;
-    if (clientId === "_none") {
-      onUpdateTask(task.id, { clientId: undefined, clientName: undefined });
-    } else {
-      onUpdateTask(task.id, { clientId, clientName });
-    }
-    setClientPopoverOpen(false);
-  }, [task, onUpdateTask]);
+  const handleClientSelect = useCallback(
+    (clientId: string, clientName: string) => {
+      if (!task) return;
+      if (clientId === "_none") {
+        onUpdateTask(task.id, { clientId: undefined, clientName: undefined });
+      } else {
+        onUpdateTask(task.id, { clientId, clientName });
+      }
+      setClientPopoverOpen(false);
+    },
+    [task, onUpdateTask],
+  );
 
   const handleClientClick = useCallback(() => {
     if (task?.clientId) {
@@ -156,51 +169,70 @@ export function TaskDetailModal({
     }
   }, [task, navigate, onOpenChange]);
 
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (!task) return;
-    if (date) {
-      onUpdateTask(task.id, { dueDate: date });
-      setDatePopoverOpen(false);
-    }
-  }, [task, onUpdateTask]);
+  const handleDateChange = useCallback(
+    (date: Date | undefined) => {
+      if (!task) return;
+      if (date) {
+        onUpdateTask(task.id, { dueDate: date });
+        setDatePopoverOpen(false);
+      }
+    },
+    [task, onUpdateTask],
+  );
 
-  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    if (!task) return;
-    // Fechar o popover primeiro para evitar conflito com re-render do trigger
-    setPriorityPopoverOpen(false);
-    // Pequeno delay para o popover fechar completamente antes de atualizar o estado
-    setTimeout(() => {
-      onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
-    }, 50);
-  }, [task, onUpdateTask]);
+  const handlePriorityChange = useCallback(
+    (priority: TaskPriority | "_none") => {
+      if (!task) return;
+      // Fechar o popover primeiro para evitar conflito com re-render do trigger
+      setPriorityPopoverOpen(false);
+      // Pequeno delay para o popover fechar completamente antes de atualizar o estado
+      setTimeout(() => {
+        onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
+      }, 50);
+    },
+    [task, onUpdateTask],
+  );
 
-  const handleStatusChange = useCallback((status: TaskStatus) => {
-    if (!task) return;
-    if (status === task.status) {
+  const handleStatusChange = useCallback(
+    (status: TaskStatus) => {
+      if (!task) return;
+      if (status === task.status) {
+        setStatusPopoverOpen(false);
+        return;
+      }
+
+      // Atualizar status
+      onUpdateTask(task.id, { status });
+
+      // Registrar mudança no histórico (via API)
+      addTaskHistory(
+        task.id,
+        "status_change",
+        `Status alterado de '${task.status}' para '${status}'`,
+      );
+
       setStatusPopoverOpen(false);
-      return;
-    }
-    
-    // Atualizar status
-    onUpdateTask(task.id, { status });
-    
-    // Registrar mudança no histórico (via API)
-    addTaskHistory(task.id, "status_change", `Status alterado de '${task.status}' para '${status}'`);
-    
-    setStatusPopoverOpen(false);
-  }, [task, onUpdateTask, addTaskHistory]);
+    },
+    [task, onUpdateTask, addTaskHistory],
+  );
 
-  const handleAddAssignee = useCallback((assignee: string) => {
-    if (!task) return;
-    if (!task.assignees.includes(assignee)) {
-      onUpdateTask(task.id, { assignees: [...task.assignees, assignee] });
-    }
-  }, [task, onUpdateTask]);
+  const handleAddAssignee = useCallback(
+    (assignee: string) => {
+      if (!task) return;
+      if (!task.assignees.includes(assignee)) {
+        onUpdateTask(task.id, { assignees: [...task.assignees, assignee] });
+      }
+    },
+    [task, onUpdateTask],
+  );
 
-  const handleRemoveAssignee = useCallback((assignee: string) => {
-    if (!task) return;
-    onUpdateTask(task.id, { assignees: task.assignees.filter(a => a !== assignee) });
-  }, [task, onUpdateTask]);
+  const handleRemoveAssignee = useCallback(
+    (assignee: string) => {
+      if (!task) return;
+      onUpdateTask(task.id, { assignees: task.assignees.filter((a) => a !== assignee) });
+    },
+    [task, onUpdateTask],
+  );
 
   if (!task) return null;
 
@@ -241,31 +273,32 @@ export function TaskDetailModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
+      <DialogContent
         hideCloseButton
         className={cn(
-          "max-w-[1200px] w-[90vw] h-[85vh] p-0 overflow-hidden",
+          "h-[85vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
           UI_CLASSES.card,
           "border-l-[6px]",
-          isTurboModeActive && turboActionPerformed && "turbo-border-green-pulse"
+          isTurboModeActive && turboActionPerformed && "turbo-border-green-pulse",
         )}
         style={{
-          borderLeftColor: isTurboModeActive && turboActionPerformed 
-            ? UI_COLORS.taskBorderDone 
-            : isTaskOverdue(task.dueDate) 
-              ? UI_COLORS.taskBorderRed 
-              : UI_COLORS.taskBorderBlue
+          borderLeftColor:
+            isTurboModeActive && turboActionPerformed
+              ? UI_COLORS.taskBorderDone
+              : isTaskOverdue(task.dueDate)
+                ? UI_COLORS.taskBorderRed
+                : UI_COLORS.taskBorderBlue,
         }}
       >
         <VisuallyHidden>
           <DialogTitle>{task.title}</DialogTitle>
           <DialogDescription>Detalhes da tarefa {task.title}</DialogDescription>
         </VisuallyHidden>
-        
+
         <div className="flex h-full min-h-0">
-          <div className="flex-[1.5] pt-8 px-8 pl-10 pb-4 flex flex-col overflow-hidden min-h-0">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex-1 max-w-[50%]">
+          <div className="flex min-h-0 flex-[1.5] flex-col overflow-hidden px-8 pb-4 pl-10 pt-8">
+            <div className="mb-5 flex items-center justify-between">
+              <div className="max-w-[50%] flex-1">
                 {editingTitle ? (
                   <textarea
                     ref={titleInputRef}
@@ -283,13 +316,13 @@ export function TaskDetailModal({
                       }
                     }}
                     rows={1}
-                    className="text-lg font-extrabold text-white uppercase tracking-wide bg-transparent border-none outline-none resize-none overflow-hidden px-2 py-0.5 -ml-2 w-full"
-                    style={{ fontSize: '1.125rem', lineHeight: '1.75rem' }}
+                    className="-ml-2 w-full resize-none overflow-hidden border-none bg-transparent px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide text-white outline-none"
+                    style={{ fontSize: "1.125rem", lineHeight: "1.75rem" }}
                     data-testid="input-modal-title"
                   />
                 ) : (
-                  <h2 
-                    className="text-lg font-extrabold text-white uppercase tracking-wide cursor-pointer px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
+                  <h2
+                    className="-ml-2 cursor-pointer rounded-md px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide text-white transition-colors hover:bg-gray-700/80"
                     onClick={() => setEditingTitle(true)}
                     data-testid="text-modal-title"
                   >
@@ -297,26 +330,24 @@ export function TaskDetailModal({
                   </h2>
                 )}
               </div>
-              <span className={UI_CLASSES.clientBadge}>
-                {getDaysSinceLastUpdate(task.history)}
-              </span>
+              <span className={UI_CLASSES.clientBadge}>{getDaysSinceLastUpdate(task.history)}</span>
             </div>
 
             <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
               <PopoverTrigger asChild>
-                <div 
-                  className="flex items-center gap-2 text-white font-semibold mb-3 cursor-pointer w-fit px-2 py-0.5 -ml-2 rounded-md hover:bg-gray-700/80 transition-colors"
+                <div
+                  className="-ml-2 mb-3 flex w-fit cursor-pointer items-center gap-2 rounded-md px-2 py-0.5 font-semibold text-white transition-colors hover:bg-gray-700/80"
                   data-testid="button-modal-date"
                 >
-                  <CalendarIcon className="w-4 h-4" />
+                  <CalendarIcon className="h-4 w-4" />
                   <span>{format(new Date(task.dueDate), "dd/MM/yyyy")}</span>
                 </div>
               </PopoverTrigger>
-              <PopoverContent 
+              <PopoverContent
                 ref={datePopoverRef}
                 className={cn("w-auto p-0", UI_CLASSES.popover)}
-                side="bottom" 
-                align="start" 
+                side="bottom"
+                align="start"
                 sideOffset={6}
               >
                 <DateInput
@@ -343,27 +374,31 @@ export function TaskDetailModal({
             </div>
 
             <TaskContactButtons
-              clientEmail={linkedClient?.emails?.[linkedClient.primaryEmailIndex] || linkedClient?.emails?.[0] || task.clientEmail}
+              clientEmail={
+                linkedClient?.emails?.[linkedClient.primaryEmailIndex] ||
+                linkedClient?.emails?.[0] ||
+                task.clientEmail
+              }
               clientPhone={linkedClient?.phone || task.clientPhone}
               clientName={linkedClient?.name || task.clientName}
               clientId={task.clientId}
               whatsappGroups={whatsappGroups}
             />
 
-            <div className="flex gap-3 mb-8">
+            <div className="mb-8 flex gap-3">
               <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
                 <PopoverTrigger asChild>
                   {task.priority ? (
                     <div className="cursor-pointer" data-testid="button-modal-priority">
-                      <PriorityBadge 
+                      <PriorityBadge
                         priority={task.priority}
                         dotSize="md"
-                        className="!px-3 !py-1.5 !text-sm !gap-1.5 cursor-pointer"
+                        className="cursor-pointer !gap-1.5 !px-3 !py-1.5 !text-sm"
                       />
                     </div>
                   ) : (
-                    <span 
-                      className="inline-flex px-4 py-1.5 rounded-full cursor-pointer text-sm text-muted-foreground hover:text-foreground hover:bg-gray-700/80"
+                    <span
+                      className="inline-flex cursor-pointer rounded-full px-4 py-1.5 text-sm text-muted-foreground hover:bg-gray-700/80 hover:text-foreground"
                       data-testid="button-modal-priority"
                     >
                       + Prioridade
@@ -376,12 +411,17 @@ export function TaskDetailModal({
                       <div className={cn("border-b", UI_CLASSES.border)}>
                         <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                         <div className="px-3 py-1">
-                          <div 
+                          <div
                             className={UI_CLASSES.dropdownItemSelected}
-                            onClick={(e) => { e.stopPropagation(); handlePriorityChange("_none"); }}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handlePriorityChange("_none");
+                            }}
                           >
                             <PriorityBadge priority={task.priority} />
-                            <span className="text-xs text-gray-500 ml-auto">Clique para remover</span>
+                            <span className="ml-auto text-xs text-gray-500">
+                              Clique para remover
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -390,11 +430,14 @@ export function TaskDetailModal({
                       {task.priority ? "Outras opções" : "Selecionar prioridade"}
                     </div>
                     <div className="pb-1">
-                      {PRIORITY_OPTIONS.filter(p => p !== task.priority).map(p => (
+                      {PRIORITY_OPTIONS.filter((p) => p !== task.priority).map((p) => (
                         <div
                           key={p}
                           className={UI_CLASSES.dropdownItem}
-                          onClick={(e) => { e.stopPropagation(); handlePriorityChange(p); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePriorityChange(p);
+                          }}
                         >
                           <PriorityBadge priority={p} />
                         </div>
@@ -407,10 +450,10 @@ export function TaskDetailModal({
               <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                 <PopoverTrigger asChild>
                   <div className="cursor-pointer" data-testid="button-modal-status">
-                    <StatusBadge 
+                    <StatusBadge
                       status={task.status}
                       dotSize="md"
-                      className="!px-3 !py-1.5 !text-sm !gap-1.5 cursor-pointer"
+                      className="cursor-pointer !gap-1.5 !px-3 !py-1.5 !text-sm"
                     />
                   </div>
                 </PopoverTrigger>
@@ -419,18 +462,26 @@ export function TaskDetailModal({
                     <div className={cn("border-b", UI_CLASSES.border)}>
                       <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
                       <div className="px-3 py-1">
-                        <div className={cn("flex items-center gap-2 px-2 py-1.5 rounded-md", UI_CLASSES.selectedItem)}>
+                        <div
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-2 py-1.5",
+                            UI_CLASSES.selectedItem,
+                          )}
+                        >
                           <StatusBadge status={task.status} />
                         </div>
                       </div>
                     </div>
                     <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
                     <div className="pb-1">
-                      {STATUS_OPTIONS.filter(s => s !== task.status).map(s => (
+                      {STATUS_OPTIONS.filter((s) => s !== task.status).map((s) => (
                         <div
                           key={s}
                           className={UI_CLASSES.dropdownItem}
-                          onClick={(e) => { e.stopPropagation(); handleStatusChange(s); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(s);
+                          }}
                         >
                           <StatusBadge status={s} />
                         </div>
@@ -447,8 +498,8 @@ export function TaskDetailModal({
               onSave={handleDescriptionBlur}
             />
 
-            <div className={cn("mt-auto pt-4 pb-4 border-t", UI_CLASSES.borderLight)}>
-              <label className={cn("block text-xs font-bold uppercase mb-2", UI_CLASSES.labelText)}>
+            <div className={cn("mt-auto border-t pb-4 pt-4", UI_CLASSES.borderLight)}>
+              <label className={cn("mb-2 block text-xs font-bold uppercase", UI_CLASSES.labelText)}>
                 Responsáveis
               </label>
               <TaskAssigneesPopover

@@ -12,11 +12,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { DateInput } from "@/shared/components/ui/date-input";
-import { 
-  ContextMenuClientEditor,
-  ContextMenuAssigneeEditor
-} from "../task-editors";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
+import { ContextMenuClientEditor, ContextMenuAssigneeEditor } from "../task-editors";
+import {
+  PriorityBadge,
+  StatusBadge,
+  PRIORITY_OPTIONS,
+  STATUS_OPTIONS,
+} from "@/shared/components/ui/task-badges";
 import { cn } from "@/shared/lib/utils";
 import type { TaskStatus, TaskPriority } from "../../types/task";
 import { useClients } from "@features/clients";
@@ -48,14 +50,14 @@ interface SubMenuProps {
 
 function SubMenu({ label, icon, children }: SubMenuProps) {
   return (
-    <div className="relative group/submenu">
-      <div className="flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground">
+    <div className="group/submenu relative">
+      <div className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground">
         {icon}
         <span className="flex-1">{label}</span>
-        <ChevronRight className="w-4 h-4" />
+        <ChevronRight className="h-4 w-4" />
       </div>
-      <div className="absolute left-full top-0 ml-1 invisible group-hover/submenu:visible opacity-0 group-hover/submenu:opacity-100 transition-all duration-150 z-50">
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-md shadow-lg min-w-[180px]">
+      <div className="invisible absolute left-full top-0 z-50 ml-1 opacity-0 transition-all duration-150 group-hover/submenu:visible group-hover/submenu:opacity-100">
+        <div className="min-w-[180px] rounded-md border border-[#2a2a2a] bg-[#1a1a1a] shadow-lg">
           {children}
         </div>
       </div>
@@ -63,10 +65,21 @@ function SubMenu({ label, icon, children }: SubMenuProps) {
   );
 }
 
-function MenuItem({ onClick, className, children }: { onClick: () => void; className?: string; children: React.ReactNode }) {
+function MenuItem({
+  onClick,
+  className,
+  children,
+}: {
+  onClick: () => void;
+  className?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div 
-      className={cn("flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground", className)}
+    <div
+      className={cn(
+        "flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground",
+        className,
+      )}
       onClick={onClick}
     >
       {children}
@@ -94,33 +107,36 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
 }: BulkEditDropdownProps) {
   const { clients } = useClients();
   const menuRef = useRef<HTMLDivElement>(null);
-  
-  const handleClientSelectWrapper = useCallback((clientName: string) => {
-    if (clientName === "_none") {
-      onClientChange("_none", "");
-    } else {
-      const client = clients.find(c => c.name === clientName);
-      if (client) {
-        onClientChange(client.id, client.name);
+
+  const handleClientSelectWrapper = useCallback(
+    (clientName: string) => {
+      if (clientName === "_none") {
+        onClientChange("_none", "");
+      } else {
+        const client = clients.find((c) => c.name === clientName);
+        if (client) {
+          onClientChange(client.id, client.name);
+        }
       }
-    }
-  }, [clients, onClientChange]);
+    },
+    [clients, onClientChange],
+  );
 
   useEffect(() => {
     if (!isOpen) return;
-    
+
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         onOpenChange(false);
       }
     }
-    
+
     function handleEscape(e: KeyboardEvent) {
       if (e.key === "Escape") {
         onOpenChange(false);
       }
     }
-    
+
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
     return () => {
@@ -132,13 +148,13 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
   if (!isOpen) return null;
 
   return (
-    <div 
+    <div
       ref={menuRef}
-      className="fixed z-50 bg-[#1a1a1a] border border-[#2a2a2a] rounded-md shadow-lg w-56"
-      style={{ 
-        top: "50%", 
-        left: "50%", 
-        transform: "translate(-50%, -50%)" 
+      className="fixed z-50 w-56 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] shadow-lg"
+      style={{
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
       }}
       data-testid="bulk-edit-dropdown"
     >
@@ -146,22 +162,22 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
         <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
           Selecionando {selectedCount} tarefas
         </div>
-        <div className="h-px bg-[#2a2a2a] my-1" />
-        
-        <SubMenu label="Título" icon={<Type className="w-4 h-4" />}>
+        <div className="my-1 h-px bg-[#2a2a2a]" />
+
+        <SubMenu label="Título" icon={<Type className="h-4 w-4" />}>
           <div className="p-1">
             <MenuItem onClick={onShowReplaceTitleDialog}>
-              <Pencil className="w-4 h-4" />
+              <Pencil className="h-4 w-4" />
               <span>Substituir nome</span>
             </MenuItem>
             <MenuItem onClick={onShowAppendTitleDialog}>
-              <PenLine className="w-4 h-4" />
+              <PenLine className="h-4 w-4" />
               <span>Adicionar ao final</span>
             </MenuItem>
           </div>
         </SubMenu>
-        
-        <SubMenu label="Data" icon={<CalendarIcon className="w-4 h-4" />}>
+
+        <SubMenu label="Data" icon={<CalendarIcon className="h-4 w-4" />}>
           <div className="p-0">
             <DateInput
               value={currentDate}
@@ -176,18 +192,18 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
             />
           </div>
         </SubMenu>
-        
-        <SubMenu label="Cliente" icon={<Briefcase className="w-4 h-4" />}>
+
+        <SubMenu label="Cliente" icon={<Briefcase className="h-4 w-4" />}>
           <div className="p-0">
-            <ContextMenuClientEditor 
+            <ContextMenuClientEditor
               currentClient={currentClient || null}
               isBulk={true}
               onSelect={handleClientSelectWrapper}
             />
           </div>
         </SubMenu>
-        
-        <SubMenu label="Prioridade" icon={<AlertTriangle className="w-4 h-4" />}>
+
+        <SubMenu label="Prioridade" icon={<AlertTriangle className="h-4 w-4" />}>
           <div className="p-1">
             {PRIORITY_OPTIONS.map((priority) => (
               <MenuItem key={priority} onClick={() => onPriorityChange(priority)}>
@@ -196,8 +212,8 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
             ))}
           </div>
         </SubMenu>
-        
-        <SubMenu label="Status" icon={<Circle className="w-4 h-4" />}>
+
+        <SubMenu label="Status" icon={<Circle className="h-4 w-4" />}>
           <div className="p-1">
             {STATUS_OPTIONS.map((status) => (
               <MenuItem key={status} onClick={() => onStatusChange(status)}>
@@ -206,10 +222,10 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
             ))}
           </div>
         </SubMenu>
-        
-        <SubMenu label="Responsável" icon={<Users className="w-4 h-4" />}>
+
+        <SubMenu label="Responsável" icon={<Users className="h-4 w-4" />}>
           <div className="p-0">
-            <ContextMenuAssigneeEditor 
+            <ContextMenuAssigneeEditor
               currentAssignees={currentAssignees || []}
               isBulk={true}
               onAdd={onAddAssignee}
@@ -218,10 +234,10 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
             />
           </div>
         </SubMenu>
-        
-        <div className="h-px bg-[#2a2a2a] my-1" />
+
+        <div className="my-1 h-px bg-[#2a2a2a]" />
         <MenuItem onClick={onDelete} className="text-destructive hover:text-destructive">
-          <Trash2 className="w-4 h-4" />
+          <Trash2 className="h-4 w-4" />
           <span>Excluir</span>
         </MenuItem>
       </div>

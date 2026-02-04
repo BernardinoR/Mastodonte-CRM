@@ -26,7 +26,7 @@ export interface FilterValueMap {
 }
 
 // Type-safe active filter with discriminated union
-export type TypedActiveFilter = 
+export type TypedActiveFilter =
   | { id: string; type: "date"; value: DateFilterValue }
   | { id: string; type: "status"; value: TaskStatus[] }
   | { id: string; type: "priority"; value: (TaskPriority | "none")[] }
@@ -50,7 +50,7 @@ export const DEFAULT_FILTER_VALUES: FilterValueMap = {
 // Helper function to create a typed filter
 export function createTypedFilter<T extends FilterType>(
   type: T,
-  value?: FilterValueMap[T]
+  value?: FilterValueMap[T],
 ): TypedActiveFilter {
   const id = `${type}-${Date.now()}`;
   const filterValue = value ?? DEFAULT_FILTER_VALUES[type];
@@ -58,27 +58,39 @@ export function createTypedFilter<T extends FilterType>(
 }
 
 // Type guard functions for filter values
-export function isDateFilter(filter: TypedActiveFilter): filter is { id: string; type: "date"; value: DateFilterValue } {
+export function isDateFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "date"; value: DateFilterValue } {
   return filter.type === "date";
 }
 
-export function isStatusFilter(filter: TypedActiveFilter): filter is { id: string; type: "status"; value: TaskStatus[] } {
+export function isStatusFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "status"; value: TaskStatus[] } {
   return filter.type === "status";
 }
 
-export function isPriorityFilter(filter: TypedActiveFilter): filter is { id: string; type: "priority"; value: (TaskPriority | "none")[] } {
+export function isPriorityFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "priority"; value: (TaskPriority | "none")[] } {
   return filter.type === "priority";
 }
 
-export function isTaskFilter(filter: TypedActiveFilter): filter is { id: string; type: "task"; value: string } {
+export function isTaskFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "task"; value: string } {
   return filter.type === "task";
 }
 
-export function isAssigneeFilter(filter: TypedActiveFilter): filter is { id: string; type: "assignee"; value: string[] } {
+export function isAssigneeFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "assignee"; value: string[] } {
   return filter.type === "assignee";
 }
 
-export function isClientFilter(filter: TypedActiveFilter): filter is { id: string; type: "client"; value: string[] } {
+export function isClientFilter(
+  filter: TypedActiveFilter,
+): filter is { id: string; type: "client"; value: string[] } {
   return filter.type === "client";
 }
 
@@ -110,7 +122,7 @@ export interface Task {
   _tempId?: string; // ID temporário usado antes da sincronização com a API
 }
 
-export type TaskUpdates = Partial<Omit<Task, 'id'>>;
+export type TaskUpdates = Partial<Omit<Task, "id">>;
 
 export const STATUS_OPTIONS: TaskStatus[] = ["To Do", "In Progress", "Done"];
 export const PRIORITY_OPTIONS: TaskPriority[] = ["Urgente", "Importante", "Normal", "Baixa"];
@@ -118,12 +130,12 @@ export const PRIORITY_OPTIONS: TaskPriority[] = ["Urgente", "Importante", "Norma
 export const STATUS_LABELS: Record<TaskStatus, string> = {
   "To Do": "A Fazer",
   "In Progress": "Em Progresso",
-  "Done": "Concluído",
+  Done: "Concluído",
 };
 
 export const PRIORITY_LABELS: Record<TaskPriority, string> = {
-  "Urgente": "Urgente",
-  "Importante": "Importante",
-  "Normal": "Normal",
-  "Baixa": "Baixa",
+  Urgente: "Urgente",
+  Importante: "Importante",
+  Normal: "Normal",
+  Baixa: "Baixa",
 };

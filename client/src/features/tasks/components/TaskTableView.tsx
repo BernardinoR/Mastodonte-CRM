@@ -54,7 +54,7 @@ const DEFAULT_COLUMNS: Column[] = [
 const CONTROL_COLUMNS_WIDTH = 88; // 32px + 24px + 32px
 const HEADER_CONTROL_WIDTH = "88px";
 
-export const TaskTableView = memo(function TaskTableView({ 
+export const TaskTableView = memo(function TaskTableView({
   tasks,
   selectedTaskIds,
   editingTaskId,
@@ -71,13 +71,8 @@ export const TaskTableView = memo(function TaskTableView({
   onReorderTasks,
   onDeleteTask,
 }: TaskTableViewProps) {
-  const { 
-    columns, 
-    setColumns, 
-    handleResizeStart, 
-    handleResizeMove, 
-    handleResizeEnd 
-  } = useColumnResize(DEFAULT_COLUMNS);
+  const { columns, setColumns, handleResizeStart, handleResizeMove, handleResizeEnd } =
+    useColumnResize(DEFAULT_COLUMNS);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null);
 
@@ -87,10 +82,10 @@ export const TaskTableView = memo(function TaskTableView({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
-  const taskIds = useMemo(() => tasks.map(t => `task-${t.id}`), [tasks]);
+  const taskIds = useMemo(() => tasks.map((t) => `task-${t.id}`), [tasks]);
 
   // Handler para drag de LINHAS (restrito ao eixo vertical)
   const handleRowDragStart = useCallback((event: DragStartEvent) => {
@@ -101,88 +96,100 @@ export const TaskTableView = memo(function TaskTableView({
     }
   }, []);
 
-  const handleRowDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveId(null);
-    
-    if (!over || active.id === over.id) return;
+  const handleRowDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      setActiveId(null);
 
-    const activeIdStr = active.id as string;
-    const overIdStr = over.id as string;
+      if (!over || active.id === over.id) return;
 
-    // Só processa se ambos forem linhas (task-)
-    if (activeIdStr.startsWith("task-") && overIdStr.startsWith("task-")) {
-      const activeTaskId = activeIdStr.replace("task-", "");
-      const overTaskId = overIdStr.replace("task-", "");
-      
-      const oldIndex = tasks.findIndex((t) => t.id === activeTaskId);
-      const newIndex = tasks.findIndex((t) => t.id === overTaskId);
-      
-      if (oldIndex !== -1 && newIndex !== -1) {
-        const reorderedTasks = arrayMove([...tasks], oldIndex, newIndex);
-        onReorderTasks?.(reorderedTasks);
+      const activeIdStr = active.id as string;
+      const overIdStr = over.id as string;
+
+      // Só processa se ambos forem linhas (task-)
+      if (activeIdStr.startsWith("task-") && overIdStr.startsWith("task-")) {
+        const activeTaskId = activeIdStr.replace("task-", "");
+        const overTaskId = overIdStr.replace("task-", "");
+
+        const oldIndex = tasks.findIndex((t) => t.id === activeTaskId);
+        const newIndex = tasks.findIndex((t) => t.id === overTaskId);
+
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const reorderedTasks = arrayMove([...tasks], oldIndex, newIndex);
+          onReorderTasks?.(reorderedTasks);
+        }
       }
-    }
-  }, [tasks, onReorderTasks]);
+    },
+    [tasks, onReorderTasks],
+  );
 
   // Handler para drag de COLUNAS (será usado no TableHeader)
-  const handleColumnDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over || active.id === over.id) return;
+  const handleColumnDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
 
-    const activeIdStr = active.id as string;
-    const overIdStr = over.id as string;
+      if (!over || active.id === over.id) return;
 
-    if (activeIdStr.startsWith("col-") && overIdStr.startsWith("col-")) {
-      const activeColId = activeIdStr.replace("col-", "");
-      const overColId = overIdStr.replace("col-", "");
-      
-      setColumns((items) => {
-        const oldIndex = items.findIndex((i) => i.id === activeColId);
-        const newIndex = items.findIndex((i) => i.id === overColId);
-        return arrayMove(items, oldIndex, newIndex);
-      });
-    }
-  }, [setColumns]);
+      const activeIdStr = active.id as string;
+      const overIdStr = over.id as string;
+
+      if (activeIdStr.startsWith("col-") && overIdStr.startsWith("col-")) {
+        const activeColId = activeIdStr.replace("col-", "");
+        const overColId = overIdStr.replace("col-", "");
+
+        setColumns((items) => {
+          const oldIndex = items.findIndex((i) => i.id === activeColId);
+          const newIndex = items.findIndex((i) => i.id === overColId);
+          return arrayMove(items, oldIndex, newIndex);
+        });
+      }
+    },
+    [setColumns],
+  );
 
   // Selection handlers
-  const handleSelectTask = useCallback((taskId: string, checked: boolean, shiftKey: boolean = false) => {
-    if (shiftKey && lastSelectedId) {
-      const lastIndex = tasks.findIndex(t => t.id === lastSelectedId);
-      const currentIndex = tasks.findIndex(t => t.id === taskId);
-      
-      if (lastIndex !== -1 && currentIndex !== -1) {
-        const start = Math.min(lastIndex, currentIndex);
-        const end = Math.max(lastIndex, currentIndex);
-        const rangeIds = tasks.slice(start, end + 1).map(t => t.id);
-        
-        const newSelection = new Set(selectedTaskIds);
-        rangeIds.forEach(id => newSelection.add(id));
-        onSelectionChange?.(newSelection, taskId);
-        setLastSelectedId(taskId);
-        return;
-      }
-    }
-    
-    const newSelection = new Set(selectedTaskIds);
-    if (checked) {
-      newSelection.add(taskId);
-    } else {
-      newSelection.delete(taskId);
-    }
-    onSelectionChange?.(newSelection, taskId);
-    setLastSelectedId(taskId);
-  }, [selectedTaskIds, onSelectionChange, lastSelectedId, tasks]);
+  const handleSelectTask = useCallback(
+    (taskId: string, checked: boolean, shiftKey: boolean = false) => {
+      if (shiftKey && lastSelectedId) {
+        const lastIndex = tasks.findIndex((t) => t.id === lastSelectedId);
+        const currentIndex = tasks.findIndex((t) => t.id === taskId);
 
-  const handleSelectAll = useCallback((checked: boolean) => {
-    if (checked) {
-      onSelectionChange?.(new Set(tasks.map(t => t.id)));
-    } else {
-      onSelectionChange?.(new Set());
-    }
-    setLastSelectedId(null);
-  }, [tasks, onSelectionChange]);
+        if (lastIndex !== -1 && currentIndex !== -1) {
+          const start = Math.min(lastIndex, currentIndex);
+          const end = Math.max(lastIndex, currentIndex);
+          const rangeIds = tasks.slice(start, end + 1).map((t) => t.id);
+
+          const newSelection = new Set(selectedTaskIds);
+          rangeIds.forEach((id) => newSelection.add(id));
+          onSelectionChange?.(newSelection, taskId);
+          setLastSelectedId(taskId);
+          return;
+        }
+      }
+
+      const newSelection = new Set(selectedTaskIds);
+      if (checked) {
+        newSelection.add(taskId);
+      } else {
+        newSelection.delete(taskId);
+      }
+      onSelectionChange?.(newSelection, taskId);
+      setLastSelectedId(taskId);
+    },
+    [selectedTaskIds, onSelectionChange, lastSelectedId, tasks],
+  );
+
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      if (checked) {
+        onSelectionChange?.(new Set(tasks.map((t) => t.id)));
+      } else {
+        onSelectionChange?.(new Set());
+      }
+      setLastSelectedId(null);
+    },
+    [tasks, onSelectionChange],
+  );
 
   const handleClearSelection = useCallback(() => {
     onSelectionChange?.(new Set());
@@ -190,44 +197,56 @@ export const TaskTableView = memo(function TaskTableView({
   }, [onSelectionChange]);
 
   // Bulk action handlers
-  const handleBulkStatusChange = useCallback((status: TaskStatus) => {
-    if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate({ status });
-    }
-  }, [selectedTaskIds, onBulkUpdate]);
+  const handleBulkStatusChange = useCallback(
+    (status: TaskStatus) => {
+      if (selectedTaskIds.size > 0 && onBulkUpdate) {
+        onBulkUpdate({ status });
+      }
+    },
+    [selectedTaskIds, onBulkUpdate],
+  );
 
-  const handleBulkPriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate({ priority: priority === "_none" ? undefined : priority });
-    }
-  }, [selectedTaskIds, onBulkUpdate]);
+  const handleBulkPriorityChange = useCallback(
+    (priority: TaskPriority | "_none") => {
+      if (selectedTaskIds.size > 0 && onBulkUpdate) {
+        onBulkUpdate({ priority: priority === "_none" ? undefined : priority });
+      }
+    },
+    [selectedTaskIds, onBulkUpdate],
+  );
 
-  const handleBulkDateChange = useCallback((date: Date | undefined) => {
-    if (selectedTaskIds.size > 0 && onBulkUpdate && date) {
-      onBulkUpdate({ dueDate: date });
-    }
-  }, [selectedTaskIds, onBulkUpdate]);
+  const handleBulkDateChange = useCallback(
+    (date: Date | undefined) => {
+      if (selectedTaskIds.size > 0 && onBulkUpdate && date) {
+        onBulkUpdate({ dueDate: date });
+      }
+    },
+    [selectedTaskIds, onBulkUpdate],
+  );
 
-  const handleBulkClientChange = useCallback((clientName: string | undefined) => {
-    if (selectedTaskIds.size > 0 && onBulkUpdate) {
-      onBulkUpdate({ clientName });
-    }
-  }, [selectedTaskIds, onBulkUpdate]);
+  const handleBulkClientChange = useCallback(
+    (clientName: string | undefined) => {
+      if (selectedTaskIds.size > 0 && onBulkUpdate) {
+        onBulkUpdate({ clientName });
+      }
+    },
+    [selectedTaskIds, onBulkUpdate],
+  );
 
   // Compute union of all assignees from selected tasks (shows everyone assigned to at least one task)
   const selectedAssignees = useMemo(() => {
     const assigneeSet = new Set<string>();
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       if (selectedTaskIds.has(task.id) && task.assignees) {
-        task.assignees.forEach(a => assigneeSet.add(a));
+        task.assignees.forEach((a) => assigneeSet.add(a));
       }
     });
     return Array.from(assigneeSet);
   }, [tasks, selectedTaskIds]);
 
   // Computed values
-  const allSelected = tasks.length > 0 && tasks.every(t => selectedTaskIds.has(t.id));
-  const someSelected = tasks.some(t => selectedTaskIds.has(t.id)) && !allSelected;
+  const allSelected = tasks.length > 0 && tasks.every((t) => selectedTaskIds.has(t.id));
+  const someSelected = tasks.some((t) => selectedTaskIds.has(t.id)) && !allSelected;
   const hasSelection = selectedTaskIds.size > 0;
 
   return (
@@ -260,22 +279,25 @@ export const TaskTableView = memo(function TaskTableView({
           onColumnReorder={handleColumnDragEnd}
         />
         {tasks.length === 0 ? (
-          <div className="flex items-center justify-center py-16 text-muted-foreground" data-testid="text-empty-table">
+          <div
+            className="flex items-center justify-center py-16 text-muted-foreground"
+            data-testid="text-empty-table"
+          >
             Nenhuma tarefa encontrada
           </div>
         ) : (
-          <DndContext 
-            sensors={sensors} 
-            collisionDetection={closestCenter} 
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
             modifiers={[restrictToVerticalAxis]}
             onDragStart={handleRowDragStart}
             onDragEnd={handleRowDragEnd}
           >
             <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
               {tasks.map((task) => (
-                <TaskTableRow 
-                  key={task.id} 
-                  task={task} 
+                <TaskTableRow
+                  key={task.id}
+                  task={task}
                   columns={columns}
                   controlColumnsWidth={CONTROL_COLUMNS_WIDTH}
                   isSelected={selectedTaskIds.has(task.id)}
@@ -283,7 +305,9 @@ export const TaskTableView = memo(function TaskTableView({
                   selectedTaskIds={selectedTaskIds}
                   onRowClick={() => onTaskClick?.(task)}
                   onStartEditing={() => onStartEditing?.(task.id)}
-                  onSelectChange={(checked, shiftKey) => handleSelectTask(task.id, checked, shiftKey)}
+                  onSelectChange={(checked, shiftKey) =>
+                    handleSelectTask(task.id, checked, shiftKey)
+                  }
                   onUpdateTask={(updates) => onUpdateTask?.(task.id, updates)}
                   onBulkUpdate={(updates) => onBulkUpdate?.(updates)}
                   onBulkAddAssignee={(assignee) => onBulkAddAssignee?.(assignee)}

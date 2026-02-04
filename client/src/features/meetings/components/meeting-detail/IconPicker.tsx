@@ -63,7 +63,7 @@ const AVAILABLE_ICONS = [
   { name: "file-text", icon: FileText, label: "Documento" },
 ] as const;
 
-export type IconName = typeof AVAILABLE_ICONS[number]["name"];
+export type IconName = (typeof AVAILABLE_ICONS)[number]["name"];
 
 interface IconPickerProps {
   selectedIcon: IconName | null;
@@ -104,17 +104,17 @@ export function IconPicker({ selectedIcon, onSelect, triggerClassName }: IconPic
         type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-6 h-6 bg-[#252525] border border-[#333333] rounded-md flex items-center justify-center",
-          "text-[#666666] cursor-pointer transition-all hover:bg-[#333333] hover:text-[#888888]",
+          "flex h-6 w-6 items-center justify-center rounded-md border border-[#333333] bg-[#252525]",
+          "cursor-pointer text-[#666666] transition-all hover:bg-[#333333] hover:text-[#888888]",
           selectedIcon && "bg-[#333333] text-[#888888]",
-          triggerClassName
+          triggerClassName,
         )}
       >
-        <SelectedIconComponent className="w-3.5 h-3.5" />
+        <SelectedIconComponent className="h-3.5 w-3.5" />
       </button>
 
       {isOpen && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 bg-[#1a1a1a] border border-[#333333] rounded-lg p-2 grid grid-cols-5 gap-1 z-50 shadow-lg shadow-black/50 max-h-[300px] overflow-y-auto">
+        <div className="absolute left-1/2 top-full z-50 mt-2 grid max-h-[300px] -translate-x-1/2 grid-cols-5 gap-1 overflow-y-auto rounded-lg border border-[#333333] bg-[#1a1a1a] p-2 shadow-lg shadow-black/50">
           {AVAILABLE_ICONS.map(({ name, icon: Icon }) => (
             <button
               key={name}
@@ -124,13 +124,13 @@ export function IconPicker({ selectedIcon, onSelect, triggerClassName }: IconPic
                 setIsOpen(false);
               }}
               className={cn(
-                "w-8 h-8 flex items-center justify-center rounded-md text-[#888888] cursor-pointer transition-all",
+                "flex h-8 w-8 cursor-pointer items-center justify-center rounded-md text-[#888888] transition-all",
                 "hover:bg-[#333333] hover:text-[#ededed]",
-                selectedIcon === name && "bg-[#333333] text-[#ededed]"
+                selectedIcon === name && "bg-[#333333] text-[#ededed]",
               )}
               title={name}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="h-4 w-4" />
             </button>
           ))}
         </div>

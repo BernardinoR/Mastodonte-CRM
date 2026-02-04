@@ -19,32 +19,44 @@ export function useTaskCardFieldHandlers({
   handleUpdate,
   setActivePopover,
 }: UseTaskCardFieldHandlersProps): UseTaskCardFieldHandlersReturn {
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) {
-      handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
-    }
-  }, [handleUpdate]);
+  const handleDateChange = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        handleUpdate("dueDate", format(date, "yyyy-MM-dd"));
+      }
+    },
+    [handleUpdate],
+  );
 
-  const handlePriorityChange = useCallback((value: string) => {
-    handleUpdate("priority", value === "_none" ? "" : value);
-    setActivePopover(null);
-  }, [handleUpdate, setActivePopover]);
+  const handlePriorityChange = useCallback(
+    (value: string) => {
+      handleUpdate("priority", value === "_none" ? "" : value);
+      setActivePopover(null);
+    },
+    [handleUpdate, setActivePopover],
+  );
 
-  const handleStatusChange = useCallback((value: string) => {
-    handleUpdate("status", value);
-    setActivePopover(null);
-  }, [handleUpdate, setActivePopover]);
+  const handleStatusChange = useCallback(
+    (value: string) => {
+      handleUpdate("status", value);
+      setActivePopover(null);
+    },
+    [handleUpdate, setActivePopover],
+  );
 
-  const handleClientChange = useCallback((clientId: string, clientName: string) => {
-    if (clientId === "_none") {
-      handleUpdate("clientId", undefined);
-      handleUpdate("clientName", undefined);
-    } else {
-      handleUpdate("clientId", clientId);
-      handleUpdate("clientName", clientName);
-    }
-    setActivePopover(null);
-  }, [handleUpdate, setActivePopover]);
+  const handleClientChange = useCallback(
+    (clientId: string, clientName: string) => {
+      if (clientId === "_none") {
+        handleUpdate("clientId", undefined);
+        handleUpdate("clientName", undefined);
+      } else {
+        handleUpdate("clientId", clientId);
+        handleUpdate("clientName", clientName);
+      }
+      setActivePopover(null);
+    },
+    [handleUpdate, setActivePopover],
+  );
 
   return {
     handleDateChange,

@@ -16,7 +16,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["mazer.ale@hotmail.com", "alessandro.mazer@empresa.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-25'),
+    lastMeeting: new Date("2025-11-25"),
     address: {
       street: "Rua das Flores, 123",
       complement: "Apto 501",
@@ -39,7 +39,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["ademar.grieger@email.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-22'),
+    lastMeeting: new Date("2025-11-22"),
     address: {
       street: "Rua XV de Novembro, 456",
       complement: "",
@@ -61,7 +61,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["fernanda.faria@email.com", "fernanda.trabalho@corp.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-15'),
+    lastMeeting: new Date("2025-11-15"),
     address: {
       street: "Av. Atlântica, 1500",
       complement: "Cobertura",
@@ -83,7 +83,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["gustavo@example.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-10-30'),
+    lastMeeting: new Date("2025-10-30"),
     address: {
       street: "Av. Paulista, 1000",
       complement: "Sala 2001",
@@ -105,7 +105,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["israel.fonseca@email.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-18'),
+    lastMeeting: new Date("2025-11-18"),
     address: {
       street: "Rua Barão de Jaguara, 200",
       complement: "",
@@ -127,7 +127,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["marcia.andrade@email.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-20'),
+    lastMeeting: new Date("2025-11-20"),
     address: {
       street: "Av. Ana Costa, 300",
       complement: "Bloco B, Apto 12",
@@ -149,7 +149,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["rodrigo.weber@email.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-10'),
+    lastMeeting: new Date("2025-11-10"),
     address: {
       street: "Rua XV de Novembro, 700",
       complement: "",
@@ -171,7 +171,7 @@ export const INITIAL_CLIENTS: Client[] = [
     emails: ["fernanda.garcia@email.com"],
     primaryEmailIndex: 0,
     advisor: "Rafael Bernardino Silveira",
-    lastMeeting: new Date('2025-11-05'),
+    lastMeeting: new Date("2025-11-05"),
     address: {
       street: "Av. Ipiranga, 1200",
       complement: "Casa",
@@ -203,11 +203,32 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-25'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-20'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-25"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Reunião Mensal - Outubro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-10-20"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Alessandro | Mastodonte", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/abc123", createdAt: new Date('2023-06-15'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Alessandro | Mastodonte",
+        purpose: "Atendimento principal do cliente",
+        link: "https://chat.whatsapp.com/abc123",
+        createdAt: new Date("2023-06-15"),
+        status: "Ativo",
+      },
     ],
   },
   "2": {
@@ -218,15 +239,64 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "3", label: "Indicações", change: "1 convertida", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Dezembro", type: "Mensal", status: "Agendada", date: new Date('2025-12-18'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-22'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "3", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-22'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Dezembro",
+        type: "Mensal",
+        status: "Agendada",
+        date: new Date("2025-12-18"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-22"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "3",
+        name: "Reunião Mensal - Outubro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-10-22"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Ademar | Mastodonte & Bradesco", purpose: "Atendimento principal do cliente", link: "https://chat.whatsapp.com/def456", createdAt: new Date('2022-12-15'), status: "Ativo" },
-      { id: "2", name: "Ademar | Grieger Holding", purpose: "Assuntos da empresa e holding familiar", link: "https://chat.whatsapp.com/ghi789", createdAt: new Date('2024-03-08'), status: "Ativo" },
-      { id: "3", name: "Ademar & Cláudia | Família", purpose: "Planejamento sucessório com esposa", link: "https://chat.whatsapp.com/jkl012", createdAt: new Date('2025-09-22'), status: "Ativo" },
-      { id: "4", name: "Ademar | Antiga XP", purpose: "Migração de antiga corretora (arquivado)", link: null, createdAt: new Date('2022-10-12'), status: "Inativo" },
+      {
+        id: "1",
+        name: "Ademar | Mastodonte & Bradesco",
+        purpose: "Atendimento principal do cliente",
+        link: "https://chat.whatsapp.com/def456",
+        createdAt: new Date("2022-12-15"),
+        status: "Ativo",
+      },
+      {
+        id: "2",
+        name: "Ademar | Grieger Holding",
+        purpose: "Assuntos da empresa e holding familiar",
+        link: "https://chat.whatsapp.com/ghi789",
+        createdAt: new Date("2024-03-08"),
+        status: "Ativo",
+      },
+      {
+        id: "3",
+        name: "Ademar & Cláudia | Família",
+        purpose: "Planejamento sucessório com esposa",
+        link: "https://chat.whatsapp.com/jkl012",
+        createdAt: new Date("2025-09-22"),
+        status: "Ativo",
+      },
+      {
+        id: "4",
+        name: "Ademar | Antiga XP",
+        purpose: "Migração de antiga corretora (arquivado)",
+        link: null,
+        createdAt: new Date("2022-10-12"),
+        status: "Inativo",
+      },
     ],
   },
   "3": {
@@ -237,11 +307,32 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-15'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Follow-up Investimentos", type: "Esporádica", status: "Realizada", date: new Date('2025-11-08'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-15"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Follow-up Investimentos",
+        type: "Esporádica",
+        status: "Realizada",
+        date: new Date("2025-11-08"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Fernanda | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/mno345", createdAt: new Date('2021-03-20'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Fernanda | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/mno345",
+        createdAt: new Date("2021-03-20"),
+        status: "Ativo",
+      },
     ],
   },
   "4": {
@@ -252,10 +343,24 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "0", label: "Indicações", change: "-", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião de Prospecção", type: "Esporádica", status: "Realizada", date: new Date('2025-10-30'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião de Prospecção",
+        type: "Esporádica",
+        status: "Realizada",
+        date: new Date("2025-10-30"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Gustavo | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/xyz789", createdAt: new Date('2025-10-30'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Gustavo | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/xyz789",
+        createdAt: new Date("2025-10-30"),
+        status: "Ativo",
+      },
     ],
   },
   "5": {
@@ -266,12 +371,40 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "4", label: "Indicações", change: "2 convertidas", changeType: "positive" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-18'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Reunião de Estratégia", type: "Esporádica", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-18"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Reunião de Estratégia",
+        type: "Esporádica",
+        status: "Realizada",
+        date: new Date("2025-11-05"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Israel | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/pqr678", createdAt: new Date('2022-02-15'), status: "Ativo" },
-      { id: "2", name: "Israel | Investimentos", purpose: "Discussões sobre carteira", link: "https://chat.whatsapp.com/stu901", createdAt: new Date('2023-06-10'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Israel | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/pqr678",
+        createdAt: new Date("2022-02-15"),
+        status: "Ativo",
+      },
+      {
+        id: "2",
+        name: "Israel | Investimentos",
+        purpose: "Discussões sobre carteira",
+        link: "https://chat.whatsapp.com/stu901",
+        createdAt: new Date("2023-06-10"),
+        status: "Ativo",
+      },
     ],
   },
   "6": {
@@ -282,12 +415,40 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "2", label: "Indicações", change: "1 em análise", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião de Acompanhamento - Setembro", type: "Mensal", status: "Realizada", date: new Date('2025-09-18'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Reunião Mensal - Agosto", type: "Mensal", status: "Realizada", date: new Date('2025-08-15'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "3", name: "Follow-up Previdência", type: "Esporádica", status: "Realizada", date: new Date('2025-07-10'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião de Acompanhamento - Setembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-09-18"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Reunião Mensal - Agosto",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-08-15"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "3",
+        name: "Follow-up Previdência",
+        type: "Esporádica",
+        status: "Realizada",
+        date: new Date("2025-07-10"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Marcia | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/vwx234", createdAt: new Date('2022-08-25'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Marcia | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/vwx234",
+        createdAt: new Date("2022-08-25"),
+        status: "Ativo",
+      },
     ],
   },
   "7": {
@@ -298,11 +459,32 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "1", label: "Indicações", change: "Em prospecção", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-10'), assignees: ["Rafael Bernardino Silveira"] },
-      { id: "2", name: "Reunião Mensal - Outubro", type: "Mensal", status: "Realizada", date: new Date('2025-10-15'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-10"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
+      {
+        id: "2",
+        name: "Reunião Mensal - Outubro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-10-15"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Rodrigo | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/yza567", createdAt: new Date('2024-01-15'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Rodrigo | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/yza567",
+        createdAt: new Date("2024-01-15"),
+        status: "Ativo",
+      },
     ],
   },
   "8": {
@@ -313,10 +495,24 @@ export const CLIENT_EXTENDED_DATA: Record<string, ClientExtendedData> = {
       { value: "0", label: "Indicações", change: "-", changeType: "neutral" },
     ],
     meetings: [
-      { id: "1", name: "Reunião Mensal - Novembro", type: "Mensal", status: "Realizada", date: new Date('2025-11-05'), assignees: ["Rafael Bernardino Silveira"] },
+      {
+        id: "1",
+        name: "Reunião Mensal - Novembro",
+        type: "Mensal",
+        status: "Realizada",
+        date: new Date("2025-11-05"),
+        assignees: ["Rafael Bernardino Silveira"],
+      },
     ],
     whatsappGroups: [
-      { id: "1", name: "Fernanda G. | Mastodonte", purpose: "Atendimento principal", link: "https://chat.whatsapp.com/bcd890", createdAt: new Date('2024-05-10'), status: "Ativo" },
+      {
+        id: "1",
+        name: "Fernanda G. | Mastodonte",
+        purpose: "Atendimento principal",
+        link: "https://chat.whatsapp.com/bcd890",
+        createdAt: new Date("2024-05-10"),
+        status: "Ativo",
+      },
     ],
   },
 };
@@ -329,7 +525,7 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
     name: "Reunião de Acompanhamento - Setembro",
     type: "Mensal",
     status: "Realizada",
-    date: new Date('2025-09-18'),
+    date: new Date("2025-09-18"),
     startTime: "10:00",
     endTime: "11:15",
     duration: "1h 15min",
@@ -343,10 +539,26 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
     summary: `Foi discutida a <strong>situação financeira da empresa</strong> e as dificuldades de caixa diante de atrasos de clientes e custos com obras, além da importância da <strong>gestão de milhas</strong> para economizar em viagens. Rafael apresentou o desempenho das <strong>carteiras de investimento</strong> e as estratégias de realocação, pontos sobre <strong>consórcios e crédito para caminhões</strong>, além de orientações sobre compra de dólar e conta Wise.`,
     clientContext: {
       points: [
-        { id: "1", icon: "AlertCircle", text: "Período desafiador nas finanças devido a obras e atrasos de clientes. Preocupação com saúde e custos adicionais." },
-        { id: "2", icon: "Home", text: "Desafios com reforma em andamento e necessidade de troca de fornecedores durante o processo." },
-        { id: "3", icon: "Plane", text: "Gosta de viajar com frequência e planeja viagem para janeiro/fevereiro do próximo ano." },
-        { id: "4", icon: "CreditCard", text: "Preza pela praticidade nas transações bancárias. Ajustando número de contas para facilitar controle." },
+        {
+          id: "1",
+          icon: "AlertCircle",
+          text: "Período desafiador nas finanças devido a obras e atrasos de clientes. Preocupação com saúde e custos adicionais.",
+        },
+        {
+          id: "2",
+          icon: "Home",
+          text: "Desafios com reforma em andamento e necessidade de troca de fornecedores durante o processo.",
+        },
+        {
+          id: "3",
+          icon: "Plane",
+          text: "Gosta de viajar com frequência e planeja viagem para janeiro/fevereiro do próximo ano.",
+        },
+        {
+          id: "4",
+          icon: "CreditCard",
+          text: "Preza pela praticidade nas transações bancárias. Ajustando número de contas para facilitar controle.",
+        },
       ],
     },
     highlights: [
@@ -362,9 +574,23 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         title: "Situação Financeira e Fluxo de Caixa",
         status: "discussed",
         subitems: [
-          { id: "1-1", title: "Dificuldades de caixa atuais", description: "Empresa enfrentando atrasos de recebimentos de clientes, impactando o fluxo de caixa mensal." },
-          { id: "1-2", title: "Custos com obras", description: "Reforma em andamento gerando custos extras. Necessidade de troca de fornecedores durante o processo." },
-          { id: "1-3", title: "Preocupações adicionais", description: "Questões de saúde e custos relacionados sendo monitorados." },
+          {
+            id: "1-1",
+            title: "Dificuldades de caixa atuais",
+            description:
+              "Empresa enfrentando atrasos de recebimentos de clientes, impactando o fluxo de caixa mensal.",
+          },
+          {
+            id: "1-2",
+            title: "Custos com obras",
+            description:
+              "Reforma em andamento gerando custos extras. Necessidade de troca de fornecedores durante o processo.",
+          },
+          {
+            id: "1-3",
+            title: "Preocupações adicionais",
+            description: "Questões de saúde e custos relacionados sendo monitorados.",
+          },
         ],
       },
       {
@@ -373,9 +599,23 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         title: "Desempenho das Carteiras de Investimento",
         status: "discussed",
         subitems: [
-          { id: "2-1", title: "Análise de performance", description: "Rafael apresentou o desempenho atual das carteiras e rentabilidade no período." },
-          { id: "2-2", title: "Estratégias de realocação", description: "Discussão sobre oportunidades de realocação para melhorar rentabilidade." },
-          { id: "2-3", title: "Carteira do Reinaldo", description: "Pendente recebimento da carteira para análise e sugestão de realocações mais rentáveis no Itaú." },
+          {
+            id: "2-1",
+            title: "Análise de performance",
+            description:
+              "Rafael apresentou o desempenho atual das carteiras e rentabilidade no período.",
+          },
+          {
+            id: "2-2",
+            title: "Estratégias de realocação",
+            description: "Discussão sobre oportunidades de realocação para melhorar rentabilidade.",
+          },
+          {
+            id: "2-3",
+            title: "Carteira do Reinaldo",
+            description:
+              "Pendente recebimento da carteira para análise e sugestão de realocações mais rentáveis no Itaú.",
+          },
         ],
       },
       {
@@ -384,8 +624,18 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         title: "Consórcios e Crédito para Renovação de Frota",
         status: "action_pending",
         subitems: [
-          { id: "3-1", title: "Consórcio misto", description: "Cotação pode gerar economia relevante, especialmente com garantia em investimentos existentes." },
-          { id: "3-2", title: "Crédito para caminhões", description: "Avaliar melhores opções de financiamento para renovação da frota da empresa." },
+          {
+            id: "3-1",
+            title: "Consórcio misto",
+            description:
+              "Cotação pode gerar economia relevante, especialmente com garantia em investimentos existentes.",
+          },
+          {
+            id: "3-2",
+            title: "Crédito para caminhões",
+            description:
+              "Avaliar melhores opções de financiamento para renovação da frota da empresa.",
+          },
         ],
       },
       {
@@ -394,8 +644,18 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         title: "Gestão de Milhas e Planejamento de Viagens",
         status: "discussed",
         subitems: [
-          { id: "4-1", title: "Serviço de concierge", description: "Potencial para reduzir custos de viagens dado a frequência de viagens da Márcia." },
-          { id: "4-2", title: "Viagem planejada", description: "Márcia planeja viagem para janeiro/fevereiro - oportunidade para uso do concierge." },
+          {
+            id: "4-1",
+            title: "Serviço de concierge",
+            description:
+              "Potencial para reduzir custos de viagens dado a frequência de viagens da Márcia.",
+          },
+          {
+            id: "4-2",
+            title: "Viagem planejada",
+            description:
+              "Márcia planeja viagem para janeiro/fevereiro - oportunidade para uso do concierge.",
+          },
         ],
       },
       {
@@ -404,48 +664,92 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         title: "Otimização Bancária e Cartões",
         status: "action_pending",
         subitems: [
-          { id: "5-1", title: "Consolidação de contas", description: "Redução do número de contas para simplificar gestão e melhorar acúmulo de pontos/milhas." },
-          { id: "5-2", title: "Cartão C6", description: "Pontuação atual abaixo do esperado. Solicitar aumento para 3 ou 3,5 pontos + sala VIP ilimitada." },
-          { id: "5-3", title: "Conta Wise e Dólar", description: "Orientações sobre compra de dólar e uso da conta Wise para viagens internacionais." },
+          {
+            id: "5-1",
+            title: "Consolidação de contas",
+            description:
+              "Redução do número de contas para simplificar gestão e melhorar acúmulo de pontos/milhas.",
+          },
+          {
+            id: "5-2",
+            title: "Cartão C6",
+            description:
+              "Pontuação atual abaixo do esperado. Solicitar aumento para 3 ou 3,5 pontos + sala VIP ilimitada.",
+          },
+          {
+            id: "5-3",
+            title: "Conta Wise e Dólar",
+            description:
+              "Orientações sobre compra de dólar e uso da conta Wise para viagens internacionais.",
+          },
         ],
       },
     ],
     decisions: [
-      { id: "1", content: "Cotação de <strong>consórcio misto</strong> pode gerar economia relevante, principalmente com garantia em investimentos", type: "normal" },
-      { id: "2", content: "Serviço de <strong>concierge de milhas e viagens</strong> tem potencial para reduzir custos, dada a frequência de viagens", type: "normal" },
-      { id: "3", content: "<strong>Redução de contas bancárias</strong> pode simplificar a gestão financeira e melhorar o acúmulo de pontos/milhas", type: "normal" },
-      { id: "4", content: "Pontuação do <strong>cartão C6 abaixo do esperado</strong> - solicitar upgrade para potencializar benefícios", type: "normal" },
-      { id: "5", content: "<strong>Atenção ao cenário de crédito</strong> e desempenho do Banco Master - monitorar exposição", type: "warning" },
+      {
+        id: "1",
+        content:
+          "Cotação de <strong>consórcio misto</strong> pode gerar economia relevante, principalmente com garantia em investimentos",
+        type: "normal",
+      },
+      {
+        id: "2",
+        content:
+          "Serviço de <strong>concierge de milhas e viagens</strong> tem potencial para reduzir custos, dada a frequência de viagens",
+        type: "normal",
+      },
+      {
+        id: "3",
+        content:
+          "<strong>Redução de contas bancárias</strong> pode simplificar a gestão financeira e melhorar o acúmulo de pontos/milhas",
+        type: "normal",
+      },
+      {
+        id: "4",
+        content:
+          "Pontuação do <strong>cartão C6 abaixo do esperado</strong> - solicitar upgrade para potencializar benefícios",
+        type: "normal",
+      },
+      {
+        id: "5",
+        content:
+          "<strong>Atenção ao cenário de crédito</strong> e desempenho do Banco Master - monitorar exposição",
+        type: "warning",
+      },
     ],
     linkedTasks: [
       {
         id: "1",
-        title: "Verificar e solicitar aumento da pontuação do cartão C6 de Márcia para 3 ou 3,5 pontos e sala VIP ilimitada",
-        dueDate: new Date('2025-09-25'),
+        title:
+          "Verificar e solicitar aumento da pontuação do cartão C6 de Márcia para 3 ou 3,5 pontos e sala VIP ilimitada",
+        dueDate: new Date("2025-09-25"),
         assignee: "Rafael",
         priority: "Importante",
         completed: false,
       },
       {
         id: "2",
-        title: "Preparar comparativo das diferentes possibilidades de consórcio e crédito para renovação de frota",
-        dueDate: new Date('2025-09-30'),
+        title:
+          "Preparar comparativo das diferentes possibilidades de consórcio e crédito para renovação de frota",
+        dueDate: new Date("2025-09-30"),
         assignee: "Rafael",
         priority: "Importante",
         completed: false,
       },
       {
         id: "3",
-        title: "Apresentar serviço de concierge de viagens/milhas e viabilizar contato com o serviço",
-        dueDate: new Date('2025-10-05'),
+        title:
+          "Apresentar serviço de concierge de viagens/milhas e viabilizar contato com o serviço",
+        dueDate: new Date("2025-10-05"),
         assignee: "Rafael",
         priority: "Normal",
         completed: false,
       },
       {
         id: "4",
-        title: "Receber carteira de investimentos do Reinaldo e sugerir realocações mais rentáveis no Itaú",
-        dueDate: new Date('2025-10-10'),
+        title:
+          "Receber carteira de investimentos do Reinaldo e sugerir realocações mais rentáveis no Itaú",
+        dueDate: new Date("2025-10-10"),
         assignee: "Rafael",
         priority: "Normal",
         completed: false,
@@ -453,15 +757,44 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
     ],
     participants: [
       { id: "1", name: "Márcia", role: "Cliente", avatarColor: "#a78bfa", initials: "MA" },
-      { id: "2", name: "Rafael", role: "Consultor de Investimentos", avatarColor: "#2563eb", initials: "RF" },
+      {
+        id: "2",
+        name: "Rafael",
+        role: "Consultor de Investimentos",
+        avatarColor: "#2563eb",
+        initials: "RF",
+      },
       { id: "3", name: "Reinaldo", role: "Mencionado", avatarColor: "#10b981", initials: "RE" },
     ],
     attachments: [
-      { id: "1", name: "Relatório_Carteira_Setembro.pdf", type: "pdf", size: "2.4 MB", addedAt: new Date('2025-09-18') },
-      { id: "2", name: "Comparativo_Consórcios.xlsx", type: "excel", size: "856 KB", addedAt: new Date('2025-09-20') },
-      { id: "3", name: "Proposta_C6_Upgrade.docx", type: "doc", size: "320 KB", addedAt: new Date('2025-09-19') },
-      { id: "4", name: "Concierge_Milhas_Apresentação.pdf", type: "pdf", size: "1.8 MB", addedAt: new Date('2025-09-18') },
+      {
+        id: "1",
+        name: "Relatório_Carteira_Setembro.pdf",
+        type: "pdf",
+        size: "2.4 MB",
+        addedAt: new Date("2025-09-18"),
+      },
+      {
+        id: "2",
+        name: "Comparativo_Consórcios.xlsx",
+        type: "excel",
+        size: "856 KB",
+        addedAt: new Date("2025-09-20"),
+      },
+      {
+        id: "3",
+        name: "Proposta_C6_Upgrade.docx",
+        type: "doc",
+        size: "320 KB",
+        addedAt: new Date("2025-09-19"),
+      },
+      {
+        id: "4",
+        name: "Concierge_Milhas_Apresentação.pdf",
+        type: "pdf",
+        size: "1.8 MB",
+        addedAt: new Date("2025-09-18"),
+      },
     ],
   },
 };
-

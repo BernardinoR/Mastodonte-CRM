@@ -10,13 +10,7 @@ import {
   type ValidationResult,
 } from "../lib/clientImportExport";
 
-export type ImportExportState =
-  | "idle"
-  | "parsing"
-  | "previewing"
-  | "importing"
-  | "done"
-  | "error";
+export type ImportExportState = "idle" | "parsing" | "previewing" | "importing" | "done" | "error";
 
 export interface ImportResult {
   inserted: number;
@@ -64,9 +58,7 @@ export function useClientImportExport() {
       setState("previewing");
     } catch (err) {
       setState("error");
-      setErrorMessage(
-        err instanceof Error ? err.message : "Erro ao processar o arquivo."
-      );
+      setErrorMessage(err instanceof Error ? err.message : "Erro ao processar o arquivo.");
     }
   }, []);
 

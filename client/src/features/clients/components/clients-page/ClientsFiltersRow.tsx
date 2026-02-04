@@ -58,32 +58,27 @@ export function ClientsFiltersRow({
   return (
     <>
       {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} />
 
       {/* Filters Row */}
-      <div className="flex items-center gap-3 mb-6 flex-wrap justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         {/* Search Box */}
-        <div className="flex items-center gap-2 bg-[#1a1a1a] border border-[#333333] rounded-md px-3 py-2 flex-1 max-w-[320px]">
-          <Search className="w-4 h-4 text-[#8c8c8c]" />
+        <div className="flex max-w-[320px] flex-1 items-center gap-2 rounded-md border border-[#333333] bg-[#1a1a1a] px-3 py-2">
+          <Search className="h-4 w-4 text-[#8c8c8c]" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             placeholder="Buscar por nome, email, telefone..."
-            className="bg-transparent border-none text-[#ededed] text-sm flex-1 outline-none placeholder:text-[#666666]"
+            className="flex-1 border-none bg-transparent text-sm text-[#ededed] outline-none placeholder:text-[#666666]"
             data-testid="input-search-clients"
           />
           {searchQuery && (
             <button
-              onClick={() => onSearchChange('')}
+              onClick={() => onSearchChange("")}
               className="text-[#8c8c8c] hover:text-[#ededed]"
             >
-              <X className="w-4 h-4" />
+              <X className="h-4 w-4" />
             </button>
           )}
         </div>
@@ -92,39 +87,39 @@ export function ClientsFiltersRow({
         <button
           onClick={() => setShowFilterPanel(!showFilterPanel)}
           className={cn(
-            "flex items-center gap-1.5 px-3 py-2 bg-[#1a1a1a] border border-[#333333] rounded-md text-[13px] transition-colors",
+            "flex items-center gap-1.5 rounded-md border border-[#333333] bg-[#1a1a1a] px-3 py-2 text-[13px] transition-colors",
             showFilterPanel
-              ? "bg-[#243041] border-[#3a5068] text-[#6db1d4]"
-              : "text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]"
+              ? "border-[#3a5068] bg-[#243041] text-[#6db1d4]"
+              : "text-[#8c8c8c] hover:border-[#444444] hover:text-[#ededed]",
           )}
         >
-          <SlidersHorizontal className="w-4 h-4" />
+          <SlidersHorizontal className="h-4 w-4" />
           Filtros
-          <ChevronDown className="w-3.5 h-3.5" />
+          <ChevronDown className="h-3.5 w-3.5" />
         </button>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-3 ml-auto">
+        <div className="ml-auto flex items-center gap-3">
           {/* Import Dropdown */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 px-4 py-2 bg-transparent text-[#8c8c8c] hover:bg-[#212121] hover:text-[#ededed] rounded-md text-sm transition-colors">
-                <Upload className="w-4 h-4" />
+              <button className="flex items-center gap-2 rounded-md bg-transparent px-4 py-2 text-sm text-[#8c8c8c] transition-colors hover:bg-[#212121] hover:text-[#ededed]">
+                <Upload className="h-4 w-4" />
                 Importar
-                <ChevronDown className="w-3 h-3" />
+                <ChevronDown className="h-3 w-3" />
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuItem onClick={() => handleImportClick(".csv")}>
-                <FileText className="w-4 h-4 mr-2" />
+                <FileText className="mr-2 h-4 w-4" />
                 Importar CSV
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleImportClick(".xlsx,.xls")}>
-                <FileSpreadsheet className="w-4 h-4 mr-2" />
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
                 Importar Excel
               </DropdownMenuItem>
               <DropdownMenuItem onClick={onDownloadTemplate}>
-                <Download className="w-4 h-4 mr-2" />
+                <Download className="mr-2 h-4 w-4" />
                 Baixar Modelo Excel
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -133,19 +128,19 @@ export function ClientsFiltersRow({
           {/* Export Button */}
           <button
             onClick={onExportClients}
-            className="flex items-center gap-2 px-4 py-2 bg-transparent text-[#8c8c8c] hover:bg-[#212121] hover:text-[#ededed] rounded-md text-sm transition-colors"
+            className="flex items-center gap-2 rounded-md bg-transparent px-4 py-2 text-sm text-[#8c8c8c] transition-colors hover:bg-[#212121] hover:text-[#ededed]"
           >
-            <Download className="w-4 h-4" />
+            <Download className="h-4 w-4" />
             Exportar
           </button>
 
           {/* New Client Button */}
           <button
             onClick={onNewClient}
-            className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] transition-colors"
+            className="flex h-8 items-center gap-1.5 rounded-md border border-[#404040] bg-[#2a2a2a] px-3 text-sm font-medium text-white transition-colors hover:border-[#505050] hover:bg-[#333]"
             data-testid="button-newclient"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             Novo Cliente
           </button>
         </div>
@@ -153,14 +148,14 @@ export function ClientsFiltersRow({
 
       {/* Filter Panel */}
       {showFilterPanel && (
-        <div className="bg-[#1a1a1a] border border-[#333333] rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between mb-4">
+        <div className="mb-6 rounded-lg border border-[#333333] bg-[#1a1a1a] p-4">
+          <div className="mb-4 flex items-center justify-between">
             <span className="text-sm font-semibold">Filtros Avançados</span>
             <button
               onClick={() => setShowFilterPanel(false)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[#8c8c8c] hover:text-[#ededed] text-xs"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs text-[#8c8c8c] hover:text-[#ededed]"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="h-3.5 w-3.5" />
               Limpar filtros
             </button>
           </div>
@@ -168,10 +163,10 @@ export function ClientsFiltersRow({
           <div className="grid grid-cols-5 gap-4">
             {/* Consultor */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide">
+              <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 Consultor
               </label>
-              <select className="bg-[#252525] border border-[#333333] rounded-md px-3 py-2 text-[13px] text-[#ededed] cursor-pointer">
+              <select className="cursor-pointer rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed]">
                 <option value="">Todos</option>
                 <option value="rafael">Rafael Bernardino Silveira</option>
                 <option value="ana">Ana Paula Santos</option>
@@ -180,34 +175,34 @@ export function ClientsFiltersRow({
 
             {/* AUM Mínimo */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide">
+              <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 AUM Mínimo
               </label>
               <input
                 type="text"
                 placeholder="R$ 0"
-                className="bg-[#252525] border border-[#333333] rounded-md px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#666666] outline-none focus:border-[#2eaadc]"
+                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
               />
             </div>
 
             {/* AUM Máximo */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide">
+              <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 AUM Máximo
               </label>
               <input
                 type="text"
                 placeholder="R$ 100M"
-                className="bg-[#252525] border border-[#333333] rounded-md px-3 py-2 text-[13px] text-[#ededed] placeholder:text-[#666666] outline-none focus:border-[#2eaadc]"
+                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none placeholder:text-[#666666] focus:border-[#2eaadc]"
               />
             </div>
 
             {/* Cidade */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide">
+              <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 Cidade
               </label>
-              <select className="bg-[#252525] border border-[#333333] rounded-md px-3 py-2 text-[13px] text-[#ededed] cursor-pointer">
+              <select className="cursor-pointer rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed]">
                 <option value="">Todas</option>
                 <option value="sp">São Paulo</option>
                 <option value="blumenau">Blumenau</option>
@@ -217,12 +212,12 @@ export function ClientsFiltersRow({
 
             {/* Cliente Desde */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-medium text-[#8c8c8c] uppercase tracking-wide">
+              <label className="text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c]">
                 Cliente Desde
               </label>
               <input
                 type="month"
-                className="bg-[#252525] border border-[#333333] rounded-md px-3 py-2 text-[13px] text-[#ededed] outline-none focus:border-[#2eaadc]"
+                className="rounded-md border border-[#333333] bg-[#252525] px-3 py-2 text-[13px] text-[#ededed] outline-none focus:border-[#2eaadc]"
               />
             </div>
           </div>

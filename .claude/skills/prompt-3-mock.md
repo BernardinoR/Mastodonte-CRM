@@ -1,11 +1,13 @@
 # Skill: Criar Mock de Tela
 
 ## Objetivo
+
 Criar um mock visual completo de uma nova tela, com dados fake hardcoded, sem lógica de negócio nem chamadas de API.
 
 ## Contexto Importante
 
 ### Stack do Projeto
+
 - **Framework:** React + TypeScript + Vite
 - **Router:** Wouter (`<Route>`, `<Switch>`)
 - **UI:** shadcn/ui (52 componentes) em `@/shared/components/ui/`
@@ -15,7 +17,9 @@ Criar um mock visual completo de uma nova tela, com dados fake hardcoded, sem l�
 - **Abordagem:** Responsivo (NÃO mobile-first)
 
 ### Estrutura de Features
+
 Seguir o padrão existente em `client/src/features/`:
+
 ```
 client/src/features/[nome-da-feature]/
 ├── components/        # Componentes da feature
@@ -28,6 +32,7 @@ client/src/features/[nome-da-feature]/
 ```
 
 ### Design System
+
 - SEMPRE consultar a página `/style-guides` antes de criar qualquer UI
 - NUNCA usar cores hardcoded — usar variáveis CSS ou classes Tailwind do tema
 - SEMPRE importar componentes de `@/shared/components/ui/`
@@ -35,7 +40,9 @@ client/src/features/[nome-da-feature]/
 ## Passo a Passo
 
 ### 1. Buscar Referências
+
 Antes de criar o mock:
+
 - Consultar a página `/style-guides` para referência visual
 - Verificar componentes existentes em features similares
 - Analisar padrões de layout já usados no projeto
@@ -45,6 +52,7 @@ Antes de criar o mock:
 **Diretório:** `client/src/features/[nome]/`
 
 Criar os arquivos necessários:
+
 ```
 pages/[NomeDaPagina].tsx   # Página principal
 components/[...]           # Sub-componentes (se necessário)
@@ -55,6 +63,7 @@ index.ts                   # Barrel export
 ### 3. Criar o Barrel Export
 
 **Arquivo:** `client/src/features/[nome]/index.ts`
+
 ```ts
 export { default as NomeDaPagina } from "./pages/NomeDaPagina";
 ```
@@ -64,11 +73,13 @@ export { default as NomeDaPagina } from "./pages/NomeDaPagina";
 **Arquivo:** `client/src/app/App.tsx`
 
 Na função `AuthenticatedRouter`, adicionar antes da rota `NotFound`:
+
 ```tsx
 <Route path="/[nome]" component={NomeDaPagina} />
 ```
 
 Import no topo:
+
 ```tsx
 import { NomeDaPagina } from "@features/[nome]";
 ```
@@ -78,6 +89,7 @@ import { NomeDaPagina } from "@features/[nome]";
 **Arquivo:** `client/src/features/[nome]/pages/[NomeDaPagina].tsx`
 
 #### Regras do Mock:
+
 - **Dados FAKE** hardcoded (arrays/objetos constantes no topo do arquivo)
 - **Visual COMPLETO** e polido — deve parecer a versão final
 - **SEM lógica de negócio** — nenhuma chamada de API, nenhum useEffect para fetch
@@ -86,6 +98,7 @@ import { NomeDaPagina } from "@features/[nome]";
 - **Responsivo** — funcionar em diferentes larguras de tela
 
 #### Estrutura da Página:
+
 ```tsx
 // Dados fake para mock
 const MOCK_DATA = [
@@ -99,7 +112,7 @@ export default function NomeDaPagina() {
   const data = MOCK_DATA;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 p-6">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Título da Página</h1>
@@ -119,6 +132,7 @@ export default function NomeDaPagina() {
 ### 6. Componentes Recomendados
 
 Usar componentes do design system conforme necessário:
+
 - **Layout:** `Card`, `Tabs`, `Separator`, `ScrollArea`
 - **Ações:** `Button`, `DropdownMenu`, `Dialog`
 - **Dados:** `Table`, `Badge`, `Avatar`, `Skeleton`
@@ -128,11 +142,13 @@ Usar componentes do design system conforme necessário:
 ### 7. Padrões de Layout
 
 Seguir layouts existentes no projeto:
+
 - **Página de listagem:** Header + Toolbar/Filtros + Table/Cards
 - **Página de detalhes:** Header com ações + Grid de informações + Seções
 - **Dashboard:** Grid de cards com métricas + Gráficos + Tabelas resumo
 
 ## Resultado Esperado
+
 - Mock acessível em `http://localhost:5173/[nome]`
 - Visual completo e profissional
 - Dados fake realistas
@@ -140,6 +156,7 @@ Seguir layouts existentes no projeto:
 - Pronto para aprovação do usuário antes da implementação
 
 ## Checklist de Verificação
+
 - [ ] Feature criada em `client/src/features/[nome]/`
 - [ ] Barrel export em `index.ts`
 - [ ] Rota adicionada em `App.tsx` com Wouter

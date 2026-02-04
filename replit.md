@@ -11,11 +11,13 @@ Preferred communication style: Simple, everyday language.
 ## Important Development Notes
 
 ### OAuth Testing
+
 - **Google OAuth must be tested in external preview** (not Replit's internal preview)
 - The internal preview blocks external page redirects, causing 403 errors
 - Use the "Open in new tab" button to test OAuth flows
 
 ### Authentication Flow
+
 - Custom login page at `/sign-in` with Clerk backend
 - Uses `useSignIn()` hook with `signIn.create()` for email/password
 - Uses `signIn.authenticateWithRedirect()` for Google OAuth
@@ -27,12 +29,14 @@ Preferred communication style: Simple, everyday language.
 ### Frontend Architecture
 
 **Framework & Build System**
+
 - **React 18** with TypeScript for type-safe component development
 - **Vite** as the build tool and development server with HMR (Hot Module Replacement)
 - **Wouter** for lightweight client-side routing instead of React Router
 - **TanStack Query v5** for server state management and data fetching
 
 **UI Component System**
+
 - **Shadcn/UI** component library based on Radix UI primitives for accessibility
 - **Tailwind CSS** for utility-first styling with custom design tokens
 - **Design approach**: Linear + Notion hybrid focusing on clarity, data density, and professional restraint
@@ -40,12 +44,14 @@ Preferred communication style: Simple, everyday language.
 - **Theme**: Dark mode preferred with comprehensive color system for light/dark variants
 
 **Key UI Patterns**
+
 - Fixed sidebar navigation (16rem width) with collapsible functionality
 - Kanban board with drag-and-drop using `@dnd-kit` libraries
 - Modal dialogs for CRUD operations (clients, meetings, tasks)
 - Responsive grid layouts with Tailwind spacing primitives (2, 4, 6, 8, 12, 16)
 
 **State Management Strategy**
+
 - React Query for server state (fetching, caching, synchronization)
 - Local component state with React hooks for UI interactions
 - Form state managed via React Hook Form with Zod schema validation
@@ -53,23 +59,27 @@ Preferred communication style: Simple, everyday language.
 ### Backend Architecture
 
 **Server Framework**
+
 - **Express.js** with TypeScript running on Node.js
 - Dual entry points: `index-dev.ts` (development with Vite middleware) and `index-prod.ts` (production with static file serving)
 - Custom logging middleware tracking request duration and response status
 
 **Database Layer**
+
 - **Drizzle ORM** for type-safe database operations
 - **Neon Serverless PostgreSQL** as the database provider with WebSocket support
 - Schema-first approach with migrations stored in `/migrations` directory
 - Database configuration managed through `drizzle.config.ts`
 
 **API Design**
+
 - RESTful endpoints prefixed with `/api`
 - Storage abstraction layer (`IStorage` interface) allowing multiple implementations
 - Currently using `MemStorage` (in-memory) with interface for future PostgreSQL implementation
 - Session-based authentication pattern (structure present, implementation pending)
 
 **Data Models** (Currently minimal, designed for expansion)
+
 - Users table with username/password authentication
 - Schema extensibility for clients, meetings, and tasks entities
 - Validation schemas using Drizzle-Zod integration
@@ -77,6 +87,7 @@ Preferred communication style: Simple, everyday language.
 ### Application Structure
 
 **Directory Organization**
+
 ```
 /client          - Frontend React application
   /src
@@ -118,6 +129,7 @@ Preferred communication style: Simple, everyday language.
 ```
 
 **Architecture Patterns (Maintainability Score: 85+)**
+
 - Hook-first design: Business logic extracted to custom hooks
 - Centralized configuration: statusConfig.ts drives consistent styling
 - Reusable UI primitives: Badge and assignee components shared across features
@@ -125,12 +137,14 @@ Preferred communication style: Simple, everyday language.
 - Memoization: Performance-optimized with memo() for re-render prevention
 
 **Routing Strategy**
+
 - Frontend: Client-side routing with Wouter (/, /clients, /clients/:id, /meetings, /tasks)
 - Backend: Express routes under /api namespace
 - Development: Vite proxies API requests to Express server
 - Production: Express serves static frontend build from /dist/public
 
 **Build & Deployment**
+
 - Development: Concurrent Vite dev server with Express backend
 - Production: Single Express server serving pre-built static assets
 - TypeScript compilation without emit (type checking only, esbuild for bundling)
@@ -138,12 +152,14 @@ Preferred communication style: Simple, everyday language.
 ### Design System Implementation
 
 **Component Hierarchy**
+
 - Atomic components from Shadcn/UI (Button, Input, Dialog, etc.)
 - Composite components for domain features (ClientCard, TaskCard, MeetingCard)
 - Layout components (KanbanColumn, FilterBar, AppSidebar)
 - Page-level components combining layouts and features
 
 **Styling Conventions**
+
 - CSS variables for theming (HSL color space for easy manipulation)
 - Tailwind utility classes with custom configuration
 - Hover/active states using custom utility classes (hover-elevate, active-elevate-2)
@@ -152,6 +168,7 @@ Preferred communication style: Simple, everyday language.
 ## External Dependencies
 
 ### Core Framework Dependencies
+
 - **@tanstack/react-query** (v5.60.5) - Server state management
 - **express** - Backend web framework
 - **react** & **react-dom** - UI library
@@ -159,35 +176,41 @@ Preferred communication style: Simple, everyday language.
 - **wouter** - Lightweight routing library
 
 ### Database & ORM
+
 - **drizzle-orm** - TypeScript ORM
 - **drizzle-kit** - Schema migrations and introspection
 - **@neondatabase/serverless** (v0.10.4) - Neon Postgres driver with WebSocket support
 - **ws** - WebSocket library for Neon connection
 
 ### UI Component Libraries
-- **@radix-ui/react-*** - Accessible component primitives (23+ packages)
+
+- **@radix-ui/react-\*** - Accessible component primitives (23+ packages)
 - **@dnd-kit/core**, **@dnd-kit/sortable**, **@dnd-kit/utilities** - Drag-and-drop functionality
 - **lucide-react** - Icon library
 - **date-fns** - Date formatting and manipulation
 - **cmdk** - Command menu component
 
 ### Form Management
+
 - **react-hook-form** - Form state management
 - **@hookform/resolvers** (v3.10.0) - Form validation resolvers
 - **zod** & **drizzle-zod** - Schema validation
 
 ### Styling
+
 - **tailwindcss** - Utility-first CSS framework
 - **autoprefixer** & **postcss** - CSS processing
 - **class-variance-authority** - Type-safe component variants
 - **clsx** & **tailwind-merge** - Conditional class composition
 
 ### Development Tools
+
 - **typescript** - Type safety
 - **tsx** - TypeScript execution for development
 - **esbuild** - Production bundling
-- **@replit/vite-plugin-*** - Replit-specific development plugins
+- **@replit/vite-plugin-\*** - Replit-specific development plugins
 
 ### Third-Party Services
+
 - **Google Fonts** - Inter font family (via CDN)
 - **Neon Database** - Serverless PostgreSQL hosting (DATABASE_URL environment variable required)

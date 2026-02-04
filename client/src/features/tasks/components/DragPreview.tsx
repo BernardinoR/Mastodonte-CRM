@@ -20,7 +20,12 @@ interface DragPreviewProps {
 }
 
 const getInitials = (name: string) => {
-  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 };
 
 export const DragPreview = memo(function DragPreview({
@@ -36,29 +41,29 @@ export const DragPreview = memo(function DragPreview({
   const today = startOfDay(new Date());
   const isOverdue = isBefore(startOfDay(dueDate), today);
   const formattedDate = format(dueDate, "dd MMM yyyy", { locale: ptBR });
-  
+
   const statusConfig = STATUS_CONFIG[status];
   const priorityConfig = priority ? PRIORITY_CONFIG[priority] : null;
-  
+
   return (
-    <div 
-      className="opacity-95 rotate-2 scale-105 relative" 
-      style={{ 
-        willChange: 'transform',
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
+    <div
+      className="relative rotate-2 scale-105 opacity-95"
+      style={{
+        willChange: "transform",
+        transform: "translateZ(0)",
+        backfaceVisibility: "hidden",
         perspective: 1000,
       }}
     >
       {selectedCount > 1 && (
         <>
-          <div className="absolute inset-0 transform translate-x-3 translate-y-3 rounded-lg bg-[#1a1a1a] border border-[#404040] opacity-40" />
-          <div className="absolute inset-0 transform translate-x-1.5 translate-y-1.5 rounded-lg bg-[#222222] border border-[#383838] opacity-60" />
+          <div className="absolute inset-0 translate-x-3 translate-y-3 transform rounded-lg border border-[#404040] bg-[#1a1a1a] opacity-40" />
+          <div className="absolute inset-0 translate-x-1.5 translate-y-1.5 transform rounded-lg border border-[#383838] bg-[#222222] opacity-60" />
         </>
       )}
       <div className="relative">
         {selectedCount > 1 && (
-          <div className="absolute -top-3 -right-3 z-20 bg-blue-500 text-white text-xs font-bold px-2.5 py-1 rounded-full shadow-lg border-2 border-blue-400">
+          <div className="absolute -right-3 -top-3 z-20 rounded-full border-2 border-blue-400 bg-blue-500 px-2.5 py-1 text-xs font-bold text-white shadow-lg">
             {selectedCount}
           </div>
         )}
@@ -66,69 +71,67 @@ export const DragPreview = memo(function DragPreview({
           className={cn(
             "cursor-grabbing border shadow-2xl",
             isOverdue && "border-l-[3px] border-l-red-900 dark:border-l-red-700",
-            status === "To Do" && "bg-[#262626] border-[#363636]",
-            status === "In Progress" && "bg-[#243041] border-[#344151]",
-            status === "Done" && "bg-[rgb(35,43,38)] border-[rgb(45,55,48)]"
+            status === "To Do" && "border-[#363636] bg-[#262626]",
+            status === "In Progress" && "border-[#344151] bg-[#243041]",
+            status === "Done" && "border-[rgb(45,55,48)] bg-[rgb(35,43,38)]",
           )}
         >
-          <CardHeader className="p-4 space-y-1">
-            <div className="font-bold text-sm leading-tight">
-              {title}
-            </div>
+          <CardHeader className="space-y-1 p-4">
+            <div className="text-sm font-bold leading-tight">{title}</div>
             <Separator className="mt-2 bg-[#64635E]" />
           </CardHeader>
 
-          <CardContent className="p-4 pt-0 space-y-2">
-            <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
-              <CalendarIcon className="w-3 h-3 mr-1.5 text-muted-foreground" />
+          <CardContent className="space-y-2 p-4 pt-0">
+            <div className="flex items-center text-[10px] font-semibold text-foreground md:text-xs">
+              <CalendarIcon className="mr-1.5 h-3 w-3 text-muted-foreground" />
               {formattedDate}
             </div>
-            
+
             {clientName && (
-              <div className="flex items-center text-[10px] md:text-xs text-muted-foreground">
-                <User className="w-3 h-3 mr-1.5" />
+              <div className="flex items-center text-[10px] text-muted-foreground md:text-xs">
+                <User className="mr-1.5 h-3 w-3" />
                 {clientName}
               </div>
             )}
-            
+
             {priorityConfig && (
               <div className="flex items-center gap-1.5">
-                <div 
-                  className="w-2 h-2 rounded-full" 
+                <div
+                  className="h-2 w-2 rounded-full"
                   style={{ backgroundColor: priorityConfig.dotColor }}
                 />
-                <span className="text-[10px] md:text-xs text-muted-foreground">
+                <span className="text-[10px] text-muted-foreground md:text-xs">
                   {priorityConfig.label}
                 </span>
               </div>
             )}
-            
+
             <div className="flex items-center gap-1.5">
-              <div 
-                className="w-2 h-2 rounded-full" 
+              <div
+                className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: statusConfig.dotColor }}
               />
-              <span className="text-[10px] md:text-xs text-muted-foreground">
+              <span className="text-[10px] text-muted-foreground md:text-xs">
                 {statusConfig.label}
               </span>
             </div>
-            
+
             {assignees.length > 0 && (
               <div className="space-y-1.5">
-                <div className="text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:text-xs">
                   Responsáveis
                 </div>
                 <div className="flex -space-x-1.5">
                   {assignees.slice(0, 3).map((name, idx) => (
                     <div
                       key={idx}
-                      className="w-6 h-6 rounded-full bg-gray-600 border-2 border-[#262626] flex items-center justify-center text-[8px] font-medium text-white"
+                      className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#262626] bg-gray-600 text-[8px] font-medium text-white"
                     >
                       {getInitials(name)}
                     </div>
                   ))}
                   {assignees.length > 3 && (
-                    <div className="w-6 h-6 rounded-full bg-gray-700 border-2 border-[#262626] flex items-center justify-center text-[8px] font-medium text-white">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full border-2 border-[#262626] bg-gray-700 text-[8px] font-medium text-white">
                       +{assignees.length - 3}
                     </div>
                   )}

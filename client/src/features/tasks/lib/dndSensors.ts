@@ -3,16 +3,16 @@ import type { PointerEvent as ReactPointerEvent } from "react";
 
 function isInteractiveElement(element: Element | null): boolean {
   if (!element) return false;
-  
-  const interactiveElements = ['button', 'input', 'textarea', 'select', 'option', 'a'];
+
+  const interactiveElements = ["button", "input", "textarea", "select", "option", "a"];
   if (interactiveElements.includes(element.tagName.toLowerCase())) {
     return true;
   }
-  
-  if (element.getAttribute('role') === 'button' || element.getAttribute('role') === 'checkbox') {
+
+  if (element.getAttribute("role") === "button" || element.getAttribute("role") === "checkbox") {
     return true;
   }
-  
+
   return false;
 }
 
@@ -30,7 +30,7 @@ function shouldHandleEvent(element: HTMLElement | null): boolean {
 export class SmartPointerSensor extends PointerSensor {
   static activators = [
     {
-      eventName: 'onPointerDown' as const,
+      eventName: "onPointerDown" as const,
       handler: ({ nativeEvent: event }: ReactPointerEvent) => {
         if (
           !event.isPrimary ||

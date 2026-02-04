@@ -3,7 +3,7 @@
  */
 export function useTaskUrlParams() {
   const params = new URLSearchParams(window.location.search);
-  
+
   return {
     clientFilter: params.get("client"),
     viewMode: params.get("view") as "board" | "table" | null,
@@ -22,4 +22,3 @@ export function buildTasksUrl(clientName: string): string {
   });
   return `/tasks?${params.toString()}`;
 }
-

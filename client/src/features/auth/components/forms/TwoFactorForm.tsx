@@ -74,16 +74,12 @@ export function TwoFactorForm({
 
   return (
     <>
-      <h2 className="text-2xl font-semibold text-white mb-2">
-        Verificação em Duas Etapas
-      </h2>
-      <p className="text-sm text-[#888] mb-6">
-        {getStrategyDescription(strategy, email)}
-      </p>
-      
+      <h2 className="mb-2 text-2xl font-semibold text-white">Verificação em Duas Etapas</h2>
+      <p className="mb-6 text-sm text-[#888]">{getStrategyDescription(strategy, email)}</p>
+
       <form onSubmit={onSubmit}>
         <div className="mb-4">
-          <label className="block text-xs font-medium text-[#888] mb-1.5">
+          <label className="mb-1.5 block text-xs font-medium text-[#888]">
             {getStrategyLabel(strategy)}
           </label>
           <input
@@ -100,7 +96,7 @@ export function TwoFactorForm({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+          <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
             <p className="text-sm text-red-400" data-testid="text-error">
               {error}
             </p>
@@ -113,7 +109,7 @@ export function TwoFactorForm({
           disabled={loading || !isLoaded || !isCodeValid}
           data-testid="button-verify-2fa"
         >
-          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           Verificar
         </button>
 
@@ -124,7 +120,7 @@ export function TwoFactorForm({
                 type="button"
                 onClick={onResendCode}
                 disabled={loading}
-                className="text-[#666] hover:text-white transition-colors"
+                className="text-[#666] transition-colors hover:text-white"
                 data-testid="button-resend-2fa-code"
               >
                 Reenviar código
@@ -135,7 +131,7 @@ export function TwoFactorForm({
           <button
             type="button"
             onClick={onBack}
-            className="text-[#666] hover:text-white transition-colors"
+            className="text-[#666] transition-colors hover:text-white"
             data-testid="button-back-to-login"
           >
             Voltar

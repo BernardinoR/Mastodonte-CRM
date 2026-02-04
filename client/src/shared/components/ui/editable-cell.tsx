@@ -3,7 +3,7 @@ import { cn } from "@/shared/lib/utils";
 
 /**
  * Componente genérico para células de tabela editáveis
- * 
+ *
  * @example
  * ```tsx
  * <EditableCell
@@ -72,7 +72,7 @@ export function EditableCell({
           onClick={(e) => e.stopPropagation()}
           autoFocus
           placeholder={placeholder}
-          className="bg-transparent border-b border-[#2eaadc] text-sm text-foreground font-medium placeholder:text-muted-foreground focus:outline-none w-full"
+          className="w-full border-b border-[#2eaadc] bg-transparent text-sm font-medium text-foreground placeholder:text-muted-foreground focus:outline-none"
           data-testid={inputTestId}
         />
       </div>
@@ -80,17 +80,16 @@ export function EditableCell({
   }
 
   return (
-    <div className={cn("flex items-center gap-2 group/cell", className)}>
+    <div className={cn("group/cell flex items-center gap-2", className)}>
       {icon}
-      <span className="text-foreground font-medium">{value}</span>
+      <span className="font-medium text-foreground">{value}</span>
       <button
         onClick={onStartEdit}
-        className="p-1 rounded hover:bg-[#3a3a3a] transition-all opacity-0 group-hover/cell:opacity-100"
+        className="rounded p-1 opacity-0 transition-all hover:bg-[#3a3a3a] group-hover/cell:opacity-100"
         data-testid={buttonTestId}
       >
-        <Pencil className="w-3.5 h-3.5 text-muted-foreground hover:text-foreground" />
+        <Pencil className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
       </button>
     </div>
   );
 }
-

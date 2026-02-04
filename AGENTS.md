@@ -1,6 +1,7 @@
 # AGENTS.md
 
 ## Dev environment tips
+
 - Install dependencies with `npm install` before running.
 - Use `npm run dev` to start both Vite dev server and Express backend with HMR.
 - Run `npm run check` for TypeScript type checking.
@@ -9,17 +10,20 @@
 - Use `npx prisma studio` to browse database with GUI.
 
 ## Testing instructions
+
 - Run `npm run test` to execute Jest test suite.
 - Validate changes manually via the dev server preview.
 - Run `npm run check` to catch TypeScript errors before committing.
 
 ## PR instructions
+
 - Follow Conventional Commits (e.g., `feat(tasks): add bulk delete`, `fix(auth): handle SSO redirect`).
 - Scope by feature: `auth`, `clients`, `tasks`, `meetings`, `users`, `api`, `db`, `ui`, `hooks`.
 - Confirm `npm run check` and `npm run build` pass before opening a PR.
 - Review PR checklist in `.claude/skills/pr-review/SKILL.md`.
 
 ## Repository map
+
 - `client/` — React frontend application. Feature modules in `client/src/features/`, shared UI in `client/src/shared/`.
 - `server/` — Express backend. API routes in `routes.ts`, data access in `storage.ts`, auth middleware in `auth.ts`.
 - `prisma/` — Database schema and migrations. Edit `schema.prisma` for model changes.
@@ -33,9 +37,11 @@
 ## AI Context References
 
 ### Primary Context
+
 - **CLAUDE.md** — Main project context for Claude Code (tech stack, patterns, commands)
 
 ### Documentation (`.claude/docs/`)
+
 - `README.md` — Documentation index
 - `architecture.md` — System architecture and patterns
 - `data-flow.md` — Data flow diagrams
@@ -47,6 +53,7 @@
 - `codebase-map.json` — Symbol index and dependencies
 
 ### Agent Playbooks (`.claude/agents/`)
+
 - `architect-specialist.md` — System design decisions
 - `backend-specialist.md` — Server and API development
 - `frontend-specialist.md` — React and UI development
@@ -63,6 +70,7 @@
 - `mobile-specialist.md` — Mobile responsiveness
 
 ### Skills (`.claude/skills/`)
+
 - `api-design` — RESTful API patterns
 - `bug-investigation` — Debug workflow
 - `code-review` — Review guidelines
@@ -75,6 +83,7 @@
 - `test-generation` — Test patterns
 
 ### Source Files (`.context/`)
+
 - Same content as `.claude/` — source of truth for AI context
 - `docs/` — Documentation files
 - `agents/` — Agent playbooks

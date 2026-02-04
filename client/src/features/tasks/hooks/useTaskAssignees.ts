@@ -23,34 +23,38 @@ export function useTaskAssignees({
 }: UseTaskAssigneesOptions) {
   const [newAssigneeName, setNewAssigneeName] = useState("");
 
-  const addAssigneeWithPersist = useCallback((assignee: string) => {
-    const trimmedName = assignee.trim();
-    if (!trimmedName) return false;
+  const addAssigneeWithPersist = useCallback(
+    (assignee: string) => {
+      const trimmedName = assignee.trim();
+      if (!trimmedName) return false;
 
-    const isDuplicate = assignees.some(
-      a => a.toLowerCase() === trimmedName.toLowerCase()
-    );
-    
-    if (isDuplicate) {
-      return false;
-    }
+      const isDuplicate = assignees.some((a) => a.toLowerCase() === trimmedName.toLowerCase());
 
-    const newAssignees = [...assignees, trimmedName];
-    updateEditedTask(newAssignees);
-    onUpdate(taskId, { assignees: newAssignees });
-    return true;
-  }, [taskId, assignees, updateEditedTask, onUpdate]);
+      if (isDuplicate) {
+        return false;
+      }
 
-  const removeAssigneeWithPersist = useCallback((assigneeToRemove: string) => {
-    if (assignees.length <= 1) {
-      return false;
-    }
+      const newAssignees = [...assignees, trimmedName];
+      updateEditedTask(newAssignees);
+      onUpdate(taskId, { assignees: newAssignees });
+      return true;
+    },
+    [taskId, assignees, updateEditedTask, onUpdate],
+  );
 
-    const newAssignees = assignees.filter(a => a !== assigneeToRemove);
-    updateEditedTask(newAssignees);
-    onUpdate(taskId, { assignees: newAssignees });
-    return true;
-  }, [taskId, assignees, updateEditedTask, onUpdate]);
+  const removeAssigneeWithPersist = useCallback(
+    (assigneeToRemove: string) => {
+      if (assignees.length <= 1) {
+        return false;
+      }
+
+      const newAssignees = assignees.filter((a) => a !== assigneeToRemove);
+      updateEditedTask(newAssignees);
+      onUpdate(taskId, { assignees: newAssignees });
+      return true;
+    },
+    [taskId, assignees, updateEditedTask, onUpdate],
+  );
 
   const handleAddFromInput = useCallback(() => {
     if (addAssigneeWithPersist(newAssigneeName)) {
@@ -58,36 +62,45 @@ export function useTaskAssignees({
     }
   }, [newAssigneeName, addAssigneeWithPersist]);
 
-  const handleContextAdd = useCallback((assignee: string) => {
-    if (selectedCount > 1 && onBulkAddAssignee) {
-      onBulkAddAssignee(assignee);
-    } else {
-      if (!assignees.includes(assignee)) {
-        const newAssignees = [...assignees, assignee];
+  const handleContextAdd = useCallback(
+    (assignee: string) => {
+      if (selectedCount > 1 && onBulkAddAssignee) {
+        onBulkAddAssignee(assignee);
+      } else {
+        if (!assignees.includes(assignee)) {
+          const newAssignees = [...assignees, assignee];
+          updateEditedTask(newAssignees);
+          onUpdate(taskId, { assignees: newAssignees });
+        }
+      }
+    },
+    [taskId, assignees, selectedCount, onBulkAddAssignee, onUpdate, updateEditedTask],
+  );
+
+  const handleContextRemove = useCallback(
+    (assignee: string) => {
+      if (selectedCount > 1 && onBulkRemoveAssignee) {
+        onBulkRemoveAssignee(assignee);
+      } else {
+        const newAssignees = assignees.filter((a) => a !== assignee);
         updateEditedTask(newAssignees);
         onUpdate(taskId, { assignees: newAssignees });
       }
-    }
-  }, [taskId, assignees, selectedCount, onBulkAddAssignee, onUpdate, updateEditedTask]);
+    },
+    [taskId, assignees, selectedCount, onBulkRemoveAssignee, onUpdate, updateEditedTask],
+  );
 
-  const handleContextRemove = useCallback((assignee: string) => {
-    if (selectedCount > 1 && onBulkRemoveAssignee) {
-      onBulkRemoveAssignee(assignee);
-    } else {
-      const newAssignees = assignees.filter(a => a !== assignee);
-      updateEditedTask(newAssignees);
-      onUpdate(taskId, { assignees: newAssignees });
-    }
-  }, [taskId, assignees, selectedCount, onBulkRemoveAssignee, onUpdate, updateEditedTask]);
-
-  const handleContextSetSingle = useCallback((assignee: string) => {
-    if (selectedCount > 1 && onBulkSetAssignees) {
-      onBulkSetAssignees([assignee]);
-    } else {
-      updateEditedTask([assignee]);
-      onUpdate(taskId, { assignees: [assignee] });
-    }
-  }, [taskId, selectedCount, onBulkSetAssignees, onUpdate, updateEditedTask]);
+  const handleContextSetSingle = useCallback(
+    (assignee: string) => {
+      if (selectedCount > 1 && onBulkSetAssignees) {
+        onBulkSetAssignees([assignee]);
+      } else {
+        updateEditedTask([assignee]);
+        onUpdate(taskId, { assignees: [assignee] });
+      }
+    },
+    [taskId, selectedCount, onBulkSetAssignees, onUpdate, updateEditedTask],
+  );
 
   return {
     newAssigneeName,

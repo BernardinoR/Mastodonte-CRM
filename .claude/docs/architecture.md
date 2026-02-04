@@ -17,18 +17,18 @@ graph TB
         React[React SPA]
         TanStack[TanStack Query]
     end
-    
+
     subgraph server [Server Layer]
         Express[Express.js]
         Auth[Clerk Auth Middleware]
         Routes[API Routes]
     end
-    
+
     subgraph data [Data Layer]
         Prisma[Prisma ORM]
         PostgreSQL[(PostgreSQL)]
     end
-    
+
     React --> TanStack
     TanStack --> Express
     Express --> Auth
@@ -49,14 +49,14 @@ graph TB
 
 ## Detected Design Patterns
 
-| Pattern | Confidence | Locations | Description |
-|---------|------------|-----------|-------------|
-| Feature-Based Architecture | 95% | `client/src/features/` | Organizes code by business domain |
-| Repository Pattern | 90% | `server/storage.ts` | `DbStorage` class abstracts data access |
-| Custom Hooks | 95% | `client/src/shared/hooks/` | Encapsulates reusable stateful logic |
-| Context Provider | 90% | `ClientsContext.tsx` | Shares state across component tree |
-| Middleware Chain | 85% | `server/auth.ts` | Clerk auth middleware for route protection |
-| Composite Components | 80% | `client/src/shared/components/ui/` | shadcn/ui component composition |
+| Pattern                    | Confidence | Locations                          | Description                                |
+| -------------------------- | ---------- | ---------------------------------- | ------------------------------------------ |
+| Feature-Based Architecture | 95%        | `client/src/features/`             | Organizes code by business domain          |
+| Repository Pattern         | 90%        | `server/storage.ts`                | `DbStorage` class abstracts data access    |
+| Custom Hooks               | 95%        | `client/src/shared/hooks/`         | Encapsulates reusable stateful logic       |
+| Context Provider           | 90%        | `ClientsContext.tsx`               | Shares state across component tree         |
+| Middleware Chain           | 85%        | `server/auth.ts`                   | Clerk auth middleware for route protection |
+| Composite Components       | 80%        | `client/src/shared/components/ui/` | shadcn/ui component composition            |
 
 ## Entry Points
 
@@ -67,28 +67,28 @@ graph TB
 
 ## Public API
 
-| Symbol | Type | Location |
-|--------|------|----------|
-| `DbStorage` | Class | `server/storage.ts` |
-| `IStorage` | Interface | `server/storage.ts` |
-| `clerkAuthMiddleware` | Function | `server/auth.ts` |
-| `requireRole` | Function | `server/auth.ts` |
-| `requireAdmin` | Function | `server/auth.ts` |
-| `apiRequest` | Function | `client/src/shared/lib/queryClient.ts` |
-| `useCurrentUser` | Hook | `client/src/features/users/hooks/useCurrentUser.ts` |
-| `useTurboMode` | Hook | `client/src/features/tasks/hooks/useTurboMode.ts` |
+| Symbol                | Type      | Location                                            |
+| --------------------- | --------- | --------------------------------------------------- |
+| `DbStorage`           | Class     | `server/storage.ts`                                 |
+| `IStorage`            | Interface | `server/storage.ts`                                 |
+| `clerkAuthMiddleware` | Function  | `server/auth.ts`                                    |
+| `requireRole`         | Function  | `server/auth.ts`                                    |
+| `requireAdmin`        | Function  | `server/auth.ts`                                    |
+| `apiRequest`          | Function  | `client/src/shared/lib/queryClient.ts`              |
+| `useCurrentUser`      | Hook      | `client/src/features/users/hooks/useCurrentUser.ts` |
+| `useTurboMode`        | Hook      | `client/src/features/tasks/hooks/useTurboMode.ts`   |
 
 ## Internal System Boundaries
 
 ### Domain Boundaries
 
-| Domain | Ownership | Key Entities |
-|--------|-----------|--------------|
-| Tasks | `features/tasks/` | Task, TaskHistory, TaskStatus |
-| Clients | `features/clients/` | Client, Address, ClientStats |
-| Meetings | `features/meetings/` | Meeting, MeetingSummary |
-| Users | `features/users/` | User, UserRole |
-| Auth | `features/auth/` | Authentication, Authorization |
+| Domain   | Ownership            | Key Entities                  |
+| -------- | -------------------- | ----------------------------- |
+| Tasks    | `features/tasks/`    | Task, TaskHistory, TaskStatus |
+| Clients  | `features/clients/`  | Client, Address, ClientStats  |
+| Meetings | `features/meetings/` | Meeting, MeetingSummary       |
+| Users    | `features/users/`    | User, UserRole                |
+| Auth     | `features/auth/`     | Authentication, Authorization |
 
 ### Data Contracts
 
@@ -102,7 +102,6 @@ graph TB
   - OAuth and social login support
   - JWT token verification
   - User metadata storage
-  
 - **PostgreSQL**: Primary data store
   - Managed via Prisma migrations
   - Connection pooling for performance
@@ -116,12 +115,12 @@ graph TB
 
 ## Top Directories Snapshot
 
-| Directory | Files | Purpose |
-|-----------|-------|---------|
-| `client/src/features/` | ~150 | Feature modules |
-| `client/src/shared/` | ~80 | Shared utilities and components |
-| `server/` | ~15 | Backend API |
-| `prisma/` | ~5 | Database schema and migrations |
+| Directory              | Files | Purpose                         |
+| ---------------------- | ----- | ------------------------------- |
+| `client/src/features/` | ~150  | Feature modules                 |
+| `client/src/shared/`   | ~80   | Shared utilities and components |
+| `server/`              | ~15   | Backend API                     |
+| `prisma/`              | ~5    | Database schema and migrations  |
 
 ## Related Resources
 

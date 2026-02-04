@@ -16,7 +16,7 @@ interface VirtualizedResult<T> {
 
 export function useVirtualizedList<T>(
   items: T[],
-  options: VirtualizedListOptions
+  options: VirtualizedListOptions,
 ): VirtualizedResult<T> {
   const { itemHeight, overscan = 3, containerRef } = options;
   const [scrollTop, setScrollTop] = useState(0);
@@ -27,7 +27,7 @@ export function useVirtualizedList<T>(
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current);
     }
-    
+
     rafRef.current = requestAnimationFrame(() => {
       if (containerRef.current) {
         setScrollTop(containerRef.current.scrollTop);
@@ -60,7 +60,7 @@ export function useVirtualizedList<T>(
 
   const result = useMemo(() => {
     const totalHeight = items.length * itemHeight;
-    
+
     if (containerHeight === 0) {
       return {
         visibleItems: items.slice(0, overscan * 2),

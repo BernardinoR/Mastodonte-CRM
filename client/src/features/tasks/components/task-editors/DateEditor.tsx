@@ -12,7 +12,11 @@ interface ContextMenuDateEditorProps {
   isBulk?: boolean;
 }
 
-export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }: ContextMenuDateEditorProps) {
+export function ContextMenuDateEditor({
+  currentDate,
+  onSelect,
+  isBulk = false,
+}: ContextMenuDateEditorProps) {
   const [inputValue, setInputValue] = useState(() => {
     const dateValue = parseLocalDate(currentDate);
     return dateValue && isValid(dateValue) ? format(dateValue, "dd/MM/yyyy", { locale: ptBR }) : "";
@@ -22,13 +26,13 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
     const dateValue = parseLocalDate(currentDate);
     return dateValue && isValid(dateValue) ? dateValue : new Date();
   });
-  
+
   const isLocalUpdate = useRef(false);
   const isMountedRef = useRef(true);
   const pendingUpdatesRef = useRef<string[]>([]);
   const flushTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const prevCurrentDateRef = useRef(currentDate);
-  
+
   useEffect(() => {
     if (prevCurrentDateRef.current !== currentDate && !isLocalUpdate.current) {
       const dateValue = parseLocalDate(currentDate);
@@ -41,7 +45,7 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
     prevCurrentDateRef.current = currentDate;
     isLocalUpdate.current = false;
   }, [currentDate]);
-  
+
   useEffect(() => {
     isMountedRef.current = true;
     return () => {
@@ -51,17 +55,17 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
       }
     };
   }, []);
-  
+
   const flushPendingUpdates = () => {
     if (flushTimeoutRef.current) {
       clearTimeout(flushTimeoutRef.current);
     }
     flushTimeoutRef.current = setTimeout(() => {
       if (!isMountedRef.current) return;
-      
+
       const updates = [...pendingUpdatesRef.current];
       pendingUpdatesRef.current = [];
-      
+
       if (updates.length > 0) {
         const lastUpdate = updates[updates.length - 1];
         try {
@@ -72,7 +76,7 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
       }
     }, 100);
   };
-  
+
   const parseDate = (input: string): Date | null => {
     // Normalizar entrada: remover caracteres não-numéricos exceto separadores
     const cleaned = input.replace(/[^\d\/\-\.]/g, "").replace(/[\/\-\.]+$/, "");
@@ -81,7 +85,7 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
     const normalized = cleaned.replace(/[\-\.]/g, "/");
 
     // Extrair partes da data (dd/MM/yyyy, dd/MM/yy, ou dd/MM)
-    const parts = normalized.split("/").map(p => parseInt(p, 10));
+    const parts = normalized.split("/").map((p) => parseInt(p, 10));
     if (parts.some(isNaN) || parts.length < 2) return null;
 
     const [day, month, year] = parts;
@@ -103,32 +107,31 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
     const date = new Date(fullYear, month - 1, day);
     return isValid(date) && date.getDate() === day ? date : null;
   };
-  
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
     const prevLength = inputValue.length;
-    
+
     const hasDot = newValue.includes(".");
     const hasDash = newValue.includes("-");
     const hasSlash = newValue.includes("/");
-    
+
     if (newValue.length > prevLength && !hasDot && !hasDash) {
       if (newValue.length === 2 && !hasSlash) {
         const lastChar = newValue[newValue.length - 1];
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
           newValue = newValue + "/";
         }
-      }
-      else if (newValue.length === 5 && newValue.split("/").length === 2) {
+      } else if (newValue.length === 5 && newValue.split("/").length === 2) {
         const lastChar = newValue[newValue.length - 1];
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
           newValue = newValue + "/";
         }
       }
     }
-    
+
     setInputValue(newValue);
-    
+
     const parsed = parseDate(newValue);
     if (parsed) {
       setIsInvalid(false);
@@ -146,7 +149,7 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
       const formatted = format(parsed, "dd/MM/yyyy", { locale: ptBR });
       setInputValue(formatted);
       setIsInvalid(false);
-      
+
       const dateString = format(parsed, "yyyy-MM-dd");
       pendingUpdatesRef.current.push(dateString);
       flushPendingUpdates();
@@ -161,9 +164,9 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
       const formatted = format(localDate, "dd/MM/yyyy", { locale: ptBR });
       setInputValue(formatted);
       setIsInvalid(false);
-      
+
       isLocalUpdate.current = true;
-      
+
       const dateString = format(localDate, "yyyy-MM-dd");
       pendingUpdatesRef.current.push(dateString);
       flushPendingUpdates();
@@ -186,11 +189,9 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
 
   return (
     <div className="w-auto">
-      <div className="p-3 border-b border-[#2a2a2a]">
+      <div className="border-b border-[#2a2a2a] p-3">
         {isBulk && (
-          <div className="text-xs text-gray-500 mb-2 text-center">
-            Definir data para todos
-          </div>
+          <div className="mb-2 text-center text-xs text-gray-500">Definir data para todos</div>
         )}
         <Input
           value={inputValue}
@@ -200,10 +201,10 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
           placeholder="DD/MM/YYYY"
           className={cn(
             "text-center text-sm font-medium",
-            "bg-[#0a0a0a] border-[#2a2a2a]",
+            "border-[#2a2a2a] bg-[#0a0a0a]",
             "text-white placeholder:text-gray-500",
-            "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
-            isInvalid && "border-red-500 focus-visible:ring-red-500"
+            "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
+            isInvalid && "border-red-500 focus-visible:ring-red-500",
           )}
           onClick={(e) => e.stopPropagation()}
           onKeyDownCapture={(e) => e.stopPropagation()}
@@ -211,9 +212,7 @@ export function ContextMenuDateEditor({ currentDate, onSelect, isBulk = false }:
           data-testid="input-date-context"
         />
         {isInvalid && (
-          <span className="text-xs text-red-400 block mt-2 text-center">
-            Data inválida
-          </span>
+          <span className="mt-2 block text-center text-xs text-red-400">Data inválida</span>
         )}
       </div>
       <div data-calendar-container>

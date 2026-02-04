@@ -47,13 +47,16 @@ export function ImportClientsDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) handleClose();
-    }}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen) handleClose();
+      }}
+    >
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <FileSpreadsheet className="w-5 h-5" />
+            <FileSpreadsheet className="h-5 w-5" />
             Importar Clientes
           </DialogTitle>
           <DialogDescription>
@@ -69,7 +72,7 @@ export function ImportClientsDialog({
           {/* Parsing state */}
           {state === "parsing" && (
             <div className="flex flex-col items-center gap-3 py-8">
-              <Loader2 className="w-8 h-8 text-[#6db1d4] animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#6db1d4]" />
               <p className="text-sm text-[#8c8c8c]">Processando arquivo...</p>
             </div>
           )}
@@ -79,24 +82,20 @@ export function ImportClientsDialog({
             <div className="space-y-4">
               {/* Summary */}
               <div className="flex gap-4">
-                <div className="flex-1 bg-[#1a2e1a] border border-[#2d4a2d] rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CheckCircle2 className="w-4 h-4 text-green-400" />
-                    <span className="text-sm font-medium text-green-300">
-                      Válidos
-                    </span>
+                <div className="flex-1 rounded-lg border border-[#2d4a2d] bg-[#1a2e1a] p-3">
+                  <div className="mb-1 flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-green-400" />
+                    <span className="text-sm font-medium text-green-300">Válidos</span>
                   </div>
                   <span className="text-2xl font-bold text-green-200">
                     {validation.valid.length}
                   </span>
                 </div>
                 {validation.invalid.length > 0 && (
-                  <div className="flex-1 bg-[#2e1a1a] border border-[#4a2d2d] rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-1">
-                      <AlertCircle className="w-4 h-4 text-red-400" />
-                      <span className="text-sm font-medium text-red-300">
-                        Com erros
-                      </span>
+                  <div className="flex-1 rounded-lg border border-[#4a2d2d] bg-[#2e1a1a] p-3">
+                    <div className="mb-1 flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-red-400" />
+                      <span className="text-sm font-medium text-red-300">Com erros</span>
                     </div>
                     <span className="text-2xl font-bold text-red-200">
                       {validation.invalid.length}
@@ -107,12 +106,10 @@ export function ImportClientsDialog({
 
               {/* Warnings */}
               {validation.warnings.length > 0 && (
-                <div className="bg-[#2e2a1a] border border-[#4a432d] rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertTriangle className="w-4 h-4 text-yellow-400" />
-                    <span className="text-sm font-medium text-yellow-300">
-                      Avisos
-                    </span>
+                <div className="rounded-lg border border-[#4a432d] bg-[#2e2a1a] p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-yellow-400" />
+                    <span className="text-sm font-medium text-yellow-300">Avisos</span>
                   </div>
                   <ul className="space-y-1">
                     {validation.warnings.map((w, i) => (
@@ -127,17 +124,17 @@ export function ImportClientsDialog({
               {/* Preview of valid rows */}
               {validation.valid.length > 0 && (
                 <div>
-                  <p className="text-xs text-[#8c8c8c] mb-2 font-medium uppercase tracking-wide">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8c8c8c]">
                     Preview ({Math.min(validation.valid.length, 5)} de {validation.valid.length})
                   </p>
-                  <div className="border border-[#333333] rounded-lg overflow-hidden">
+                  <div className="overflow-hidden rounded-lg border border-[#333333]">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-[#1a1a1a] border-b border-[#333333]">
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium">Nome</th>
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium">E-mail</th>
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium">Status</th>
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium">Cidade</th>
+                        <tr className="border-b border-[#333333] bg-[#1a1a1a]">
+                          <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Nome</th>
+                          <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">E-mail</th>
+                          <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Status</th>
+                          <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Cidade</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -158,21 +155,23 @@ export function ImportClientsDialog({
               {/* Invalid rows detail */}
               {validation.invalid.length > 0 && (
                 <div>
-                  <p className="text-xs text-[#8c8c8c] mb-2 font-medium uppercase tracking-wide">
+                  <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[#8c8c8c]">
                     Linhas com erros
                   </p>
-                  <div className="max-h-32 overflow-y-auto border border-[#333333] rounded-lg">
+                  <div className="max-h-32 overflow-y-auto rounded-lg border border-[#333333]">
                     <table className="w-full text-xs">
                       <thead>
-                        <tr className="bg-[#1a1a1a] border-b border-[#333333] sticky top-0">
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium w-16">Linha</th>
-                          <th className="text-left px-3 py-2 text-[#8c8c8c] font-medium">Erros</th>
+                        <tr className="sticky top-0 border-b border-[#333333] bg-[#1a1a1a]">
+                          <th className="w-16 px-3 py-2 text-left font-medium text-[#8c8c8c]">
+                            Linha
+                          </th>
+                          <th className="px-3 py-2 text-left font-medium text-[#8c8c8c]">Erros</th>
                         </tr>
                       </thead>
                       <tbody>
                         {validation.invalid.map((inv, i) => (
                           <tr key={i} className="border-b border-[#252525] last:border-0">
-                            <td className="px-3 py-2 text-red-300 font-mono">{inv.row}</td>
+                            <td className="px-3 py-2 font-mono text-red-300">{inv.row}</td>
                             <td className="px-3 py-2 text-red-200">{inv.errors.join("; ")}</td>
                           </tr>
                         ))}
@@ -187,7 +186,7 @@ export function ImportClientsDialog({
           {/* Importing state */}
           {state === "importing" && (
             <div className="flex flex-col items-center gap-4 py-8">
-              <Loader2 className="w-8 h-8 text-[#6db1d4] animate-spin" />
+              <Loader2 className="h-8 w-8 animate-spin text-[#6db1d4]" />
               <p className="text-sm text-[#8c8c8c]">Importando clientes...</p>
               <div className="w-full max-w-xs">
                 <Progress value={progress} className="h-2" />
@@ -199,23 +198,23 @@ export function ImportClientsDialog({
           {state === "done" && importResult && (
             <div className="space-y-4">
               <div className="flex flex-col items-center gap-3 py-4">
-                <CheckCircle2 className="w-10 h-10 text-green-400" />
+                <CheckCircle2 className="h-10 w-10 text-green-400" />
                 <p className="text-lg font-medium text-[#ededed]">
-                  {importResult.inserted} cliente{importResult.inserted !== 1 ? "s" : ""} importado{importResult.inserted !== 1 ? "s" : ""} com sucesso
+                  {importResult.inserted} cliente{importResult.inserted !== 1 ? "s" : ""} importado
+                  {importResult.inserted !== 1 ? "s" : ""} com sucesso
                 </p>
                 {importResult.totalInvalid > 0 && (
                   <p className="text-sm text-[#8c8c8c]">
-                    {importResult.totalInvalid} linha{importResult.totalInvalid !== 1 ? "s" : ""} ignorada{importResult.totalInvalid !== 1 ? "s" : ""} por erros de validação
+                    {importResult.totalInvalid} linha{importResult.totalInvalid !== 1 ? "s" : ""}{" "}
+                    ignorada{importResult.totalInvalid !== 1 ? "s" : ""} por erros de validação
                   </p>
                 )}
               </div>
               {importResult.errors.length > 0 && (
-                <div className="bg-[#2e1a1a] border border-[#4a2d2d] rounded-lg p-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-4 h-4 text-red-400" />
-                    <span className="text-sm font-medium text-red-300">
-                      Erros de inserção
-                    </span>
+                <div className="rounded-lg border border-[#4a2d2d] bg-[#2e1a1a] p-3">
+                  <div className="mb-2 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-400" />
+                    <span className="text-sm font-medium text-red-300">Erros de inserção</span>
                   </div>
                   <ul className="space-y-1">
                     {importResult.errors.map((e, i) => (
@@ -232,34 +231,35 @@ export function ImportClientsDialog({
           {/* Error state */}
           {state === "error" && (
             <div className="flex flex-col items-center gap-3 py-8">
-              <AlertCircle className="w-10 h-10 text-red-400" />
-              <p className="text-sm text-red-300 text-center">{errorMessage}</p>
+              <AlertCircle className="h-10 w-10 text-red-400" />
+              <p className="text-center text-sm text-red-300">{errorMessage}</p>
             </div>
           )}
         </div>
 
         <DialogFooter>
           {state === "previewing" && (
-            <div className="flex gap-3 w-full justify-end">
+            <div className="flex w-full justify-end gap-3">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-sm text-[#8c8c8c] hover:text-[#ededed] transition-colors"
+                className="px-4 py-2 text-sm text-[#8c8c8c] transition-colors hover:text-[#ededed]"
               >
                 Cancelar
               </button>
               <button
                 onClick={onConfirmImport}
                 disabled={!validation || validation.valid.length === 0}
-                className="px-4 py-2 text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-md border border-[#404040] bg-[#2a2a2a] px-4 py-2 text-sm font-medium text-white transition-colors hover:border-[#505050] hover:bg-[#333] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Importar {validation?.valid.length || 0} cliente{(validation?.valid.length || 0) !== 1 ? "s" : ""}
+                Importar {validation?.valid.length || 0} cliente
+                {(validation?.valid.length || 0) !== 1 ? "s" : ""}
               </button>
             </div>
           )}
           {(state === "done" || state === "error") && (
             <button
               onClick={handleClose}
-              className="px-4 py-2 text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] rounded-md transition-colors"
+              className="rounded-md border border-[#404040] bg-[#2a2a2a] px-4 py-2 text-sm font-medium text-white transition-colors hover:border-[#505050] hover:bg-[#333]"
             >
               Fechar
             </button>

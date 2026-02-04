@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Calendar, Plane, Truck, AlertTriangle, Check, Plus } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/shared/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { cn } from "@/shared/lib/utils";
 import { getIconComponent, type IconName } from "./IconPicker";
@@ -15,10 +20,20 @@ export interface TagData {
 }
 
 const TAG_TYPES: { type: TagType; label: string; icon: React.ElementType; iconClass: string }[] = [
-  { type: "finance", label: "Financeiro", icon: Calendar, iconClass: "bg-[#1e3a2f] text-[#6ecf8e]" },
+  {
+    type: "finance",
+    label: "Financeiro",
+    icon: Calendar,
+    iconClass: "bg-[#1e3a2f] text-[#6ecf8e]",
+  },
   { type: "travel", label: "Viagem", icon: Plane, iconClass: "bg-[#2d2640] text-[#a78bfa]" },
   { type: "vehicle", label: "Veículo", icon: Truck, iconClass: "bg-[#243041] text-[#6db1d4]" },
-  { type: "warning", label: "Atenção", icon: AlertTriangle, iconClass: "bg-[#422c24] text-[#f59e0b]" },
+  {
+    type: "warning",
+    label: "Atenção",
+    icon: AlertTriangle,
+    iconClass: "bg-[#422c24] text-[#f59e0b]",
+  },
 ];
 
 const TAG_ICONS: Record<TagType, IconName> = {
@@ -70,13 +85,13 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[400px] bg-[#1a1a1a] border-[#333333] p-6">
+      <DialogContent className="max-w-[400px] border-[#333333] bg-[#1a1a1a] p-6">
         <VisuallyHidden>
           <DialogTitle>Adicionar Tag</DialogTitle>
           <DialogDescription>Adicione uma tag ao resumo da reunião</DialogDescription>
         </VisuallyHidden>
 
-        <h3 className="text-base font-semibold text-[#ededed] mb-4">Adicionar Tag</h3>
+        <h3 className="mb-4 text-base font-semibold text-[#ededed]">Adicionar Tag</h3>
 
         <input
           type="text"
@@ -84,34 +99,39 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Digite o texto da tag..."
-          className="w-full px-4 py-3 bg-[#252525] border border-[#333333] rounded-lg text-[#ededed] text-sm outline-none focus:border-[#a78bfa] transition-colors mb-4"
+          className="mb-4 w-full rounded-lg border border-[#333333] bg-[#252525] px-4 py-3 text-sm text-[#ededed] outline-none transition-colors focus:border-[#a78bfa]"
           autoFocus
         />
 
-        <div className="flex gap-2 mb-5">
+        <div className="mb-5 flex gap-2">
           {TAG_TYPES.map(({ type, label, icon: Icon, iconClass }) => (
             <button
               key={type}
               type="button"
               onClick={() => setSelectedType(type)}
               className={cn(
-                "flex-1 p-3 bg-[#252525] border-2 border-[#333333] rounded-lg cursor-pointer text-center transition-all hover:border-[#444444]",
-                selectedType === type && "border-[#a78bfa] bg-[#2d2640]"
+                "flex-1 cursor-pointer rounded-lg border-2 border-[#333333] bg-[#252525] p-3 text-center transition-all hover:border-[#444444]",
+                selectedType === type && "border-[#a78bfa] bg-[#2d2640]",
               )}
             >
-              <div className={cn("w-6 h-6 mx-auto mb-2 rounded-md flex items-center justify-center", iconClass)}>
-                <Icon className="w-3.5 h-3.5" />
+              <div
+                className={cn(
+                  "mx-auto mb-2 flex h-6 w-6 items-center justify-center rounded-md",
+                  iconClass,
+                )}
+              >
+                <Icon className="h-3.5 w-3.5" />
               </div>
               <div className="text-xs text-[#888888]">{label}</div>
             </button>
           ))}
         </div>
 
-        <div className="flex gap-3 justify-end">
+        <div className="flex justify-end gap-3">
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="px-4 py-2.5 bg-transparent border border-[#333333] rounded-lg text-[#888888] text-sm cursor-pointer transition-all hover:bg-[#252525] hover:text-[#ededed]"
+            className="cursor-pointer rounded-lg border border-[#333333] bg-transparent px-4 py-2.5 text-sm text-[#888888] transition-all hover:bg-[#252525] hover:text-[#ededed]"
           >
             Cancelar
           </button>
@@ -119,7 +139,7 @@ export function TagEditorModal({ open, onOpenChange, onAddTag }: TagEditorModalP
             type="button"
             onClick={handleConfirm}
             disabled={!text.trim()}
-            className="px-5 py-2.5 bg-[#7c3aed] border-none rounded-lg text-white text-sm font-medium cursor-pointer transition-all hover:bg-[#6d28d9] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer rounded-lg border-none bg-[#7c3aed] px-5 py-2.5 text-sm font-medium text-white transition-all hover:bg-[#6d28d9] disabled:cursor-not-allowed disabled:opacity-50"
           >
             Adicionar
           </button>
@@ -141,23 +161,20 @@ export function TagDisplay({ tag, onRemove, editable = true }: TagDisplayProps) 
   return (
     <span
       className={cn(
-        "group inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#252730] border border-[#363842] rounded-md text-xs text-[#ededed] cursor-default transition-all"
+        "group inline-flex cursor-default items-center gap-1.5 rounded-md border border-[#363842] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed] transition-all",
       )}
     >
-      <IconComponent 
-        className={cn(
-          "w-3 h-3",
-          tag.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"
-        )} 
+      <IconComponent
+        className={cn("h-3 w-3", tag.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]")}
       />
       {tag.text}
       {editable && (
         <button
           type="button"
           onClick={onRemove}
-          className="opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer ml-1"
+          className="ml-1 cursor-pointer opacity-0 transition-opacity group-hover:opacity-100"
         >
-          <X className="w-3 h-3" />
+          <X className="h-3 w-3" />
         </button>
       )}
     </span>
@@ -235,17 +252,17 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
       <button
         type="button"
         onClick={() => setIsExpanded(true)}
-        className="inline-flex items-center gap-1.5 px-3.5 py-2 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-[0.8125rem] cursor-pointer transition-all hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888]"
+        className="inline-flex cursor-pointer items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3.5 py-2 text-[0.8125rem] text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
       >
-        <Plus className="w-3 h-3" />
+        <Plus className="h-3 w-3" />
         Adicionar tag
       </button>
     );
   }
 
   return (
-    <div ref={containerRef} className="inline-flex items-center gap-2 flex-wrap">
-      <div className="flex items-center gap-2 bg-[#1a1a1a] border border-[#2a2a2a] rounded-md px-3 py-2">
+    <div ref={containerRef} className="inline-flex flex-wrap items-center gap-2">
+      <div className="flex items-center gap-2 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-2">
         <input
           ref={inputRef}
           type="text"
@@ -253,7 +270,7 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
           onChange={(e) => setText(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Digite o texto da tag..."
-          className="bg-transparent border-none outline-none text-[#ededed] text-[0.8125rem] min-w-[120px] placeholder:text-[#555555]"
+          className="min-w-[120px] border-none bg-transparent text-[0.8125rem] text-[#ededed] outline-none placeholder:text-[#555555]"
         />
         <div className="flex items-center gap-1">
           {TAG_TYPES.map(({ type, icon: Icon, iconClass }) => (
@@ -262,13 +279,14 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
               type="button"
               onClick={() => setSelectedType(type)}
               className={cn(
-                "w-6 h-6 rounded flex items-center justify-center transition-all",
+                "flex h-6 w-6 items-center justify-center rounded transition-all",
                 iconClass,
-                selectedType === type && "ring-2 ring-[#a78bfa] ring-offset-1 ring-offset-[#1a1a1a]"
+                selectedType === type &&
+                  "ring-2 ring-[#a78bfa] ring-offset-1 ring-offset-[#1a1a1a]",
               )}
-              title={TAG_TYPES.find(t => t.type === type)?.label}
+              title={TAG_TYPES.find((t) => t.type === type)?.label}
             >
-              <Icon className="w-3.5 h-3.5" />
+              <Icon className="h-3.5 w-3.5" />
             </button>
           ))}
         </div>
@@ -276,10 +294,10 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
           type="button"
           onClick={handleConfirm}
           disabled={!text.trim()}
-          className="w-6 h-6 rounded flex items-center justify-center bg-[#7c3aed] text-white transition-all hover:bg-[#6d28d9] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex h-6 w-6 items-center justify-center rounded bg-[#7c3aed] text-white transition-all hover:bg-[#6d28d9] disabled:cursor-not-allowed disabled:opacity-50"
           title="Confirmar"
         >
-          <Check className="w-3.5 h-3.5" />
+          <Check className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
@@ -288,10 +306,10 @@ export function InlineTagEditor({ onAddTag, onCancel }: InlineTagEditorProps) {
             setText("");
             onCancel?.();
           }}
-          className="w-6 h-6 rounded flex items-center justify-center text-[#888888] hover:bg-[#333333] hover:text-[#ededed] transition-all"
+          className="flex h-6 w-6 items-center justify-center rounded text-[#888888] transition-all hover:bg-[#333333] hover:text-[#ededed]"
           title="Cancelar"
         >
-          <X className="w-3.5 h-3.5" />
+          <X className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>

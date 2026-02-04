@@ -40,10 +40,10 @@ export function DateInput({
   // Initialize input value and display month from prop
   React.useEffect(() => {
     const dateValue = typeof value === "string" ? parseLocalDate(value) : value;
-    
+
     if (dateValue && isValid(dateValue)) {
       const formatted = format(dateValue, "dd/MM/yyyy", { locale: ptBR });
-      
+
       // Only update if value actually changed to prevent infinite loops
       if (prevValueRef.current !== formatted) {
         prevValueRef.current = formatted;
@@ -57,16 +57,16 @@ export function DateInput({
   const parseDate = (input: string): Date | null => {
     // Remove any non-numeric characters except separators
     let cleaned = input.replace(/[^\d\/\-\.]/g, "");
-    
+
     // Remove trailing separators
     cleaned = cleaned.replace(/[\/\-\.]+$/, "");
-    
+
     // Try different date formats
     const formats = [
       "dd/MM/yyyy",
       "dd/MM/yy",
       "dd/MM",
-      "dd-MM-yyyy", 
+      "dd-MM-yyyy",
       "dd-MM-yy",
       "dd-MM",
       "dd.MM.yyyy",
@@ -80,12 +80,12 @@ export function DateInput({
     for (const formatString of formats) {
       try {
         let parsed = parse(cleaned, formatString, new Date(), { locale: ptBR });
-        
+
         // If no year provided, use current year
         if (formatString.indexOf("yyyy") === -1 && formatString.indexOf("yy") === -1) {
           parsed = setYear(parsed, new Date().getFullYear());
         }
-        
+
         // If year is two digits, adjust to 2000s
         if (formatString.includes("yy") && !formatString.includes("yyyy")) {
           const year = parsed.getFullYear();
@@ -93,7 +93,7 @@ export function DateInput({
             parsed = setYear(parsed, 2000 + year);
           }
         }
-        
+
         if (isValid(parsed)) {
           return parsed;
         }
@@ -108,12 +108,12 @@ export function DateInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let newValue = e.target.value;
     const prevLength = inputValue.length;
-    
+
     // Detect which separator is being used
     const hasDot = newValue.includes(".");
     const hasDash = newValue.includes("-");
     const hasSlash = newValue.includes("/");
-    
+
     // Auto-format with slashes
     if (newValue.length > prevLength && !hasDot && !hasDash) {
       if (newValue.length === 2 && !hasSlash) {
@@ -121,17 +121,16 @@ export function DateInput({
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
           newValue = newValue + "/";
         }
-      }
-      else if (newValue.length === 5 && newValue.split("/").length === 2) {
+      } else if (newValue.length === 5 && newValue.split("/").length === 2) {
         const lastChar = newValue[newValue.length - 1];
         if (lastChar !== "/" && lastChar !== "-" && lastChar !== ".") {
           newValue = newValue + "/";
         }
       }
     }
-    
+
     setInputValue(newValue);
-    
+
     // Try to parse the date
     const parsed = parseDate(newValue);
     if (parsed) {
@@ -194,7 +193,7 @@ export function DateInput({
   if (hideIcon) {
     return (
       <div className={cn("w-auto", className)}>
-        <div className="p-3 border-b border-[#2a2a2a]">
+        <div className="border-b border-[#2a2a2a] p-3">
           <Input
             ref={inputRef}
             id={dataTestId}
@@ -206,18 +205,16 @@ export function DateInput({
             disabled={disabled}
             className={cn(
               "text-center text-sm font-medium",
-              "bg-[#0a0a0a] border-[#2a2a2a]",
+              "border-[#2a2a2a] bg-[#0a0a0a]",
               "text-white placeholder:text-gray-500",
-              "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
-              isInvalid && "border-red-500 focus-visible:ring-red-500"
+              "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
+              isInvalid && "border-red-500 focus-visible:ring-red-500",
             )}
             onClick={(e) => e.stopPropagation()}
             data-testid={dataTestId}
           />
           {isInvalid && (
-            <span className="text-xs text-red-400 block mt-2 text-center">
-              Data inválida
-            </span>
+            <span className="mt-2 block text-center text-xs text-red-400">Data inválida</span>
           )}
         </div>
         <Calendar
@@ -234,12 +231,12 @@ export function DateInput({
   }
 
   return (
-    <div className={cn("relative flex items-center w-full gap-1", className)}>
+    <div className={cn("relative flex w-full items-center gap-1", className)}>
       <Popover open={open} onOpenChange={setOpen}>
-        <div className="flex items-center gap-1 w-full">
-          <span 
+        <div className="flex w-full items-center gap-1">
+          <span
             onClick={() => setOpen(true)}
-            className="text-xs cursor-pointer hover:bg-muted/50 rounded px-2 py-1 flex-1"
+            className="flex-1 cursor-pointer rounded px-2 py-1 text-xs hover:bg-muted/50"
             data-testid={dataTestId}
           >
             {inputValue}
@@ -257,12 +254,12 @@ export function DateInput({
             </Button>
           </PopoverTrigger>
         </div>
-        <PopoverContent 
-          className="w-auto p-0 date-input-calendar-popover bg-[#1a1a1a] border-[#2a2a2a]" 
+        <PopoverContent
+          className="date-input-calendar-popover w-auto border-[#2a2a2a] bg-[#1a1a1a] p-0"
           align="start"
         >
           {/* Input no topo com visual dark sofisticado */}
-          <div className="p-3 border-b border-[#2a2a2a]">
+          <div className="border-b border-[#2a2a2a] p-3">
             <Input
               ref={inputRef}
               id={dataTestId}
@@ -274,20 +271,18 @@ export function DateInput({
               disabled={disabled}
               className={cn(
                 "text-center text-sm font-medium",
-                "bg-[#0a0a0a] border-[#2a2a2a]",
+                "border-[#2a2a2a] bg-[#0a0a0a]",
                 "text-white placeholder:text-gray-500",
-                "focus-visible:ring-1 focus-visible:ring-blue-500 focus-visible:border-blue-500",
-                isInvalid && "border-red-500 focus-visible:ring-red-500"
+                "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
+                isInvalid && "border-red-500 focus-visible:ring-red-500",
               )}
               onClick={(e) => e.stopPropagation()}
             />
             {isInvalid && (
-              <span className="text-xs text-red-400 block mt-2 text-center">
-                Data inválida
-              </span>
+              <span className="mt-2 block text-center text-xs text-red-400">Data inválida</span>
             )}
           </div>
-          
+
           {/* Calendário com tema dark */}
           <Calendar
             mode="single"

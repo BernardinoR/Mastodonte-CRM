@@ -8,20 +8,20 @@ export const UI_COLORS = {
   cardBg: "#252730",
   elementBg: "#333",
   hoverBg: "#2a2a2a",
-  
+
   // Borders
   border: "#2a2a2a",
   borderLight: "#363842",
   avatarBorder: "#27282F",
-  
+
   // Text
   textMuted: "#64666E",
   textLight: "#9B9A97",
-  
+
   // Contact buttons
   contactBtnBg: "white/5",
   contactBtnBorder: "#363842",
-  
+
   // Task card borders (RGB for inline styles)
   taskBorderBlue: "rgb(66, 129, 220)",
   taskBorderRed: "rgb(185, 28, 28)",
@@ -47,8 +47,10 @@ export const UI_CLASSES = {
   // Modal specific
   clientBadge: "bg-[#333] px-2.5 py-1 rounded text-xs text-gray-400",
   avatarBorder: "border-2 border-[#27282F]",
-  dropdownItem: "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
-  dropdownItemSelected: "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md",
+  dropdownItem:
+    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#2a2a2a] transition-colors",
+  dropdownItemSelected:
+    "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#2a2a2a] rounded-md",
 } as const;
 
 export interface StatusConfig {
@@ -91,7 +93,7 @@ export const STATUS_CONFIG: Record<TaskStatus, StatusConfig> = {
     columnBorderColor: "border-t-[#344151]",
     cardBgRgb: "rgba(36, 48, 65, 0.08)",
   },
-  "Done": {
+  Done: {
     label: "Done",
     labelPt: "Concluído",
     bgColor: "bg-green-800",
@@ -104,28 +106,28 @@ export const STATUS_CONFIG: Record<TaskStatus, StatusConfig> = {
 };
 
 export const PRIORITY_CONFIG: Record<TaskPriority, PriorityConfig> = {
-  "Urgente": {
+  Urgente: {
     label: "Urgente",
     bgColor: "bg-red-900",
     borderColor: "border-red-900",
     textColor: "text-white",
     dotColor: "bg-red-500",
   },
-  "Importante": {
+  Importante: {
     label: "Importante",
     bgColor: "bg-orange-800",
     borderColor: "border-orange-800",
     textColor: "text-white",
     dotColor: "bg-orange-500",
   },
-  "Normal": {
+  Normal: {
     label: "Normal",
     bgColor: "bg-yellow-700",
     borderColor: "border-yellow-700",
     textColor: "text-white",
     dotColor: "bg-yellow-500",
   },
-  "Baixa": {
+  Baixa: {
     label: "Baixa",
     bgColor: "bg-blue-800",
     borderColor: "border-blue-800",
@@ -152,17 +154,17 @@ export interface ClientStatusConfig {
 }
 
 export const CLIENT_STATUS_CONFIG: Record<ClientStatus, ClientStatusConfig> = {
-  "Ativo": {
+  Ativo: {
     label: "Ativo",
     bgColor: "bg-[#203828]",
     textColor: "text-[#6ecf8e]",
   },
-  "Prospect": {
+  Prospect: {
     label: "Prospect",
     bgColor: "bg-[#2a2a38]",
     textColor: "text-[#a78bfa]",
   },
-  "Distrato": {
+  Distrato: {
     label: "Distrato",
     bgColor: "bg-[#382020]",
     textColor: "text-[#f87171]",
@@ -179,20 +181,20 @@ export const getClientStatusConfig = (status: ClientStatus): ClientStatusConfig 
 export const TASK_STATUS_BADGE_COLORS: Record<TaskStatus, string> = {
   "To Do": "bg-[#333333] text-[#a0a0a0]",
   "In Progress": "bg-[#243041] text-[#6db1d4]",
-  "Done": "bg-[#203828] text-[#6ecf8e]",
+  Done: "bg-[#203828] text-[#6ecf8e]",
 };
 
 export const TASK_PRIORITY_BADGE_COLORS: Record<TaskPriority, string> = {
-  "Urgente": "bg-[#3d2626] text-[#e07a7a]",
-  "Importante": "bg-[#422c24] text-[#dcb092]",
-  "Normal": "bg-[#333333] text-[#a0a0a0]",
-  "Baixa": "bg-[#1c3847] text-[#6db1d4]",
+  Urgente: "bg-[#3d2626] text-[#e07a7a]",
+  Importante: "bg-[#422c24] text-[#dcb092]",
+  Normal: "bg-[#333333] text-[#a0a0a0]",
+  Baixa: "bg-[#1c3847] text-[#6db1d4]",
 };
 
 export const MEETING_STATUS_BADGE_COLORS: Record<string, string> = {
-  "Agendada": "bg-[#1c3847] text-[#2eaadc]",
-  "Realizada": "bg-[#203828] text-[#6ecf8e]",
-  "Cancelada": "bg-[#3d2828] text-[#dc6b6b]",
+  Agendada: "bg-[#1c3847] text-[#2eaadc]",
+  Realizada: "bg-[#203828] text-[#6ecf8e]",
+  Cancelada: "bg-[#3d2828] text-[#dc6b6b]",
 };
 
 export const getTaskStatusBadgeColor = (status: TaskStatus): string => {
@@ -209,10 +211,10 @@ export const getMeetingStatusBadgeColor = (status: string): string => {
 
 // Client status colors for outline badges (used in ClientCard, ClientProfile)
 export const CLIENT_STATUS_OUTLINE_COLORS: Record<string, string> = {
-  "Ativo": "bg-green-500/10 text-green-500 border-green-500/20",
-  "Prospect": "bg-purple-500/10 text-purple-500 border-purple-500/20",
-  "Distrato": "bg-red-500/10 text-red-500 border-red-500/20",
-  "Inativo": "bg-gray-500/10 text-gray-500 border-gray-500/20",
+  Ativo: "bg-green-500/10 text-green-500 border-green-500/20",
+  Prospect: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+  Distrato: "bg-red-500/10 text-red-500 border-red-500/20",
+  Inativo: "bg-gray-500/10 text-gray-500 border-gray-500/20",
 };
 
 export const getClientStatusOutlineColor = (status: string): string => {

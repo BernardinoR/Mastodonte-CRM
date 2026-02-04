@@ -25,23 +25,18 @@ export function BadgeFilterContent<T extends string>({
   label,
   renderBadge,
 }: BadgeFilterContentProps<T>) {
-  const selected = useMemo(() => 
-    options.filter(opt => selectedValues.includes(opt)),
-    [options, selectedValues]
+  const selected = useMemo(
+    () => options.filter((opt) => selectedValues.includes(opt)),
+    [options, selectedValues],
   );
-  
-  const unselected = useMemo(() => 
-    options.filter(opt => !selectedValues.includes(opt)),
-    [options, selectedValues]
+
+  const unselected = useMemo(
+    () => options.filter((opt) => !selectedValues.includes(opt)),
+    [options, selectedValues],
   );
 
   const defaultRenderBadge = (value: T, isSelected: boolean) => (
-    <Badge 
-      className={cn(
-        colorMap[value] || "bg-[#333333] text-[#a0a0a0]",
-        "text-xs"
-      )}
-    >
+    <Badge className={cn(colorMap[value] || "bg-[#333333] text-[#a0a0a0]", "text-xs")}>
       {value}
     </Badge>
   );
@@ -51,29 +46,27 @@ export function BadgeFilterContent<T extends string>({
       {selected.length > 0 && (
         <>
           <div className={cn("border-b", UI_CLASSES.border)}>
-            <div className="px-3 py-1.5 text-xs text-gray-500">
-              {label || "Selecionado"}
-            </div>
-            <div className="px-2 pb-2 space-y-1">
+            <div className="px-3 py-1.5 text-xs text-gray-500">{label || "Selecionado"}</div>
+            <div className="space-y-1 px-2 pb-2">
               {selected.map((value) => (
                 <div
                   key={value}
                   onClick={() => onToggle(value)}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
-                    UI_CLASSES.selectedItem
+                    "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5",
+                    UI_CLASSES.selectedItem,
                   )}
                   data-testid={`option-filter-${value.toLowerCase().replace(/\s+/g, "-")}`}
                 >
                   {renderBadge ? renderBadge(value, true) : defaultRenderBadge(value, true)}
-                  <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                  <X className="ml-auto h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               ))}
             </div>
           </div>
         </>
       )}
-      
+
       {unselected.length > 0 && (
         <>
           <div className="px-3 py-1.5 text-xs text-gray-500">
@@ -96,4 +89,3 @@ export function BadgeFilterContent<T extends string>({
     </div>
   );
 }
-

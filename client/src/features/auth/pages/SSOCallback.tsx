@@ -3,12 +3,15 @@ import { Loader2 } from "lucide-react";
 
 export default function SSOCallback() {
   return (
-    <div className="flex items-center justify-center h-screen" style={{ backgroundColor: "#191919" }}>
+    <div
+      className="flex h-screen items-center justify-center"
+      style={{ backgroundColor: "#191919" }}
+    >
       <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-white mx-auto mb-4" />
-        <p className="text-[#888] text-sm">Autenticando...</p>
+        <Loader2 className="mx-auto mb-4 h-8 w-8 animate-spin text-white" />
+        <p className="text-sm text-[#888]">Autenticando...</p>
       </div>
-      <AuthenticateWithRedirectCallback 
+      <AuthenticateWithRedirectCallback
         signInFallbackRedirectUrl="/"
         signUpFallbackRedirectUrl="/"
       />

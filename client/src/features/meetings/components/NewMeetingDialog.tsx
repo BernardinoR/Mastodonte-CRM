@@ -3,7 +3,13 @@ import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Textarea } from "@/shared/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { useState } from "react";
 
 export interface NewMeetingFormData {
@@ -20,7 +26,12 @@ interface NewMeetingDialogProps {
   preSelectedClient?: string;
 }
 
-export function NewMeetingDialog({ open, onOpenChange, onSubmit, preSelectedClient }: NewMeetingDialogProps) {
+export function NewMeetingDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+  preSelectedClient,
+}: NewMeetingDialogProps) {
   const [formData, setFormData] = useState({
     clientId: preSelectedClient || "",
     date: "",
@@ -30,7 +41,7 @@ export function NewMeetingDialog({ open, onOpenChange, onSubmit, preSelectedClie
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Meeting submitted:', formData);
+    console.log("Meeting submitted:", formData);
     onSubmit?.(formData);
     onOpenChange(false);
     setFormData({
@@ -49,7 +60,7 @@ export function NewMeetingDialog({ open, onOpenChange, onSubmit, preSelectedClie
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="client" className="text-xs font-medium uppercase tracking-wide">
                   Cliente *
@@ -118,7 +129,12 @@ export function NewMeetingDialog({ open, onOpenChange, onSubmit, preSelectedClie
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              data-testid="button-cancel"
+            >
               Cancelar
             </Button>
             <Button type="submit" data-testid="button-save">

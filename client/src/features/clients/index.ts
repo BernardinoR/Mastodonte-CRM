@@ -2,42 +2,42 @@
 // Gerenciamento de clientes e seus detalhes
 
 // Pages
-export { default as Clients } from './pages/Clients';
-export { default as ClientDetails } from './pages/ClientDetails';
+export { default as Clients } from "./pages/Clients";
+export { default as ClientDetails } from "./pages/ClientDetails";
 
 // Components
-export { ClientCard } from './components/ClientCard';
-export { ClientProfile } from './components/ClientProfile';
-export { ClientStatusBadge } from './components/ClientStatusBadge';
-export { NewClientDialog } from './components/NewClientDialog';
-export { NewClientInlineCard } from './components/NewClientInlineCard';
-export { AddressPopover } from './components/AddressPopover';
-export { AdvisorPopover } from './components/AdvisorPopover';
-export { EmailsPopover } from './components/EmailsPopover';
-export { FoundationCodeField } from './components/FoundationCodeField';
-export { WhatsAppGroupsTable } from './components/WhatsAppGroupsTable';
-export { ImportClientsDialog } from './components/ImportClientsDialog';
+export { ClientCard } from "./components/ClientCard";
+export { ClientProfile } from "./components/ClientProfile";
+export { ClientStatusBadge } from "./components/ClientStatusBadge";
+export { NewClientDialog } from "./components/NewClientDialog";
+export { NewClientInlineCard } from "./components/NewClientInlineCard";
+export { AddressPopover } from "./components/AddressPopover";
+export { AdvisorPopover } from "./components/AdvisorPopover";
+export { EmailsPopover } from "./components/EmailsPopover";
+export { FoundationCodeField } from "./components/FoundationCodeField";
+export { WhatsAppGroupsTable } from "./components/WhatsAppGroupsTable";
+export { ImportClientsDialog } from "./components/ImportClientsDialog";
 
 // Client Details Components
-export * from './components/client-details';
+export * from "./components/client-details";
 
 // Clients Page Components
-export * from './components/clients-page';
+export * from "./components/clients-page";
 
 // Contexts
-export { ClientsProvider, useClients } from './contexts/ClientsContext';
+export { ClientsProvider, useClients } from "./contexts/ClientsContext";
 
 // Hooks
-export { useClientsPage } from './hooks/useClientsPage';
-export { useClientHeaderEditing } from './hooks/useClientHeaderEditing';
-export { useInlineClientMeetings } from './hooks/useInlineClientMeetings';
-export { useInlineClientTasks } from './hooks/useInlineClientTasks';
-export { useClientImportExport } from './hooks/useClientImportExport';
+export { useClientsPage } from "./hooks/useClientsPage";
+export { useClientHeaderEditing } from "./hooks/useClientHeaderEditing";
+export { useInlineClientMeetings } from "./hooks/useInlineClientMeetings";
+export { useInlineClientTasks } from "./hooks/useInlineClientTasks";
+export { useClientImportExport } from "./hooks/useClientImportExport";
 
 // Lib
-export * from './lib/clientSections';
-export * from './lib/clientUtils';
-export * from './lib/clientImportExport';
+export * from "./lib/clientSections";
+export * from "./lib/clientUtils";
+export * from "./lib/clientImportExport";
 
 // Types
-export * from './types/client';
+export * from "./types/client";

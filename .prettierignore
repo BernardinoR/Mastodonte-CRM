@@ -1,0 +1,6 @@
+dist/
+node_modules/
+.context/
+.cache/
+.claude/
+prisma/migrations/

@@ -14,15 +14,16 @@ The Task Management System is a full-stack web application designed to help team
 
 ## Target Users
 
-| Role | Description | Key Features |
-|------|-------------|--------------|
-| Admin | System administrators | Full access, user management, system configuration |
-| Manager | Team leads and supervisors | Task assignment, client oversight, reporting |
-| User | Regular team members | Task completion, meeting participation, client interaction |
+| Role    | Description                | Key Features                                               |
+| ------- | -------------------------- | ---------------------------------------------------------- |
+| Admin   | System administrators      | Full access, user management, system configuration         |
+| Manager | Team leads and supervisors | Task assignment, client oversight, reporting               |
+| User    | Regular team members       | Task completion, meeting participation, client interaction |
 
 ## Key Features
 
 ### Task Management
+
 - Create and assign tasks with priorities (urgent, high, medium, low)
 - Track task status (pending, in_progress, completed, cancelled)
 - Filter and sort tasks by multiple criteria
@@ -30,6 +31,7 @@ The Task Management System is a full-stack web application designed to help team
 - Task history and audit trail
 
 ### Client Management
+
 - Client profiles with contact information
 - Address management
 - Meeting history per client
@@ -37,6 +39,7 @@ The Task Management System is a full-stack web application designed to help team
 - Client status tracking
 
 ### Meeting Management
+
 - Schedule meetings with clients
 - Record meeting notes
 - AI-powered summary generation
@@ -44,6 +47,7 @@ The Task Management System is a full-stack web application designed to help team
 - Link meetings to tasks
 
 ### User & Access Control
+
 - Clerk-based authentication
 - Role-based permissions (admin, manager, user)
 - Group-based access control
@@ -51,14 +55,14 @@ The Task Management System is a full-stack web application designed to help team
 
 ## Technology Decisions
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Frontend Framework | React + Vite | Fast development, excellent DX, broad ecosystem |
-| Styling | TailwindCSS + shadcn/ui | Utility-first CSS with accessible components |
-| State Management | TanStack Query | Excellent server state caching and synchronization |
-| Backend | Express.js | Simple, flexible, well-documented |
-| Database | PostgreSQL + Prisma | Reliable RDBMS with type-safe ORM |
-| Authentication | Clerk | Managed auth with social login support |
+| Decision           | Choice                  | Rationale                                          |
+| ------------------ | ----------------------- | -------------------------------------------------- |
+| Frontend Framework | React + Vite            | Fast development, excellent DX, broad ecosystem    |
+| Styling            | TailwindCSS + shadcn/ui | Utility-first CSS with accessible components       |
+| State Management   | TanStack Query          | Excellent server state caching and synchronization |
+| Backend            | Express.js              | Simple, flexible, well-documented                  |
+| Database           | PostgreSQL + Prisma     | Reliable RDBMS with type-safe ORM                  |
+| Authentication     | Clerk                   | Managed auth with social login support             |
 
 ## Project Structure
 

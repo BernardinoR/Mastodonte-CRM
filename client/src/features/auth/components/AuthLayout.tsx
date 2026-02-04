@@ -9,7 +9,7 @@ interface AuthLayoutProps {
 
 export function AuthLayout({ children, showQuotes = true }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "#191919" }}>
+    <div className="flex min-h-screen" style={{ backgroundColor: "#191919" }}>
       <style>{`
         @keyframes fadeInDown {
           from { opacity: 0; transform: translateY(-20px); }
@@ -40,9 +40,9 @@ export function AuthLayout({ children, showQuotes = true }: AuthLayoutProps) {
         .animation-delay-200 { animation-delay: 0.2s; animation-fill-mode: both; }
       `}</style>
 
-      <div className="flex-1 flex flex-col items-center justify-center p-8 lg:p-12">
+      <div className="flex flex-1 flex-col items-center justify-center p-8 lg:p-12">
         <div className="w-full max-w-sm">
-          <div className="text-center mb-10 text-white">
+          <div className="mb-10 text-center text-white">
             <MastodonteLogo />
           </div>
           {children}

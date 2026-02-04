@@ -1,10 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { Input } from "@/shared/components/ui/input";
@@ -44,11 +39,14 @@ export function TaskCardQuickDetails({
     }
   }, [description]);
 
-  const handleDescriptionChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setLocalDescription(value);
-    onUpdate(id, { description: value });
-  }, [id, onUpdate]);
+  const handleDescriptionChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const value = e.target.value;
+      setLocalDescription(value);
+      onUpdate(id, { description: value });
+    },
+    [id, onUpdate],
+  );
 
   const handleAddNote = useCallback(() => {
     if (newNote.trim()) {
@@ -61,51 +59,54 @@ export function TaskCardQuickDetails({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid={`dialog-details-${id}`}>
+      <DialogContent
+        className="max-h-[90vh] max-w-3xl overflow-y-auto"
+        data-testid={`dialog-details-${id}`}
+      >
         <DialogHeader className="space-y-0 pb-4">
           <DialogTitle>{title}</DialogTitle>
           <Button
             size="icon"
             variant="ghost"
             onClick={onDelete}
-            className="absolute right-4 top-4 text-destructive hover:text-destructive hover:bg-destructive/10"
+            className="absolute right-4 top-4 text-destructive hover:bg-destructive/10 hover:text-destructive"
             data-testid={`button-modal-delete-${id}`}
           >
-            <Trash2 className="w-4 h-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="border-t pt-6">
-            <label className="text-sm font-medium mb-3 block">Descrição</label>
+            <label className="mb-3 block text-sm font-medium">Descrição</label>
             <Textarea
               value={localDescription}
               onChange={handleDescriptionChange}
               placeholder="Adicione detalhes sobre esta tarefa..."
-              className="min-h-[100px] hover-elevate"
+              className="hover-elevate min-h-[100px]"
               data-testid={`textarea-description-${id}`}
             />
           </div>
 
           <div className="border-t pt-6">
-            <h3 className="text-sm font-medium mb-3">Histórico / Notas</h3>
+            <h3 className="mb-3 text-sm font-medium">Histórico / Notas</h3>
             {notes && notes.length > 0 ? (
-              <div className="space-y-2 mb-4">
+              <div className="mb-4 space-y-2">
                 {notes.map((note, index) => (
-                  <div key={index} className="p-3 bg-muted rounded-lg text-sm">
+                  <div key={index} className="rounded-lg bg-muted p-3 text-sm">
                     {note}
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground mb-4">Nenhuma nota ainda.</p>
+              <p className="mb-4 text-sm text-muted-foreground">Nenhuma nota ainda.</p>
             )}
             <div className="flex gap-2">
               <Input
                 value={newNote}
                 onChange={(e) => setNewNote(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
+                  if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     handleAddNote();
                   }

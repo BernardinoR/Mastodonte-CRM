@@ -46,34 +46,44 @@ export function ClientProfile({
     <div className="space-y-6">
       <Card>
         <CardContent className="p-6">
-          <div className="flex items-start gap-4 mb-6">
-            <Avatar className="w-16 h-16">
+          <div className="mb-6 flex items-start gap-4">
+            <Avatar className="h-16 w-16">
               <AvatarFallback className="text-lg font-medium">{initials}</AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-3 mb-2 flex-wrap">
-                <h1 className="text-2xl font-semibold" data-testid="text-clientname">{name}</h1>
-                <Badge variant="outline" className={`${CLIENT_STATUS_OUTLINE_COLORS[status] || ""}`}>
+            <div className="min-w-0 flex-1">
+              <div className="mb-2 flex flex-wrap items-center gap-3">
+                <h1 className="text-2xl font-semibold" data-testid="text-clientname">
+                  {name}
+                </h1>
+                <Badge
+                  variant="outline"
+                  className={`${CLIENT_STATUS_OUTLINE_COLORS[status] || ""}`}
+                >
                   {status}
                 </Badge>
               </div>
-              <div className="flex gap-3 flex-wrap">
+              <div className="flex flex-wrap gap-3">
                 <Button variant="default" size="sm" onClick={onEdit} data-testid="button-edit">
-                  <Edit className="w-4 h-4 mr-2" />
+                  <Edit className="mr-2 h-4 w-4" />
                   Editar
                 </Button>
-                <Button variant="outline" size="sm" onClick={onArchive} data-testid="button-archive">
-                  <Archive className="w-4 h-4 mr-2" />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onArchive}
+                  data-testid="button-archive"
+                >
+                  <Archive className="mr-2 h-4 w-4" />
                   Arquivar
                 </Button>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
             {cpf && (
               <div>
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   CPF
                 </span>
                 <span data-testid="text-cpf">{cpf}</span>
@@ -81,29 +91,29 @@ export function ClientProfile({
             )}
             {email && (
               <div>
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   E-mail
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-muted-foreground" />
+                  <Mail className="h-4 w-4 text-muted-foreground" />
                   <span data-testid="text-email">{email}</span>
                 </div>
               </div>
             )}
             {phone && (
               <div>
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Telefone
                 </span>
                 <div className="flex items-center gap-1.5">
-                  <Phone className="w-4 h-4 text-muted-foreground" />
+                  <Phone className="h-4 w-4 text-muted-foreground" />
                   <span data-testid="text-phone">{phone}</span>
                 </div>
               </div>
             )}
             {folderLink && (
               <div>
-                <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground block mb-1">
+                <span className="mb-1 block text-xs font-medium uppercase tracking-wide text-muted-foreground">
                   Link da Pasta
                 </span>
                 <a
@@ -113,7 +123,7 @@ export function ClientProfile({
                   className="inline-flex items-center gap-1.5 text-primary hover:underline"
                   data-testid="link-folder"
                 >
-                  <ExternalLink className="w-4 h-4" />
+                  <ExternalLink className="h-4 w-4" />
                   Abrir Pasta
                 </a>
               </div>
@@ -123,18 +133,27 @@ export function ClientProfile({
       </Card>
 
       <Tabs defaultValue="meetings" className="w-full">
-        <div className="flex items-center justify-between mb-4">
+        <div className="mb-4 flex items-center justify-between">
           <TabsList>
-            <TabsTrigger value="meetings" data-testid="tab-meetings">Reuniões</TabsTrigger>
-            <TabsTrigger value="tasks" data-testid="tab-tasks">Tarefas</TabsTrigger>
+            <TabsTrigger value="meetings" data-testid="tab-meetings">
+              Reuniões
+            </TabsTrigger>
+            <TabsTrigger value="tasks" data-testid="tab-tasks">
+              Tarefas
+            </TabsTrigger>
           </TabsList>
           <div className="flex gap-2">
-            <Button variant="default" size="sm" onClick={onNewMeeting} data-testid="button-newmeeting">
-              <Plus className="w-4 h-4 mr-2" />
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onNewMeeting}
+              data-testid="button-newmeeting"
+            >
+              <Plus className="mr-2 h-4 w-4" />
               Nova Reunião
             </Button>
             <Button variant="outline" size="sm" onClick={onNewTask} data-testid="button-newtask">
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Nova Tarefa
             </Button>
           </div>

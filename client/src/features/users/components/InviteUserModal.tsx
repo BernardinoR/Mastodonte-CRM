@@ -68,7 +68,8 @@ const OPERATIONAL_ROLES: RoleOption[] = [
   {
     value: "alocador",
     label: "Alocador",
-    description: "Acesso em nível de grupo. Pode visualizar todos os clientes do grupo para apoio em alocação.",
+    description:
+      "Acesso em nível de grupo. Pode visualizar todos os clientes do grupo para apoio em alocação.",
     icon: Users,
     colorClass: "border-orange-500/50 bg-orange-500/5",
     dotColor: "bg-orange-500",
@@ -86,18 +87,28 @@ const OPERATIONAL_ROLES: RoleOption[] = [
 export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
   const { getToken } = useAuth();
   const { toast } = useToast();
-  
+
   const [email, setEmail] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
-  const [selectedOperationalRole, setSelectedOperationalRole] = useState<OperationalRole>("consultor");
+  const [selectedOperationalRole, setSelectedOperationalRole] =
+    useState<OperationalRole>("consultor");
   const [selectedGroupId, setSelectedGroupId] = useState<string>("");
 
   const { data: groupsData } = useQuery<{ groups: Group[] }>({
     queryKey: ["groups"],
     queryFn: async () => {
-      const { data, error } = await supabase.from('groups').select('id, name, logo_url').order('name');
+      const { data, error } = await supabase
+        .from("groups")
+        .select("id, name, logo_url")
+        .order("name");
       if (error) throw error;
-      return { groups: (data || []).map((r: Record<string, unknown>) => ({ id: r.id as number, name: r.name as string, logoUrl: r.logo_url as string | null })) };
+      return {
+        groups: (data || []).map((r: Record<string, unknown>) => ({
+          id: r.id as number,
+          name: r.name as string,
+          logoUrl: r.logo_url as string | null,
+        })),
+      };
     },
     enabled: open,
   });
@@ -138,7 +149,7 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email.trim()) {
       toast({ title: "Email é obrigatório", variant: "destructive" });
       return;
@@ -159,14 +170,14 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
       email: email.trim(),
       roles,
     };
-    
+
     if (selectedGroupId && selectedGroupId !== "none") {
       const parsedGroupId = parseInt(selectedGroupId, 10);
       if (!isNaN(parsedGroupId)) {
         payload.groupId = parsedGroupId;
       }
     }
-    
+
     inviteMutation.mutate(payload);
   };
 
@@ -197,35 +208,41 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
 
           <div className="space-y-3">
             <Label>Permissões do Usuário</Label>
-            
+
             <div
               onClick={() => setIsAdmin(!isAdmin)}
-              className={`w-full p-4 rounded-lg border-2 text-left transition-all cursor-pointer ${
+              className={`w-full cursor-pointer rounded-lg border-2 p-4 text-left transition-all ${
                 isAdmin
                   ? `${ADMIN_ROLE.colorClass} border-opacity-100`
-                  : "border-muted bg-muted/30 hover-elevate"
+                  : "hover-elevate border-muted bg-muted/30"
               }`}
               data-testid="checkbox-role-administrador"
             >
               <div className="flex items-start gap-3">
-                <div className={`w-4 h-4 rounded border-2 mt-0.5 flex items-center justify-center ${
-                  isAdmin ? "border-red-500 bg-red-500" : "border-muted-foreground"
-                }`}>
+                <div
+                  className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded border-2 ${
+                    isAdmin ? "border-red-500 bg-red-500" : "border-muted-foreground"
+                  }`}
+                >
                   {isAdmin && (
-                    <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none">
-                      <path d="M2 6L5 9L10 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                      <path
+                        d="M2 6L5 9L10 3"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
                     </svg>
                   )}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${ADMIN_ROLE.dotColor}`} />
+                    <span className={`h-2 w-2 rounded-full ${ADMIN_ROLE.dotColor}`} />
                     <span className="font-medium">{ADMIN_ROLE.label}</span>
                     <span className="text-xs text-muted-foreground">(opcional)</span>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {ADMIN_ROLE.description}
-                  </p>
+                  <p className="mt-1 text-sm text-muted-foreground">{ADMIN_ROLE.description}</p>
                 </div>
               </div>
             </div>
@@ -236,35 +253,33 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
             <div className="space-y-2">
               {OPERATIONAL_ROLES.map((role) => {
                 const isSelected = selectedOperationalRole === role.value;
-                
+
                 return (
                   <button
                     key={role.value}
                     type="button"
                     onClick={() => setSelectedOperationalRole(role.value as OperationalRole)}
-                    className={`w-full p-4 rounded-lg border-2 text-left transition-all ${
+                    className={`w-full rounded-lg border-2 p-4 text-left transition-all ${
                       isSelected
                         ? `${role.colorClass} border-opacity-100`
-                        : "border-muted bg-muted/30 hover-elevate"
+                        : "hover-elevate border-muted bg-muted/30"
                     }`}
                     data-testid={`radio-role-${role.value}`}
                   >
                     <div className="flex items-start gap-3">
-                      <div className={`w-4 h-4 rounded-full border-2 mt-0.5 flex items-center justify-center ${
-                        isSelected ? `border-current` : "border-muted-foreground"
-                      }`}>
-                        {isSelected && (
-                          <div className={`w-2 h-2 rounded-full ${role.dotColor}`} />
-                        )}
+                      <div
+                        className={`mt-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 ${
+                          isSelected ? `border-current` : "border-muted-foreground"
+                        }`}
+                      >
+                        {isSelected && <div className={`h-2 w-2 rounded-full ${role.dotColor}`} />}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className={`w-2 h-2 rounded-full ${role.dotColor}`} />
+                          <span className={`h-2 w-2 rounded-full ${role.dotColor}`} />
                           <span className="font-medium">{role.label}</span>
                         </div>
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {role.description}
-                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">{role.description}</p>
                       </div>
                     </div>
                   </button>
@@ -287,12 +302,12 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
                   <SelectItem key={group.id} value={group.id.toString()}>
                     {group.logoUrl ? (
                       <span className="flex items-center gap-2">
-                        <img src={group.logoUrl} alt="" className="w-4 h-4 rounded" />
+                        <img src={group.logoUrl} alt="" className="h-4 w-4 rounded" />
                         {group.name}
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
+                        <Users className="h-4 w-4" />
                         {group.name}
                       </span>
                     )}
@@ -302,8 +317,8 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
             </Select>
           </div>
 
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-sm text-muted-foreground">
-            <Info className="w-4 h-4 shrink-0" />
+          <div className="flex items-center gap-2 rounded-lg bg-muted/50 p-3 text-sm text-muted-foreground">
+            <Info className="h-4 w-4 shrink-0" />
             <span>O usuário receberá um email para criar sua conta.</span>
           </div>
 
@@ -322,9 +337,9 @@ export function InviteUserModal({ open, onOpenChange }: InviteUserModalProps) {
               data-testid="button-send-invite"
             >
               {inviteMutation.isPending ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Mail className="w-4 h-4 mr-2" />
+                <Mail className="mr-2 h-4 w-4" />
               )}
               Enviar Convite
             </Button>

@@ -65,18 +65,18 @@ export function QuoteCarousel({ intervalMs = 20000 }: QuoteCarouselProps) {
 
   return (
     <div
-      className="hidden lg:flex flex-1 flex-col items-center justify-center relative overflow-hidden transition-all duration-1000"
+      className="relative hidden flex-1 flex-col items-center justify-center overflow-hidden transition-all duration-1000 lg:flex"
       style={{ background: currentQuote.background }}
     >
       <VisualEffect effect={currentQuote.effect} />
       <div className="relative z-10 max-w-lg px-12 text-center">
         <p
           key={currentQuote.id}
-          className="text-white text-2xl md:text-3xl font-light leading-relaxed animate-fadeInUp"
+          className="animate-fadeInUp text-2xl font-light leading-relaxed text-white md:text-3xl"
         >
           {currentQuote.text}
         </p>
-        <p className="text-[#888] mt-6 text-lg tracking-wide animate-fadeInUp animation-delay-200">
+        <p className="animate-fadeInUp animation-delay-200 mt-6 text-lg tracking-wide text-[#888]">
           — {currentQuote.author}
         </p>
       </div>
@@ -85,8 +85,8 @@ export function QuoteCarousel({ intervalMs = 20000 }: QuoteCarouselProps) {
           <button
             key={i}
             onClick={() => setCurrentIndex(i)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-              i === currentIndex ? "bg-white w-6" : "bg-white/30"
+            className={`h-2 w-2 rounded-full transition-all duration-300 ${
+              i === currentIndex ? "w-6 bg-white" : "bg-white/30"
             }`}
             aria-label={`Go to quote ${i + 1}`}
             data-testid={`button-quote-${i}`}

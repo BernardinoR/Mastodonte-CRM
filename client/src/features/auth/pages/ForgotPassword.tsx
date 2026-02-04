@@ -88,7 +88,7 @@ export default function ForgotPassword() {
 
   const handleResendCode = async () => {
     if (!isLoaded || !signIn) return;
-    
+
     if (!email || !email.trim()) {
       setError("Email não disponível. Por favor, volte e insira o email novamente.");
       return;
@@ -115,7 +115,7 @@ export default function ForgotPassword() {
       <AuthStyles />
 
       <div
-        className="flex-1 flex flex-col justify-center items-center p-10 relative z-10"
+        className="relative z-10 flex flex-1 flex-col items-center justify-center p-10"
         style={{ backgroundColor: "#191919" }}
       >
         <div className="w-full max-w-[380px]">
@@ -125,25 +125,19 @@ export default function ForgotPassword() {
 
           {step === "email" && (
             <>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-full bg-[#222] border border-[#333]">
-                  <Mail className="w-6 h-6 text-white" />
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-full border border-[#333] bg-[#222] p-3">
+                  <Mail className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-white">
-                    Esqueceu a senha?
-                  </h2>
-                  <p className="text-sm text-[#888]">
-                    Enviaremos um código para seu email
-                  </p>
+                  <h2 className="text-2xl font-semibold text-white">Esqueceu a senha?</h2>
+                  <p className="text-sm text-[#888]">Enviaremos um código para seu email</p>
                 </div>
               </div>
 
               <form onSubmit={handleSendCode}>
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    E-mail
-                  </label>
+                  <label className="mb-1.5 block text-xs font-medium text-[#888]">E-mail</label>
                   <input
                     type="email"
                     className="input-dark"
@@ -157,7 +151,7 @@ export default function ForgotPassword() {
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                  <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
                     <p className="text-sm text-red-400" data-testid="text-error">
                       {error}
                     </p>
@@ -170,16 +164,16 @@ export default function ForgotPassword() {
                   disabled={loading || !isLoaded}
                   data-testid="button-send-code"
                 >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Enviar código
                 </button>
 
                 <Link
                   href="/sign-in"
-                  className="flex items-center justify-center gap-2 mt-6 text-sm text-[#666] hover:text-white transition-colors"
+                  className="mt-6 flex items-center justify-center gap-2 text-sm text-[#666] transition-colors hover:text-white"
                   data-testid="link-back-to-login"
                 >
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="h-4 w-4" />
                   Voltar ao login
                 </Link>
               </form>
@@ -188,28 +182,24 @@ export default function ForgotPassword() {
 
           {step === "code" && (
             <>
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 rounded-full bg-[#222] border border-[#333]">
-                  <KeyRound className="w-6 h-6 text-white" />
+              <div className="mb-6 flex items-center gap-3">
+                <div className="rounded-full border border-[#333] bg-[#222] p-3">
+                  <KeyRound className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-semibold text-white">
-                    Digite o código
-                  </h2>
-                  <p className="text-sm text-[#888]">
-                    Enviamos um código para {email}
-                  </p>
+                  <h2 className="text-2xl font-semibold text-white">Digite o código</h2>
+                  <p className="text-sm text-[#888]">Enviamos um código para {email}</p>
                 </div>
               </div>
 
               <form onSubmit={handleResetPassword}>
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                  <label className="mb-1.5 block text-xs font-medium text-[#888]">
                     Código de verificação
                   </label>
                   <input
                     type="text"
-                    className="input-dark text-center tracking-[0.5em] text-lg"
+                    className="input-dark text-center text-lg tracking-[0.5em]"
                     placeholder="000000"
                     value={code}
                     onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -220,9 +210,7 @@ export default function ForgotPassword() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
-                    Nova senha
-                  </label>
+                  <label className="mb-1.5 block text-xs font-medium text-[#888]">Nova senha</label>
                   <input
                     type="password"
                     className="input-dark"
@@ -236,7 +224,7 @@ export default function ForgotPassword() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block text-xs font-medium text-[#888] mb-1.5">
+                  <label className="mb-1.5 block text-xs font-medium text-[#888]">
                     Confirmar nova senha
                   </label>
                   <input
@@ -252,7 +240,7 @@ export default function ForgotPassword() {
                 </div>
 
                 {error && (
-                  <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+                  <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
                     <p className="text-sm text-red-400" data-testid="text-error">
                       {error}
                     </p>
@@ -265,7 +253,7 @@ export default function ForgotPassword() {
                   disabled={loading || !isLoaded || code.length !== 6}
                   data-testid="button-reset-password"
                 >
-                  {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+                  {loading && <Loader2 className="h-4 w-4 animate-spin" />}
                   Redefinir senha
                 </button>
 
@@ -273,7 +261,7 @@ export default function ForgotPassword() {
                   <button
                     type="button"
                     onClick={handleResendCode}
-                    className="text-[#666] hover:text-white transition-colors"
+                    className="text-[#666] transition-colors hover:text-white"
                     disabled={loading}
                     data-testid="button-resend-code"
                   >
@@ -282,7 +270,7 @@ export default function ForgotPassword() {
                   <button
                     type="button"
                     onClick={() => setStep("email")}
-                    className="text-[#666] hover:text-white transition-colors"
+                    className="text-[#666] transition-colors hover:text-white"
                     data-testid="button-change-email"
                   >
                     Alterar email
@@ -294,18 +282,14 @@ export default function ForgotPassword() {
 
           {step === "success" && (
             <div className="text-center">
-              <div className="flex justify-center mb-6">
-                <div className="p-4 rounded-full bg-green-500/10 border border-green-500/30">
-                  <CheckCircle className="w-12 h-12 text-green-400" />
+              <div className="mb-6 flex justify-center">
+                <div className="rounded-full border border-green-500/30 bg-green-500/10 p-4">
+                  <CheckCircle className="h-12 w-12 text-green-400" />
                 </div>
               </div>
-              <h2 className="text-2xl font-semibold text-white mb-2">
-                Senha redefinida!
-              </h2>
-              <p className="text-sm text-[#888] mb-6">
-                Você será redirecionado em instantes...
-              </p>
-              <Loader2 className="w-6 h-6 animate-spin text-white mx-auto" />
+              <h2 className="mb-2 text-2xl font-semibold text-white">Senha redefinida!</h2>
+              <p className="mb-6 text-sm text-[#888]">Você será redirecionado em instantes...</p>
+              <Loader2 className="mx-auto h-6 w-6 animate-spin text-white" />
             </div>
           )}
         </div>
@@ -313,14 +297,14 @@ export default function ForgotPassword() {
 
       {/* Right side - Visual */}
       <div
-        className="hidden lg:flex flex-[1.2] relative items-center justify-center overflow-hidden"
+        className="relative hidden flex-[1.2] items-center justify-center overflow-hidden lg:flex"
         style={{ background: "radial-gradient(circle at center, #1a1a1a 0%, #000000 70%)" }}
       >
-        <div className="max-w-[500px] p-10 text-center z-10">
-          <p className="text-[28px] leading-tight font-bold text-white mb-4 tracking-tight">
+        <div className="z-10 max-w-[500px] p-10 text-center">
+          <p className="mb-4 text-[28px] font-bold leading-tight tracking-tight text-white">
             "A segurança dos seus dados é nossa prioridade."
           </p>
-          <p className="text-[13px] uppercase tracking-[3px] font-semibold text-[#888]">
+          <p className="text-[13px] font-semibold uppercase tracking-[3px] text-[#888]">
             Mastodonte CRM
           </p>
         </div>

@@ -1,7 +1,7 @@
-import { useState, useMemo, useCallback } from 'react';
-import { 
-  Task, 
-  TaskStatus, 
+import { useState, useMemo, useCallback } from "react";
+import {
+  Task,
+  TaskStatus,
   TaskPriority,
   FilterType,
   TypedActiveFilter,
@@ -14,11 +14,11 @@ import {
   isPriorityFilter,
   isTaskFilter,
   isAssigneeFilter,
-  isClientFilter
-} from '../types/task';
-import { parseLocalDate } from '@/shared/lib/date-utils';
-import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from 'date-fns';
-import { PRIORITY_ORDER } from '../lib/constants';
+  isClientFilter,
+} from "../types/task";
+import { parseLocalDate } from "@/shared/lib/date-utils";
+import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
+import { PRIORITY_ORDER } from "../lib/constants";
 
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";
@@ -31,20 +31,20 @@ interface SortOption {
 interface UseTaskFiltersReturn {
   viewMode: "board" | "table";
   setViewMode: (mode: "board" | "table") => void;
-  
+
   sorts: SortOption[];
   setSorts: (sorts: SortOption[]) => void;
-  
+
   activeFilters: TypedActiveFilter[];
   addFilter: <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => void;
   updateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
   removeFilter: (id: string) => void;
-  
+
   availableAssignees: string[];
   availableClients: string[];
-  
+
   resetFilters: () => void;
-  
+
   filteredTasks: Task[];
   todoTasks: Task[];
   inProgressTasks: Task[];
@@ -52,53 +52,71 @@ interface UseTaskFiltersReturn {
 }
 
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
-const ALL_PRIORITIES: (TaskPriority | "none")[] = ["Urgente", "Importante", "Normal", "Baixa", "none"];
+const ALL_PRIORITIES: (TaskPriority | "none")[] = [
+  "Urgente",
+  "Importante",
+  "Normal",
+  "Baixa",
+  "none",
+];
 
 const STATUS_ORDER: Record<string, number> = {
   "To Do": 1,
   "In Progress": 2,
-  "Done": 3,
+  Done: 3,
 };
 
-export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter[]): UseTaskFiltersReturn {
+export function useTaskFilters(
+  tasks: Task[],
+  initialFilters?: TypedActiveFilter[],
+): UseTaskFiltersReturn {
   // Inicializar viewMode baseado na URL para evitar flash ao navegar
-  const initialViewMode = typeof window !== "undefined" 
-    ? (new URLSearchParams(window.location.search).get("view") === "table" ? "table" : "board")
-    : "board";
-  
+  const initialViewMode =
+    typeof window !== "undefined"
+      ? new URLSearchParams(window.location.search).get("view") === "table"
+        ? "table"
+        : "board"
+      : "board";
+
   const [viewMode, setViewMode] = useState<"board" | "table">(initialViewMode);
   const [sorts, setSorts] = useState<SortOption[]>([]);
   const [activeFilters, setActiveFilters] = useState<TypedActiveFilter[]>(initialFilters || []);
 
   const availableAssignees = useMemo(() => {
     const assignees = new Set<string>();
-    tasks.forEach(task => {
-      task.assignees.forEach(a => assignees.add(a));
+    tasks.forEach((task) => {
+      task.assignees.forEach((a) => assignees.add(a));
     });
     return Array.from(assignees).sort();
   }, [tasks]);
 
   const availableClients = useMemo(() => {
     const clients = new Set<string>();
-    tasks.forEach(task => {
+    tasks.forEach((task) => {
       if (task.clientName) clients.add(task.clientName);
     });
     return Array.from(clients).sort();
   }, [tasks]);
 
-  const addFilter = useCallback(<T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => {
-    const newFilter = createTypedFilter(type, initialValue);
-    setActiveFilters(prev => [...prev, newFilter]);
-  }, []);
+  const addFilter = useCallback(
+    <T extends FilterType>(type: T, initialValue?: FilterValueMap[T]) => {
+      const newFilter = createTypedFilter(type, initialValue);
+      setActiveFilters((prev) => [...prev, newFilter]);
+    },
+    [],
+  );
 
-  const updateFilter = useCallback(<T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => {
-    setActiveFilters(prev => 
-      prev.map(f => f.id === id ? { ...f, type, value } as TypedActiveFilter : f)
-    );
-  }, []);
+  const updateFilter = useCallback(
+    <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => {
+      setActiveFilters((prev) =>
+        prev.map((f) => (f.id === id ? ({ ...f, type, value } as TypedActiveFilter) : f)),
+      );
+    },
+    [],
+  );
 
   const removeFilter = useCallback((id: string) => {
-    setActiveFilters(prev => prev.filter(f => f.id !== id));
+    setActiveFilters((prev) => prev.filter((f) => f.id !== id));
   }, []);
 
   const resetFilters = useCallback(() => {
@@ -113,15 +131,17 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
       for (const filter of activeFilters) {
         if (isDateFilter(filter)) {
           const dateFilterValue = filter.value;
-          
+
           if (dateFilterValue.type === "all") {
             continue;
           }
-          
-          const taskDate = task.dueDate ? 
-            (typeof task.dueDate === 'string' ? parseLocalDate(task.dueDate) : startOfDay(task.dueDate)) 
+
+          const taskDate = task.dueDate
+            ? typeof task.dueDate === "string"
+              ? parseLocalDate(task.dueDate)
+              : startOfDay(task.dueDate)
             : null;
-          
+
           if (dateFilterValue.type === "preset") {
             switch (dateFilterValue.preset) {
               case "today":
@@ -138,7 +158,7 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
             if (dateFilterValue.startDate && dateFilterValue.endDate) {
               const startDate = startOfDay(dateFilterValue.startDate);
               const endDate = endOfDay(dateFilterValue.endDate);
-              
+
               if (!taskDate) return false;
               if (isBefore(taskDate, startDate) || isAfter(taskDate, endDate)) return false;
             } else if (dateFilterValue.startDate) {
@@ -165,7 +185,7 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
         } else if (isAssigneeFilter(filter)) {
           const assigneeValues = filter.value;
           if (assigneeValues.length > 0) {
-            const hasMatch = task.assignees.some(a => assigneeValues.includes(a));
+            const hasMatch = task.assignees.some((a) => assigneeValues.includes(a));
             if (!hasMatch) return false;
           }
         } else if (isClientFilter(filter)) {
@@ -175,7 +195,7 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
           }
         }
       }
-      
+
       return true;
     });
 
@@ -183,7 +203,7 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
       result = [...result].sort((a, b) => {
         for (const sort of sorts) {
           let comparison = 0;
-          
+
           switch (sort.field) {
             case "priority":
               const aPriority = PRIORITY_ORDER[a.priority || "Normal"] || 3;
@@ -202,7 +222,7 @@ export function useTaskFilters(tasks: Task[], initialFilters?: TypedActiveFilter
               comparison = (STATUS_ORDER[a.status] || 0) - (STATUS_ORDER[b.status] || 0);
               break;
           }
-          
+
           if (comparison !== 0) {
             return sort.direction === "desc" ? -comparison : comparison;
           }

@@ -31,7 +31,7 @@ export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
   // Filter and sort tasks for Turbo Mode (To Do or In Progress only)
   const sortedTasks = useMemo(() => {
     const eligibleTasks = allTasks.filter(
-      (task) => task.status === "To Do" || task.status === "In Progress"
+      (task) => task.status === "To Do" || task.status === "In Progress",
     );
 
     const todoTasks = eligibleTasks.filter((t) => t.status === "To Do");
@@ -75,7 +75,9 @@ export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
       const todoPriority = PRIORITY_ORDER[todoTask.priority || "Normal"] ?? 2;
       const inProgressPriority = PRIORITY_ORDER[inProgressTask.priority || "Normal"] ?? 2;
       const todoDate = todoTask.dueDate ? new Date(todoTask.dueDate).getTime() : Infinity;
-      const inProgressDate = inProgressTask.dueDate ? new Date(inProgressTask.dueDate).getTime() : Infinity;
+      const inProgressDate = inProgressTask.dueDate
+        ? new Date(inProgressTask.dueDate).getTime()
+        : Infinity;
 
       if (todoPriority < inProgressPriority) {
         result.push(todoTask);

@@ -13,7 +13,7 @@ interface MeetingAgendaProps {
 export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(
-    new Set(agenda.length > 0 ? [agenda[0].id] : [])
+    new Set(agenda.length > 0 ? [agenda[0].id] : []),
   );
   const [editableAgenda, setEditableAgenda] = useState<MeetingAgendaItem[]>(agenda);
 
@@ -25,7 +25,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
   }, [agenda, isEditing]);
 
   const toggleItem = (id: string) => {
-    setExpandedItems(prev => {
+    setExpandedItems((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
@@ -58,20 +58,20 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
       subitems: [],
     };
     setEditableAgenda([...editableAgenda, newItem]);
-    setExpandedItems(prev => new Set(Array.from(prev).concat(newItem.id)));
+    setExpandedItems((prev) => new Set(Array.from(prev).concat(newItem.id)));
   };
 
   // Update agenda item
   const updateAgendaItem = (id: string, updates: Partial<MeetingAgendaItem>) => {
-    setEditableAgenda(prev =>
-      prev.map(item => (item.id === id ? { ...item, ...updates } : item))
+    setEditableAgenda((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, ...updates } : item)),
     );
   };
 
   // Remove agenda item
   const removeAgendaItem = (id: string) => {
-    setEditableAgenda(prev => {
-      const filtered = prev.filter(item => item.id !== id);
+    setEditableAgenda((prev) => {
+      const filtered = prev.filter((item) => item.id !== id);
       // Renumber items
       return filtered.map((item, index) => ({
         ...item,
@@ -82,8 +82,8 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
 
   // Add subitem
   const addSubitem = (agendaId: string) => {
-    setEditableAgenda(prev =>
-      prev.map(item => {
+    setEditableAgenda((prev) =>
+      prev.map((item) => {
         if (item.id === agendaId) {
           return {
             ...item,
@@ -98,7 +98,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
           };
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -106,35 +106,35 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
   const updateSubitem = (
     agendaId: string,
     subitemId: string,
-    updates: Partial<MeetingAgendaSubitem>
+    updates: Partial<MeetingAgendaSubitem>,
   ) => {
-    setEditableAgenda(prev =>
-      prev.map(item => {
+    setEditableAgenda((prev) =>
+      prev.map((item) => {
         if (item.id === agendaId) {
           return {
             ...item,
-            subitems: item.subitems.map(sub =>
-              sub.id === subitemId ? { ...sub, ...updates } : sub
+            subitems: item.subitems.map((sub) =>
+              sub.id === subitemId ? { ...sub, ...updates } : sub,
             ),
           };
         }
         return item;
-      })
+      }),
     );
   };
 
   // Remove subitem
   const removeSubitem = (agendaId: string, subitemId: string) => {
-    setEditableAgenda(prev =>
-      prev.map(item => {
+    setEditableAgenda((prev) =>
+      prev.map((item) => {
         if (item.id === agendaId) {
           return {
             ...item,
-            subitems: item.subitems.filter(sub => sub.id !== subitemId),
+            subitems: item.subitems.filter((sub) => sub.id !== subitemId),
           };
         }
         return item;
-      })
+      }),
     );
   };
 
@@ -180,7 +180,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
     <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
-          icon={<ClipboardList className="w-[18px] h-[18px]" />}
+          icon={<ClipboardList className="h-[18px] w-[18px]" />}
           title="Pauta da Reunião"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
@@ -191,18 +191,18 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
             <button
               type="button"
               onClick={handleSave}
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+              className="group/check flex h-8 w-8 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20"
               title="Salvar alterações"
             >
-              <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+              <Check className="h-4 w-4 text-emerald-500 transition-transform group-hover/check:scale-110" />
             </button>
-            
+
             {/* Botão Adicionar */}
             <button
               onClick={addAgendaItem}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#1c3847] border border-[#2eaadc] rounded-md text-[#2eaadc] text-[0.8125rem] font-medium hover:bg-[#234a5c] transition-all"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#2eaadc] bg-[#1c3847] px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:bg-[#234a5c]"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="h-3.5 w-3.5" />
               Adicionar Item
             </button>
           </div>
@@ -213,24 +213,22 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
         {displayAgenda.map((item) => {
           const isExpanded = expandedItems.has(item.id);
           return (
-            <div 
+            <div
               key={item.id}
               className={cn(
-                "bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg overflow-hidden",
-                isEditing && "border-[#333333]"
+                "overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#1a1a1a]",
+                isEditing && "border-[#333333]",
               )}
             >
-              <div 
+              <div
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3.5 cursor-pointer hover:bg-[#202020] transition-colors",
-                  isEditing && "cursor-default"
+                  "flex cursor-pointer items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[#202020]",
+                  isEditing && "cursor-default",
                 )}
                 onClick={() => !isEditing && toggleItem(item.id)}
               >
-                {isEditing && (
-                  <GripVertical className="w-4 h-4 text-[#555] cursor-grab" />
-                )}
-                <div className="w-6 h-6 bg-[#252730] border border-[#363842] rounded-md flex items-center justify-center text-xs font-semibold text-[#8c8c8c] flex-shrink-0">
+                {isEditing && <GripVertical className="h-4 w-4 cursor-grab text-[#555]" />}
+                <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-md border border-[#363842] bg-[#252730] text-xs font-semibold text-[#8c8c8c]">
                   {item.number}
                 </div>
                 {isEditing ? (
@@ -239,12 +237,10 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                     value={item.title}
                     onChange={(e) => updateAgendaItem(item.id, { title: e.target.value })}
                     placeholder="Título do item da pauta..."
-                    className="flex-1 bg-transparent border-none outline-none text-sm font-medium text-[#ededed] placeholder:text-[#555]"
+                    className="flex-1 border-none bg-transparent text-sm font-medium text-[#ededed] outline-none placeholder:text-[#555]"
                   />
                 ) : (
-                  <span className="flex-1 text-sm font-medium text-[#ededed]">
-                    {item.title}
-                  </span>
+                  <span className="flex-1 text-sm font-medium text-[#ededed]">{item.title}</span>
                 )}
                 {isEditing ? (
                   <select
@@ -254,18 +250,18 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                         status: e.target.value as "discussed" | "action_pending",
                       })
                     }
-                    className="bg-[#252730] border border-[#363842] rounded-md px-2 py-1 text-xs text-[#8c8c8c] outline-none"
+                    className="rounded-md border border-[#363842] bg-[#252730] px-2 py-1 text-xs text-[#8c8c8c] outline-none"
                   >
                     <option value="discussed">Discutido</option>
                     <option value="action_pending">Ação Pendente</option>
                   </select>
                 ) : (
-                  <Badge 
+                  <Badge
                     className={cn(
                       "text-[0.6875rem]",
-                      item.status === "discussed" 
-                        ? "bg-[#203828] text-[#6ecf8e]" 
-                        : "bg-[#243041] text-[#6db1d4]"
+                      item.status === "discussed"
+                        ? "bg-[#203828] text-[#6ecf8e]"
+                        : "bg-[#243041] text-[#6db1d4]",
                     )}
                   >
                     {item.status === "discussed" ? "Discutido" : "Ação Pendente"}
@@ -274,28 +270,25 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                 {isEditing ? (
                   <button
                     onClick={() => removeAgendaItem(item.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-md text-[#666] hover:text-red-500 hover:bg-red-500/10 transition-all"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] transition-all hover:bg-red-500/10 hover:text-red-500"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 ) : (
-                  <ChevronRight 
+                  <ChevronRight
                     className={cn(
-                      "w-4 h-4 text-[#8c8c8c] transition-transform",
-                      isExpanded && "rotate-90"
-                    )} 
+                      "h-4 w-4 text-[#8c8c8c] transition-transform",
+                      isExpanded && "rotate-90",
+                    )}
                   />
                 )}
                 {isEditing && (
                   <button
                     onClick={() => toggleItem(item.id)}
-                    className="w-7 h-7 flex items-center justify-center rounded-md text-[#666] hover:text-white hover:bg-white/10 transition-all"
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-[#666] transition-all hover:bg-white/10 hover:text-white"
                   >
-                    <ChevronRight 
-                      className={cn(
-                        "w-4 h-4 transition-transform",
-                        isExpanded && "rotate-90"
-                      )} 
+                    <ChevronRight
+                      className={cn("h-4 w-4 transition-transform", isExpanded && "rotate-90")}
                     />
                   </button>
                 )}
@@ -304,14 +297,14 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
               {isExpanded && (
                 <div className="px-4 pb-4 pl-[52px]">
                   {item.subitems.map((subitem, index) => (
-                    <div 
+                    <div
                       key={subitem.id}
                       className={cn(
                         "flex items-start gap-2.5 py-2.5",
-                        index !== item.subitems.length - 1 && "border-b border-[#2a2a2a]"
+                        index !== item.subitems.length - 1 && "border-b border-[#2a2a2a]",
                       )}
                     >
-                      <div className="w-1.5 h-1.5 bg-[#4281dc] rounded-full mt-[7px] flex-shrink-0" />
+                      <div className="mt-[7px] h-1.5 w-1.5 flex-shrink-0 rounded-full bg-[#4281dc]" />
                       {isEditing ? (
                         <div className="flex-1 space-y-2">
                           <input
@@ -321,7 +314,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                               updateSubitem(item.id, subitem.id, { title: e.target.value })
                             }
                             placeholder="Título do sub-item..."
-                            className="w-full bg-transparent border-none outline-none text-[0.8125rem] text-[#ededed] placeholder:text-[#555]"
+                            className="w-full border-none bg-transparent text-[0.8125rem] text-[#ededed] outline-none placeholder:text-[#555]"
                           />
                           <textarea
                             value={subitem.description}
@@ -332,15 +325,15 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                             }
                             placeholder="Descrição..."
                             rows={2}
-                            className="w-full bg-[#1f1f1f] border border-[#2a2a2a] rounded-md px-3 py-2 text-xs text-[#8c8c8c] placeholder:text-[#555] outline-none resize-none"
+                            className="w-full resize-none rounded-md border border-[#2a2a2a] bg-[#1f1f1f] px-3 py-2 text-xs text-[#8c8c8c] outline-none placeholder:text-[#555]"
                           />
                         </div>
                       ) : (
                         <div className="flex-1">
-                          <div className="text-[0.8125rem] text-[#ededed] mb-1">
+                          <div className="mb-1 text-[0.8125rem] text-[#ededed]">
                             {subitem.title}
                           </div>
-                          <div className="text-xs text-[#8c8c8c] leading-[1.5]">
+                          <div className="text-xs leading-[1.5] text-[#8c8c8c]">
                             {subitem.description}
                           </div>
                         </div>
@@ -348,9 +341,9 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                       {isEditing && (
                         <button
                           onClick={() => removeSubitem(item.id, subitem.id)}
-                          className="w-6 h-6 flex items-center justify-center rounded-md text-[#666] hover:text-red-500 hover:bg-red-500/10 transition-all"
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-[#666] transition-all hover:bg-red-500/10 hover:text-red-500"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       )}
                     </div>
@@ -358,9 +351,9 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                   {isEditing && (
                     <button
                       onClick={() => addSubitem(item.id)}
-                      className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 bg-transparent border border-dashed border-[#333333] rounded-md text-[#555555] text-xs hover:bg-[#1a1a1a] hover:border-[#555555] hover:text-[#888888] transition-all"
+                      className="mt-2 inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#333333] bg-transparent px-3 py-1.5 text-xs text-[#555555] transition-all hover:border-[#555555] hover:bg-[#1a1a1a] hover:text-[#888888]"
                     >
-                      <Plus className="w-3 h-3" />
+                      <Plus className="h-3 w-3" />
                       Adicionar sub-item
                     </button>
                   )}

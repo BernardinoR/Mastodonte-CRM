@@ -21,11 +21,11 @@ const errorMessages: Record<string, string> = {
 
 export function handleClerkError(err: unknown): AuthErrorResult {
   const clerkError = err as ClerkError;
-  
+
   if (clerkError.errors && clerkError.errors.length > 0) {
     const errorCode = clerkError.errors[0].code;
     const errorMessage = clerkError.errors[0].message;
-    
+
     if (errorCode === "session_exists") {
       return {
         message: "",
@@ -34,9 +34,9 @@ export function handleClerkError(err: unknown): AuthErrorResult {
         redirectUrl: "/",
       };
     }
-    
+
     const translatedMessage = errorMessages[errorCode] || errorMessage;
-    
+
     return {
       message: translatedMessage,
       code: errorCode,
@@ -44,7 +44,7 @@ export function handleClerkError(err: unknown): AuthErrorResult {
       redirectUrl: null,
     };
   }
-  
+
   return {
     message: "Erro inesperado. Tente novamente.",
     code: null,

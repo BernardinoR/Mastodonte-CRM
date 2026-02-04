@@ -1,12 +1,7 @@
 import { memo, useCallback } from "react";
 import { Button } from "@/shared/components/ui/button";
 import { Calendar } from "@/shared/components/ui/calendar";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/shared/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,25 +58,34 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
   onAppendTitleSubmit,
   onContextDateChange,
 }: TaskCardDialogsProps) {
-  const handleReplaceKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onReplaceTitleSubmit();
-    }
-  }, [onReplaceTitleSubmit]);
+  const handleReplaceKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onReplaceTitleSubmit();
+      }
+    },
+    [onReplaceTitleSubmit],
+  );
 
-  const handleAppendKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      onAppendTitleSubmit();
-    }
-  }, [onAppendTitleSubmit]);
+  const handleAppendKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        onAppendTitleSubmit();
+      }
+    },
+    [onAppendTitleSubmit],
+  );
 
-  const handleDateSelect = useCallback((date: Date | undefined) => {
-    if (date) {
-      onContextDateChange(date);
-    }
-  }, [onContextDateChange]);
+  const handleDateSelect = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        onContextDateChange(date);
+      }
+    },
+    [onContextDateChange],
+  );
 
   return (
     <>
@@ -95,8 +99,8 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={onDelete} 
+            <AlertDialogAction
+              onClick={onDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               data-testid={`button-confirmdelete-${id}`}
             >
@@ -105,18 +109,20 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-      
+
       <Dialog open={showReplaceTitleDialog} onOpenChange={setShowReplaceTitleDialog}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
           <DialogHeader>
-            <DialogTitle>Substituir nome{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+            <DialogTitle>
+              Substituir nome{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <Input
               value={newTitleText}
               onChange={(e) => setNewTitleText(e.target.value)}
               placeholder="Digite o novo nome..."
-              className="bg-[#2a2a2a] border-[#3a3a3a]"
+              className="border-[#3a3a3a] bg-[#2a2a2a]"
               autoFocus
               onKeyDown={handleReplaceKeyDown}
             />
@@ -131,11 +137,13 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={showAppendTitleDialog} onOpenChange={setShowAppendTitleDialog}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
           <DialogHeader>
-            <DialogTitle>Adicionar ao final{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+            <DialogTitle>
+              Adicionar ao final{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
@@ -145,7 +153,7 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
               value={appendTitleText}
               onChange={(e) => setAppendTitleText(e.target.value)}
               placeholder="Digite o texto a adicionar..."
-              className="bg-[#2a2a2a] border-[#3a3a3a]"
+              className="border-[#3a3a3a] bg-[#2a2a2a]"
               autoFocus
               onKeyDown={handleAppendKeyDown}
             />
@@ -160,11 +168,13 @@ export const TaskCardDialogs = memo(function TaskCardDialogs({
           </div>
         </DialogContent>
       </Dialog>
-      
+
       <Dialog open={showBulkDatePicker} onOpenChange={setShowBulkDatePicker}>
-        <DialogContent className="max-w-md bg-[#1a1a1a] border-[#2a2a2a]">
+        <DialogContent className="max-w-md border-[#2a2a2a] bg-[#1a1a1a]">
           <DialogHeader>
-            <DialogTitle>Alterar data{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ''}</DialogTitle>
+            <DialogTitle>
+              Alterar data{selectedCount > 1 ? ` (${selectedCount} tarefas)` : ""}
+            </DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Calendar

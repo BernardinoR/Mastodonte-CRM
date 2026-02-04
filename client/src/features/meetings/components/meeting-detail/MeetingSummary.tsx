@@ -1,21 +1,21 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { 
-  FileText, 
-  User, 
+import {
+  FileText,
+  User,
   Users,
-  AlertCircle, 
-  Home, 
-  Plane, 
-  CreditCard, 
-  Building, 
-  AlertTriangle, 
-  Truck, 
-  Briefcase, 
-  Heart, 
-  Star, 
-  Target, 
-  Check, 
-  Plus, 
+  AlertCircle,
+  Home,
+  Plane,
+  CreditCard,
+  Building,
+  AlertTriangle,
+  Truck,
+  Briefcase,
+  Heart,
+  Star,
+  Target,
+  Check,
+  Plus,
   X,
   DollarSign,
   TrendingUp,
@@ -30,12 +30,18 @@ import {
   Clock,
   Timer,
   Lock,
-  Settings
+  Settings,
 } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import { ContextSectionEditor, type ContextCardData } from "./ContextCardEditor";
-import { TagEditorModal, TagDisplay, InlineTagEditor, type TagData, type TagType } from "./TagEditorModal";
+import {
+  TagEditorModal,
+  TagDisplay,
+  InlineTagEditor,
+  type TagData,
+  type TagType,
+} from "./TagEditorModal";
 import type { IconName } from "./IconPicker";
 import type { MeetingClientContext, MeetingHighlight } from "@features/meetings/types/meeting";
 
@@ -55,69 +61,67 @@ interface MeetingSummaryProps {
 const iconMap: Record<string, React.ElementType> = {
   // Kebab-case (internal format)
   "alert-circle": AlertCircle,
-  "home": Home,
-  "plane": Plane,
+  home: Home,
+  plane: Plane,
   "credit-card": CreditCard,
-  "building": Building,
+  building: Building,
   "alert-triangle": AlertTriangle,
-  "truck": Truck,
-  "briefcase": Briefcase,
-  "heart": Heart,
-  "star": Star,
-  "target": Target,
+  truck: Truck,
+  briefcase: Briefcase,
+  heart: Heart,
+  star: Star,
+  target: Target,
   "dollar-sign": DollarSign,
   "trending-up": TrendingUp,
   "trending-down": TrendingDown,
-  "calendar": Calendar,
-  "car": Car,
-  "shield": Shield,
+  calendar: Calendar,
+  car: Car,
+  shield: Shield,
   "piggy-bank": PiggyBank,
   "bar-chart": BarChart,
-  "user": User,
-  "users": Users,
-  "info": Info,
+  user: User,
+  users: Users,
+  info: Info,
   "check-circle": CheckCircle,
-  "clock": Clock,
-  "timer": Timer,
-  "lock": Lock,
-  "settings": Settings,
+  clock: Clock,
+  timer: Timer,
+  lock: Lock,
+  settings: Settings,
   "file-text": FileText,
   // PascalCase (AI format)
-  "AlertCircle": AlertCircle,
-  "Home": Home,
-  "Plane": Plane,
-  "CreditCard": CreditCard,
-  "Building": Building,
-  "AlertTriangle": AlertTriangle,
-  "Truck": Truck,
-  "Briefcase": Briefcase,
-  "Heart": Heart,
-  "Star": Star,
-  "Target": Target,
-  "DollarSign": DollarSign,
-  "TrendingUp": TrendingUp,
-  "TrendingDown": TrendingDown,
-  "Calendar": Calendar,
-  "Car": Car,
-  "Shield": Shield,
-  "PiggyBank": PiggyBank,
-  "BarChart": BarChart,
-  "User": User,
-  "Users": Users,
-  "Info": Info,
-  "CheckCircle": CheckCircle,
-  "Clock": Clock,
-  "Timer": Timer,
-  "Lock": Lock,
-  "Settings": Settings,
-  "FileText": FileText,
+  AlertCircle: AlertCircle,
+  Home: Home,
+  Plane: Plane,
+  CreditCard: CreditCard,
+  Building: Building,
+  AlertTriangle: AlertTriangle,
+  Truck: Truck,
+  Briefcase: Briefcase,
+  Heart: Heart,
+  Star: Star,
+  Target: Target,
+  DollarSign: DollarSign,
+  TrendingUp: TrendingUp,
+  TrendingDown: TrendingDown,
+  Calendar: Calendar,
+  Car: Car,
+  Shield: Shield,
+  PiggyBank: PiggyBank,
+  BarChart: BarChart,
+  User: User,
+  Users: Users,
+  Info: Info,
+  CheckCircle: CheckCircle,
+  Clock: Clock,
+  Timer: Timer,
+  Lock: Lock,
+  Settings: Settings,
+  FileText: FileText,
 };
 
 // Helper function to convert PascalCase to kebab-case
 function pascalToKebab(str: string): string {
-  return str
-    .replace(/([a-z0-9])([A-Z])/g, "$1-$2")
-    .toLowerCase();
+  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
 }
 
 // Get icon component from name (supports both PascalCase and kebab-case)
@@ -126,26 +130,26 @@ function getIconFromName(iconName: string): React.ElementType {
   if (iconMap[iconName]) {
     return iconMap[iconName];
   }
-  
+
   // Try converting PascalCase to kebab-case
   const kebabCase = pascalToKebab(iconName);
   if (iconMap[kebabCase]) {
     return iconMap[kebabCase];
   }
-  
+
   // Fallback to AlertCircle
   return AlertCircle;
 }
 
-export function MeetingSummary({ 
-  summary, 
-  clientName, 
-  clientContext, 
+export function MeetingSummary({
+  summary,
+  clientName,
+  clientContext,
   highlights,
   onUpdate,
 }: MeetingSummaryProps) {
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Editor state
   const [summaryHtml, setSummaryHtml] = useState(summary);
   const editorRef = useRef<HTMLDivElement>(null);
@@ -170,7 +174,7 @@ export function MeetingSummary({
       id: h.id || crypto.randomUUID(),
       icon: h.icon as IconName,
       text: h.text,
-      type: h.type === "warning" ? "warning" : "finance" as TagType,
+      type: h.type === "warning" ? "warning" : ("finance" as TagType),
     }));
   });
 
@@ -227,15 +231,15 @@ export function MeetingSummary({
         id: p.id || crypto.randomUUID(),
         icon: p.icon as IconName,
         text: p.text,
-      }))
+      })),
     );
     setTags(
       highlights.map((h) => ({
         id: h.id || crypto.randomUUID(),
         icon: h.icon as IconName,
         text: h.text,
-        type: h.type === "warning" ? "warning" : "finance" as TagType,
-      }))
+        type: h.type === "warning" ? "warning" : ("finance" as TagType),
+      })),
     );
     setIsEditing(false);
   };
@@ -286,7 +290,7 @@ export function MeetingSummary({
           id: crypto.randomUUID(),
           icon: p.icon as IconName,
           text: p.text,
-        }))
+        })),
       );
     }
 
@@ -296,8 +300,8 @@ export function MeetingSummary({
           id: crypto.randomUUID(),
           icon: h.icon as IconName,
           text: h.text,
-          type: h.type === "warning" ? "warning" : "finance" as TagType,
-        }))
+          type: h.type === "warning" ? "warning" : ("finance" as TagType),
+        })),
       );
     }
 
@@ -348,36 +352,36 @@ export function MeetingSummary({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <EditableSectionTitle
-            icon={<FileText className="w-[18px] h-[18px]" />}
+            icon={<FileText className="h-[18px] w-[18px]" />}
             title="Resumo da Reunião"
             isEditing={false}
             onEditClick={handleStartEditing}
           />
         </div>
 
-        <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[10px] p-6">
-          <p 
-            className="text-sm text-[#a0a0a0] leading-[1.7]"
+        <div className="rounded-[10px] border border-[#2a2a2a] bg-[#1a1a1a] p-6">
+          <p
+            className="text-sm leading-[1.7] text-[#a0a0a0]"
             dangerouslySetInnerHTML={{ __html: summary }}
           />
 
           {/* Client Context */}
           {clientContext.points.length > 0 && (
-            <div className="mt-5 pt-5 border-t border-[#2a2a2a]">
-              <div className="flex items-center gap-2 text-xs font-semibold text-[#a78bfa] uppercase tracking-wider mb-3">
-                <User className="w-3.5 h-3.5" />
+            <div className="mt-5 border-t border-[#2a2a2a] pt-5">
+              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#a78bfa]">
+                <User className="h-3.5 w-3.5" />
                 Contexto da Cliente - {clientName}
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {clientContext.points.map((point) => {
                   const IconComponent = getIconFromName(point.icon);
                   return (
-                    <div 
+                    <div
                       key={point.id}
-                      className="flex items-start gap-2.5 p-3 bg-[#202020] rounded-lg"
+                      className="flex items-start gap-2.5 rounded-lg bg-[#202020] p-3"
                     >
-                      <IconComponent className="w-4 h-4 text-[#6db1d4] flex-shrink-0 mt-0.5" />
-                      <span className="text-[0.8125rem] text-[#b0b0b0] leading-[1.5]">
+                      <IconComponent className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6db1d4]" />
+                      <span className="text-[0.8125rem] leading-[1.5] text-[#b0b0b0]">
                         {point.text}
                       </span>
                     </div>
@@ -389,16 +393,16 @@ export function MeetingSummary({
 
           {/* Highlights */}
           {highlights.length > 0 && (
-            <div className="mt-5 pt-5 border-t border-[#2a2a2a] flex flex-wrap gap-2.5">
+            <div className="mt-5 flex flex-wrap gap-2.5 border-t border-[#2a2a2a] pt-5">
               {highlights.map((highlight) => {
                 const IconComponent = getIconFromName(highlight.icon);
                 return (
-                  <span 
+                  <span
                     key={highlight.id}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#252730] border border-[#363842] rounded-md text-xs text-[#ededed]"
+                    className="inline-flex items-center gap-1.5 rounded-md border border-[#363842] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed]"
                   >
-                    <IconComponent 
-                      className={`w-3 h-3 ${highlight.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"}`} 
+                    <IconComponent
+                      className={`h-3 w-3 ${highlight.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"}`}
                     />
                     {highlight.text}
                   </span>
@@ -416,40 +420,40 @@ export function MeetingSummary({
     <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
-          icon={<FileText className="w-[18px] h-[18px]" />}
+          icon={<FileText className="h-[18px] w-[18px]" />}
           title="Resumo da Reunião"
           isEditing={true}
         />
-        
+
         {/* Botões à direita */}
         <div className="flex items-center gap-3">
           {/* Botão Check para salvar */}
           <button
             type="button"
             onClick={handleSave}
-            className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+            className="group/check flex h-8 w-8 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20"
             title="Salvar alterações"
           >
-            <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+            <Check className="h-4 w-4 text-emerald-500 transition-transform group-hover/check:scale-110" />
           </button>
-          
+
           {/* Botão Contexto */}
           <button
             type="button"
             onClick={toggleContextSection}
             className={cn(
-              "inline-flex items-center gap-2 px-4 py-2.5 bg-[#252525] border border-[#333333] rounded-lg text-[#888888] text-[0.8125rem] font-medium cursor-pointer transition-all hover:bg-[#333333] hover:text-[#ededed] hover:border-[#444444]",
-              showContext && "bg-[#2d2640] border-[#a78bfa] text-[#a78bfa]"
+              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#333333] bg-[#252525] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
+              showContext && "border-[#a78bfa] bg-[#2d2640] text-[#a78bfa]",
             )}
           >
             {showContext ? (
               <>
-                <Check className="w-3.5 h-3.5" />
+                <Check className="h-3.5 w-3.5" />
                 Contexto Ativado
               </>
             ) : (
               <>
-                <User className="w-3.5 h-3.5" />
+                <User className="h-3.5 w-3.5" />
                 Adicionar Contexto do Cliente
               </>
             )}
@@ -458,7 +462,7 @@ export function MeetingSummary({
       </div>
 
       {/* Summary Container */}
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-xl">
+      <div className="rounded-xl border border-[#2a2a2a] bg-[#1a1a1a]">
         {/* Main Text Editor */}
         <div className="p-5">
           <div
@@ -468,10 +472,10 @@ export function MeetingSummary({
             onKeyDown={handleKeyDown}
             data-placeholder="Escreva o resumo da reunião aqui. Selecione texto e pressione Ctrl+B para negrito..."
             className={cn(
-              "min-h-[60px] text-sm text-[#a0a0a0] leading-[1.7] outline-none",
-              "[&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-[#555555]",
-              "[&_strong]:text-white [&_strong]:font-semibold",
-              "[&_b]:text-white [&_b]:font-semibold"
+              "min-h-[60px] text-sm leading-[1.7] text-[#a0a0a0] outline-none",
+              "[&:empty]:before:text-[#555555] [&:empty]:before:content-[attr(data-placeholder)]",
+              "[&_strong]:font-semibold [&_strong]:text-white",
+              "[&_b]:font-semibold [&_b]:text-white",
             )}
           />
         </div>
@@ -487,13 +491,9 @@ export function MeetingSummary({
         )}
 
         {/* Tags Section */}
-        <div className="px-6 py-4 flex flex-wrap gap-2.5 border-t border-[#2a2a2a]">
+        <div className="flex flex-wrap gap-2.5 border-t border-[#2a2a2a] px-6 py-4">
           {tags.map((tag) => (
-            <TagDisplay
-              key={tag.id}
-              tag={tag}
-              onRemove={() => handleRemoveTag(tag.id)}
-            />
+            <TagDisplay key={tag.id} tag={tag} onRemove={() => handleRemoveTag(tag.id)} />
           ))}
           <InlineTagEditor onAddTag={handleAddTag} />
         </div>

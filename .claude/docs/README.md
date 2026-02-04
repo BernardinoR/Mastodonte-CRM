@@ -15,22 +15,22 @@ Welcome to the repository knowledge base. This documentation covers the Task Man
 
 ## Technology Stack
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React, TypeScript, Vite, TailwindCSS |
-| Backend | Node.js, Express |
-| Database | PostgreSQL with Prisma ORM |
-| Authentication | Clerk |
-| Styling | shadcn/ui components |
+| Layer          | Technology                           |
+| -------------- | ------------------------------------ |
+| Frontend       | React, TypeScript, Vite, TailwindCSS |
+| Backend        | Node.js, Express                     |
+| Database       | PostgreSQL with Prisma ORM           |
+| Authentication | Clerk                                |
+| Styling        | shadcn/ui components                 |
 
 ## Repository Structure
 
-| Directory | Purpose |
-|-----------|---------|
-| `client/` | React frontend application |
-| `server/` | Express backend API |
-| `prisma/` | Database schema and migrations |
-| `attached_assets/` | Static assets and resources |
+| Directory          | Purpose                        |
+| ------------------ | ------------------------------ |
+| `client/`          | React frontend application     |
+| `server/`          | Express backend API            |
+| `prisma/`          | Database schema and migrations |
+| `attached_assets/` | Static assets and resources    |
 
 ## Quick Links
 
@@ -49,13 +49,13 @@ Welcome to the repository knowledge base. This documentation covers the Task Man
 
 ## Document Map
 
-| Guide | File | Primary Inputs |
-|-------|------|----------------|
-| Project Overview | `project-overview.md` | Roadmap, README, stakeholder notes |
-| Architecture Notes | `architecture.md` | ADRs, service boundaries, dependency graphs |
-| Development Workflow | `development-workflow.md` | Branching rules, CI config, contributing guide |
-| Testing Strategy | `testing-strategy.md` | Test configs, CI gates, known flaky suites |
-| Glossary & Domain Concepts | `glossary.md` | Business terminology, user personas, domain rules |
-| Data Flow & Integrations | `data-flow.md` | System diagrams, integration specs |
-| Security & Compliance Notes | `security.md` | Auth model, secrets management |
-| Tooling & Productivity Guide | `tooling.md` | CLI scripts, IDE configs |
+| Guide                        | File                      | Primary Inputs                                    |
+| ---------------------------- | ------------------------- | ------------------------------------------------- |
+| Project Overview             | `project-overview.md`     | Roadmap, README, stakeholder notes                |
+| Architecture Notes           | `architecture.md`         | ADRs, service boundaries, dependency graphs       |
+| Development Workflow         | `development-workflow.md` | Branching rules, CI config, contributing guide    |
+| Testing Strategy             | `testing-strategy.md`     | Test configs, CI gates, known flaky suites        |
+| Glossary & Domain Concepts   | `glossary.md`             | Business terminology, user personas, domain rules |
+| Data Flow & Integrations     | `data-flow.md`            | System diagrams, integration specs                |
+| Security & Compliance Notes  | `security.md`             | Auth model, secrets management                    |
+| Tooling & Productivity Guide | `tooling.md`              | CLI scripts, IDE configs                          |

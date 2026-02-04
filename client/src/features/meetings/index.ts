@@ -36,7 +36,13 @@ export type {
 
 // Hooks
 export { useAISummary } from "./hooks/useAISummary";
-export type { AIResponse, AIContextPoint, AIHighlight, AIAgendaItem, AIDecision } from "./hooks/useAISummary";
+export type {
+  AIResponse,
+  AIContextPoint,
+  AIHighlight,
+  AIAgendaItem,
+  AIDecision,
+} from "./hooks/useAISummary";
 export { useInlineMeetingEdit } from "./hooks/useInlineMeetingEdit";
 
 // Types

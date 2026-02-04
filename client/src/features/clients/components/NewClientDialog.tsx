@@ -2,7 +2,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/compo
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
 import { useState } from "react";
 
 export interface NewClientFormData {
@@ -32,7 +38,7 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    console.log("Form submitted:", formData);
     onSubmit?.(formData);
     onOpenChange(false);
     setFormData({
@@ -52,7 +58,7 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
           <DialogTitle>Novo Cliente</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="name" className="text-xs font-medium uppercase tracking-wide">
                 Nome Completo *
@@ -135,7 +141,12 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
             </div>
           </div>
           <div className="flex justify-end gap-3">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} data-testid="button-cancel">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              data-testid="button-cancel"
+            >
               Cancelar
             </Button>
             <Button type="submit" data-testid="button-save">

@@ -21,7 +21,7 @@ sequenceDiagram
     participant Frontend
     participant Clerk
     participant Backend
-    
+
     User->>Frontend: Login request
     Frontend->>Clerk: Authenticate
     Clerk-->>Frontend: JWT token
@@ -42,23 +42,23 @@ sequenceDiagram
 
 ### Role-Based Access Control (RBAC)
 
-| Role | Capabilities |
-|------|--------------|
-| Admin | Full system access, user management, configuration |
-| Manager | Team management, client oversight, reporting |
-| User | Own tasks, assigned clients, meeting participation |
+| Role    | Capabilities                                       |
+| ------- | -------------------------------------------------- |
+| Admin   | Full system access, user management, configuration |
+| Manager | Team management, client oversight, reporting       |
+| User    | Own tasks, assigned clients, meeting participation |
 
 ### Permission Matrix
 
-| Resource | Admin | Manager | User |
-|----------|-------|---------|------|
-| View all tasks | Yes | Yes (group) | No |
-| Create tasks | Yes | Yes | Yes |
-| Assign tasks | Yes | Yes | No |
-| Delete tasks | Yes | No | No |
-| View all clients | Yes | Yes (group) | No |
-| Create clients | Yes | Yes | No |
-| Manage users | Yes | No | No |
+| Resource         | Admin | Manager     | User |
+| ---------------- | ----- | ----------- | ---- |
+| View all tasks   | Yes   | Yes (group) | No   |
+| Create tasks     | Yes   | Yes         | Yes  |
+| Assign tasks     | Yes   | Yes         | No   |
+| Delete tasks     | Yes   | No          | No   |
+| View all clients | Yes   | Yes (group) | No   |
+| Create clients   | Yes   | Yes         | No   |
+| Manage users     | Yes   | No          | No   |
 
 ### Middleware Implementation
 
@@ -68,13 +68,13 @@ export function requireRole(roles: string[]) {
   return (req, res, next) => {
     const userRole = req.auth?.sessionClaims?.role;
     if (!roles.includes(userRole)) {
-      return res.status(403).json({ error: 'Forbidden' });
+      return res.status(403).json({ error: "Forbidden" });
     }
     next();
   };
 }
 
-export const requireAdmin = requireRole(['admin']);
+export const requireAdmin = requireRole(["admin"]);
 ```
 
 ## Data Protection
@@ -95,12 +95,12 @@ export const requireAdmin = requireRole(['admin']);
 
 ### Sensitive Data Handling
 
-| Data Type | Protection |
-|-----------|------------|
-| Passwords | Managed by Clerk (hashed) |
-| API Keys | Environment variables only |
-| User PII | Access controlled by role |
-| Session Tokens | HTTP-only, secure cookies |
+| Data Type      | Protection                 |
+| -------------- | -------------------------- |
+| Passwords      | Managed by Clerk (hashed)  |
+| API Keys       | Environment variables only |
+| User PII       | Access controlled by role  |
+| Session Tokens | HTTP-only, secure cookies  |
 
 ## Security Headers
 
@@ -109,10 +109,10 @@ Recommended headers for production:
 ```typescript
 // Security headers middleware
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('X-XSS-Protection', '1; mode=block');
-  res.setHeader('Strict-Transport-Security', 'max-age=31536000');
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("X-XSS-Protection", "1; mode=block");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000");
   next();
 });
 ```
@@ -128,6 +128,7 @@ app.use((req, res, next) => {
 ### Task History
 
 The `TaskHistory` entity tracks all task modifications:
+
 - Who made the change
 - When it occurred
 - What changed (previous and new values)
@@ -150,12 +151,14 @@ The `TaskHistory` entity tracks all task modifications:
 ## Security Checklist
 
 ### Development
+
 - [ ] Never commit secrets to version control
 - [ ] Use environment variables for configuration
 - [ ] Validate and sanitize all user input
 - [ ] Use parameterized queries (Prisma handles this)
 
 ### Deployment
+
 - [ ] Enable HTTPS
 - [ ] Configure security headers
 - [ ] Set up rate limiting
@@ -163,6 +166,7 @@ The `TaskHistory` entity tracks all task modifications:
 - [ ] Regular dependency updates
 
 ### Operations
+
 - [ ] Regular security audits
 - [ ] Incident response plan
 - [ ] Backup and recovery procedures

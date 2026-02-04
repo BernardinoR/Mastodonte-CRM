@@ -1,15 +1,16 @@
 import { useCallback } from "react";
 import { Button } from "@/shared/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { AssigneeList } from "@/shared/components/ui/task-assignees";
 import { Pencil } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { AssigneeSelector } from "../task-editors";
-import { TaskDatePopover, TaskPriorityPopover, TaskStatusPopover, TaskClientPopover } from "../task-popovers";
+import {
+  TaskDatePopover,
+  TaskPriorityPopover,
+  TaskStatusPopover,
+  TaskClientPopover,
+} from "../task-popovers";
 import type { TaskStatus, TaskPriority } from "../../types/task";
 
 type PopoverType = "date" | "priority" | "status" | "client" | "assignee" | null;
@@ -74,17 +75,20 @@ export function TaskCardContent({
     }
   }, [clickTimeoutRef]);
 
-  const handleAssigneePopoverClick = useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
-    cancelClickTimeout();
-  }, [cancelClickTimeout]);
+  const handleAssigneePopoverClick = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      cancelClickTimeout();
+    },
+    [cancelClickTimeout],
+  );
 
   return (
-    <div className={cn("space-y-2", isCompact && !isEditing ? "p-3 md:p-3" : "p-3 md:p-4 pt-0")}>
+    <div className={cn("space-y-2", isCompact && !isEditing ? "p-3 md:p-3" : "p-3 pt-0 md:p-4")}>
       {isCompact && !isEditing && (
-        <div className="flex items-start justify-between gap-2 mb-0.5">
+        <div className="mb-0.5 flex items-start justify-between gap-2">
           <div
-            className="font-bold text-xs md:text-sm flex-1 leading-none"
+            className="flex-1 text-xs font-bold leading-none md:text-sm"
             data-testid={`text-tasktitle-${id}`}
           >
             {title}
@@ -92,16 +96,16 @@ export function TaskCardContent({
           <Button
             size="icon"
             variant="ghost"
-            className="h-6 w-6 shrink-0 opacity-0 pointer-events-none transition-opacity group-hover/task-card:opacity-100 group-hover/task-card:pointer-events-auto focus-visible:opacity-100 focus-visible:pointer-events-auto focus-visible:ring-2 focus-visible:ring-primary"
+            className="pointer-events-none h-6 w-6 shrink-0 opacity-0 transition-opacity focus-visible:pointer-events-auto focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary group-hover/task-card:pointer-events-auto group-hover/task-card:opacity-100"
             onClick={onEditClick}
             data-testid={`button-edit-${id}`}
           >
-            <Pencil className="w-3 h-3" />
+            <Pencil className="h-3 w-3" />
           </Button>
         </div>
       )}
-      
-      <div className="flex items-center text-[10px] md:text-xs font-semibold text-foreground">
+
+      <div className="flex items-center text-[10px] font-semibold text-foreground md:text-xs">
         <TaskDatePopover
           id={id}
           dateValue={editedTask.dueDate}
@@ -112,7 +116,7 @@ export function TaskCardContent({
           popoverRef={datePopoverContentRef}
         />
       </div>
-      
+
       {(!isCompact || isEditing || clientName) && (
         <TaskClientPopover
           id={id}
@@ -127,7 +131,7 @@ export function TaskCardContent({
           variant="card"
         />
       )}
-      
+
       <TaskPriorityPopover
         id={id}
         priority={priority}
@@ -137,7 +141,7 @@ export function TaskCardContent({
         onPriorityChange={onPriorityChange}
         onStopPropagation={cancelClickTimeout}
       />
-      
+
       <TaskStatusPopover
         id={id}
         status={status}
@@ -146,35 +150,36 @@ export function TaskCardContent({
         onStatusChange={onStatusChange}
         onStopPropagation={cancelClickTimeout}
       />
-      
+
       {(!isCompact || isEditing) && (
         <div className={cn("space-y-1.5", isEditing && "-mx-2")}>
-          <div className={cn("text-[10px] md:text-xs font-semibold text-muted-foreground uppercase tracking-wider", isEditing && "px-2")}>
+          <div
+            className={cn(
+              "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground md:text-xs",
+              isEditing && "px-2",
+            )}
+          >
             Responsáveis
           </div>
-          
-          <Popover open={activePopover === "assignee"} onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}>
+
+          <Popover
+            open={activePopover === "assignee"}
+            onOpenChange={(open) => setActivePopover(open ? "assignee" : null)}
+          >
             <PopoverTrigger asChild>
-              <div 
-                className="cursor-pointer"
-                onClick={handleAssigneePopoverClick}
-              >
-                <AssigneeList
-                  assignees={stableAssignees}
-                  isEditing={isEditing}
-                  taskId={id}
-                />
+              <div className="cursor-pointer" onClick={handleAssigneePopoverClick}>
+                <AssigneeList assignees={stableAssignees} isEditing={isEditing} taskId={id} />
               </div>
             </PopoverTrigger>
-            <PopoverContent 
-              className="w-80 p-0 bg-[#1a1a1a] border-[#2a2a2a]" 
-              side="bottom" 
-              align="start" 
-              sideOffset={6} 
-              avoidCollisions={true} 
+            <PopoverContent
+              className="w-80 border-[#2a2a2a] bg-[#1a1a1a] p-0"
+              side="bottom"
+              align="start"
+              sideOffset={6}
+              avoidCollisions={true}
               collisionPadding={8}
             >
-              <AssigneeSelector 
+              <AssigneeSelector
                 selectedAssignees={editedTask.assignees}
                 onSelect={onAddAssignee}
                 onRemove={onRemoveAssignee}

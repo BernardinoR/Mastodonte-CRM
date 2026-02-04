@@ -3,14 +3,9 @@
   "generated": "2026-02-01T20:39:48.369Z",
   "stack": {
     "primaryLanguage": "typescript",
-    "languages": [
-      "javascript",
-      "typescript"
-    ],
+    "languages": ["javascript", "typescript"],
     "frameworks": [],
-    "buildTools": [
-      "vite"
-    ],
+    "buildTools": ["vite"],
     "testFrameworks": [],
     "packageManager": "npm",
     "isMonorepo": false,
@@ -129,10 +124,7 @@
       {
         "name": "Controllers",
         "description": "Request handling and routing",
-        "directories": [
-          "server",
-          "client/src/features/tasks/hooks"
-        ],
+        "directories": ["server", "client/src/features/tasks/hooks"],
         "symbolCount": 4,
         "dependsOn": []
       },
@@ -180,10 +172,7 @@
           "client/src/features/tasks/components/table"
         ],
         "symbolCount": 144,
-        "dependsOn": [
-          "Utils",
-          "Controllers"
-        ]
+        "dependsOn": ["Utils", "Controllers"]
       }
     ],
     "patterns": [],

@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Input } from "@/shared/components/ui/input";
-import { 
-  LayoutGrid, 
-  List, 
-  ChevronDown, 
-  ArrowUpDown, 
-  X, 
+import {
+  LayoutGrid,
+  List,
+  ChevronDown,
+  ArrowUpDown,
+  X,
   Plus,
   Calendar,
   CheckSquare,
@@ -25,12 +25,24 @@ import {
   CalendarRange,
   Rocket,
   AlignJustify,
-  Rows3
+  Rows3,
 } from "lucide-react";
 import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/shared/lib/utils";
-import { STATUS_OPTIONS, PRIORITY_OPTIONS, type TaskStatus, type TaskPriority, type FilterType, type TypedActiveFilter, type DateFilterValue, type FilterValueMap } from "../types/task";
-import { FilterPopoverContent, formatDateFilterLabel } from "@shared/components/filter-bar/FilterPopoverContent";
+import {
+  STATUS_OPTIONS,
+  PRIORITY_OPTIONS,
+  type TaskStatus,
+  type TaskPriority,
+  type FilterType,
+  type TypedActiveFilter,
+  type DateFilterValue,
+  type FilterValueMap,
+} from "../types/task";
+import {
+  FilterPopoverContent,
+  formatDateFilterLabel,
+} from "@shared/components/filter-bar/FilterPopoverContent";
 import {
   DndContext,
   closestCenter,
@@ -193,14 +205,9 @@ interface SortableItemProps {
 
 function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) {
   const [directionOpen, setDirectionOpen] = useState(false);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: sort.field });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: sort.field,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -212,34 +219,32 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center gap-2 bg-[#1a1a1a] rounded-md border border-[#333] h-9 px-2"
+      className="flex h-9 items-center gap-2 rounded-md border border-[#333] bg-[#1a1a1a] px-2"
       data-testid={`sort-item-${sort.field}`}
     >
       <button
         {...attributes}
         {...listeners}
-        className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 cursor-grab active:cursor-grabbing"
+        className="flex h-5 w-5 cursor-grab items-center justify-center text-gray-500 hover:text-gray-300 active:cursor-grabbing"
         data-testid={`drag-handle-${sort.field}`}
       >
-        <GripVertical className="w-4 h-4" />
+        <GripVertical className="h-4 w-4" />
       </button>
 
-      <span className="text-sm text-gray-300 min-w-[80px]">
-        {SORT_FIELD_LABELS[sort.field]}
-      </span>
+      <span className="min-w-[80px] text-sm text-gray-300">{SORT_FIELD_LABELS[sort.field]}</span>
 
       <Popover open={directionOpen} onOpenChange={setDirectionOpen}>
         <PopoverTrigger asChild>
           <button
-            className="flex items-center gap-1 px-2 h-7 text-sm text-gray-400 hover:text-gray-200 bg-[#2a2a2a] rounded border border-[#404040] transition-colors"
+            className="flex h-7 items-center gap-1 rounded border border-[#404040] bg-[#2a2a2a] px-2 text-sm text-gray-400 transition-colors hover:text-gray-200"
             data-testid={`button-direction-${sort.field}`}
           >
             <span>{sort.direction === "asc" ? "Crescente" : "Decrescente"}</span>
-            <ChevronDown className="w-3 h-3" />
+            <ChevronDown className="h-3 w-3" />
           </button>
         </PopoverTrigger>
-        <PopoverContent 
-          className="w-36 p-1" 
+        <PopoverContent
+          className="w-36 p-1"
           side="bottom"
           align="start"
           sideOffset={8}
@@ -252,14 +257,14 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
               setDirectionOpen(false);
             }}
             className={cn(
-              "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
-              sort.direction === "asc" 
-                ? "bg-blue-500/20 text-blue-400" 
-                : "text-gray-300 hover:bg-[#2a2a2a]"
+              "flex w-full items-center gap-2 rounded px-3 py-1.5 text-sm transition-colors",
+              sort.direction === "asc"
+                ? "bg-blue-500/20 text-blue-400"
+                : "text-gray-300 hover:bg-[#2a2a2a]",
             )}
             data-testid={`option-direction-asc-${sort.field}`}
           >
-            <ChevronUp className="w-3.5 h-3.5" />
+            <ChevronUp className="h-3.5 w-3.5" />
             Crescente
           </button>
           <button
@@ -268,14 +273,14 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
               setDirectionOpen(false);
             }}
             className={cn(
-              "w-full flex items-center gap-2 px-3 py-1.5 text-sm rounded transition-colors",
-              sort.direction === "desc" 
-                ? "bg-blue-500/20 text-blue-400" 
-                : "text-gray-300 hover:bg-[#2a2a2a]"
+              "flex w-full items-center gap-2 rounded px-3 py-1.5 text-sm transition-colors",
+              sort.direction === "desc"
+                ? "bg-blue-500/20 text-blue-400"
+                : "text-gray-300 hover:bg-[#2a2a2a]",
             )}
             data-testid={`option-direction-desc-${sort.field}`}
           >
-            <ChevronDown className="w-3.5 h-3.5" />
+            <ChevronDown className="h-3.5 w-3.5" />
             Decrescente
           </button>
         </PopoverContent>
@@ -283,10 +288,10 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
 
       <button
         onClick={() => onRemove(sort.field)}
-        className="flex items-center justify-center w-6 h-6 text-gray-500 hover:text-red-400 transition-colors"
+        className="flex h-6 w-6 items-center justify-center text-gray-500 transition-colors hover:text-red-400"
         data-testid={`button-remove-sort-${sort.field}`}
       >
-        <X className="w-3.5 h-3.5" />
+        <X className="h-3.5 w-3.5" />
       </button>
     </div>
   );
@@ -327,22 +332,22 @@ export function FilterBar({
     const counts: Record<string, number> = {};
     const taskList = tasks || [];
     for (const preset of FILTER_PRESETS) {
-      counts[preset.id] = taskList.filter(task => preset.matchTask(task)).length;
+      counts[preset.id] = taskList.filter((task) => preset.matchTask(task)).length;
     }
     return counts;
   }, [tasks]);
 
   // Get active preset info
   const activePreset = useMemo(() => {
-    return FILTER_PRESETS.find(p => p.id === activePresetId) || null;
+    return FILTER_PRESETS.find((p) => p.id === activePresetId) || null;
   }, [activePresetId]);
 
   const handleToggleFilterBar = useCallback(() => {
-    setFilterBarExpanded(prev => !prev);
+    setFilterBarExpanded((prev) => !prev);
   }, []);
 
   const handleOpenFilterPopover = useCallback((id: string, open: boolean) => {
-    setOpenFilterPopovers(prev => ({ ...prev, [id]: open }));
+    setOpenFilterPopovers((prev) => ({ ...prev, [id]: open }));
   }, []);
 
   const handleAddFilterPopoverChange = useCallback((open: boolean) => {
@@ -351,8 +356,8 @@ export function FilterBar({
 
   const availableFilterTypes = useMemo(() => {
     const filters = activeFilters || [];
-    const usedTypes = new Set(filters.map(f => f.type));
-    return (Object.keys(FILTER_TYPE_CONFIG) as FilterType[]).filter(t => !usedTypes.has(t));
+    const usedTypes = new Set(filters.map((f) => f.type));
+    return (Object.keys(FILTER_TYPE_CONFIG) as FilterType[]).filter((t) => !usedTypes.has(t));
   }, [activeFilters]);
 
   const sensors = useSensors(
@@ -363,7 +368,7 @@ export function FilterBar({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   useEffect(() => {
@@ -374,8 +379,8 @@ export function FilterBar({
 
   // Clean up popover state when filters are removed
   useEffect(() => {
-    const filterIds = new Set((activeFilters || []).map(f => f.id));
-    setOpenFilterPopovers(prev => {
+    const filterIds = new Set((activeFilters || []).map((f) => f.id));
+    setOpenFilterPopovers((prev) => {
       const cleaned: Record<string, boolean> = {};
       for (const id of Object.keys(prev)) {
         if (filterIds.has(id)) {
@@ -386,28 +391,34 @@ export function FilterBar({
     });
   }, [activeFilters]);
 
-  const handleAddSort = useCallback((field: SortField) => {
-    if (!sorts.find(s => s.field === field)) {
-      onSortsChange([...sorts, { field, direction: "asc" }]);
-    }
-  }, [sorts, onSortsChange]);
+  const handleAddSort = useCallback(
+    (field: SortField) => {
+      if (!sorts.find((s) => s.field === field)) {
+        onSortsChange([...sorts, { field, direction: "asc" }]);
+      }
+    },
+    [sorts, onSortsChange],
+  );
 
-  const handleRemoveSort = useCallback((field: SortField) => {
-    onSortsChange(sorts.filter(s => s.field !== field));
-  }, [sorts, onSortsChange]);
+  const handleRemoveSort = useCallback(
+    (field: SortField) => {
+      onSortsChange(sorts.filter((s) => s.field !== field));
+    },
+    [sorts, onSortsChange],
+  );
 
   const handleClearAllSorts = useCallback(() => {
     onSortsChange([]);
   }, [onSortsChange]);
 
   const availableSortFields = useMemo(() => {
-    const usedFields = new Set(sorts.map(s => s.field));
-    return (Object.keys(SORT_FIELD_LABELS) as SortField[]).filter(f => !usedFields.has(f));
+    const usedFields = new Set(sorts.map((s) => s.field));
+    return (Object.keys(SORT_FIELD_LABELS) as SortField[]).filter((f) => !usedFields.has(f));
   }, [sorts]);
 
   const taskFilter = useMemo(() => {
     const filters = activeFilters || [];
-    return filters.find(f => f.type === "task");
+    return filters.find((f) => f.type === "task");
   }, [activeFilters]);
 
   const searchQuery = useMemo(() => {
@@ -427,13 +438,16 @@ export function FilterBar({
     return filters.length;
   }, [activeFilters]);
 
-  const handleSearchChange = useCallback((value: string) => {
-    if (taskFilter) {
-      onUpdateFilter(taskFilter.id, "task", value);
-    } else if (value) {
-      onAddFilter("task");
-    }
-  }, [taskFilter, onUpdateFilter, onAddFilter]);
+  const handleSearchChange = useCallback(
+    (value: string) => {
+      if (taskFilter) {
+        onUpdateFilter(taskFilter.id, "task", value);
+      } else if (value) {
+        onAddFilter("task");
+      }
+    },
+    [taskFilter, onUpdateFilter, onAddFilter],
+  );
 
   const handleSearchBlur = useCallback(() => {
     if (!searchQuery) {
@@ -448,37 +462,44 @@ export function FilterBar({
     setSearchExpanded(false);
   }, [taskFilter, onRemoveFilter]);
 
-  const handleSetSortDirection = useCallback((field: SortField, direction: SortDirection) => {
-    onSortsChange(sorts.map(s => 
-      s.field === field ? { ...s, direction } : s
-    ));
-  }, [sorts, onSortsChange]);
+  const handleSetSortDirection = useCallback(
+    (field: SortField, direction: SortDirection) => {
+      onSortsChange(sorts.map((s) => (s.field === field ? { ...s, direction } : s)));
+    },
+    [sorts, onSortsChange],
+  );
 
-  const handleDragEnd = useCallback((event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = sorts.findIndex(s => s.field === active.id);
-      const newIndex = sorts.findIndex(s => s.field === over.id);
-      onSortsChange(arrayMove(sorts, oldIndex, newIndex));
-    }
-  }, [sorts, onSortsChange]);
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (over && active.id !== over.id) {
+        const oldIndex = sorts.findIndex((s) => s.field === active.id);
+        const newIndex = sorts.findIndex((s) => s.field === over.id);
+        onSortsChange(arrayMove(sorts, oldIndex, newIndex));
+      }
+    },
+    [sorts, onSortsChange],
+  );
 
-  const handleApplyPreset = useCallback((preset: FilterPreset) => {
-    // Clear existing filters and apply preset
-    onReset();
-    // Apply sorts
-    onSortsChange(preset.sorts);
-    // Apply date filter with freshly computed value (avoids stale dates)
-    onAddFilter("date", preset.getDateFilter());
-    // Apply status filter if preset has one
-    if (preset.getStatusFilter) {
-      onAddFilter("status", preset.getStatusFilter());
-    }
-    // Set active preset
-    onActivePresetChange(preset.id);
-    // Close popover (don't expand filter bar when preset is active)
-    setPresetsPopoverOpen(false);
-  }, [onReset, onSortsChange, onAddFilter, onActivePresetChange]);
+  const handleApplyPreset = useCallback(
+    (preset: FilterPreset) => {
+      // Clear existing filters and apply preset
+      onReset();
+      // Apply sorts
+      onSortsChange(preset.sorts);
+      // Apply date filter with freshly computed value (avoids stale dates)
+      onAddFilter("date", preset.getDateFilter());
+      // Apply status filter if preset has one
+      if (preset.getStatusFilter) {
+        onAddFilter("status", preset.getStatusFilter());
+      }
+      // Set active preset
+      onActivePresetChange(preset.id);
+      // Close popover (don't expand filter bar when preset is active)
+      setPresetsPopoverOpen(false);
+    },
+    [onReset, onSortsChange, onAddFilter, onActivePresetChange],
+  );
 
   const handleResetWithPreset = useCallback(() => {
     onReset();
@@ -486,148 +507,152 @@ export function FilterBar({
   }, [onReset, onActivePresetChange]);
 
   return (
-    <div className="flex flex-col gap-2 mb-4">
+    <div className="mb-4 flex flex-col gap-2">
       {/* Main Filter Bar */}
       <div className="flex items-center gap-3">
         {/* View Mode Badges */}
         <button
-        onClick={() => onViewModeChange("board")}
-        className={cn(
-          "flex items-center gap-1.5 px-3 h-8 rounded-full text-sm font-medium transition-colors",
-          viewMode === "board"
-            ? "bg-[#2a2a2a] text-white border border-[#404040]"
-            : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-        )}
-        data-testid="button-view-board"
-      >
-        <LayoutGrid className="w-4 h-4" />
-        <span>Kanban</span>
-      </button>
-      
-      <button
-        onClick={() => onViewModeChange("table")}
-        className={cn(
-          "flex items-center gap-1.5 px-3 h-8 rounded-full text-sm font-medium transition-colors",
-          viewMode === "table"
-            ? "bg-[#2a2a2a] text-white border border-[#404040]"
-            : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-        )}
-        data-testid="button-view-table"
-      >
-        <List className="w-4 h-4" />
-        <span>Lista</span>
-      </button>
-
-      {/* Spacer - pushes everything after to the right */}
-      <div className="flex-1" />
-
-      {/* Search - Expandable with animation */}
-      <div 
-        className={cn(
-          "relative flex items-center h-8 rounded-full overflow-hidden transition-all duration-300 ease-out",
-          searchExpanded 
-            ? "w-52 bg-[#1a1a1a] border border-[#333] px-3" 
-            : "w-8"
-        )}
-      >
-        <button
-          onClick={() => !searchExpanded && setSearchExpanded(true)}
+          onClick={() => onViewModeChange("board")}
           className={cn(
-            "flex items-center justify-center shrink-0 transition-colors",
-            searchExpanded 
-              ? "w-4 h-4 text-gray-500 cursor-default" 
-              : "w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+            "flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+            viewMode === "board"
+              ? "border border-[#404040] bg-[#2a2a2a] text-white"
+              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
           )}
-          data-testid="button-search"
+          data-testid="button-view-board"
         >
-          <Search className="w-4 h-4" />
+          <LayoutGrid className="h-4 w-4" />
+          <span>Kanban</span>
         </button>
-        
-        <div className={cn(
-          "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
-          searchExpanded ? "w-full opacity-100 ml-1.5" : "w-0 opacity-0"
-        )}>
-          <Input
-            ref={searchInputRef}
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearchChange(e.target.value)}
-            onBlur={handleSearchBlur}
-            onKeyDown={(e) => {
-              if (e.key === "Escape") {
-                handleClearSearch();
-              }
-            }}
-            placeholder="Buscar..."
-            className="h-7 flex-1 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
-            data-testid="input-search"
-          />
-          {searchQuery && (
-            <button
-              onClick={handleClearSearch}
-              className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
-              data-testid="button-clear-search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+
+        <button
+          onClick={() => onViewModeChange("table")}
+          className={cn(
+            "flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
+            viewMode === "table"
+              ? "border border-[#404040] bg-[#2a2a2a] text-white"
+              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
           )}
+          data-testid="button-view-table"
+        >
+          <List className="h-4 w-4" />
+          <span>Lista</span>
+        </button>
+
+        {/* Spacer - pushes everything after to the right */}
+        <div className="flex-1" />
+
+        {/* Search - Expandable with animation */}
+        <div
+          className={cn(
+            "relative flex h-8 items-center overflow-hidden rounded-full transition-all duration-300 ease-out",
+            searchExpanded ? "w-52 border border-[#333] bg-[#1a1a1a] px-3" : "w-8",
+          )}
+        >
+          <button
+            onClick={() => !searchExpanded && setSearchExpanded(true)}
+            className={cn(
+              "flex shrink-0 items-center justify-center transition-colors",
+              searchExpanded
+                ? "h-4 w-4 cursor-default text-gray-500"
+                : "h-8 w-8 rounded-full text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
+            )}
+            data-testid="button-search"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+
+          <div
+            className={cn(
+              "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
+              searchExpanded ? "ml-1.5 w-full opacity-100" : "w-0 opacity-0",
+            )}
+          >
+            <Input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              onBlur={handleSearchBlur}
+              onKeyDown={(e) => {
+                if (e.key === "Escape") {
+                  handleClearSearch();
+                }
+              }}
+              placeholder="Buscar..."
+              className="h-7 flex-1 border-0 bg-transparent p-0 text-sm placeholder:text-gray-500 focus-visible:ring-0"
+              data-testid="input-search"
+            />
+            {searchQuery && (
+              <button
+                onClick={handleClearSearch}
+                className="flex h-5 w-5 shrink-0 items-center justify-center text-gray-500 hover:text-gray-300"
+                data-testid="button-clear-search"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Compact Mode Toggle Button */}
-      <button
-        onClick={() => onCompactModeChange(!isCompact)}
-        className={cn(
-          "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
-          isCompact
-            ? "bg-blue-500/20 text-blue-400"
-            : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
-        )}
-        title={isCompact ? "Modo expandido" : "Modo compacto"}
-        data-testid="button-compact-mode"
-      >
-        {isCompact ? <AlignJustify className="w-4 h-4" /> : <Rows3 className="w-4 h-4" />}
-      </button>
+        {/* Compact Mode Toggle Button */}
+        <button
+          onClick={() => onCompactModeChange(!isCompact)}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+            isCompact
+              ? "bg-blue-500/20 text-blue-400"
+              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
+          )}
+          title={isCompact ? "Modo expandido" : "Modo compacto"}
+          data-testid="button-compact-mode"
+        >
+          {isCompact ? <AlignJustify className="h-4 w-4" /> : <Rows3 className="h-4 w-4" />}
+        </button>
 
-      {/* Turbo Mode Button */}
-      <button
-        onClick={onTurboMode}
-        disabled={turboModeTaskCount === 0}
-        className={cn(
-          "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
-          turboModeTaskCount > 0
-            ? "text-gray-500 hover:text-orange-500 hover:bg-orange-500/20"
-            : "text-gray-600 cursor-not-allowed"
-        )}
-        title={turboModeTaskCount > 0 ? `Modo Turbo: ${turboModeTaskCount} tarefas` : "Nenhuma tarefa pendente"}
-        data-testid="button-turbo-mode"
-      >
-        <Rocket className="w-4 h-4" />
-      </button>
+        {/* Turbo Mode Button */}
+        <button
+          onClick={onTurboMode}
+          disabled={turboModeTaskCount === 0}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+            turboModeTaskCount > 0
+              ? "text-gray-500 hover:bg-orange-500/20 hover:text-orange-500"
+              : "cursor-not-allowed text-gray-600",
+          )}
+          title={
+            turboModeTaskCount > 0
+              ? `Modo Turbo: ${turboModeTaskCount} tarefas`
+              : "Nenhuma tarefa pendente"
+          }
+          data-testid="button-turbo-mode"
+        >
+          <Rocket className="h-4 w-4" />
+        </button>
 
         {/* Presets Popover */}
         <Popover open={presetsPopoverOpen} onOpenChange={setPresetsPopoverOpen}>
           <PopoverTrigger asChild>
             <button
               className={cn(
-                "flex items-center justify-center w-8 h-8 rounded-full transition-colors",
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
                 activePreset
                   ? "bg-amber-500/20 text-amber-400"
                   : presetsPopoverOpen
                     ? "bg-amber-500/20 text-amber-400"
-                    : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+                    : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
               )}
               data-testid="button-presets"
             >
               {activePreset ? (
                 <span className="text-sm font-bold">{activePreset.shortLabel}</span>
               ) : (
-                <SlidersHorizontal className="w-4 h-4" />
+                <SlidersHorizontal className="h-4 w-4" />
               )}
             </button>
           </PopoverTrigger>
-          <PopoverContent 
-            className="w-64 p-2 bg-[#1a1a1a] border border-[#333]"
+          <PopoverContent
+            className="w-64 border border-[#333] bg-[#1a1a1a] p-2"
             side="bottom"
             align="end"
             sideOffset={8}
@@ -635,7 +660,7 @@ export function FilterBar({
             avoidCollisions
           >
             <div className="flex flex-col gap-1">
-              <div className="px-2 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">
+              <div className="px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
                 Visualizações Rápidas
               </div>
               {FILTER_PRESETS.map((preset) => {
@@ -647,30 +672,38 @@ export function FilterBar({
                     key={preset.id}
                     onClick={() => handleApplyPreset(preset)}
                     className={cn(
-                      "flex items-center gap-3 px-2 py-2 rounded-md text-left transition-colors group",
+                      "group flex items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
                       isActive
-                        ? "bg-amber-500/10 border border-amber-500/30"
-                        : "hover:bg-[#252525]"
+                        ? "border border-amber-500/30 bg-amber-500/10"
+                        : "hover:bg-[#252525]",
                     )}
                     data-testid={`preset-${preset.id}`}
                   >
-                    <div className={cn(
-                      "flex items-center justify-center w-8 h-8 rounded-md",
-                      isActive ? "bg-amber-500/20" : "bg-[#252525] group-hover:bg-[#2a2a2a]"
-                    )}>
-                      <PresetIcon className="w-4 h-4 text-amber-400" />
+                    <div
+                      className={cn(
+                        "flex h-8 w-8 items-center justify-center rounded-md",
+                        isActive ? "bg-amber-500/20" : "bg-[#252525] group-hover:bg-[#2a2a2a]",
+                      )}
+                    >
+                      <PresetIcon className="h-4 w-4 text-amber-400" />
                     </div>
-                    <div className="flex flex-col flex-1">
-                      <span className={cn(
-                        "text-sm font-medium",
-                        isActive ? "text-amber-300" : "text-gray-200"
-                      )}>{preset.label}</span>
+                    <div className="flex flex-1 flex-col">
+                      <span
+                        className={cn(
+                          "text-sm font-medium",
+                          isActive ? "text-amber-300" : "text-gray-200",
+                        )}
+                      >
+                        {preset.label}
+                      </span>
                       <span className="text-xs text-gray-500">{preset.description}</span>
                     </div>
-                    <span className={cn(
-                      "text-xs font-medium px-1.5 py-0.5 rounded",
-                      isActive ? "bg-amber-500/20 text-amber-400" : "bg-[#252525] text-gray-400"
-                    )}>
+                    <span
+                      className={cn(
+                        "rounded px-1.5 py-0.5 text-xs font-medium",
+                        isActive ? "bg-amber-500/20 text-amber-400" : "bg-[#252525] text-gray-400",
+                      )}
+                    >
                       {count}
                     </span>
                   </button>
@@ -684,16 +717,16 @@ export function FilterBar({
         <button
           onClick={handleToggleFilterBar}
           className={cn(
-            "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
+            "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors",
             !activePreset && (filterBarExpanded || sorts.length > 0)
               ? "bg-blue-500/20 text-blue-400"
-              : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
           )}
           data-testid="button-sort"
         >
-          <ArrowUpDown className="w-4 h-4" />
+          <ArrowUpDown className="h-4 w-4" />
           {!activePreset && sorts.length > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-blue-500 text-white text-[10px] font-medium flex items-center justify-center">
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[10px] font-medium text-white">
               {sorts.length}
             </span>
           )}
@@ -703,16 +736,16 @@ export function FilterBar({
         <button
           onClick={handleToggleFilterBar}
           className={cn(
-            "flex items-center justify-center w-8 h-8 rounded-full transition-colors relative",
+            "relative flex h-8 w-8 items-center justify-center rounded-full transition-colors",
             !activePreset && (filterBarExpanded || activeFilterCount > 0)
               ? "bg-purple-500/20 text-purple-400"
-              : "text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
           )}
           data-testid="button-filter"
         >
-          <Filter className="w-4 h-4" />
+          <Filter className="h-4 w-4" />
           {!activePreset && activeFilterCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-purple-500 text-white text-[10px] font-medium flex items-center justify-center">
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-purple-500 text-[10px] font-medium text-white">
               {activeFilterCount}
             </span>
           )}
@@ -722,7 +755,7 @@ export function FilterBar({
         {(hasActiveFilters || activePreset) && (
           <button
             onClick={handleResetWithPreset}
-            className="text-sm text-gray-500 hover:text-gray-300 transition-colors"
+            className="text-sm text-gray-500 transition-colors hover:text-gray-300"
             data-testid="button-reset-filters"
           >
             Redefinir
@@ -732,18 +765,18 @@ export function FilterBar({
         {/* New Task Button */}
         <button
           onClick={onNewTask}
-          className="flex items-center gap-1.5 px-3 h-8 rounded-md text-sm font-medium bg-[#2a2a2a] border border-[#404040] text-white hover:bg-[#333] hover:border-[#505050] transition-colors"
+          className="flex h-8 items-center gap-1.5 rounded-md border border-[#404040] bg-[#2a2a2a] px-3 text-sm font-medium text-white transition-colors hover:border-[#505050] hover:bg-[#333]"
           data-testid="button-new-task"
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="h-4 w-4" />
           <span>Nova Tarefa</span>
         </button>
       </div>
 
       {/* Filter Bar - Expands below when sort or filter button is clicked */}
       {filterBarExpanded && (
-        <div 
-          className="flex items-center gap-2 px-2 py-2 bg-[#0d0d0d] rounded-lg border border-[#1a1a1a]"
+        <div
+          className="flex items-center gap-2 rounded-lg border border-[#1a1a1a] bg-[#0d0d0d] px-2 py-2"
           data-testid="filter-bar"
         >
           {/* Sort Button with Full Sort Management Popover */}
@@ -751,28 +784,30 @@ export function FilterBar({
             <PopoverTrigger asChild>
               <button
                 className={cn(
-                  "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors",
+                  "flex h-8 items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
                   sorts.length > 0
-                    ? "bg-[#1a1a1a] text-gray-200 border border-[#333]"
-                    : "text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a]"
+                    ? "border border-[#333] bg-[#1a1a1a] text-gray-200"
+                    : "text-gray-400 hover:bg-[#1a1a1a] hover:text-gray-200",
                 )}
                 data-testid="button-add-sort"
               >
                 {sorts.length > 0 ? (
                   <>
-                    <ArrowUpDown className="w-4 h-4" />
-                    <span>{sorts.length} {sorts.length === 1 ? "ordenação" : "ordenações"}</span>
+                    <ArrowUpDown className="h-4 w-4" />
+                    <span>
+                      {sorts.length} {sorts.length === 1 ? "ordenação" : "ordenações"}
+                    </span>
                   </>
                 ) : (
                   <>
-                    <Plus className="w-4 h-4" />
+                    <Plus className="h-4 w-4" />
                     <span>Adicionar ordenação</span>
                   </>
                 )}
               </button>
             </PopoverTrigger>
-            <PopoverContent 
-              className="w-80 p-0" 
+            <PopoverContent
+              className="w-80 p-0"
               side="bottom"
               align="start"
               sideOffset={8}
@@ -780,7 +815,7 @@ export function FilterBar({
               avoidCollisions={true}
             >
               {/* Header */}
-              <div className="flex items-center justify-between px-3 py-2 border-b border-[#2a2a2a]">
+              <div className="flex items-center justify-between border-b border-[#2a2a2a] px-3 py-2">
                 <span className="text-sm font-medium text-gray-300">Ordenação</span>
                 {sorts.length > 0 && (
                   <span className="text-xs text-gray-500">{sorts.length} ordenações</span>
@@ -790,7 +825,7 @@ export function FilterBar({
               {/* Sort List with Drag and Drop */}
               <div className="p-2">
                 {sorts.length === 0 ? (
-                  <div className="text-sm text-gray-500 text-center py-4">
+                  <div className="py-4 text-center text-sm text-gray-500">
                     Nenhuma ordenação aplicada
                   </div>
                 ) : (
@@ -800,7 +835,7 @@ export function FilterBar({
                     onDragEnd={handleDragEnd}
                   >
                     <SortableContext
-                      items={sorts.map(s => s.field)}
+                      items={sorts.map((s) => s.field)}
                       strategy={verticalListSortingStrategy}
                     >
                       <div className="flex flex-col gap-2">
@@ -821,15 +856,15 @@ export function FilterBar({
               {/* Add More Sorts */}
               {availableSortFields.length > 0 && (
                 <div className="border-t border-[#2a2a2a] p-1">
-                  <div className="px-2 py-1.5 text-xs text-gray-500 uppercase">Ordenar por</div>
+                  <div className="px-2 py-1.5 text-xs uppercase text-gray-500">Ordenar por</div>
                   {availableSortFields.map((field) => (
                     <button
                       key={field}
                       onClick={() => handleAddSort(field)}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
+                      className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
                       data-testid={`button-add-sort-${field}`}
                     >
-                      <Plus className="w-3.5 h-3.5 text-gray-500" />
+                      <Plus className="h-3.5 w-3.5 text-gray-500" />
                       {SORT_FIELD_LABELS[field]}
                     </button>
                   ))}
@@ -841,10 +876,10 @@ export function FilterBar({
                 <div className="border-t border-[#2a2a2a] p-2">
                   <button
                     onClick={handleClearAllSorts}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-500 hover:text-red-400 hover:bg-[#2a2a2a] rounded transition-colors"
+                    className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-gray-500 transition-colors hover:bg-[#2a2a2a] hover:text-red-400"
                     data-testid="button-clear-sorts"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="h-4 w-4" />
                     Excluir ordenação
                   </button>
                 </div>
@@ -859,7 +894,7 @@ export function FilterBar({
           {(activeFilters || []).map((filter) => {
             const config = FILTER_TYPE_CONFIG[filter.type];
             const Icon = config.icon;
-            
+
             const getFilterLabel = () => {
               switch (filter.type) {
                 case "date":
@@ -872,7 +907,7 @@ export function FilterBar({
                 case "priority":
                   const priorityValues = filter.value as (TaskPriority | "none")[];
                   if (priorityValues.length === PRIORITY_OPTIONS.length + 1) return config.label;
-                  return priorityValues.map(p => p === "none" ? "Sem" : p).join(", ");
+                  return priorityValues.map((p) => (p === "none" ? "Sem" : p)).join(", ");
                 case "task":
                   return (filter.value as string) || config.label;
                 case "assignee":
@@ -887,7 +922,7 @@ export function FilterBar({
                   return config.label;
               }
             };
-            
+
             const hasValue = () => {
               switch (filter.type) {
                 case "date":
@@ -908,42 +943,45 @@ export function FilterBar({
             };
 
             return (
-              <Popover 
-                key={filter.id} 
-                open={openFilterPopovers[filter.id] || false} 
+              <Popover
+                key={filter.id}
+                open={openFilterPopovers[filter.id] || false}
                 onOpenChange={(open) => handleOpenFilterPopover(filter.id, open)}
               >
                 <PopoverTrigger asChild>
                   <div
                     className={cn(
-                      "flex items-center gap-1.5 px-3 h-8 text-sm rounded-md transition-colors cursor-pointer",
+                      "flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
                       hasValue()
-                        ? "bg-purple-500/20 text-purple-300 border border-purple-500/30"
-                        : "bg-[#1a1a1a] text-gray-300 border border-[#333]"
+                        ? "border border-purple-500/30 bg-purple-500/20 text-purple-300"
+                        : "border border-[#333] bg-[#1a1a1a] text-gray-300",
                     )}
                     data-testid={`button-filter-${filter.type}-${filter.id}`}
                   >
-                    <Icon className="w-4 h-4" />
+                    <Icon className="h-4 w-4" />
                     <span className="max-w-[150px] truncate">{getFilterLabel()}</span>
-                    <ChevronDown className="w-3.5 h-3.5 shrink-0" />
+                    <ChevronDown className="h-3.5 w-3.5 shrink-0" />
                     <span
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveFilter(filter.id);
                       }}
-                      className="ml-1 w-4 h-4 flex items-center justify-center text-gray-400 hover:text-red-400 transition-colors cursor-pointer"
+                      className="ml-1 flex h-4 w-4 cursor-pointer items-center justify-center text-gray-400 transition-colors hover:text-red-400"
                       data-testid={`button-remove-filter-${filter.id}`}
                     >
-                      <X className="w-3 h-3" />
+                      <X className="h-3 w-3" />
                     </span>
                   </div>
                 </PopoverTrigger>
-                <PopoverContent 
+                <PopoverContent
                   className={cn(
                     "p-1",
-                    (filter.type === "client" || filter.type === "assignee") ? "w-64 p-0" : 
-                    filter.type === "date" ? "w-auto p-0" : "w-56"
-                  )} 
+                    filter.type === "client" || filter.type === "assignee"
+                      ? "w-64 p-0"
+                      : filter.type === "date"
+                        ? "w-auto p-0"
+                        : "w-56",
+                  )}
                   side="bottom"
                   align="start"
                   sideOffset={8}
@@ -963,22 +1001,22 @@ export function FilterBar({
 
           {/* Add Filter Button - uses key to force remount after adding filter */}
           {availableFilterTypes.length > 0 && (
-            <Popover 
+            <Popover
               key={addFilterPopoverKey}
-              open={addFilterPopoverOpen} 
+              open={addFilterPopoverOpen}
               onOpenChange={handleAddFilterPopoverChange}
             >
               <PopoverTrigger asChild>
                 <button
-                  className="flex items-center gap-1.5 px-3 h-8 text-sm text-gray-400 hover:text-gray-200 hover:bg-[#1a1a1a] rounded-md transition-colors"
+                  className="flex h-8 items-center gap-1.5 rounded-md px-3 text-sm text-gray-400 transition-colors hover:bg-[#1a1a1a] hover:text-gray-200"
                   data-testid="button-add-filter"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="h-4 w-4" />
                   <span>Filtrar</span>
                 </button>
               </PopoverTrigger>
-              <PopoverContent 
-                className="w-48 p-1" 
+              <PopoverContent
+                className="w-48 p-1"
                 side="bottom"
                 align="start"
                 sideOffset={8}
@@ -996,15 +1034,15 @@ export function FilterBar({
                         e.stopPropagation();
                         e.preventDefault();
                         // Increment key to force Popover remount, preventing event replay
-                        setAddFilterPopoverKey(k => k + 1);
+                        setAddFilterPopoverKey((k) => k + 1);
                         setAddFilterPopoverOpen(false);
                         onAddFilter(type);
                         setFilterBarExpanded(true);
                       }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-300 hover:bg-[#2a2a2a] rounded transition-colors"
+                      className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-gray-300 transition-colors hover:bg-[#2a2a2a]"
                       data-testid={`button-add-filter-${type}`}
                     >
-                      <Icon className="w-4 h-4 text-gray-500" />
+                      <Icon className="h-4 w-4 text-gray-500" />
                       <span>{config.label}</span>
                     </button>
                   );

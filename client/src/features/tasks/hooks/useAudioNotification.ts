@@ -29,9 +29,9 @@ export function useAudioNotification() {
       };
 
       const now = audioContext.currentTime;
-      playTone(523.25, now, 0.3);        // C5
+      playTone(523.25, now, 0.3); // C5
       playTone(659.25, now + 0.15, 0.3); // E5
-      playTone(783.99, now + 0.3, 0.4);  // G5
+      playTone(783.99, now + 0.3, 0.4); // G5
       playTone(1046.5, now + 0.45, 0.5); // C6
     } catch (e) {
       console.log("Audio not supported");

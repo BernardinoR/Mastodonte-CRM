@@ -11,7 +11,12 @@ import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-
 import { cn } from "@/shared/lib/utils";
 import { UI_CLASSES } from "../../lib/statusConfig";
 import { DateInput } from "@/shared/components/ui/date-input";
-import { TaskStatusPopover, TaskPriorityPopover, TaskClientPopover, TaskAssigneesPopover } from "../task-popovers";
+import {
+  TaskStatusPopover,
+  TaskPriorityPopover,
+  TaskClientPopover,
+  TaskAssigneesPopover,
+} from "../task-popovers";
 import { TaskCardContextMenu } from "../task-context-menu";
 import { BulkEditDropdown } from "./BulkEditDropdown";
 import { usePopoverState, type PopoverField } from "@/shared/hooks/usePopoverState";
@@ -38,14 +43,9 @@ interface TaskTableRowProps {
 }
 
 export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: `task-${props.task.id}` });
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: `task-${props.task.id}`,
+  });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -55,8 +55,8 @@ export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps)
 
   return (
     <div ref={setNodeRef} style={style}>
-      <TaskTableRowContent 
-        {...props} 
+      <TaskTableRowContent
+        {...props}
         dragListeners={listeners}
         dragAttributes={attributes}
         isDragging={isDragging}
@@ -66,13 +66,13 @@ export const TaskTableRow = memo(function TaskTableRow(props: TaskTableRowProps)
 });
 
 interface TaskTableRowContentProps extends TaskTableRowProps {
-  dragListeners?: ReturnType<typeof useSortable>['listeners'];
-  dragAttributes?: ReturnType<typeof useSortable>['attributes'];
+  dragListeners?: ReturnType<typeof useSortable>["listeners"];
+  dragAttributes?: ReturnType<typeof useSortable>["attributes"];
   isDragging?: boolean;
 }
 
-const TaskTableRowContent = memo(function TaskTableRowContent({ 
-  task, 
+const TaskTableRowContent = memo(function TaskTableRowContent({
+  task,
   columns,
   isSelected,
   isEditing = false,
@@ -103,13 +103,16 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
   const isMultiSelected = isSelected && selectedTaskIds && selectedTaskIds.size > 1;
 
   // Helper to apply update to single task or all selected tasks
-  const applyUpdate = useCallback((updates: Partial<Task>) => {
-    if (isMultiSelected && onBulkUpdate) {
-      onBulkUpdate(updates);
-    } else {
-      onUpdateTask?.(updates);
-    }
-  }, [isMultiSelected, onBulkUpdate, onUpdateTask]);
+  const applyUpdate = useCallback(
+    (updates: Partial<Task>) => {
+      if (isMultiSelected && onBulkUpdate) {
+        onBulkUpdate(updates);
+      } else {
+        onUpdateTask?.(updates);
+      }
+    },
+    [isMultiSelected, onBulkUpdate, onUpdateTask],
+  );
 
   // Focus title input when entering edit mode
   useEffect(() => {
@@ -124,19 +127,22 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
     setEditingTitle(task.title);
   }, [task.title]);
 
-  const handleTitleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (editingTitle.trim()) {
-        onUpdateTask?.({ title: editingTitle.trim() });
+  const handleTitleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLInputElement>) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        if (editingTitle.trim()) {
+          onUpdateTask?.({ title: editingTitle.trim() });
+        }
+        onFinishEditing?.();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setEditingTitle(task.title);
+        onFinishEditing?.();
       }
-      onFinishEditing?.();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      setEditingTitle(task.title);
-      onFinishEditing?.();
-    }
-  }, [editingTitle, task.title, onUpdateTask, onFinishEditing]);
+    },
+    [editingTitle, task.title, onUpdateTask, onFinishEditing],
+  );
 
   const handleTitleBlur = useCallback(() => {
     if (editingTitle.trim()) {
@@ -145,49 +151,67 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
     onFinishEditing?.();
   }, [editingTitle, onUpdateTask, onFinishEditing]);
 
-  const handleStatusChange = useCallback((status: TaskStatus) => {
-    applyUpdate({ status });
-    closeAll();
-  }, [applyUpdate, closeAll]);
-
-  const handlePriorityChange = useCallback((priority: TaskPriority | "_none") => {
-    applyUpdate({ priority: priority === "_none" ? undefined : priority });
-    closeAll();
-  }, [applyUpdate, closeAll]);
-
-  const handleDateChange = useCallback((date: Date | undefined) => {
-    if (date) {
-      applyUpdate({ dueDate: date });
+  const handleStatusChange = useCallback(
+    (status: TaskStatus) => {
+      applyUpdate({ status });
       closeAll();
-    }
-  }, [applyUpdate, closeAll]);
+    },
+    [applyUpdate, closeAll],
+  );
 
-  const handleClientChange = useCallback((clientId: string, clientName: string) => {
-    if (clientId === "_none") {
-      applyUpdate({ clientId: undefined, clientName: undefined });
-    } else {
-      applyUpdate({ clientId, clientName });
-    }
-    closeAll();
-  }, [applyUpdate, closeAll]);
+  const handlePriorityChange = useCallback(
+    (priority: TaskPriority | "_none") => {
+      applyUpdate({ priority: priority === "_none" ? undefined : priority });
+      closeAll();
+    },
+    [applyUpdate, closeAll],
+  );
 
-  const handleAssigneeAdd = useCallback((assignee: string) => {
-    if (isMultiSelected && onBulkAddAssignee) {
-      onBulkAddAssignee(assignee);
-    } else {
-      const newAssignees = [...task.assignees, assignee];
-      onUpdateTask?.({ assignees: newAssignees });
-    }
-  }, [isMultiSelected, onBulkAddAssignee, onUpdateTask, task.assignees]);
+  const handleDateChange = useCallback(
+    (date: Date | undefined) => {
+      if (date) {
+        applyUpdate({ dueDate: date });
+        closeAll();
+      }
+    },
+    [applyUpdate, closeAll],
+  );
 
-  const handleAssigneeRemove = useCallback((assignee: string) => {
-    if (isMultiSelected && onBulkRemoveAssignee) {
-      onBulkRemoveAssignee(assignee);
-    } else {
-      const newAssignees = task.assignees.filter(a => a !== assignee);
-      onUpdateTask?.({ assignees: newAssignees });
-    }
-  }, [isMultiSelected, onBulkRemoveAssignee, onUpdateTask, task.assignees]);
+  const handleClientChange = useCallback(
+    (clientId: string, clientName: string) => {
+      if (clientId === "_none") {
+        applyUpdate({ clientId: undefined, clientName: undefined });
+      } else {
+        applyUpdate({ clientId, clientName });
+      }
+      closeAll();
+    },
+    [applyUpdate, closeAll],
+  );
+
+  const handleAssigneeAdd = useCallback(
+    (assignee: string) => {
+      if (isMultiSelected && onBulkAddAssignee) {
+        onBulkAddAssignee(assignee);
+      } else {
+        const newAssignees = [...task.assignees, assignee];
+        onUpdateTask?.({ assignees: newAssignees });
+      }
+    },
+    [isMultiSelected, onBulkAddAssignee, onUpdateTask, task.assignees],
+  );
+
+  const handleAssigneeRemove = useCallback(
+    (assignee: string) => {
+      if (isMultiSelected && onBulkRemoveAssignee) {
+        onBulkRemoveAssignee(assignee);
+      } else {
+        const newAssignees = task.assignees.filter((a) => a !== assignee);
+        onUpdateTask?.({ assignees: newAssignees });
+      }
+    },
+    [isMultiSelected, onBulkRemoveAssignee, onUpdateTask, task.assignees],
+  );
 
   const renderCell = (columnId: string) => {
     switch (columnId) {
@@ -202,25 +226,25 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleBlur}
               onClick={(e) => e.stopPropagation()}
-              className="w-full text-sm font-normal text-foreground bg-transparent border-none outline-none focus:ring-1 focus:ring-primary rounded px-1 py-0.5"
+              className="w-full rounded border-none bg-transparent px-1 py-0.5 text-sm font-normal text-foreground outline-none focus:ring-1 focus:ring-primary"
               placeholder="Nome da tarefa..."
               data-testid={`input-task-title-${task.id}`}
             />
           );
         }
         return (
-          <span 
-            className="text-sm font-normal text-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full cursor-pointer line-clamp-2 transition-colors"
+          <span
+            className="-mx-2 line-clamp-2 cursor-pointer rounded-full px-2 py-0.5 text-sm font-normal text-foreground transition-colors hover:bg-gray-700/80 hover:text-foreground"
             onClick={(e) => {
               e.stopPropagation();
               onStartEditing?.();
             }}
             data-testid={`text-task-title-${task.id}`}
           >
-            {task.title || <span className="text-muted-foreground italic">Sem título</span>}
+            {task.title || <span className="italic text-muted-foreground">Sem título</span>}
           </span>
         );
-      
+
       case "status":
         return (
           <TaskStatusPopover
@@ -232,7 +256,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             onStopPropagation={() => {}}
           />
         );
-      
+
       case "client":
         return (
           <TaskClientPopover
@@ -246,25 +270,25 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             variant="table"
           />
         );
-      
+
       case "dueDate":
         return (
           <Popover open={openPopover === "dueDate"} onOpenChange={handleOpenChange("dueDate")}>
             <PopoverTrigger asChild>
-              <div 
-                onClick={(e) => e.stopPropagation()} 
-                className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80 px-2 py-0.5 -mx-2 rounded-full transition-colors"
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="-mx-2 flex cursor-pointer items-center gap-1.5 rounded-full px-2 py-0.5 text-muted-foreground transition-colors hover:bg-gray-700/80 hover:text-foreground"
               >
-                <CalendarIcon className="w-3.5 h-3.5" />
+                <CalendarIcon className="h-3.5 w-3.5" />
                 <span className="text-sm">
                   {format(task.dueDate, "dd/MM/yyyy", { locale: ptBR })}
                 </span>
               </div>
             </PopoverTrigger>
-            <PopoverContent 
+            <PopoverContent
               ref={datePopoverRef}
-              className={cn("w-auto p-0", UI_CLASSES.popover)} 
-              side="bottom" 
+              className={cn("w-auto p-0", UI_CLASSES.popover)}
+              side="bottom"
               align="start"
               onClick={(e) => e.stopPropagation()}
             >
@@ -279,7 +303,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             </PopoverContent>
           </Popover>
         );
-      
+
       case "priority":
         return (
           <TaskPriorityPopover
@@ -292,7 +316,7 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             onStopPropagation={() => {}}
           />
         );
-      
+
       case "assignee":
         return (
           <TaskAssigneesPopover
@@ -307,154 +331,175 @@ const TaskTableRowContent = memo(function TaskTableRowContent({
             maxDisplay={3}
           />
         );
-      
+
       default:
         return null;
     }
   };
 
-  const handleContextStatusChange = useCallback((status: TaskStatus) => {
-    applyUpdate({ status });
-  }, [applyUpdate]);
+  const handleContextStatusChange = useCallback(
+    (status: TaskStatus) => {
+      applyUpdate({ status });
+    },
+    [applyUpdate],
+  );
 
-  const handleContextPriorityChange = useCallback((priority: TaskPriority) => {
-    applyUpdate({ priority });
-  }, [applyUpdate]);
+  const handleContextPriorityChange = useCallback(
+    (priority: TaskPriority) => {
+      applyUpdate({ priority });
+    },
+    [applyUpdate],
+  );
 
-  const handleContextDateChange = useCallback((date: Date) => {
-    applyUpdate({ dueDate: date });
-  }, [applyUpdate]);
+  const handleContextDateChange = useCallback(
+    (date: Date) => {
+      applyUpdate({ dueDate: date });
+    },
+    [applyUpdate],
+  );
 
-  const handleContextClientChange = useCallback((clientId: string, clientName: string) => {
-    if (clientId === "_none") {
-      applyUpdate({ clientId: undefined, clientName: undefined });
-    } else {
-      applyUpdate({ clientId, clientName });
-    }
-  }, [applyUpdate]);
+  const handleContextClientChange = useCallback(
+    (clientId: string, clientName: string) => {
+      if (clientId === "_none") {
+        applyUpdate({ clientId: undefined, clientName: undefined });
+      } else {
+        applyUpdate({ clientId, clientName });
+      }
+    },
+    [applyUpdate],
+  );
 
   return (
     <>
-    <ContextMenu>
-      <ContextMenuTrigger asChild>
-        <div 
-          className={cn(
-            "flex group",
-            isSelected && "bg-primary/10"
-          )}
-          data-testid={`row-task-${task.id}`}
-        >
-          <div 
-            className="flex items-center py-1.5"
-            style={{ width: `${controlColumnsWidth}px` }}
+      <ContextMenu>
+        <ContextMenuTrigger asChild>
+          <div
+            className={cn("group flex", isSelected && "bg-primary/10")}
+            data-testid={`row-task-${task.id}`}
           >
-            <div 
-              className="flex items-center justify-center w-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button
-                onClick={onAddTaskAfter}
-                className="w-5 h-5 flex items-center justify-center text-muted-foreground/50 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                data-testid={`button-add-task-${task.id}`}
+            <div className="flex items-center py-1.5" style={{ width: `${controlColumnsWidth}px` }}>
+              <div
+                className="flex w-8 items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
               >
-                <Plus className="w-4 h-4" />
-              </button>
-            </div>
-            <div 
-              className="flex items-center justify-center w-6 cursor-grab active:cursor-grabbing"
-              {...dragListeners}
-              {...dragAttributes}
-            >
-              <GripVertical 
-                className="w-4 h-4 text-muted-foreground/30 hover:text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" 
-                data-testid={`drag-handle-task-${task.id}`}
-              />
-            </div>
-            <div 
-              className="flex items-center justify-center w-8"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <Checkbox
-                checked={isSelected}
-                onCheckedChange={(checked) => {
-                  const event = window.event as MouseEvent | undefined;
-                  onSelectChange?.(!!checked, event?.shiftKey ?? false);
-                }}
-                className={cn(
-                  "transition-opacity",
-                  isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                )}
-                data-testid={`checkbox-task-${task.id}`}
-              />
-            </div>
-          </div>
-          <div 
-            className={cn(
-              "flex-1 grid border-b border-border transition-colors duration-200 cursor-pointer",
-              !isSelected && "hover:bg-muted/50",
-              isDragging && "bg-muted"
-            )}
-            style={{
-              gridTemplateColumns: columns.map(c => c.width).join(" "),
-            }}
-            onClick={(e) => {
-              if (isMultiSelected) {
-                e.stopPropagation();
-                setBulkDropdownOpen(true);
-              } else {
-                onRowClick?.();
-              }
-            }}
-          >
-            {columns.map((column) => (
-              <div 
-                key={column.id} 
-                className="px-3 py-1.5 flex items-center"
-              >
-                {renderCell(column.id)}
+                <button
+                  onClick={onAddTaskAfter}
+                  className="flex h-5 w-5 items-center justify-center text-muted-foreground/50 opacity-0 transition-opacity hover:text-muted-foreground group-hover:opacity-100"
+                  data-testid={`button-add-task-${task.id}`}
+                >
+                  <Plus className="h-4 w-4" />
+                </button>
               </div>
-            ))}
+              <div
+                className="flex w-6 cursor-grab items-center justify-center active:cursor-grabbing"
+                {...dragListeners}
+                {...dragAttributes}
+              >
+                <GripVertical
+                  className="h-4 w-4 text-muted-foreground/30 opacity-0 transition-opacity hover:text-muted-foreground group-hover:opacity-100"
+                  data-testid={`drag-handle-task-${task.id}`}
+                />
+              </div>
+              <div
+                className="flex w-8 items-center justify-center"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Checkbox
+                  checked={isSelected}
+                  onCheckedChange={(checked) => {
+                    const event = window.event as MouseEvent | undefined;
+                    onSelectChange?.(!!checked, event?.shiftKey ?? false);
+                  }}
+                  className={cn(
+                    "transition-opacity",
+                    isSelected ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                  )}
+                  data-testid={`checkbox-task-${task.id}`}
+                />
+              </div>
+            </div>
+            <div
+              className={cn(
+                "grid flex-1 cursor-pointer border-b border-border transition-colors duration-200",
+                !isSelected && "hover:bg-muted/50",
+                isDragging && "bg-muted",
+              )}
+              style={{
+                gridTemplateColumns: columns.map((c) => c.width).join(" "),
+              }}
+              onClick={(e) => {
+                if (isMultiSelected) {
+                  e.stopPropagation();
+                  setBulkDropdownOpen(true);
+                } else {
+                  onRowClick?.();
+                }
+              }}
+            >
+              {columns.map((column) => (
+                <div key={column.id} className="flex items-center px-3 py-1.5">
+                  {renderCell(column.id)}
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </ContextMenuTrigger>
-      <TaskCardContextMenu
-        selectedCount={isSelected && selectedTaskIds ? selectedTaskIds.size : 1}
-        currentDate={format(task.dueDate, "yyyy-MM-dd")}
-        currentClient={task.clientName || ""}
-        currentAssignees={task.assignees || []}
-        onShowReplaceTitleDialog={() => {}}
-        onShowAppendTitleDialog={() => {}}
-        onDateChange={handleContextDateChange}
-        onClientChange={handleContextClientChange}
-        onPriorityChange={handleContextPriorityChange}
-        onStatusChange={handleContextStatusChange}
-        onAddAssignee={handleAssigneeAdd}
-        onRemoveAssignee={handleAssigneeRemove}
-        onSetSingleAssignee={(assignee) => applyUpdate({ assignees: [assignee] })}
-        onDelete={() => onDeleteTask?.()}
-      />
-    </ContextMenu>
-    
-    {isMultiSelected && bulkDropdownOpen && (
-      <BulkEditDropdown
-        selectedCount={selectedTaskIds?.size || 0}
-        isOpen={bulkDropdownOpen}
-        onOpenChange={setBulkDropdownOpen}
-        currentDate={format(task.dueDate, "yyyy-MM-dd")}
-        currentClient={task.clientName || ""}
-        currentAssignees={task.assignees || []}
-        onShowReplaceTitleDialog={() => {}}
-        onShowAppendTitleDialog={() => {}}
-        onDateChange={(date) => { handleContextDateChange(date); setBulkDropdownOpen(false); }}
-        onClientChange={(clientId, clientName) => { handleContextClientChange(clientId, clientName); setBulkDropdownOpen(false); }}
-        onPriorityChange={(priority) => { handleContextPriorityChange(priority); setBulkDropdownOpen(false); }}
-        onStatusChange={(status) => { handleContextStatusChange(status); setBulkDropdownOpen(false); }}
-        onAddAssignee={handleAssigneeAdd}
-        onRemoveAssignee={handleAssigneeRemove}
-        onSetSingleAssignee={(assignee) => { applyUpdate({ assignees: [assignee] }); setBulkDropdownOpen(false); }}
-        onDelete={() => { onDeleteTask?.(); setBulkDropdownOpen(false); }}
-      />
-    )}
+        </ContextMenuTrigger>
+        <TaskCardContextMenu
+          selectedCount={isSelected && selectedTaskIds ? selectedTaskIds.size : 1}
+          currentDate={format(task.dueDate, "yyyy-MM-dd")}
+          currentClient={task.clientName || ""}
+          currentAssignees={task.assignees || []}
+          onShowReplaceTitleDialog={() => {}}
+          onShowAppendTitleDialog={() => {}}
+          onDateChange={handleContextDateChange}
+          onClientChange={handleContextClientChange}
+          onPriorityChange={handleContextPriorityChange}
+          onStatusChange={handleContextStatusChange}
+          onAddAssignee={handleAssigneeAdd}
+          onRemoveAssignee={handleAssigneeRemove}
+          onSetSingleAssignee={(assignee) => applyUpdate({ assignees: [assignee] })}
+          onDelete={() => onDeleteTask?.()}
+        />
+      </ContextMenu>
+
+      {isMultiSelected && bulkDropdownOpen && (
+        <BulkEditDropdown
+          selectedCount={selectedTaskIds?.size || 0}
+          isOpen={bulkDropdownOpen}
+          onOpenChange={setBulkDropdownOpen}
+          currentDate={format(task.dueDate, "yyyy-MM-dd")}
+          currentClient={task.clientName || ""}
+          currentAssignees={task.assignees || []}
+          onShowReplaceTitleDialog={() => {}}
+          onShowAppendTitleDialog={() => {}}
+          onDateChange={(date) => {
+            handleContextDateChange(date);
+            setBulkDropdownOpen(false);
+          }}
+          onClientChange={(clientId, clientName) => {
+            handleContextClientChange(clientId, clientName);
+            setBulkDropdownOpen(false);
+          }}
+          onPriorityChange={(priority) => {
+            handleContextPriorityChange(priority);
+            setBulkDropdownOpen(false);
+          }}
+          onStatusChange={(status) => {
+            handleContextStatusChange(status);
+            setBulkDropdownOpen(false);
+          }}
+          onAddAssignee={handleAssigneeAdd}
+          onRemoveAssignee={handleAssigneeRemove}
+          onSetSingleAssignee={(assignee) => {
+            applyUpdate({ assignees: [assignee] });
+            setBulkDropdownOpen(false);
+          }}
+          onDelete={() => {
+            onDeleteTask?.();
+            setBulkDropdownOpen(false);
+          }}
+        />
+      )}
     </>
   );
 });

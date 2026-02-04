@@ -25,21 +25,20 @@ export function EmailVerificationForm({
 }: EmailVerificationFormProps) {
   return (
     <>
-      <h2 className="text-2xl font-semibold text-white mb-2">
-        Verificação de Email
-      </h2>
-      <p className="text-sm text-[#888] mb-6">
-        Enviamos um código de verificação para <strong className="text-white">{email}</strong>. Insira-o abaixo para continuar.
+      <h2 className="mb-2 text-2xl font-semibold text-white">Verificação de Email</h2>
+      <p className="mb-6 text-sm text-[#888]">
+        Enviamos um código de verificação para <strong className="text-white">{email}</strong>.
+        Insira-o abaixo para continuar.
       </p>
-      
+
       <form onSubmit={onSubmit}>
         <div className="mb-4">
-          <label className="block text-xs font-medium text-[#888] mb-1.5">
+          <label className="mb-1.5 block text-xs font-medium text-[#888]">
             Código de verificação
           </label>
           <input
             type="text"
-            className="input-dark text-center tracking-[0.5em] text-lg"
+            className="input-dark text-center text-lg tracking-[0.5em]"
             placeholder="000000"
             value={code}
             onChange={(e) => onCodeChange(e.target.value.replace(/\D/g, "").slice(0, 6))}
@@ -51,7 +50,7 @@ export function EmailVerificationForm({
         </div>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-md">
+          <div className="mb-4 rounded-md border border-red-500/30 bg-red-500/10 p-3">
             <p className="text-sm text-red-400" data-testid="text-error">
               {error}
             </p>
@@ -64,7 +63,7 @@ export function EmailVerificationForm({
           disabled={loading || !isLoaded || code.length !== 6}
           data-testid="button-verify-code"
         >
-          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
+          {loading && <Loader2 className="h-4 w-4 animate-spin" />}
           Verificar
         </button>
 
@@ -73,7 +72,7 @@ export function EmailVerificationForm({
             type="button"
             onClick={onResendCode}
             disabled={loading}
-            className="text-[#666] hover:text-white transition-colors"
+            className="text-[#666] transition-colors hover:text-white"
             data-testid="button-resend-code"
           >
             Reenviar código
@@ -82,7 +81,7 @@ export function EmailVerificationForm({
           <button
             type="button"
             onClick={onBack}
-            className="text-[#666] hover:text-white transition-colors"
+            className="text-[#666] transition-colors hover:text-white"
             data-testid="button-back-to-login"
           >
             Voltar

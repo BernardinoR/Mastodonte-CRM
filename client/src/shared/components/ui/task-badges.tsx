@@ -22,30 +22,28 @@ export const PriorityBadge = memo(function PriorityBadge({
   "data-testid": dataTestId,
 }: PriorityBadgeProps) {
   const config = getPriorityConfig(priority);
-  
+
   const dotSizeClasses = {
     sm: "w-1.5 h-1.5",
     md: "w-2 h-2",
     lg: "w-2.5 h-2.5",
   };
-  
+
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
-        "rounded-full font-normal flex items-center gap-1",
+        "flex items-center gap-1 rounded-full font-normal",
         config.bgColor,
         config.textColor,
         config.borderColor,
-        size === "sm" && "text-[10px] md:text-[11px] px-2 py-[2px]",
-        size === "md" && "text-xs px-2.5 py-0.5",
-        className
+        size === "sm" && "px-2 py-[2px] text-[10px] md:text-[11px]",
+        size === "md" && "px-2.5 py-0.5 text-xs",
+        className,
       )}
       data-testid={dataTestId}
     >
-      {showDot && (
-        <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />
-      )}
+      {showDot && <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />}
       {priority}
     </Badge>
   );
@@ -71,30 +69,28 @@ export const StatusBadge = memo(function StatusBadge({
   "data-testid": dataTestId,
 }: StatusBadgeProps) {
   const config = getStatusConfig(status);
-  
+
   const dotSizeClasses = {
     sm: "w-1.5 h-1.5",
     md: "w-2 h-2",
     lg: "w-2.5 h-2.5",
   };
-  
+
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={cn(
-        "rounded-full font-normal flex items-center gap-1",
+        "flex items-center gap-1 rounded-full font-normal",
         config.bgColor,
         config.textColor,
         config.borderColor,
-        size === "sm" && "text-[10px] md:text-[11px] px-2 py-[2px]",
-        size === "md" && "text-xs px-2.5 py-0.5",
-        className
+        size === "sm" && "px-2 py-[2px] text-[10px] md:text-[11px]",
+        size === "md" && "px-2.5 py-0.5 text-xs",
+        className,
       )}
       data-testid={dataTestId}
     >
-      {showDot && (
-        <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />
-      )}
+      {showDot && <span className={cn(dotSizeClasses[dotSize], "rounded-full", config.dotColor)} />}
       {label ?? status}
     </Badge>
   );

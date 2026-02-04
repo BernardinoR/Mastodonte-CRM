@@ -7,21 +7,25 @@ phases: [E, V]
 # Test Generation
 
 ## When to Use
+
 Use this skill when writing tests or when asked to add test coverage.
 
 ## Test Categories
 
 ### 1. Unit Tests
+
 - Test individual functions/methods
 - Mock dependencies
 - Cover edge cases
 
 ### 2. Integration Tests
+
 - Test component interactions
 - Real dependencies when possible
 - Database transactions
 
 ### 3. Edge Cases to Cover
+
 - Empty inputs
 - Null/undefined values
 - Maximum/minimum values
@@ -30,6 +34,7 @@ Use this skill when writing tests or when asked to add test coverage.
 - Network failures
 
 ## Test Structure (AAA Pattern)
+
 ```
 // Arrange - Set up test data and conditions
 // Act - Execute the code under test
@@ -37,6 +42,7 @@ Use this skill when writing tests or when asked to add test coverage.
 ```
 
 ## Naming Convention
+
 ```
 [methodName]_[scenario]_[expectedResult]
 ```
@@ -44,6 +50,7 @@ Use this skill when writing tests or when asked to add test coverage.
 Example: `calculateTotal_emptyCart_returnsZero`
 
 ## Coverage Goals
+
 - Statements: 80%+
 - Branches: 75%+
 - Functions: 90%+

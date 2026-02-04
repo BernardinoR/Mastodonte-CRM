@@ -1,7 +1,7 @@
 function TrackLines() {
   return (
     <div
-      className="absolute w-full h-full opacity-50"
+      className="absolute h-full w-full opacity-50"
       style={{
         background:
           "repeating-linear-gradient(90deg, transparent, transparent 50px, rgba(255,255,255,0.03) 50px, rgba(255,255,255,0.03) 51px)",
@@ -15,11 +15,10 @@ function TrackLines() {
 function PulseBg() {
   return (
     <div
-      className="absolute top-1/2 left-1/2 w-[60vw] h-[60vw] rounded-full"
+      className="absolute left-1/2 top-1/2 h-[60vw] w-[60vw] rounded-full"
       style={{
         transform: "translate(-50%, -50%)",
-        background:
-          "radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%)",
+        background: "radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%)",
         animation: "heartbeat 4s infinite ease-in-out",
       }}
     />
@@ -29,7 +28,7 @@ function PulseBg() {
 function StoicCircle() {
   return (
     <div
-      className="absolute w-[400px] h-[400px] rounded-full pointer-events-none"
+      className="pointer-events-none absolute h-[400px] w-[400px] rounded-full"
       style={{
         border: "1px solid rgba(255,255,255,0.1)",
         animation: "rotateCircle 60s linear infinite",
@@ -41,7 +40,7 @@ function StoicCircle() {
 function Spotlight() {
   return (
     <div
-      className="absolute w-[200%] h-[200%]"
+      className="absolute h-[200%] w-[200%]"
       style={{
         top: "-50%",
         left: "-50%",
@@ -56,7 +55,7 @@ function Spotlight() {
 function SpeedLines() {
   return (
     <div
-      className="absolute top-0 left-0 w-full h-full"
+      className="absolute left-0 top-0 h-full w-full"
       style={{
         background:
           "repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.02) 40px, rgba(255,255,255,0.02) 41px)",
@@ -65,7 +64,12 @@ function SpeedLines() {
   );
 }
 
-export type VisualEffectType = "track-lines" | "pulse-bg" | "stoic-circle" | "spotlight" | "speed-lines";
+export type VisualEffectType =
+  | "track-lines"
+  | "pulse-bg"
+  | "stoic-circle"
+  | "spotlight"
+  | "speed-lines";
 
 export function VisualEffect({ effect }: { effect: VisualEffectType | string }) {
   switch (effect) {

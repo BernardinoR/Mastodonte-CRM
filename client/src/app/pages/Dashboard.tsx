@@ -2,10 +2,10 @@ import { LayoutDashboard } from "lucide-react";
 
 export default function Dashboard() {
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-8">
-      <LayoutDashboard className="w-16 h-16 text-gray-600 mb-4" />
-      <h1 className="text-2xl font-semibold text-gray-300 mb-2">Dashboard</h1>
-      <p className="text-gray-500 max-w-md">
+    <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+      <LayoutDashboard className="mb-4 h-16 w-16 text-gray-600" />
+      <h1 className="mb-2 text-2xl font-semibold text-gray-300">Dashboard</h1>
+      <p className="max-w-md text-gray-500">
         Esta página será usada para exibir métricas e resumos do CRM.
       </p>
     </div>

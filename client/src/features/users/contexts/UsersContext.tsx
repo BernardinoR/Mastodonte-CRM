@@ -57,7 +57,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const token = await getToken();
       const response = await fetch("/api/users/team", {
         headers: {
@@ -71,29 +71,30 @@ export function UsersProvider({ children }: { children: ReactNode }) {
       }
 
       const data = await response.json();
-      
+
       // Map API response to TeamUser format
-      const users: TeamUser[] = data.users.map((user: {
-        id: number;
-        name: string;
-        email: string;
-        initials: string;
-        isCurrentUser: boolean;
-      }) => ({
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        initials: user.initials,
-        isCurrentUser: user.isCurrentUser,
-        avatarColor: getAvatarColor(user.id),
-      }));
+      const users: TeamUser[] = data.users.map(
+        (user: {
+          id: number;
+          name: string;
+          email: string;
+          initials: string;
+          isCurrentUser: boolean;
+        }) => ({
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          initials: user.initials,
+          isCurrentUser: user.isCurrentUser,
+          avatarColor: getAvatarColor(user.id),
+        }),
+      );
 
       setTeamUsers(users);
-      
+
       // Set current user
-      const current = users.find(u => u.isCurrentUser);
+      const current = users.find((u) => u.isCurrentUser);
       setCurrentUser(current || null);
-      
     } catch (err) {
       console.error("Error fetching team users:", err);
       setError(err instanceof Error ? err.message : "Failed to fetch team users");
@@ -107,15 +108,19 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     fetchTeamUsers();
   }, [fetchTeamUsers]);
 
-  const getUserById = useCallback((id: number): TeamUser | undefined => {
-    return teamUsers.find(user => user.id === id);
-  }, [teamUsers]);
+  const getUserById = useCallback(
+    (id: number): TeamUser | undefined => {
+      return teamUsers.find((user) => user.id === id);
+    },
+    [teamUsers],
+  );
 
-  const getUserByName = useCallback((name: string): TeamUser | undefined => {
-    return teamUsers.find(user => 
-      user.name.toLowerCase() === name.toLowerCase()
-    );
-  }, [teamUsers]);
+  const getUserByName = useCallback(
+    (name: string): TeamUser | undefined => {
+      return teamUsers.find((user) => user.name.toLowerCase() === name.toLowerCase());
+    },
+    [teamUsers],
+  );
 
   const value: UsersContextType = {
     teamUsers,
@@ -127,11 +132,7 @@ export function UsersProvider({ children }: { children: ReactNode }) {
     refetchTeamUsers: fetchTeamUsers,
   };
 
-  return (
-    <UsersContext.Provider value={value}>
-      {children}
-    </UsersContext.Provider>
-  );
+  return <UsersContext.Provider value={value}>{children}</UsersContext.Provider>;
 }
 
 export function useUsers(): UsersContextType {

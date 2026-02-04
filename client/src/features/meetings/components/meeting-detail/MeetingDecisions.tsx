@@ -44,14 +44,14 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
 
   // Update decision
   const updateDecision = (id: string, updates: Partial<MeetingDecision>) => {
-    setEditableDecisions(prev =>
-      prev.map(decision => (decision.id === id ? { ...decision, ...updates } : decision))
+    setEditableDecisions((prev) =>
+      prev.map((decision) => (decision.id === id ? { ...decision, ...updates } : decision)),
     );
   };
 
   // Remove decision
   const removeDecision = (id: string) => {
-    setEditableDecisions(prev => prev.filter(decision => decision.id !== id));
+    setEditableDecisions((prev) => prev.filter((decision) => decision.id !== id));
   };
 
   // Apply AI-generated data
@@ -98,7 +98,7 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
     <div ref={sectionRef} className="space-y-4">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
-          icon={<Zap className="w-[18px] h-[18px]" />}
+          icon={<Zap className="h-[18px] w-[18px]" />}
           title="Decisões e Pontos de Atenção"
           isEditing={isEditing}
           onEditClick={handleStartEditing}
@@ -110,18 +110,18 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
             <button
               type="button"
               onClick={handleSave}
-              className="flex items-center justify-center w-8 h-8 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 hover:border-emerald-500/50 transition-all duration-200 group/check"
+              className="group/check flex h-8 w-8 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20"
               title="Salvar alterações"
             >
-              <Check className="w-4 h-4 text-emerald-500 group-hover/check:scale-110 transition-transform" />
+              <Check className="h-4 w-4 text-emerald-500 transition-transform group-hover/check:scale-110" />
             </button>
-            
+
             {/* Botão Adicionar */}
             <button
               onClick={addDecision}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#2d2640] border border-[#a78bfa] rounded-md text-[#a78bfa] text-[0.8125rem] font-medium hover:bg-[#3d3650] transition-all"
+              className="inline-flex items-center gap-1.5 rounded-md border border-[#a78bfa] bg-[#2d2640] px-3 py-1.5 text-[0.8125rem] font-medium text-[#a78bfa] transition-all hover:bg-[#3d3650]"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="h-3.5 w-3.5" />
               Adicionar
             </button>
           </div>
@@ -130,13 +130,13 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
 
       <div className="flex flex-col gap-3">
         {displayDecisions.map((decision) => (
-          <div 
+          <div
             key={decision.id}
             className={cn(
-              "flex items-start gap-3 p-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg",
-              decision.type === "warning" 
-                ? "border-l-[3px] border-l-[#f59e0b]" 
-                : "border-l-[3px] border-l-[#a78bfa]"
+              "flex items-start gap-3 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-4",
+              decision.type === "warning"
+                ? "border-l-[3px] border-l-[#f59e0b]"
+                : "border-l-[3px] border-l-[#a78bfa]",
             )}
           >
             {isEditing ? (
@@ -147,13 +147,13 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                       type: decision.type === "warning" ? "normal" : "warning",
                     })
                   }
-                  className="flex-shrink-0 mt-0.5"
+                  className="mt-0.5 flex-shrink-0"
                   title={decision.type === "warning" ? "Mudar para normal" : "Marcar como atenção"}
                 >
                   {decision.type === "warning" ? (
-                    <AlertTriangle className="w-[18px] h-[18px] text-[#f59e0b]" />
+                    <AlertTriangle className="h-[18px] w-[18px] text-[#f59e0b]" />
                   ) : (
-                    <CheckCircle2 className="w-[18px] h-[18px] text-[#a78bfa]" />
+                    <CheckCircle2 className="h-[18px] w-[18px] text-[#a78bfa]" />
                   )}
                 </button>
                 <textarea
@@ -161,24 +161,24 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                   onChange={(e) => updateDecision(decision.id, { content: e.target.value })}
                   placeholder="Descreva a decisão ou ponto de atenção..."
                   rows={2}
-                  className="flex-1 bg-transparent border-none outline-none text-sm text-[#ededed] placeholder:text-[#555] resize-none leading-[1.5]"
+                  className="flex-1 resize-none border-none bg-transparent text-sm leading-[1.5] text-[#ededed] outline-none placeholder:text-[#555]"
                 />
                 <button
                   onClick={() => removeDecision(decision.id)}
-                  className="w-7 h-7 flex items-center justify-center rounded-md text-[#666] hover:text-red-500 hover:bg-red-500/10 transition-all flex-shrink-0"
+                  className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-[#666] transition-all hover:bg-red-500/10 hover:text-red-500"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="h-4 w-4" />
                 </button>
               </>
             ) : (
               <>
                 {decision.type === "warning" ? (
-                  <AlertTriangle className="w-[18px] h-[18px] text-[#f59e0b] flex-shrink-0" />
+                  <AlertTriangle className="h-[18px] w-[18px] flex-shrink-0 text-[#f59e0b]" />
                 ) : (
-                  <CheckCircle2 className="w-[18px] h-[18px] text-[#a78bfa] flex-shrink-0" />
+                  <CheckCircle2 className="h-[18px] w-[18px] flex-shrink-0 text-[#a78bfa]" />
                 )}
-                <p 
-                  className="text-sm text-[#ededed] leading-[1.5]"
+                <p
+                  className="text-sm leading-[1.5] text-[#ededed]"
                   dangerouslySetInnerHTML={{ __html: decision.content }}
                 />
               </>
@@ -187,14 +187,14 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
         ))}
 
         {isEditing && editableDecisions.length === 0 && (
-          <div className="p-8 bg-[#1a1a1a] border border-dashed border-[#333333] rounded-lg flex flex-col items-center justify-center gap-2">
-            <Zap className="w-8 h-8 text-[#555]" />
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#333333] bg-[#1a1a1a] p-8">
+            <Zap className="h-8 w-8 text-[#555]" />
             <p className="text-sm text-[#666]">Nenhuma decisão adicionada</p>
             <button
               onClick={addDecision}
-              className="mt-2 inline-flex items-center gap-1.5 px-4 py-2 bg-[#2d2640] rounded-md text-[#a78bfa] text-sm font-medium hover:bg-[#3d3650] transition-all"
+              className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[#2d2640] px-4 py-2 text-sm font-medium text-[#a78bfa] transition-all hover:bg-[#3d3650]"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="h-4 w-4" />
               Adicionar Decisão
             </button>
           </div>

@@ -76,7 +76,7 @@ export interface MeetingDetail {
     initials: string;
   };
   clientName: string;
-  
+
   // Extended fields
   summary: string;
   clientContext: MeetingClientContext;

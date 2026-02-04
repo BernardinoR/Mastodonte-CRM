@@ -18,7 +18,7 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
   const [newTaskStatus, setNewTaskStatus] = useState<TaskStatus>("To Do");
   const [newTaskDueDate, setNewTaskDueDate] = useState<Date>(new Date());
   const [newTaskAssignees, setNewTaskAssignees] = useState<string[]>([]);
-  
+
   const [newStatusPopoverOpen, setNewStatusPopoverOpen] = useState(false);
   const [newPriorityPopoverOpen, setNewPriorityPopoverOpen] = useState(false);
   const [newDatePopoverOpen, setNewDatePopoverOpen] = useState(false);
@@ -78,7 +78,16 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setTimeout(() => {
       isSavingRef.current = false;
     }, 100);
-  }, [newTaskPriority, newTaskStatus, newTaskAssignees, newTaskDueDate, clientId, clientName, createTask, resetNewTaskForm]);
+  }, [
+    newTaskPriority,
+    newTaskStatus,
+    newTaskAssignees,
+    newTaskDueDate,
+    clientId,
+    clientName,
+    createTask,
+    resetNewTaskForm,
+  ]);
 
   const handleNewStatusChange = useCallback((status: TaskStatus) => {
     setNewTaskStatus(status);
@@ -95,20 +104,23 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     setNewDatePopoverOpen(false);
   }, []);
 
-  const handleNewDatePopoverInteractOutside = useCallback((e: CustomEvent<{ originalEvent?: Event }>) => {
-    const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
-    const target = originalTarget || (e.target as HTMLElement);
-    if (newDatePopoverRef.current?.contains(target) || target?.closest('.rdp')) {
-      e.preventDefault();
-    }
-  }, []);
+  const handleNewDatePopoverInteractOutside = useCallback(
+    (e: CustomEvent<{ originalEvent?: Event }>) => {
+      const originalTarget = e.detail?.originalEvent?.target as HTMLElement | null;
+      const target = originalTarget || (e.target as HTMLElement);
+      if (newDatePopoverRef.current?.contains(target) || target?.closest(".rdp")) {
+        e.preventDefault();
+      }
+    },
+    [],
+  );
 
   const handleNewAddAssignee = useCallback((assignee: string) => {
-    setNewTaskAssignees(prev => prev.includes(assignee) ? prev : [...prev, assignee]);
+    setNewTaskAssignees((prev) => (prev.includes(assignee) ? prev : [...prev, assignee]));
   }, []);
 
   const handleNewRemoveAssignee = useCallback((assignee: string) => {
-    setNewTaskAssignees(prev => prev.filter(a => a !== assignee));
+    setNewTaskAssignees((prev) => prev.filter((a) => a !== assignee));
   }, []);
 
   const handleStartAddTask = useCallback(() => {
@@ -125,38 +137,55 @@ export function useInlineClientTasks(options: UseInlineClientTasksOptions) {
     commitNewTask();
   }, [commitNewTask]);
 
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && newTaskTitleRef.current.trim()) {
-      e.preventDefault();
-      commitNewTask();
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      handleCancelAddTask();
-    }
-  }, [commitNewTask, handleCancelAddTask]);
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter" && newTaskTitleRef.current.trim()) {
+        e.preventDefault();
+        commitNewTask();
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        handleCancelAddTask();
+      }
+    },
+    [commitNewTask, handleCancelAddTask],
+  );
 
-  const handleNewTaskRowBlur = useCallback((e: React.FocusEvent) => {
-    // Verificar se algum popover está aberto
-    if (newStatusPopoverOpen || newPriorityPopoverOpen || 
-        newDatePopoverOpen || newAssigneePopoverOpen) {
-      return;
-    }
-    
-    const relatedTarget = e.relatedTarget as Node | null;
-    const isInsideRow = newTaskRowElementRef.current?.contains(relatedTarget);
-    const isInsidePopover = relatedTarget?.parentElement?.closest('[data-radix-popper-content-wrapper]');
-    
-    if (!isInsideRow && !isInsidePopover) {
-      setTimeout(() => {
-        // Usar ref em vez de state para evitar dependências desnecessárias
-        if (newTaskTitleRef.current.trim() && !isSavingRef.current) {
-          commitNewTask();
-        }
-      }, 150);
-    }
-  }, [newStatusPopoverOpen, newPriorityPopoverOpen, newDatePopoverOpen, 
-      newAssigneePopoverOpen, commitNewTask]);
+  const handleNewTaskRowBlur = useCallback(
+    (e: React.FocusEvent) => {
+      // Verificar se algum popover está aberto
+      if (
+        newStatusPopoverOpen ||
+        newPriorityPopoverOpen ||
+        newDatePopoverOpen ||
+        newAssigneePopoverOpen
+      ) {
+        return;
+      }
+
+      const relatedTarget = e.relatedTarget as Node | null;
+      const isInsideRow = newTaskRowElementRef.current?.contains(relatedTarget);
+      const isInsidePopover = relatedTarget?.parentElement?.closest(
+        "[data-radix-popper-content-wrapper]",
+      );
+
+      if (!isInsideRow && !isInsidePopover) {
+        setTimeout(() => {
+          // Usar ref em vez de state para evitar dependências desnecessárias
+          if (newTaskTitleRef.current.trim() && !isSavingRef.current) {
+            commitNewTask();
+          }
+        }, 150);
+      }
+    },
+    [
+      newStatusPopoverOpen,
+      newPriorityPopoverOpen,
+      newDatePopoverOpen,
+      newAssigneePopoverOpen,
+      commitNewTask,
+    ],
+  );
 
   return {
     isAddingTask,

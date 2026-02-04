@@ -17,6 +17,7 @@ SEMPRE consulte ela antes de criar qualquer UI.
 ## Workflow de Telas
 
 ### Fluxo Obrigatorio
+
 1. **Usuario descreve** a funcionalidade (nao o visual)
 2. **Voce busca referencias** automaticamente
 3. **Voce cria MOCK** com dados fake
@@ -24,6 +25,7 @@ SEMPRE consulte ela antes de criar qualquer UI.
 5. **So depois** voce implementa com funcionalidades reais
 
 ### Nunca Pule Etapas
+
 - Nunca implemente direto sem mock aprovado
 - Nunca crie mock sem buscar referencias primeiro
 - Sempre confirme aprovacao antes de implementar
@@ -54,6 +56,7 @@ SEMPRE consulte ela antes de criar qualquer UI.
 ## Skills Disponiveis
 
 Consulte os arquivos em `.claude/skills/` para ver os prompts de cada tarefa:
+
 - `prompt-1-fundacao.md` -> Criar design system inicial
 - `prompt-2-componente.md` -> Adicionar novo componente
 - `prompt-3-mock.md` -> Criar mock de tela

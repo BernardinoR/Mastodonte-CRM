@@ -1,15 +1,19 @@
 # Skill: Criar Fundação do Design System
 
 ## Objetivo
+
 Criar a página `/style-guides` como documentação viva do design system existente no projeto.
 
 ## Contexto Importante
+
 O projeto JÁ possui:
+
 - **TailwindCSS** configurado com tema completo (cores, tipografia, sombras, radius)
 - **CSS variables** HSL-based em `client/src/index.css` (light + dark mode)
 - **52 componentes shadcn/ui** já instalados em `@/shared/components/ui/`
 
 NÃO é necessário:
+
 - Instalar Tailwind ou shadcn
 - Criar variáveis CSS do zero
 - Instalar componentes base
@@ -19,6 +23,7 @@ NÃO é necessário:
 ### 1. Criar a Feature `style-guides`
 
 Estrutura de diretórios:
+
 ```
 client/src/features/style-guides/
 ├── pages/
@@ -29,6 +34,7 @@ client/src/features/style-guides/
 ### 2. Criar o barrel export
 
 **Arquivo:** `client/src/features/style-guides/index.ts`
+
 ```ts
 export { default as StyleGuides } from "./pages/StyleGuides";
 ```
@@ -38,11 +44,13 @@ export { default as StyleGuides } from "./pages/StyleGuides";
 **Arquivo:** `client/src/app/App.tsx`
 
 Na função `AuthenticatedRouter`, adicionar antes da rota `NotFound`:
+
 ```tsx
 <Route path="/style-guides" component={StyleGuides} />
 ```
 
 Import no topo:
+
 ```tsx
 import { StyleGuides } from "@features/style-guides";
 ```
@@ -54,7 +62,9 @@ import { StyleGuides } from "@features/style-guides";
 A página deve documentar visualmente:
 
 #### Seção 1: Paleta de Cores
+
 Exibir swatches para todas as variáveis CSS existentes:
+
 - `--background`, `--foreground`
 - `--primary`, `--primary-foreground`
 - `--secondary`, `--secondary-foreground`
@@ -70,22 +80,26 @@ Exibir swatches para todas as variáveis CSS existentes:
 Cada swatch: quadrado colorido + nome da variável + valor HSL.
 
 #### Seção 2: Tipografia
+
 - Fontes: `--font-sans` (Inter), `--font-serif`, `--font-mono`
 - Tamanhos: demonstrar `text-xs` até `text-4xl`
 - Pesos: demonstrar `font-normal`, `font-medium`, `font-semibold`, `font-bold`
 
 #### Seção 3: Elevação e Sombras
+
 - Variáveis: `--shadow-2xs` até `--shadow-2xl`
 - Variáveis: `--elevate-1`, `--elevate-2`
 - Classes utilitárias: `hover-elevate`, `active-elevate`, `toggle-elevate`
 - Demonstrar cards com cada nível de sombra
 
 #### Seção 4: Espaçamento e Border Radius
+
 - `--radius` (0.5rem)
 - `--spacing` (0.25rem)
 - Demonstrar variações de border-radius do Tailwind
 
 #### Seção 5: Componentes Disponíveis
+
 Listar todos os 52 componentes shadcn/ui já instalados, organizados por categoria:
 
 **Layout & Navegação:**
@@ -104,11 +118,13 @@ avatar, badge, card, chart, context-menu, dropdown-menu, menubar, progress, skel
 aspect-ratio, command, editable-cell, expandable-filter-bar, task-assignees, task-badges
 
 Para cada componente, mostrar:
+
 - Nome do componente
 - Import path: `@/shared/components/ui/[nome]`
 - Exemplo visual inline (pelo menos para os principais: Button, Card, Badge, Input, Select, Dialog, Table, Tabs)
 
 #### Seção 6: Padrões de Uso
+
 - Como usar `useToast()` de `@/shared/hooks/use-toast`
 - Variantes de toast: `default` e `destructive`
 - Pattern de loading com `Skeleton`
@@ -117,11 +133,12 @@ Para cada componente, mostrar:
 ### 5. Layout da Página
 
 Usar o seguinte layout:
+
 ```tsx
-<div className="p-6 space-y-12 max-w-6xl mx-auto">
+<div className="mx-auto max-w-6xl space-y-12 p-6">
   <header>
     <h1 className="text-3xl font-bold">Style Guides</h1>
-    <p className="text-muted-foreground mt-2">
+    <p className="mt-2 text-muted-foreground">
       Documentação viva do design system. Consulte antes de criar qualquer UI.
     </p>
   </header>
@@ -130,12 +147,14 @@ Usar o seguinte layout:
 ```
 
 ## Resultado Esperado
+
 - Página acessível em `http://localhost:5173/style-guides`
 - Documentação visual completa do design system existente
 - Referência rápida para todos os 52 componentes disponíveis
 - Exemplos visuais de cores, tipografia, sombras e componentes
 
 ## Checklist de Verificação
+
 - [ ] Feature criada em `client/src/features/style-guides/`
 - [ ] Rota adicionada em `client/src/app/App.tsx` com Wouter
 - [ ] Todas as variáveis CSS de `client/src/index.css` documentadas

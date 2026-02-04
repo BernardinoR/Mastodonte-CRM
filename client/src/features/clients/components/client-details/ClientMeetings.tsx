@@ -14,16 +14,19 @@ import { useClients } from "@features/clients";
 import { MeetingDetailModal, type MeetingDetail } from "@features/meetings";
 import { MeetingsTable, type Meeting } from "./MeetingsTable";
 import { ExpandableFilterBar } from "@/shared/components/ui/expandable-filter-bar";
-import { MeetingTypeFilterContent, MeetingStatusFilterContent } from "@shared/components/filter-bar/MeetingFilterContent";
+import {
+  MeetingTypeFilterContent,
+  MeetingStatusFilterContent,
+} from "@shared/components/filter-bar/MeetingFilterContent";
 import { DateRangeFilterContent } from "@shared/components/filter-bar/DateRangeFilterContent";
 import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { useSearchFilter } from "@/shared/hooks/useSearchFilter";
 import { sortBy, type SortField } from "@features/tasks/lib/sortUtils";
-import { 
+import {
   MEETING_TYPE_OPTIONS,
   MEETING_STATUS_OPTIONS,
   type MeetingType,
-  type MeetingStatus 
+  type MeetingStatus,
 } from "@shared/config/meetingConfig";
 import type { DateFilterValue } from "@features/tasks";
 import { startOfDay, isBefore, isAfter, isSameDay, endOfDay } from "date-fns";
@@ -35,26 +38,33 @@ interface ClientMeetingsProps {
   clientId: string;
 }
 
-export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }: ClientMeetingsProps) {
+export function ClientMeetings({
+  meetings,
+  onNewMeeting,
+  inlineProps,
+  clientId,
+}: ClientMeetingsProps) {
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingDetail | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const { getFullClientData, getMeetingDetail, updateClientMeeting } = useClients();
-  
+
   const clientData = getFullClientData(clientId);
   const clientName = clientData?.client.name || "";
 
   // Estados dos filtros
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<MeetingType[]>([...MEETING_TYPE_OPTIONS]);
-  const [selectedStatuses, setSelectedStatuses] = useState<MeetingStatus[]>([...MEETING_STATUS_OPTIONS]);
+  const [selectedStatuses, setSelectedStatuses] = useState<MeetingStatus[]>([
+    ...MEETING_STATUS_OPTIONS,
+  ]);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>({ type: "all" });
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
 
   // Calcular responsáveis disponíveis das reuniões
   const availableAssignees = useMemo(() => {
     const assignees = new Set<string>();
-    meetings.forEach(meeting => {
-      meeting.assignees?.forEach(a => assignees.add(a));
+    meetings.forEach((meeting) => {
+      meeting.assignees?.forEach((a) => assignees.add(a));
     });
     return Array.from(assignees).sort();
   }, [meetings]);
@@ -62,23 +72,25 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
   // Aplicar filtros locais antes da busca
   const filteredMeetings = useMemo(() => {
     let result = meetings;
-    
+
     // Filtro de tipo
     if (selectedTypes.length < MEETING_TYPE_OPTIONS.length) {
-      result = result.filter(meeting => selectedTypes.includes(meeting.type as MeetingType));
+      result = result.filter((meeting) => selectedTypes.includes(meeting.type as MeetingType));
     }
-    
+
     // Filtro de status
     if (selectedStatuses.length < MEETING_STATUS_OPTIONS.length) {
-      result = result.filter(meeting => selectedStatuses.includes(meeting.status as MeetingStatus));
+      result = result.filter((meeting) =>
+        selectedStatuses.includes(meeting.status as MeetingStatus),
+      );
     }
-    
+
     // Filtro de data
     if (dateFilter.type !== "all") {
       const today = startOfDay(new Date());
-      result = result.filter(meeting => {
+      result = result.filter((meeting) => {
         const meetingDate = meeting.date ? startOfDay(new Date(meeting.date)) : null;
-        
+
         if (dateFilter.type === "preset") {
           switch (dateFilter.preset) {
             case "today":
@@ -100,25 +112,24 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
             return meetingDate && !isBefore(meetingDate, start);
           }
         }
-        
+
         return true;
       });
     }
-    
+
     // Filtro de responsável
     if (selectedAssignees.length > 0) {
-      result = result.filter(meeting => 
-        meeting.assignees?.some(a => selectedAssignees.includes(a)) ?? false
+      result = result.filter(
+        (meeting) => meeting.assignees?.some((a) => selectedAssignees.includes(a)) ?? false,
       );
     }
-    
+
     return result;
   }, [meetings, selectedTypes, selectedStatuses, dateFilter, selectedAssignees]);
 
   // Hook de busca por nome (aplicado após os filtros)
-  const searchFilter = useSearchFilter<Meeting>(
-    filteredMeetings, 
-    (meeting, term) => meeting.name.toLowerCase().includes(term)
+  const searchFilter = useSearchFilter<Meeting>(filteredMeetings, (meeting, term) =>
+    meeting.name.toLowerCase().includes(term),
   );
 
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -143,18 +154,14 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
 
   // Handlers dos filtros
   const handleTypeToggle = useCallback((type: MeetingType) => {
-    setSelectedTypes(prev => 
-      prev.includes(type) 
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
+    setSelectedTypes((prev) =>
+      prev.includes(type) ? prev.filter((t) => t !== type) : [...prev, type],
     );
   }, []);
 
   const handleStatusToggle = useCallback((status: MeetingStatus) => {
-    setSelectedStatuses(prev => 
-      prev.includes(status) 
-        ? prev.filter(s => s !== status)
-        : [...prev, status]
+    setSelectedStatuses((prev) =>
+      prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status],
     );
   }, []);
 
@@ -169,14 +176,14 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
   // Ordenação padrão: data (mais recente) + "Realizada" no topo
   const sortedAndFilteredMeetings = useMemo(() => {
     const STATUS_ORDER: Record<MeetingStatus, number> = {
-      "Realizada": 1,
-      "Agendada": 2,
-      "Cancelada": 3,
+      Realizada: 1,
+      Agendada: 2,
+      Cancelada: 3,
     };
 
     const sortFields: SortField<Meeting>[] = [
       {
-        key: (m) => m.date ? new Date(m.date).getTime() : 0,
+        key: (m) => (m.date ? new Date(m.date).getTime() : 0),
         order: "desc",
         priority: 1,
       },
@@ -193,13 +200,13 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
   const handleMeetingClick = (meeting: Meeting) => {
     // Try to get stored detailed data first
     const storedDetail = getMeetingDetail(clientId, meeting.id);
-    
+
     if (storedDetail) {
       setSelectedMeeting(storedDetail);
       setDetailModalOpen(true);
       return;
     }
-    
+
     // Fallback: Create MeetingDetail from basic meeting data
     const meetingDetail: MeetingDetail = {
       id: meeting.id,
@@ -214,14 +221,28 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
       assignees: meeting.assignees,
       responsible: {
         name: meeting.assignees[0] || "Rafael",
-        initials: meeting.assignees[0]?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || "RF",
+        initials:
+          meeting.assignees[0]
+            ?.split(" ")
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase() || "RF",
       },
       clientName: clientName,
       summary: `Foi discutida a <strong>situação financeira</strong> e as prioridades do cliente, além de revisar o desempenho das <strong>carteiras de investimento</strong> e as estratégias de realocação.`,
       clientContext: {
         points: [
-          { id: "1", icon: "AlertCircle", text: "Acompanhamento regular de investimentos e planejamento financeiro." },
-          { id: "2", icon: "Plane", text: "Cliente valoriza flexibilidade e praticidade nas transações." },
+          {
+            id: "1",
+            icon: "AlertCircle",
+            text: "Acompanhamento regular de investimentos e planejamento financeiro.",
+          },
+          {
+            id: "2",
+            icon: "Plane",
+            text: "Cliente valoriza flexibilidade e praticidade nas transações.",
+          },
         ],
       },
       highlights: [
@@ -235,8 +256,17 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
           title: "Revisão de Carteira de Investimentos",
           status: "discussed",
           subitems: [
-            { id: "1-1", title: "Análise de performance", description: "Revisão do desempenho atual das carteiras e rentabilidade no período." },
-            { id: "1-2", title: "Estratégias de realocação", description: "Discussão sobre oportunidades de realocação para melhorar rentabilidade." },
+            {
+              id: "1-1",
+              title: "Análise de performance",
+              description: "Revisão do desempenho atual das carteiras e rentabilidade no período.",
+            },
+            {
+              id: "1-2",
+              title: "Estratégias de realocação",
+              description:
+                "Discussão sobre oportunidades de realocação para melhorar rentabilidade.",
+            },
           ],
         },
         {
@@ -245,13 +275,26 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
           title: "Planejamento Financeiro",
           status: "discussed",
           subitems: [
-            { id: "2-1", title: "Objetivos de curto prazo", description: "Definição de metas para os próximos 6 meses." },
+            {
+              id: "2-1",
+              title: "Objetivos de curto prazo",
+              description: "Definição de metas para os próximos 6 meses.",
+            },
           ],
         },
       ],
       decisions: [
-        { id: "1", content: "Revisão mensal de <strong>performance das carteiras</strong> será mantida", type: "normal" },
-        { id: "2", content: "Avaliar novas <strong>oportunidades de investimento</strong> no próximo encontro", type: "normal" },
+        {
+          id: "1",
+          content: "Revisão mensal de <strong>performance das carteiras</strong> será mantida",
+          type: "normal",
+        },
+        {
+          id: "2",
+          content:
+            "Avaliar novas <strong>oportunidades de investimento</strong> no próximo encontro",
+          type: "normal",
+        },
       ],
       linkedTasks: [
         {
@@ -264,56 +307,95 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
         },
       ],
       participants: [
-        { id: "1", name: clientName, role: "Cliente", avatarColor: "#a78bfa", initials: clientName.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() },
-        { id: "2", name: meeting.assignees[0] || "Rafael", role: "Consultor de Investimentos", avatarColor: "#2563eb", initials: meeting.assignees[0]?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || "RF" },
+        {
+          id: "1",
+          name: clientName,
+          role: "Cliente",
+          avatarColor: "#a78bfa",
+          initials: clientName
+            .split(" ")
+            .map((n) => n[0])
+            .join("")
+            .slice(0, 2)
+            .toUpperCase(),
+        },
+        {
+          id: "2",
+          name: meeting.assignees[0] || "Rafael",
+          role: "Consultor de Investimentos",
+          avatarColor: "#2563eb",
+          initials:
+            meeting.assignees[0]
+              ?.split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase() || "RF",
+        },
       ],
       attachments: [
-        { id: "1", name: "Relatório_Carteira.pdf", type: "pdf", size: "2.4 MB", addedAt: meeting.date },
+        {
+          id: "1",
+          name: "Relatório_Carteira.pdf",
+          type: "pdf",
+          size: "2.4 MB",
+          addedAt: meeting.date,
+        },
       ],
     };
-    
+
     setSelectedMeeting(meetingDetail);
     setDetailModalOpen(true);
   };
 
   // Handler para atualizar reunião (sincroniza tabela e modal)
-  const handleUpdateMeeting = useCallback((meetingId: string, updates: Partial<MeetingDetail>) => {
-    // Atualizar no contexto (sincroniza com tabela)
-    updateClientMeeting(clientId, meetingId, updates);
-    
-    // Atualizar estado local do modal se estiver aberto
-    if (selectedMeeting && selectedMeeting.id === meetingId) {
-      setSelectedMeeting(prev => prev ? { ...prev, ...updates } : null);
-    }
-  }, [clientId, updateClientMeeting, selectedMeeting]);
+  const handleUpdateMeeting = useCallback(
+    (meetingId: string, updates: Partial<MeetingDetail>) => {
+      // Atualizar no contexto (sincroniza com tabela)
+      updateClientMeeting(clientId, meetingId, updates);
+
+      // Atualizar estado local do modal se estiver aberto
+      if (selectedMeeting && selectedMeeting.id === meetingId) {
+        setSelectedMeeting((prev) => (prev ? { ...prev, ...updates } : null));
+      }
+    },
+    [clientId, updateClientMeeting, selectedMeeting],
+  );
 
   // Sincronizar modal quando a tabela atualiza (quando meetings muda)
   useEffect(() => {
     if (selectedMeeting && detailModalOpen) {
-      const updatedMeeting = meetings.find(m => m.id === selectedMeeting.id);
+      const updatedMeeting = meetings.find((m) => m.id === selectedMeeting.id);
       if (updatedMeeting) {
         const typeChanged = updatedMeeting.type !== selectedMeeting.type;
         const statusChanged = updatedMeeting.status !== selectedMeeting.status;
-        const assigneesChanged = JSON.stringify(updatedMeeting.assignees) !== JSON.stringify(selectedMeeting.assignees);
-        
+        const assigneesChanged =
+          JSON.stringify(updatedMeeting.assignees) !== JSON.stringify(selectedMeeting.assignees);
+
         if (typeChanged || statusChanged || assigneesChanged) {
-          setSelectedMeeting(prev => {
+          setSelectedMeeting((prev) => {
             if (!prev) return null;
-            
+
             // Atualizar responsible se o primeiro assignee mudou
             const newFirstAssignee = updatedMeeting.assignees?.[0];
             const currentFirstAssignee = prev.assignees?.[0];
-            const responsible = newFirstAssignee && newFirstAssignee !== currentFirstAssignee
-              ? {
-                  name: newFirstAssignee,
-                  initials: newFirstAssignee.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
-                }
-              : prev.responsible;
-            
+            const responsible =
+              newFirstAssignee && newFirstAssignee !== currentFirstAssignee
+                ? {
+                    name: newFirstAssignee,
+                    initials: newFirstAssignee
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
+                      .slice(0, 2)
+                      .toUpperCase(),
+                  }
+                : prev.responsible;
+
             return {
-            ...prev,
-            type: updatedMeeting.type,
-            status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
+              ...prev,
+              type: updatedMeeting.type,
+              status: updatedMeeting.status as "Agendada" | "Realizada" | "Cancelada",
               assignees: updatedMeeting.assignees,
               responsible,
             };
@@ -325,10 +407,10 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <CalendarIcon className="w-4 h-4 text-muted-foreground" />
+            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
             <h2 className="text-base font-semibold text-foreground">Reuniões</h2>
           </div>
 
@@ -338,36 +420,36 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
             toggleButtonTestId="button-toggle-meeting-filters"
           >
             {/* Busca */}
-            <div 
+            <div
               className={cn(
-                "relative flex items-center h-8 rounded-full overflow-hidden transition-all duration-300 ease-out",
-                isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0",
-                searchFilter.isSearchOpen 
-                  ? "w-52 bg-[#1a1a1a] border border-[#333] px-3" 
-                  : "w-8"
+                "relative flex h-8 items-center overflow-hidden rounded-full transition-all duration-300 ease-out",
+                isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
+                searchFilter.isSearchOpen ? "w-52 border border-[#333] bg-[#1a1a1a] px-3" : "w-8",
               )}
               style={{ transitionDelay: isFiltersExpanded ? "0ms" : "0ms" }}
             >
               <button
                 onClick={() => !searchFilter.isSearchOpen && searchFilter.openSearch()}
                 className={cn(
-                  "flex items-center justify-center shrink-0 transition-colors",
-                  searchFilter.isSearchOpen 
-                    ? "w-4 h-4 text-gray-500 cursor-default" 
-                    : "w-8 h-8 rounded-full text-gray-500 hover:text-gray-300 hover:bg-[#1a1a1a]"
+                  "flex shrink-0 items-center justify-center transition-colors",
+                  searchFilter.isSearchOpen
+                    ? "h-4 w-4 cursor-default text-gray-500"
+                    : "h-8 w-8 rounded-full text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
                 )}
                 data-testid="button-search-meeting"
               >
-                <Search className="w-4 h-4" />
+                <Search className="h-4 w-4" />
               </button>
-              
-              <div className={cn(
-                "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
-                searchFilter.isSearchOpen ? "w-full opacity-100 ml-1.5" : "w-0 opacity-0"
-              )}>
+
+              <div
+                className={cn(
+                  "flex items-center gap-1.5 overflow-hidden transition-all duration-300 ease-out",
+                  searchFilter.isSearchOpen ? "ml-1.5 w-full opacity-100" : "w-0 opacity-0",
+                )}
+              >
                 <Input
                   ref={searchInputRef}
-          type="text"
+                  type="text"
                   value={searchFilter.searchTerm}
                   onChange={(e) => searchFilter.setSearchTerm(e.target.value)}
                   onBlur={handleSearchBlur}
@@ -377,16 +459,16 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
                     }
                   }}
                   placeholder="Buscar reunião..."
-                  className="h-7 flex-1 bg-transparent border-0 p-0 text-sm focus-visible:ring-0 placeholder:text-gray-500"
+                  className="h-7 flex-1 border-0 bg-transparent p-0 text-sm placeholder:text-gray-500 focus-visible:ring-0"
                   data-testid="input-search-meeting"
                 />
                 {searchFilter.searchTerm && (
                   <button
                     onClick={handleClearSearch}
-                    className="flex items-center justify-center w-5 h-5 text-gray-500 hover:text-gray-300 shrink-0"
+                    className="flex h-5 w-5 shrink-0 items-center justify-center text-gray-500 hover:text-gray-300"
                     data-testid="button-clear-search-meeting"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="h-3.5 w-3.5" />
                   </button>
                 )}
               </div>
@@ -394,97 +476,94 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
 
             {/* Filtro Tipo */}
             <Popover>
-          <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={cn(
-                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
-                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                    "h-8 w-8 p-0 text-gray-500 transition-all duration-300 hover:text-gray-300 focus-visible:ring-0",
+                    isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
                   )}
                   style={{ transitionDelay: isFiltersExpanded ? "50ms" : "0ms" }}
                   aria-label="Filtrar por tipo"
                   data-testid="button-filter-meeting-type"
                 >
-                  <Tag className="w-4 h-4" />
+                  <Tag className="h-4 w-4" />
                 </Button>
-          </PopoverTrigger>
+              </PopoverTrigger>
               <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-                <MeetingTypeFilterContent 
-                  selectedValues={selectedTypes} 
-                  onToggle={handleTypeToggle} 
-            />
-          </PopoverContent>
-        </Popover>
+                <MeetingTypeFilterContent
+                  selectedValues={selectedTypes}
+                  onToggle={handleTypeToggle}
+                />
+              </PopoverContent>
+            </Popover>
 
             {/* Filtro Status */}
             <Popover>
-            <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={cn(
-                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
-                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                    "h-8 w-8 p-0 text-gray-500 transition-all duration-300 hover:text-gray-300 focus-visible:ring-0",
+                    isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
                   )}
                   style={{ transitionDelay: isFiltersExpanded ? "100ms" : "0ms" }}
                   aria-label="Filtrar por status"
                   data-testid="button-filter-meeting-status"
                 >
-                  <CalendarIcon className="w-4 h-4" />
+                  <CalendarIcon className="h-4 w-4" />
                 </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
-                <MeetingStatusFilterContent 
-                  selectedValues={selectedStatuses} 
-                  onToggle={handleStatusToggle} 
-              />
-            </PopoverContent>
-          </Popover>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+                <MeetingStatusFilterContent
+                  selectedValues={selectedStatuses}
+                  onToggle={handleStatusToggle}
+                />
+              </PopoverContent>
+            </Popover>
 
             {/* Filtro Data */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={cn(
-                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
-                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                    "h-8 w-8 p-0 text-gray-500 transition-all duration-300 hover:text-gray-300 focus-visible:ring-0",
+                    isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
                   )}
                   style={{ transitionDelay: isFiltersExpanded ? "150ms" : "0ms" }}
                   aria-label="Filtrar por data"
                   data-testid="button-filter-meeting-date"
                 >
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="h-4 w-4" />
                 </Button>
-                  </PopoverTrigger>
+              </PopoverTrigger>
               <PopoverContent className="w-auto p-0" side="bottom" align="start" sideOffset={6}>
-                <DateRangeFilterContent 
-                  value={dateFilter}
-                  onChange={handleDateChange}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <DateRangeFilterContent value={dateFilter} onChange={handleDateChange} />
+              </PopoverContent>
+            </Popover>
 
             {/* Filtro Responsável */}
             <Popover>
               <PopoverTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
+                <Button
+                  variant="ghost"
+                  size="sm"
                   className={cn(
-                    "h-8 w-8 p-0 text-gray-500 hover:text-gray-300 focus-visible:ring-0 transition-all duration-300",
-                    isFiltersExpanded ? "opacity-100 scale-100" : "opacity-0 scale-0"
+                    "h-8 w-8 p-0 text-gray-500 transition-all duration-300 hover:text-gray-300 focus-visible:ring-0",
+                    isFiltersExpanded ? "scale-100 opacity-100" : "scale-0 opacity-0",
                   )}
                   style={{ transitionDelay: isFiltersExpanded ? "200ms" : "0ms" }}
                   aria-label="Filtrar por responsável"
                   data-testid="button-filter-meeting-assignee"
                 >
-                  <User className="w-4 h-4" />
+                  <User className="h-4 w-4" />
                 </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-0" side="bottom" align="start" sideOffset={6}>
                 <SearchableMultiSelect
                   items={availableAssignees}
                   selectedItems={selectedAssignees}
@@ -494,16 +573,16 @@ export function ClientMeetings({ meetings, onNewMeeting, inlineProps, clientId }
                   availableLabel="Selecione mais"
                   emptyMessage="Nenhum responsável encontrado"
                   itemType="user"
-                      />
-                    </PopoverContent>
-                  </Popover>
+                />
+              </PopoverContent>
+            </Popover>
           </ExpandableFilterBar>
         </div>
       </div>
-      <Card className="bg-[#202020] border-[#333333] overflow-hidden">
-        <MeetingsTable 
-          meetings={sortedAndFilteredMeetings} 
-          inlineProps={inlineProps} 
+      <Card className="overflow-hidden border-[#333333] bg-[#202020]">
+        <MeetingsTable
+          meetings={sortedAndFilteredMeetings}
+          inlineProps={inlineProps}
           clientId={clientId}
           onMeetingClick={handleMeetingClick}
         />

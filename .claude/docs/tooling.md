@@ -6,13 +6,13 @@ This document covers CLI tools, IDE configuration, and automation workflows for 
 
 ### Core Tools
 
-| Tool | Purpose | Command |
-|------|---------|---------|
-| Vite | Dev server & bundler | `npm run dev` |
-| TypeScript | Type checking | `npx tsc --noEmit` |
-| ESLint | Code linting | `npm run lint` |
-| Prisma | Database ORM | `npx prisma` |
-| Jest | Testing | `npm run test` |
+| Tool       | Purpose              | Command            |
+| ---------- | -------------------- | ------------------ |
+| Vite       | Dev server & bundler | `npm run dev`      |
+| TypeScript | Type checking        | `npx tsc --noEmit` |
+| ESLint     | Code linting         | `npm run lint`     |
+| Prisma     | Database ORM         | `npx prisma`       |
+| Jest       | Testing              | `npm run test`     |
 
 ### Vite Dev Server
 
@@ -54,6 +54,7 @@ npx prisma format
 ### VS Code / Cursor Extensions
 
 Recommended extensions:
+
 - **ESLint** - Linting integration
 - **Prettier** - Code formatting
 - **Prisma** - Schema syntax highlighting
@@ -102,6 +103,7 @@ Recommended extensions:
 ### ESLint Configuration
 
 Key rules enforced:
+
 - TypeScript strict mode
 - React hooks rules
 - Import ordering
@@ -168,7 +170,7 @@ npx husky add .husky/pre-commit "npx lint-staged"
 
 ```typescript
 // Add debug logging
-import { log } from './app';
+import { log } from "./app";
 
 log(`Processing task ${taskId}`);
 ```
@@ -228,12 +230,12 @@ Add to `package.json`:
 
 ### Environment Files
 
-| File | Purpose | Git |
-|------|---------|-----|
-| `.env` | Local development | Ignored |
-| `.env.example` | Template with keys | Committed |
-| `.env.test` | Test environment | Ignored |
-| `.env.production` | Production (CI only) | Ignored |
+| File              | Purpose              | Git       |
+| ----------------- | -------------------- | --------- |
+| `.env`            | Local development    | Ignored   |
+| `.env.example`    | Template with keys   | Committed |
+| `.env.test`       | Test environment     | Ignored   |
+| `.env.production` | Production (CI only) | Ignored   |
 
 ### Required Variables
 

@@ -102,57 +102,51 @@ export function EmailsPopover({
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <div className="flex flex-col gap-1 cursor-pointer">
-          <span className="text-xs text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-            <Mail className="w-3.5 h-3.5" />
+        <div className="flex cursor-pointer flex-col gap-1">
+          <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <Mail className="h-3.5 w-3.5" />
             Email
             {emails.length > 1 && (
-              <span className="text-[10px] bg-[#333333] px-1.5 py-0.5 rounded">
+              <span className="rounded bg-[#333333] px-1.5 py-0.5 text-[10px]">
                 +{emails.length - 1}
               </span>
             )}
           </span>
-          <span 
-            className="text-sm font-medium text-foreground px-1.5 py-0.5 -mx-1.5 -my-0.5 rounded-md hover:bg-[#2c2c2c] transition-colors"
+          <span
+            className="-mx-1.5 -my-0.5 rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#2c2c2c]"
             data-testid="text-client-email"
           >
             {primaryEmail}
           </span>
         </div>
       </PopoverTrigger>
-      <PopoverContent 
-        className="w-80 p-0 bg-[#252525] border-[#333333]"
-        align="start"
-      >
-        <div className="p-3 border-b border-[#333333]">
+      <PopoverContent className="w-80 border-[#333333] bg-[#252525] p-0" align="start">
+        <div className="border-b border-[#333333] p-3">
           <h4 className="text-sm font-medium text-foreground">Emails do Cliente</h4>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Clique para definir o email principal
           </p>
         </div>
-        
+
         <div className="max-h-[200px] overflow-y-auto">
           {emails.map((email, index) => (
-            <div 
-              key={index}
-              className="flex items-center gap-2 px-3 py-2 hover:bg-[#2c2c2c] group"
-            >
+            <div key={index} className="group flex items-center gap-2 px-3 py-2 hover:bg-[#2c2c2c]">
               <button
                 type="button"
                 onClick={() => onSetPrimaryEmail(index)}
-                className="p-1 rounded transition-colors"
+                className="rounded p-1 transition-colors"
                 title={index === primaryEmailIndex ? "Email principal" : "Definir como principal"}
                 data-testid={`button-set-primary-email-${index}`}
               >
                 {index === primaryEmailIndex ? (
-                  <CheckCircle2 className="w-4 h-4 text-emerald-500/70" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-500/70" />
                 ) : (
-                  <Circle className="w-4 h-4 text-muted-foreground/40 group-hover:text-muted-foreground/60 transition-colors" />
+                  <Circle className="h-4 w-4 text-muted-foreground/40 transition-colors group-hover:text-muted-foreground/60" />
                 )}
               </button>
-              
+
               {editingIndex === index ? (
-                <div className="flex-1 flex items-center gap-1">
+                <div className="flex flex-1 items-center gap-1">
                   <input
                     ref={inputRef}
                     type="email"
@@ -160,43 +154,43 @@ export function EmailsPopover({
                     onChange={(e) => setDraftEmail(e.target.value)}
                     onKeyDown={handleEditKeyDown}
                     onBlur={commitEdit}
-                    className="flex-1 text-sm text-foreground bg-transparent border-b border-[#2eaadc] outline-none"
+                    className="flex-1 border-b border-[#2eaadc] bg-transparent text-sm text-foreground outline-none"
                     data-testid={`input-edit-email-${index}`}
                   />
                   <button
                     type="button"
                     onClick={commitEdit}
-                    className="p-1 text-emerald-400 hover:bg-[#333333] rounded"
+                    className="rounded p-1 text-emerald-400 hover:bg-[#333333]"
                   >
-                    <Check className="w-3.5 h-3.5" />
+                    <Check className="h-3.5 w-3.5" />
                   </button>
                 </div>
               ) : (
-                <span 
-                  className="flex-1 text-sm text-foreground cursor-pointer truncate"
+                <span
+                  className="flex-1 cursor-pointer truncate text-sm text-foreground"
                   onClick={() => startEditing(index)}
                   data-testid={`text-email-${index}`}
                 >
                   {email}
                 </span>
               )}
-              
+
               {emails.length > 1 && editingIndex !== index && (
                 <button
                   type="button"
                   onClick={() => onRemoveEmail(index)}
-                  className="p-1 text-muted-foreground hover:text-red-400 hover:bg-[#333333] rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-[#333333] hover:text-red-400 group-hover:opacity-100"
                   title="Remover email"
                   data-testid={`button-remove-email-${index}`}
                 >
-                  <X className="w-3.5 h-3.5" />
+                  <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
           ))}
         </div>
-        
-        <div className="p-2 border-t border-[#333333]">
+
+        <div className="border-t border-[#333333] p-2">
           {isAddingNew ? (
             <div className="flex items-center gap-2 px-1">
               <input
@@ -209,24 +203,24 @@ export function EmailsPopover({
                   if (!newEmail.trim()) cancelAddingNew();
                 }}
                 placeholder="novo@email.com"
-                className="flex-1 text-sm text-foreground bg-transparent border-b border-[#2eaadc] outline-none placeholder:text-muted-foreground"
+                className="flex-1 border-b border-[#2eaadc] bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
                 data-testid="input-new-email"
               />
               <button
                 type="button"
                 onClick={commitNewEmail}
-                className="p-1 text-emerald-400 hover:bg-[#333333] rounded"
+                className="rounded p-1 text-emerald-400 hover:bg-[#333333]"
                 data-testid="button-confirm-new-email"
               >
-                <Check className="w-4 h-4" />
+                <Check className="h-4 w-4" />
               </button>
               <button
                 type="button"
                 onClick={cancelAddingNew}
-                className="p-1 text-muted-foreground hover:bg-[#333333] rounded"
+                className="rounded p-1 text-muted-foreground hover:bg-[#333333]"
                 data-testid="button-cancel-new-email"
               >
-                <X className="w-4 h-4" />
+                <X className="h-4 w-4" />
               </button>
             </div>
           ) : (
@@ -237,7 +231,7 @@ export function EmailsPopover({
               className="w-full justify-start text-muted-foreground hover:text-foreground"
               data-testid="button-add-email"
             >
-              <Plus className="w-4 h-4 mr-2" />
+              <Plus className="mr-2 h-4 w-4" />
               Adicionar email
             </Button>
           )}

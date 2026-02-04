@@ -68,18 +68,23 @@ export function AppSidebar() {
   const currentUser = currentUserData?.user;
   const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [, navigate] = useLocation();
-  
+
   const hasMultipleRoles = currentUser?.roles && currentUser.roles.length > 1;
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
-    return name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   const handleLogout = async () => {
     await signOut();
   };
-  
+
   const handleUserCardClick = () => {
     navigate("/profile");
   };
@@ -88,7 +93,7 @@ export function AppSidebar() {
 
   return (
     <Sidebar>
-      <SidebarHeader className="p-4 border-b border-sidebar-border">
+      <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-2">
           <svg
             width="28"
@@ -117,9 +122,13 @@ export function AppSidebar() {
                 const isActive = location === item.url;
                 return (
                   <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton asChild data-active={isActive} data-testid={`nav-${item.title.toLowerCase()}`}>
+                    <SidebarMenuButton
+                      asChild
+                      data-active={isActive}
+                      data-testid={`nav-${item.title.toLowerCase()}`}
+                    >
                       <Link href={item.url}>
-                        <item.icon className="w-5 h-5" />
+                        <item.icon className="h-5 w-5" />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
@@ -130,42 +139,45 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="p-4 border-t border-sidebar-border">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         {displayedRole === "administrador" && (
           <Link href="/admin">
-            <SidebarMenuButton 
-              data-active={location === "/admin"} 
+            <SidebarMenuButton
+              data-active={location === "/admin"}
               data-testid="nav-administração"
-              className="w-full mb-3"
+              className="mb-3 w-full"
             >
-              <Shield className="w-5 h-5" />
+              <Shield className="h-5 w-5" />
               <span>Administração</span>
             </SidebarMenuButton>
           </Link>
         )}
-        
+
         {hasMultipleRoles ? (
           <ContextMenu>
             <ContextMenuTrigger asChild>
-              <div 
-                className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-pointer" 
+              <div
+                className="mb-3 flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent"
                 data-testid="user-card"
                 onClick={handleUserCardClick}
               >
-                <Avatar className="w-10 h-10">
+                <Avatar className="h-10 w-10">
                   <AvatarImage src={user?.imageUrl} />
                   <AvatarFallback className="text-sm">
                     {getInitials(user?.fullName || user?.firstName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate" data-testid="text-username">
-                    {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium" data-testid="text-username">
+                    {user?.fullName ||
+                      user?.firstName ||
+                      user?.emailAddresses[0]?.emailAddress ||
+                      "Usuário"}
                   </p>
                   {displayedRole && (
-                    <Badge 
-                      variant="outline" 
-                      className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
+                    <Badge
+                      variant="outline"
+                      className={`mt-1 h-4 px-1.5 py-0 text-[10px] ${ROLE_COLORS[displayedRole] || ""}`}
                     >
                       {ROLE_LABELS[displayedRole] || displayedRole}
                     </Badge>
@@ -179,54 +191,63 @@ export function AppSidebar() {
               </ContextMenuItem>
               <ContextMenuSeparator />
               {currentUser?.roles?.map((role) => (
-                <ContextMenuItem 
+                <ContextMenuItem
                   key={role}
                   onClick={() => setActiveRole(role as UserRole)}
                   className="flex items-center justify-between"
                   data-testid={`context-role-${role}`}
                 >
                   <span className="flex items-center gap-2">
-                    <span className={`w-2 h-2 rounded-full ${
-                      role === "administrador" ? "bg-red-500" :
-                      role === "consultor" ? "bg-blue-500" :
-                      role === "alocador" ? "bg-orange-500" : "bg-purple-500"
-                    }`} />
+                    <span
+                      className={`h-2 w-2 rounded-full ${
+                        role === "administrador"
+                          ? "bg-red-500"
+                          : role === "consultor"
+                            ? "bg-blue-500"
+                            : role === "alocador"
+                              ? "bg-orange-500"
+                              : "bg-purple-500"
+                      }`}
+                    />
                     {ROLE_LABELS[role] || role}
                   </span>
-                  {displayedRole === role && <Check className="w-4 h-4" />}
+                  {displayedRole === role && <Check className="h-4 w-4" />}
                 </ContextMenuItem>
               ))}
               <ContextMenuSeparator />
-              <ContextMenuItem 
+              <ContextMenuItem
                 onClick={handleLogout}
                 className="text-destructive focus:text-destructive"
                 data-testid="context-logout"
               >
-                <LogOut className="w-4 h-4 mr-2" />
+                <LogOut className="mr-2 h-4 w-4" />
                 Sair
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
         ) : (
-          <div 
-            className="flex items-center gap-3 mb-3 p-2 rounded-md hover:bg-sidebar-accent cursor-pointer" 
+          <div
+            className="mb-3 flex cursor-pointer items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent"
             data-testid="user-card"
             onClick={handleUserCardClick}
           >
-            <Avatar className="w-10 h-10">
+            <Avatar className="h-10 w-10">
               <AvatarImage src={user?.imageUrl} />
               <AvatarFallback className="text-sm">
                 {getInitials(user?.fullName || user?.firstName)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate" data-testid="text-username">
-                {user?.fullName || user?.firstName || user?.emailAddresses[0]?.emailAddress || "Usuário"}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium" data-testid="text-username">
+                {user?.fullName ||
+                  user?.firstName ||
+                  user?.emailAddresses[0]?.emailAddress ||
+                  "Usuário"}
               </p>
               {displayedRole && (
-                <Badge 
-                  variant="outline" 
-                  className={`text-[10px] px-1.5 py-0 h-4 mt-1 ${ROLE_COLORS[displayedRole] || ""}`}
+                <Badge
+                  variant="outline"
+                  className={`mt-1 h-4 px-1.5 py-0 text-[10px] ${ROLE_COLORS[displayedRole] || ""}`}
                 >
                   {ROLE_LABELS[displayedRole] || displayedRole}
                 </Badge>
@@ -234,15 +255,15 @@ export function AppSidebar() {
             </div>
           </div>
         )}
-        
-        <Button 
-          variant="ghost" 
-          size="sm" 
+
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={handleLogout}
           className="w-full justify-start text-muted-foreground hover:text-foreground"
           data-testid="button-logout"
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="mr-2 h-4 w-4" />
           Sair
         </Button>
       </SidebarFooter>

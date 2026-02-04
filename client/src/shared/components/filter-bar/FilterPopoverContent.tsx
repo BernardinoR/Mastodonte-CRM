@@ -5,15 +5,15 @@ import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import { StatusBadge, PriorityBadge } from "@/shared/components/ui/task-badges";
 import { X } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
-import { 
-  STATUS_OPTIONS, 
-  PRIORITY_OPTIONS, 
-  type TaskStatus, 
+import {
+  STATUS_OPTIONS,
+  PRIORITY_OPTIONS,
+  type TaskStatus,
   type TaskPriority,
   type FilterType,
   type TypedActiveFilter,
   type DateFilterValue,
-  type FilterValueMap
+  type FilterValueMap,
 } from "@features/tasks";
 import { DateRangeFilterContent, formatDateFilterLabel } from "./DateRangeFilterContent";
 
@@ -33,14 +33,14 @@ export const StatusFilterContent = memo(function StatusFilterContent({
   selectedValues: string[];
   onToggle: (status: TaskStatus) => void;
 }) {
-  const selectedStatuses = useMemo(() => 
-    STATUS_OPTIONS.filter(s => selectedValues.includes(s)),
-    [selectedValues]
+  const selectedStatuses = useMemo(
+    () => STATUS_OPTIONS.filter((s) => selectedValues.includes(s)),
+    [selectedValues],
   );
-  
-  const unselectedStatuses = useMemo(() => 
-    STATUS_OPTIONS.filter(s => !selectedValues.includes(s)),
-    [selectedValues]
+
+  const unselectedStatuses = useMemo(
+    () => STATUS_OPTIONS.filter((s) => !selectedValues.includes(s)),
+    [selectedValues],
   );
 
   return (
@@ -49,26 +49,26 @@ export const StatusFilterContent = memo(function StatusFilterContent({
         <>
           <div className={cn("border-b", UI_CLASSES.border)}>
             <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-            <div className="px-2 pb-2 space-y-1">
+            <div className="space-y-1 px-2 pb-2">
               {selectedStatuses.map((status) => (
                 <div
                   key={status}
                   onClick={() => onToggle(status)}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
-                    UI_CLASSES.selectedItem
+                    "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5",
+                    UI_CLASSES.selectedItem,
                   )}
                   data-testid={`option-filter-status-${status.toLowerCase().replace(" ", "-")}`}
                 >
                   <StatusBadge status={status} size="sm" dotSize="md" />
-                  <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                  <X className="ml-auto h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               ))}
             </div>
           </div>
         </>
       )}
-      
+
       {unselectedStatuses.length > 0 && (
         <>
           <div className="px-3 py-1.5 text-xs text-gray-500">
@@ -99,14 +99,14 @@ export const PriorityFilterContent = memo(function PriorityFilterContent({
   selectedValues: string[];
   onToggle: (priority: TaskPriority) => void;
 }) {
-  const selectedPriorities = useMemo(() => 
-    PRIORITY_OPTIONS.filter(p => selectedValues.includes(p)),
-    [selectedValues]
+  const selectedPriorities = useMemo(
+    () => PRIORITY_OPTIONS.filter((p) => selectedValues.includes(p)),
+    [selectedValues],
   );
-  
-  const unselectedPriorities = useMemo(() => 
-    PRIORITY_OPTIONS.filter(p => !selectedValues.includes(p)),
-    [selectedValues]
+
+  const unselectedPriorities = useMemo(
+    () => PRIORITY_OPTIONS.filter((p) => !selectedValues.includes(p)),
+    [selectedValues],
   );
 
   return (
@@ -115,26 +115,26 @@ export const PriorityFilterContent = memo(function PriorityFilterContent({
         <>
           <div className={cn("border-b", UI_CLASSES.border)}>
             <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-            <div className="px-2 pb-2 space-y-1">
+            <div className="space-y-1 px-2 pb-2">
               {selectedPriorities.map((priority) => (
                 <div
                   key={priority}
                   onClick={() => onToggle(priority)}
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5 cursor-pointer rounded-md group",
-                    UI_CLASSES.selectedItem
+                    "group flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5",
+                    UI_CLASSES.selectedItem,
                   )}
                   data-testid={`option-filter-priority-${priority.toLowerCase()}`}
                 >
                   <PriorityBadge priority={priority} size="sm" dotSize="md" />
-                  <X className="w-3 h-3 text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity ml-auto" />
+                  <X className="ml-auto h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
               ))}
             </div>
           </div>
         </>
       )}
-      
+
       {unselectedPriorities.length > 0 && (
         <>
           <div className="px-3 py-1.5 text-xs text-gray-500">
@@ -172,7 +172,7 @@ const TaskFilterContent = memo(function TaskFilterContent({
         placeholder="Buscar por nome da tarefa..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="h-8 bg-[#1a1a1a] border-[#333] text-gray-200 placeholder:text-gray-500"
+        className="h-8 border-[#333] bg-[#1a1a1a] text-gray-200 placeholder:text-gray-500"
         data-testid="input-filter-task"
       />
     </div>
@@ -185,39 +185,57 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
   availableAssignees,
   availableClients,
 }: FilterPopoverContentProps) {
-  const handleDateChange = useCallback((value: DateFilterValue) => {
-    onUpdateFilter(filter.id, "date", value);
-  }, [filter.id, onUpdateFilter]);
+  const handleDateChange = useCallback(
+    (value: DateFilterValue) => {
+      onUpdateFilter(filter.id, "date", value);
+    },
+    [filter.id, onUpdateFilter],
+  );
 
-  const handleStatusToggle = useCallback((status: TaskStatus) => {
-    if (filter.type !== "status") return;
-    const currentValues = filter.value;
-    const newValues = currentValues.includes(status)
-      ? currentValues.filter(s => s !== status)
-      : [...currentValues, status];
-    onUpdateFilter(filter.id, "status", newValues);
-  }, [filter.id, filter.type, filter.value, onUpdateFilter]);
+  const handleStatusToggle = useCallback(
+    (status: TaskStatus) => {
+      if (filter.type !== "status") return;
+      const currentValues = filter.value;
+      const newValues = currentValues.includes(status)
+        ? currentValues.filter((s) => s !== status)
+        : [...currentValues, status];
+      onUpdateFilter(filter.id, "status", newValues);
+    },
+    [filter.id, filter.type, filter.value, onUpdateFilter],
+  );
 
-  const handlePriorityToggle = useCallback((priority: TaskPriority | "none") => {
-    if (filter.type !== "priority") return;
-    const currentValues = filter.value;
-    const newValues = currentValues.includes(priority)
-      ? currentValues.filter(p => p !== priority)
-      : [...currentValues, priority];
-    onUpdateFilter(filter.id, "priority", newValues);
-  }, [filter.id, filter.type, filter.value, onUpdateFilter]);
+  const handlePriorityToggle = useCallback(
+    (priority: TaskPriority | "none") => {
+      if (filter.type !== "priority") return;
+      const currentValues = filter.value;
+      const newValues = currentValues.includes(priority)
+        ? currentValues.filter((p) => p !== priority)
+        : [...currentValues, priority];
+      onUpdateFilter(filter.id, "priority", newValues);
+    },
+    [filter.id, filter.type, filter.value, onUpdateFilter],
+  );
 
-  const handleTaskChange = useCallback((value: string) => {
-    onUpdateFilter(filter.id, "task", value);
-  }, [filter.id, onUpdateFilter]);
+  const handleTaskChange = useCallback(
+    (value: string) => {
+      onUpdateFilter(filter.id, "task", value);
+    },
+    [filter.id, onUpdateFilter],
+  );
 
-  const handleAssigneeChange = useCallback((newSelection: string[]) => {
-    onUpdateFilter(filter.id, "assignee", newSelection);
-  }, [filter.id, onUpdateFilter]);
+  const handleAssigneeChange = useCallback(
+    (newSelection: string[]) => {
+      onUpdateFilter(filter.id, "assignee", newSelection);
+    },
+    [filter.id, onUpdateFilter],
+  );
 
-  const handleClientChange = useCallback((newSelection: string[]) => {
-    onUpdateFilter(filter.id, "client", newSelection);
-  }, [filter.id, onUpdateFilter]);
+  const handleClientChange = useCallback(
+    (newSelection: string[]) => {
+      onUpdateFilter(filter.id, "client", newSelection);
+    },
+    [filter.id, onUpdateFilter],
+  );
 
   switch (filter.type) {
     case "date":
@@ -227,31 +245,18 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
           onChange={handleDateChange}
         />
       );
-    
+
     case "status":
-      return (
-        <StatusFilterContent
-          selectedValues={filter.value}
-          onToggle={handleStatusToggle}
-        />
-      );
-    
+      return <StatusFilterContent selectedValues={filter.value} onToggle={handleStatusToggle} />;
+
     case "priority":
       return (
-        <PriorityFilterContent
-          selectedValues={filter.value}
-          onToggle={handlePriorityToggle}
-        />
+        <PriorityFilterContent selectedValues={filter.value} onToggle={handlePriorityToggle} />
       );
-    
+
     case "task":
-      return (
-        <TaskFilterContent
-          value={filter.value}
-          onChange={handleTaskChange}
-        />
-      );
-    
+      return <TaskFilterContent value={filter.value} onChange={handleTaskChange} />;
+
     case "assignee":
       return (
         <SearchableMultiSelect
@@ -265,7 +270,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
           itemType="user"
         />
       );
-    
+
     case "client":
       return (
         <SearchableMultiSelect
@@ -279,7 +284,7 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
           itemType="client"
         />
       );
-    
+
     default:
       return null;
   }

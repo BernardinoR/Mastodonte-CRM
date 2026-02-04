@@ -2,14 +2,14 @@
 // Gerenciamento de autenticação e login
 
 // Pages
-export { default as SignIn } from './pages/SignIn';
-export { default as SignUp } from './pages/SignUp';
-export { default as ForgotPassword } from './pages/ForgotPassword';
-export { default as SSOCallback } from './pages/SSOCallback';
-export { default as ClerkLogin } from './pages/ClerkLogin';
+export { default as SignIn } from "./pages/SignIn";
+export { default as SignUp } from "./pages/SignUp";
+export { default as ForgotPassword } from "./pages/ForgotPassword";
+export { default as SSOCallback } from "./pages/SSOCallback";
+export { default as ClerkLogin } from "./pages/ClerkLogin";
 
 // Components
-export * from './components';
+export * from "./components";
 
 // Lib
-export * from './lib/authHelpers';
+export * from "./lib/authHelpers";

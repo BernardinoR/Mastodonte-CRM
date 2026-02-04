@@ -8,7 +8,7 @@ import {
   ClientsToolbar,
   ClientsStatsGrid,
   ClientsListView,
-  ClientsFiltersRow
+  ClientsFiltersRow,
 } from "@features/clients/components/clients-page";
 import { useClientImportExport } from "../hooks/useClientImportExport";
 import { ImportClientsDialog } from "../components/ImportClientsDialog";
@@ -96,14 +96,10 @@ export default function Clients() {
       />
 
       {/* Stats Grid */}
-      <ClientsStatsGrid
-        stats={stats}
-        activeFilter={filterMode}
-        onFilterClick={handleStatsClick}
-      />
+      <ClientsStatsGrid stats={stats} activeFilter={filterMode} onFilterClick={handleStatsClick} />
 
       {/* Content */}
-      {viewMode === 'cards' ? (
+      {viewMode === "cards" ? (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
           {isCreatingClient && (
             <NewClientInlineCard
@@ -122,15 +118,11 @@ export default function Clients() {
               onCancel={() => setIsCreatingClient(false)}
             />
           )}
-          {filteredClients.map(client => (
-            <ClientCard
-              key={client.id}
-              client={client}
-              isCompact={isCompact}
-            />
+          {filteredClients.map((client) => (
+            <ClientCard key={client.id} client={client} isCompact={isCompact} />
           ))}
           {filteredClients.length === 0 && !isCreatingClient && (
-            <div className="col-span-full text-center py-12 text-[#8c8c8c]">
+            <div className="col-span-full py-12 text-center text-[#8c8c8c]">
               Nenhum cliente encontrado
             </div>
           )}

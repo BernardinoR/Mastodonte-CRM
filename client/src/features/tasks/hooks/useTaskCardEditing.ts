@@ -51,7 +51,10 @@ interface UseTaskCardEditingReturn {
   cardRef: React.RefObject<HTMLDivElement>;
   titleRef: React.RefObject<HTMLDivElement>;
   clickTimeoutRef: React.MutableRefObject<NodeJS.Timeout | null>;
-  handleUpdate: (field: string, value: string | string[] | TaskStatus | TaskPriority | undefined) => void;
+  handleUpdate: (
+    field: string,
+    value: string | string[] | TaskStatus | TaskPriority | undefined,
+  ) => void;
   handleSave: () => void;
   handleTitleEdit: (e: React.FocusEvent<HTMLDivElement>) => void;
   handleEditClick: (e: React.MouseEvent) => void;
@@ -74,14 +77,13 @@ export function useTaskCardEditing({
   onFinishEditing,
   initialEditMode = false,
 }: UseTaskCardEditingProps): UseTaskCardEditingReturn {
-  
   const safeAssignees = useMemo(() => {
     if (!assignees) return [];
     return Array.isArray(assignees) ? assignees : [assignees].filter(Boolean);
   }, [assignees]);
-  
-  const assigneesKey = useMemo(() => safeAssignees.join(','), [safeAssignees]);
-  
+
+  const assigneesKey = useMemo(() => safeAssignees.join(","), [safeAssignees]);
+
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedTask, setEditedTask] = useState<EditedTaskData>(() => ({
     title,
@@ -92,8 +94,10 @@ export function useTaskCardEditing({
     dueDate: format(dueDate, "yyyy-MM-dd"),
     description: description || "",
   }));
-  const [activePopover, setActivePopover] = useState<"date" | "priority" | "status" | "client" | "assignee" | null>(null);
-  
+  const [activePopover, setActivePopover] = useState<
+    "date" | "priority" | "status" | "client" | "assignee" | null
+  >(null);
+
   const cardRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLDivElement>(null);
   const clickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -101,7 +105,7 @@ export function useTaskCardEditing({
   const lastSavedRef = useRef<EditedTaskData | null>(null);
   const latestDraftRef = useRef<EditedTaskData>(editedTask);
   const prevInitialEditModeRef = useRef(initialEditMode);
-  
+
   // Sync isEditing with initialEditMode prop changes
   // Always honor prop transitions from parent
   useEffect(() => {
@@ -110,7 +114,7 @@ export function useTaskCardEditing({
       const wasEditing = prevInitialEditModeRef.current;
       prevInitialEditModeRef.current = initialEditMode;
       setIsEditing(initialEditMode);
-      
+
       // If transitioning from editing to not editing, notify parent
       if (wasEditing && !initialEditMode && onFinishEditing) {
         onFinishEditing(id);
@@ -119,22 +123,22 @@ export function useTaskCardEditing({
   }, [initialEditMode, onFinishEditing, id]);
 
   useEffect(() => {
-    setEditedTask(prev => {
+    setEditedTask((prev) => {
       const newAssignees = safeAssignees;
       const newDueDate = format(dueDate, "yyyy-MM-dd");
-      
+
       if (
         prev.title === title &&
         prev.clientName === (clientName || "") &&
         prev.priority === (priority || "") &&
         prev.status === status &&
-        prev.assignees.join(',') === newAssignees.join(',') &&
+        prev.assignees.join(",") === newAssignees.join(",") &&
         prev.dueDate === newDueDate &&
         prev.description === (description || "")
       ) {
         return prev;
       }
-      
+
       const newData = {
         title,
         clientName: clientName || "",
@@ -149,46 +153,52 @@ export function useTaskCardEditing({
     });
   }, [title, clientName, priority, status, assigneesKey, dueDate, description, safeAssignees]);
 
-  const flushUpdate = useCallback((data: EditedTaskData) => {
-    const parsedDueDate = data.dueDate ? parseLocalDate(data.dueDate) : dueDate;
-    
-    onUpdate(id, {
-      title: data.title,
-      clientName: data.clientName || undefined,
-      priority: (data.priority as TaskPriority) || undefined,
-      status: data.status as TaskStatus,
-      assignees: data.assignees,
-      dueDate: parsedDueDate,
-    });
-    
-    lastSavedRef.current = { ...data };
-  }, [id, onUpdate, dueDate]);
+  const flushUpdate = useCallback(
+    (data: EditedTaskData) => {
+      const parsedDueDate = data.dueDate ? parseLocalDate(data.dueDate) : dueDate;
 
-  const handleUpdate = useCallback((field: string, value: string | string[] | TaskStatus | TaskPriority | undefined) => {
-    setEditedTask(prev => {
-      const updated = { ...prev, [field]: value };
-      latestDraftRef.current = updated;
-      
-      if (pendingUpdateRef.current) {
-        clearTimeout(pendingUpdateRef.current);
-      }
-      
-      const isTitleEdit = field === 'title';
-      const isTextFieldEdit = isTitleEdit || field === 'description';
-      const debounceTime = isTextFieldEdit ? 300 : 0;
-      
-      if (debounceTime > 0) {
-        pendingUpdateRef.current = setTimeout(() => {
+      onUpdate(id, {
+        title: data.title,
+        clientName: data.clientName || undefined,
+        priority: (data.priority as TaskPriority) || undefined,
+        status: data.status as TaskStatus,
+        assignees: data.assignees,
+        dueDate: parsedDueDate,
+      });
+
+      lastSavedRef.current = { ...data };
+    },
+    [id, onUpdate, dueDate],
+  );
+
+  const handleUpdate = useCallback(
+    (field: string, value: string | string[] | TaskStatus | TaskPriority | undefined) => {
+      setEditedTask((prev) => {
+        const updated = { ...prev, [field]: value };
+        latestDraftRef.current = updated;
+
+        if (pendingUpdateRef.current) {
+          clearTimeout(pendingUpdateRef.current);
+        }
+
+        const isTitleEdit = field === "title";
+        const isTextFieldEdit = isTitleEdit || field === "description";
+        const debounceTime = isTextFieldEdit ? 300 : 0;
+
+        if (debounceTime > 0) {
+          pendingUpdateRef.current = setTimeout(() => {
+            flushUpdate(updated);
+            pendingUpdateRef.current = null;
+          }, debounceTime);
+        } else {
           flushUpdate(updated);
-          pendingUpdateRef.current = null;
-        }, debounceTime);
-      } else {
-        flushUpdate(updated);
-      }
-      
-      return updated;
-    });
-  }, [flushUpdate]);
+        }
+
+        return updated;
+      });
+    },
+    [flushUpdate],
+  );
 
   const handleSave = useCallback(() => {
     // Clear any pending debounced updates
@@ -196,7 +206,7 @@ export function useTaskCardEditing({
       clearTimeout(pendingUpdateRef.current);
       pendingUpdateRef.current = null;
     }
-    
+
     // Read the current title directly from the DOM if titleRef is available
     // This ensures we get the latest value even if onBlur hasn't fired yet
     const dataToSave = { ...latestDraftRef.current };
@@ -204,21 +214,21 @@ export function useTaskCardEditing({
       const currentTitle = titleRef.current.textContent || "";
       dataToSave.title = currentTitle;
     }
-    
+
     // If title is empty, set it to "Sem título"
     if (!dataToSave.title.trim()) {
       dataToSave.title = "Sem título";
     }
-    
+
     latestDraftRef.current = dataToSave;
     setEditedTask(dataToSave);
-    
+
     // Always flush the latest draft to ensure data is saved
     flushUpdate(dataToSave);
-    
+
     setActivePopover(null);
     setIsEditing(false);
-    
+
     // Always notify parent that editing is finished
     if (onFinishEditing) {
       onFinishEditing(id);
@@ -228,31 +238,31 @@ export function useTaskCardEditing({
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      
+
       const path = event.composedPath();
       const isPortal = path.some((element) => {
         if (element instanceof HTMLElement) {
           return (
-            element.hasAttribute('data-radix-portal') ||
-            element.hasAttribute('data-popover-portal') ||
-            element.getAttribute('role') === 'dialog' ||
-            element.getAttribute('role') === 'listbox' ||
-            element.getAttribute('role') === 'menu' ||
-            element.classList.contains('date-input-calendar-popover') ||
-            element.hasAttribute('data-radix-popper-content-wrapper') || 
-            element.classList.contains('rdp')
+            element.hasAttribute("data-radix-portal") ||
+            element.hasAttribute("data-popover-portal") ||
+            element.getAttribute("role") === "dialog" ||
+            element.getAttribute("role") === "listbox" ||
+            element.getAttribute("role") === "menu" ||
+            element.classList.contains("date-input-calendar-popover") ||
+            element.hasAttribute("data-radix-popper-content-wrapper") ||
+            element.classList.contains("rdp")
           );
         }
         return false;
       });
-      
+
       if (isEditing && cardRef.current && !cardRef.current.contains(target) && !isPortal) {
         activateCooldown();
-        
+
         event.preventDefault();
         event.stopPropagation();
         event.stopImmediatePropagation();
-        
+
         handleSave();
       }
     };
@@ -275,21 +285,24 @@ export function useTaskCardEditing({
     };
   }, []);
 
-  const handleTitleEdit = useCallback((e: React.FocusEvent<HTMLDivElement>) => {
-    const newTitle = e.currentTarget.textContent || "";
-    if (newTitle !== editedTask.title) {
-      handleUpdate("title", newTitle);
-    }
-  }, [editedTask.title, handleUpdate]);
+  const handleTitleEdit = useCallback(
+    (e: React.FocusEvent<HTMLDivElement>) => {
+      const newTitle = e.currentTarget.textContent || "";
+      if (newTitle !== editedTask.title) {
+        handleUpdate("title", newTitle);
+      }
+    },
+    [editedTask.title, handleUpdate],
+  );
 
   const handleEditClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
       clickTimeoutRef.current = null;
     }
-    
+
     setIsEditing(true);
   }, []);
 
@@ -302,9 +315,9 @@ export function useTaskCardEditing({
     return globalJustClosedEditRef.current;
   }, []);
 
-  const stableAssignees = useMemo(() => 
-    [...editedTask.assignees], 
-    [editedTask.assignees.join(',')]
+  const stableAssignees = useMemo(
+    () => [...editedTask.assignees],
+    [editedTask.assignees.join(",")],
   );
 
   return {

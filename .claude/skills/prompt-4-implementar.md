@@ -1,22 +1,25 @@
 # Skill: Implementar Mock Aprovado
 
 ## Objetivo
+
 Transformar um mock aprovado em implementação funcional completa, conectando com a API backend, state management e funcionalidades reais.
 
 ## Contexto Importante
 
 ### Stack de Implementação
-| Aspecto | Tecnologia |
-|---------|------------|
-| API | Express REST API (`server/routes.ts`) |
-| Auth | Clerk (`<SignedIn>`, `useAuth()`, `useUser()`) |
-| State | TanStack Query (`useQuery`, `useMutation`) + React Context |
-| Toast | `useToast()` de `@/shared/hooks/use-toast` |
-| Loading | `Skeleton` de `@/shared/components/ui/skeleton` |
-| Confirmação | `AlertDialog` de `@/shared/components/ui/alert-dialog` |
-| Formulários | React Hook Form + Zod (via `@/shared/components/ui/form`) |
+
+| Aspecto     | Tecnologia                                                 |
+| ----------- | ---------------------------------------------------------- |
+| API         | Express REST API (`server/routes.ts`)                      |
+| Auth        | Clerk (`<SignedIn>`, `useAuth()`, `useUser()`)             |
+| State       | TanStack Query (`useQuery`, `useMutation`) + React Context |
+| Toast       | `useToast()` de `@/shared/hooks/use-toast`                 |
+| Loading     | `Skeleton` de `@/shared/components/ui/skeleton`            |
+| Confirmação | `AlertDialog` de `@/shared/components/ui/alert-dialog`     |
+| Formulários | React Hook Form + Zod (via `@/shared/components/ui/form`)  |
 
 ### Paths do Projeto
+
 - **Hooks:** `client/src/features/[nome]/hooks/`
 - **Contextos:** `client/src/features/[nome]/contexts/`
 - **Componentes:** `client/src/features/[nome]/components/`
@@ -28,6 +31,7 @@ Transformar um mock aprovado em implementação funcional completa, conectando c
 ## Passo a Passo
 
 ### 1. Analisar o Mock
+
 - Identificar todos os `// TODO:` no mock
 - Listar quais endpoints de API são necessários
 - Identificar estados: loading, error, empty, success
@@ -38,6 +42,7 @@ Transformar um mock aprovado em implementação funcional completa, conectando c
 **Arquivo:** `server/routes.ts`
 
 Verificar se os endpoints necessários já existem. Se não:
+
 ```ts
 // GET - Listar
 app.get("/api/[recurso]", async (req, res) => { ... });
@@ -60,6 +65,7 @@ app.delete("/api/[recurso]/:id", async (req, res) => { ... });
 **Diretório:** `client/src/features/[nome]/hooks/`
 
 #### Hook de Query (leitura):
+
 ```ts
 import { useQuery } from "@tanstack/react-query";
 
@@ -76,6 +82,7 @@ export function use[Recurso]() {
 ```
 
 #### Hook de Mutation (escrita):
+
 ```ts
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -187,23 +194,21 @@ import {
 
 <AlertDialog>
   <AlertDialogTrigger asChild>
-    <Button variant="destructive" size="sm">Excluir</Button>
+    <Button variant="destructive" size="sm">
+      Excluir
+    </Button>
   </AlertDialogTrigger>
   <AlertDialogContent>
     <AlertDialogHeader>
       <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-      <AlertDialogDescription>
-        Esta ação não pode ser desfeita. Tem certeza?
-      </AlertDialogDescription>
+      <AlertDialogDescription>Esta ação não pode ser desfeita. Tem certeza?</AlertDialogDescription>
     </AlertDialogHeader>
     <AlertDialogFooter>
       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-      <AlertDialogAction onClick={handleDelete}>
-        Excluir
-      </AlertDialogAction>
+      <AlertDialogAction onClick={handleDelete}>Excluir</AlertDialogAction>
     </AlertDialogFooter>
   </AlertDialogContent>
-</AlertDialog>
+</AlertDialog>;
 ```
 
 ### 7. Criar Contexto (se necessário)
@@ -211,6 +216,7 @@ import {
 **Arquivo:** `client/src/features/[nome]/contexts/[Nome]Context.tsx`
 
 Criar contexto apenas se múltiplos componentes precisam compartilhar estado:
+
 ```tsx
 import { createContext, useContext, ReactNode } from "react";
 
@@ -239,6 +245,7 @@ export function use[Nome]Context() {
 ### 8. Substituir Dados Mock
 
 Localizar todos os `// TODO:` no mock e:
+
 1. Remover arrays/objetos de dados fake
 2. Substituir por chamadas `useQuery`
 3. Adicionar loading states (`Skeleton`)
@@ -249,12 +256,14 @@ Localizar todos os `// TODO:` no mock e:
 ### 9. Padrão Completo de CRUD
 
 Para cada operação:
+
 - **Create:** Dialog/Sheet com formulário → `useMutation` → toast sucesso → invalidate queries
 - **Read:** `useQuery` → loading skeleton → error alert → empty state → dados
 - **Update:** Dialog/inline edit → `useMutation` → toast sucesso → invalidate queries
 - **Delete:** `AlertDialog` confirmação → `useMutation` → toast sucesso → invalidate queries
 
 ## Resultado Esperado
+
 - Mock transformado em implementação funcional
 - Conexão real com API backend
 - Loading states em todas as operações assíncronas
@@ -263,6 +272,7 @@ Para cada operação:
 - Cache invalidation correta via TanStack Query
 
 ## Checklist de Verificação
+
 - [ ] Todos os `// TODO:` do mock resolvidos
 - [ ] Endpoints API criados/verificados em `server/routes.ts`
 - [ ] Hooks com TanStack Query em `features/[nome]/hooks/`

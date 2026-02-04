@@ -1,5 +1,11 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/shared/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/shared/components/ui/dialog";
 import { Button } from "@/shared/components/ui/button";
 import { Slider } from "@/shared/components/ui/slider";
 import { Loader2, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
@@ -15,7 +21,13 @@ interface ImageCropModalProps {
 const CROP_SIZE = 200;
 const OUTPUT_SIZE = 200;
 
-export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploading = false }: ImageCropModalProps) {
+export function ImageCropModal({
+  open,
+  onClose,
+  imageFile,
+  onConfirm,
+  isUploading = false,
+}: ImageCropModalProps) {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [zoom, setZoom] = useState(1);
   const [position, setPosition] = useState({ x: 0, y: 0 });
@@ -38,7 +50,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
       img.onload = () => {
         imageRef.current = img;
         setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight });
-        
+
         const minDim = Math.min(img.naturalWidth, img.naturalHeight);
         const initialZoom = CROP_SIZE / minDim;
         setZoom(Math.max(initialZoom, 0.5));
@@ -56,13 +68,16 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
     setDragStart({ x: e.clientX - position.x, y: e.clientY - position.y });
   };
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging) return;
-    setPosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
-  }, [isDragging, dragStart]);
+  const handleMouseMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (!isDragging) return;
+      setPosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    },
+    [isDragging, dragStart],
+  );
 
   const handleMouseUp = () => {
     setIsDragging(false);
@@ -74,14 +89,17 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
     setDragStart({ x: touch.clientX - position.x, y: touch.clientY - position.y });
   };
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const touch = e.touches[0];
-    setPosition({
-      x: touch.clientX - dragStart.x,
-      y: touch.clientY - dragStart.y,
-    });
-  }, [isDragging, dragStart]);
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isDragging) return;
+      const touch = e.touches[0];
+      setPosition({
+        x: touch.clientX - dragStart.x,
+        y: touch.clientY - dragStart.y,
+      });
+    },
+    [isDragging, dragStart],
+  );
 
   const handleTouchEnd = () => {
     setIsDragging(false);
@@ -132,15 +150,19 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
       imgX * scaleRatio,
       imgY * scaleRatio,
       scaledWidth * scaleRatio,
-      scaledHeight * scaleRatio
+      scaledHeight * scaleRatio,
     );
 
-    canvas.toBlob((blob) => {
-      if (blob) {
-        const file = new File([blob], "profile-photo.png", { type: "image/png" });
-        onConfirm(file);
-      }
-    }, "image/png", 0.95);
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          const file = new File([blob], "profile-photo.png", { type: "image/png" });
+          onConfirm(file);
+        }
+      },
+      "image/png",
+      0.95,
+    );
   };
 
   const scaledWidth = naturalSize.width * zoom;
@@ -155,7 +177,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
 
         <div className="flex flex-col items-center gap-4 py-4">
           <div
-            className="relative overflow-hidden rounded-full bg-muted cursor-move"
+            className="relative cursor-move overflow-hidden rounded-full bg-muted"
             style={{ width: CROP_SIZE, height: CROP_SIZE }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -169,7 +191,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
               <img
                 src={imageUrl}
                 alt="Preview"
-                className="absolute select-none pointer-events-none"
+                className="pointer-events-none absolute select-none"
                 style={{
                   width: scaledWidth,
                   height: scaledHeight,
@@ -183,12 +205,10 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
             )}
           </div>
 
-          <p className="text-sm text-muted-foreground">
-            Arraste para posicionar a imagem
-          </p>
+          <p className="text-sm text-muted-foreground">Arraste para posicionar a imagem</p>
 
-          <div className="flex items-center gap-3 w-full max-w-xs">
-            <ZoomOut className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+          <div className="flex w-full max-w-xs items-center gap-3">
+            <ZoomOut className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
             <Slider
               value={[zoom]}
               onValueChange={([value]) => setZoom(value)}
@@ -198,7 +218,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
               className="flex-1"
               data-testid="slider-zoom"
             />
-            <ZoomIn className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+            <ZoomIn className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
           </div>
 
           <Button
@@ -208,7 +228,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
             className="text-muted-foreground"
             data-testid="button-reset-position"
           >
-            <RotateCcw className="w-4 h-4 mr-2" />
+            <RotateCcw className="mr-2 h-4 w-4" />
             Resetar posição
           </Button>
         </div>
@@ -231,7 +251,7 @@ export function ImageCropModal({ open, onClose, imageFile, onConfirm, isUploadin
           >
             {isUploading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Salvando...
               </>
             ) : (

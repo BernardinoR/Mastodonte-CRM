@@ -8,28 +8,28 @@ interface DisabledStatCardProps {
 
 export function DisabledStatCard({ title }: DisabledStatCardProps) {
   return (
-    <Card 
-      className="p-4 bg-[#202020] border-[#333333] opacity-60"
-      data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, '-')}-disabled`}
+    <Card
+      className="border-[#333333] bg-[#202020] p-4 opacity-60"
+      data-testid={`card-stat-${title.toLowerCase().replace(/\s+/g, "-")}-disabled`}
     >
-      <div 
-        className="text-2xl font-bold text-muted-foreground" 
-        data-testid={`text-stat-value-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      <div
+        className="text-2xl font-bold text-muted-foreground"
+        data-testid={`text-stat-value-${title.toLowerCase().replace(/\s+/g, "-")}`}
       >
         —
       </div>
-      <div 
-        className="text-xs text-muted-foreground mt-1" 
-        data-testid={`text-stat-label-${title.toLowerCase().replace(/\s+/g, '-')}`}
+      <div
+        className="mt-1 text-xs text-muted-foreground"
+        data-testid={`text-stat-label-${title.toLowerCase().replace(/\s+/g, "-")}`}
       >
         {title}
       </div>
       <div className="mt-2">
-        <Badge 
-          variant="secondary" 
-          className="bg-[#333333] text-muted-foreground text-[10px] px-1.5 py-0.5"
+        <Badge
+          variant="secondary"
+          className="bg-[#333333] px-1.5 py-0.5 text-[10px] text-muted-foreground"
         >
-          <Lock className="w-2.5 h-2.5 mr-1" />
+          <Lock className="mr-1 h-2.5 w-2.5" />
           Indisponível
         </Badge>
       </div>

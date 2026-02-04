@@ -19,12 +19,17 @@ import {
   PenLine,
 } from "lucide-react";
 import { parseLocalDate } from "@/shared/lib/date-utils";
-import { 
+import {
   ContextMenuClientEditor,
   ContextMenuDateEditor,
-  ContextMenuAssigneeEditor
+  ContextMenuAssigneeEditor,
 } from "./task-editors";
-import { PriorityBadge, StatusBadge, PRIORITY_OPTIONS, STATUS_OPTIONS } from "@/shared/components/ui/task-badges";
+import {
+  PriorityBadge,
+  StatusBadge,
+  PRIORITY_OPTIONS,
+  STATUS_OPTIONS,
+} from "@/shared/components/ui/task-badges";
 import type { TaskStatus, TaskPriority } from "../types/task";
 import { useClients } from "@features/clients";
 
@@ -62,20 +67,23 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
   onDelete,
 }: TaskCardContextMenuProps) {
   const { clients } = useClients();
-  
-  const handleClientSelectWrapper = useCallback((clientName: string) => {
-    if (clientName === "_none") {
-      onClientChange("_none", "");
-    } else {
-      const client = clients.find(c => c.name === clientName);
-      if (client) {
-        onClientChange(client.id, client.name);
+
+  const handleClientSelectWrapper = useCallback(
+    (clientName: string) => {
+      if (clientName === "_none") {
+        onClientChange("_none", "");
+      } else {
+        const client = clients.find((c) => c.name === clientName);
+        if (client) {
+          onClientChange(client.id, client.name);
+        }
       }
-    }
-  }, [clients, onClientChange]);
-  
+    },
+    [clients, onClientChange],
+  );
+
   return (
-    <ContextMenuContent className="w-56 bg-[#1a1a1a] border-[#2a2a2a]">
+    <ContextMenuContent className="w-56 border-[#2a2a2a] bg-[#1a1a1a]">
       {selectedCount > 1 && (
         <>
           <div className="px-2 py-1.5 text-xs font-medium text-muted-foreground">
@@ -84,51 +92,45 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <ContextMenuSeparator className="bg-[#2a2a2a]" />
         </>
       )}
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <Type className="w-4 h-4" />
+          <Type className="h-4 w-4" />
           <span>Título</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
-          <ContextMenuItem 
-            onClick={onShowReplaceTitleDialog} 
-            className="flex items-center gap-2"
-          >
-            <Pencil className="w-4 h-4" />
+        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
+          <ContextMenuItem onClick={onShowReplaceTitleDialog} className="flex items-center gap-2">
+            <Pencil className="h-4 w-4" />
             <span>Substituir nome</span>
           </ContextMenuItem>
-          <ContextMenuItem 
-            onClick={onShowAppendTitleDialog} 
-            className="flex items-center gap-2"
-          >
-            <PenLine className="w-4 h-4" />
+          <ContextMenuItem onClick={onShowAppendTitleDialog} className="flex items-center gap-2">
+            <PenLine className="h-4 w-4" />
             <span>Adicionar ao final</span>
           </ContextMenuItem>
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <CalendarIcon className="w-4 h-4" />
+          <CalendarIcon className="h-4 w-4" />
           <span>Data</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent 
-          className="bg-[#1a1a1a] border-[#2a2a2a] p-0"
+        <ContextMenuSubContent
+          className="border-[#2a2a2a] bg-[#1a1a1a] p-0"
           onPointerDownOutside={(e) => {
             const target = e.target as HTMLElement;
-            if (target.closest('[data-calendar-container]')) {
+            if (target.closest("[data-calendar-container]")) {
               e.preventDefault();
             }
           }}
           onInteractOutside={(e) => {
             const target = e.target as HTMLElement;
-            if (target.closest('[data-calendar-container]')) {
+            if (target.closest("[data-calendar-container]")) {
               e.preventDefault();
             }
           }}
         >
-          <ContextMenuDateEditor 
+          <ContextMenuDateEditor
             currentDate={currentDate}
             isBulk={selectedCount > 1}
             onSelect={(dateString) => {
@@ -137,31 +139,31 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           />
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <Briefcase className="w-4 h-4" />
+          <Briefcase className="h-4 w-4" />
           <span>Cliente</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-          <ContextMenuClientEditor 
+        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a] p-0">
+          <ContextMenuClientEditor
             currentClient={currentClient || null}
             isBulk={selectedCount > 1}
             onSelect={handleClientSelectWrapper}
           />
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4" />
+          <AlertTriangle className="h-4 w-4" />
           <span>Prioridade</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
           {PRIORITY_OPTIONS.map((priority) => (
-            <ContextMenuItem 
+            <ContextMenuItem
               key={priority}
-              onClick={() => onPriorityChange(priority)} 
+              onClick={() => onPriorityChange(priority)}
               className="flex items-center gap-2"
             >
               <PriorityBadge priority={priority} />
@@ -169,17 +171,17 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <Circle className="w-4 h-4" />
+          <Circle className="h-4 w-4" />
           <span>Status</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a]">
+        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a]">
           {STATUS_OPTIONS.map((status) => (
-            <ContextMenuItem 
+            <ContextMenuItem
               key={status}
-              onClick={() => onStatusChange(status)} 
+              onClick={() => onStatusChange(status)}
               className="flex items-center gap-2"
             >
               <StatusBadge status={status} />
@@ -187,14 +189,14 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           ))}
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSub>
         <ContextMenuSubTrigger className="flex items-center gap-2">
-          <Users className="w-4 h-4" />
+          <Users className="h-4 w-4" />
           <span>Responsável</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="bg-[#1a1a1a] border-[#2a2a2a] p-0">
-          <ContextMenuAssigneeEditor 
+        <ContextMenuSubContent className="border-[#2a2a2a] bg-[#1a1a1a] p-0">
+          <ContextMenuAssigneeEditor
             currentAssignees={currentAssignees || []}
             isBulk={selectedCount > 1}
             onAdd={onAddAssignee}
@@ -203,13 +205,13 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           />
         </ContextMenuSubContent>
       </ContextMenuSub>
-      
+
       <ContextMenuSeparator className="bg-[#2a2a2a]" />
-      <ContextMenuItem 
-        onClick={onDelete} 
+      <ContextMenuItem
+        onClick={onDelete}
         className="flex items-center gap-2 text-destructive focus:text-destructive"
       >
-        <Trash2 className="w-4 h-4" />
+        <Trash2 className="h-4 w-4" />
         <span>Excluir</span>
       </ContextMenuItem>
     </ContextMenuContent>

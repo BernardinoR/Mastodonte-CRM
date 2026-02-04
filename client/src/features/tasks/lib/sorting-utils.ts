@@ -9,7 +9,7 @@ import type { TaskPriority } from "../types/task";
  * Ordena tasks por data (mais recente primeiro) e depois por prioridade (Urgente primeiro)
  */
 export function sortTasksByDateAndPriority<T extends { dueDate: Date | string; priority?: string }>(
-  tasks: T[]
+  tasks: T[],
 ): T[] {
   return [...tasks].sort((a, b) => {
     // Data mais recente primeiro
@@ -23,4 +23,3 @@ export function sortTasksByDateAndPriority<T extends { dueDate: Date | string; p
     return priorityA - priorityB;
   });
 }
-
