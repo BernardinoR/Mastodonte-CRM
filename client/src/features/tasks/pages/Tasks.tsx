@@ -554,6 +554,8 @@ export default function Tasks() {
         onCompactModeChange={setIsCompact}
       />
 
+      <div className="mb-6 border-b border-[#333333]" />
+
       {viewMode === "table" ? (
         <TaskTableView
           tasks={filteredTasks}
@@ -582,7 +584,7 @@ export default function Tasks() {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
-          <div className="flex items-start gap-6 overflow-x-auto pb-4">
+          <div className="grid max-w-[1280px] grid-cols-1 items-start gap-6 md:grid-cols-2 xl:grid-cols-3">
             <KanbanColumn
               id="To Do"
               title="To Do"

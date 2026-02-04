@@ -1,23 +1,23 @@
 import { useCallback } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { getInitials } from "@/shared/components/ui/task-assignees";
-import { Pencil } from "lucide-react";
+import { Pencil, Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
 import { ClientSelector, AssigneeSelector } from "../task-editors";
-import { PrioritySelector } from "../task-editors";
 import { PRIORITY_CONFIG } from "../../lib/statusConfig";
 import { UI_CLASSES } from "../../lib/statusConfig";
+import { PRIORITY_OPTIONS } from "../../types/task";
 import type { TaskStatus, TaskPriority, TaskType } from "../../types/task";
 
 type PopoverType = "date" | "priority" | "status" | "client" | "assignee" | null;
 
 const PRIORITY_DOT_STYLES: Record<string, string> = {
-  Urgente: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]",
-  Importante: "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]",
-  Normal: "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]",
+  Urgente: "bg-red-500 shadow-[0_0_5px_rgba(239,68,68,0.5)]",
+  Importante: "bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.5)]",
+  Normal: "bg-blue-400",
   Baixa: "bg-gray-500",
 };
 
@@ -101,7 +101,7 @@ export function TaskCardContent({
           <PopoverTrigger asChild>
             <span
               className={cn(
-                "cursor-pointer truncate rounded border px-2 py-0.5 text-[10px] transition-colors",
+                "cursor-pointer truncate rounded border px-2 py-0.5 text-[10px] font-medium transition-colors",
                 clientName
                   ? "border-[#333333] bg-[#2a2a2a] text-gray-400 hover:bg-[#333]"
                   : "border-dashed border-[#444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
@@ -137,7 +137,7 @@ export function TaskCardContent({
             <span
               className={cn(
                 "flex shrink-0 cursor-pointer items-center gap-1 text-[11px] transition-colors hover:text-gray-300",
-                isOverdue ? "text-red-400" : "text-gray-500",
+                isOverdue ? "font-medium text-red-400" : "text-gray-400",
               )}
               onClick={(e) => {
                 e.stopPropagation();
@@ -191,7 +191,12 @@ export function TaskCardContent({
         >
           <PopoverTrigger asChild>
             <div
-              className="flex cursor-pointer items-center gap-1.5 rounded-md px-1 py-0.5 transition-colors hover:bg-gray-700/50"
+              className={cn(
+                "flex cursor-pointer items-center gap-2 transition-colors",
+                activePopover === "priority"
+                  ? "-ml-1 rounded border border-[#333] bg-[#2a2a2a] p-1"
+                  : "",
+              )}
               onClick={(e) => {
                 e.stopPropagation();
                 cancelClickTimeout();
@@ -200,16 +205,49 @@ export function TaskCardContent({
               data-testid={`trigger-priority-${id}`}
             >
               <div className={cn("h-2 w-2 shrink-0 rounded-full", priorityDotStyle)} />
-              <span className="text-[11px] text-gray-400">{priorityLabel}</span>
+              <span
+                className={cn(
+                  "font-jakarta text-[11px] font-medium",
+                  activePopover === "priority" ? "text-gray-300" : "text-gray-400",
+                )}
+              >
+                {priorityLabel}
+              </span>
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className={cn("w-48 p-0", UI_CLASSES.popover)}
+            className="w-40 rounded-lg border border-[#333] bg-[#1a1a1a] p-1 shadow-2xl"
             side="bottom"
             align="start"
             sideOffset={6}
           >
-            <PrioritySelector currentPriority={priority} onSelect={(p) => onPriorityChange(p)} />
+            <div className="flex flex-col">
+              {PRIORITY_OPTIONS.map((option) => {
+                const isSelected = priority === option;
+                const dotStyle = PRIORITY_DOT_STYLES[option] || "bg-gray-500";
+                return (
+                  <button
+                    key={option}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-2 py-1.5 font-jakarta text-xs transition-colors",
+                      isSelected
+                        ? "bg-[#252525] text-white"
+                        : "text-gray-400 hover:bg-[#252525] hover:text-white",
+                    )}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onPriorityChange(option);
+                      setActivePopover(null);
+                    }}
+                    data-testid={`priority-option-${option}`}
+                  >
+                    <div className={cn("h-2 w-2 shrink-0 rounded-full", dotStyle)} />
+                    <span>{option}</span>
+                    {isSelected && <Check className="ml-auto h-3.5 w-3.5 text-primary" />}
+                  </button>
+                );
+              })}
+            </div>
           </PopoverContent>
         </Popover>
 

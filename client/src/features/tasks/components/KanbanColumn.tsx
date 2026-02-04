@@ -52,10 +52,7 @@ export const KanbanColumn = memo(function KanbanColumn({
   );
 
   return (
-    <div
-      ref={setNodeRef}
-      className={cn("flex flex-1 flex-col", isCompact ? "min-w-[200px]" : "min-w-[280px]")}
-    >
+    <div ref={setNodeRef} className="flex h-full flex-col">
       <div
         className={cn(
           "w-full rounded-xl border-l-2 p-4 transition-all duration-200",
@@ -68,9 +65,11 @@ export const KanbanColumn = memo(function KanbanColumn({
       >
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-300">{title}</h3>
+            <span className="text-sm font-bold uppercase tracking-wider text-gray-100">
+              {title}
+            </span>
             <span
-              className="inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-[10px] font-bold"
+              className="flex h-5 min-w-[20px] items-center justify-center rounded px-1.5 font-mono text-xs font-bold"
               style={{
                 backgroundColor: `color-mix(in srgb, ${accentColor} 15%, transparent)`,
                 color: accentColor,

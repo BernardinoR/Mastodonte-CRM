@@ -291,8 +291,13 @@ export const TaskCard = memo(function TaskCard({
               status={status}
               taskType={taskType}
               isEditing={isEditing}
-              titleRef={titleRef}
-              onTitleEdit={handleTitleEdit}
+              editingTitle={editedTask.title}
+              onEditingTitleChange={(value) => setEditedTask((prev) => ({ ...prev, title: value }))}
+              onStartTitleEdit={handleEditClick}
+              onSaveTitleEdit={() => {
+                handleUpdate("title", editedTask.title);
+              }}
+              onTypeChange={(type) => handleUpdate("taskType", type)}
             />
 
             <TaskCardContent
