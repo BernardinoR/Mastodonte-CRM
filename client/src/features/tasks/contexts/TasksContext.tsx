@@ -1,4 +1,4 @@
-import { createContext, useContext, useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { Task, TaskStatus, TaskPriority, TaskHistoryEvent } from "../types/task";
 import { useClients } from "@features/clients";
 import { useUsers } from "@features/users";
@@ -656,26 +656,46 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  const contextValue = useMemo(() => ({
+    tasks,
+    isLoading,
+    error,
+    setTasks,
+    setTasksWithHistory,
+    updateTask,
+    deleteTask,
+    addTask,
+    createTask,
+    createTaskAndReturn,
+    retryTaskSync,
+    getTasksByClient,
+    addTaskHistory,
+    deleteTaskHistory,
+    refetchTasks,
+    undo,
+    canUndo,
+  }), [
+    tasks,
+    isLoading,
+    error,
+    setTasks,
+    setTasksWithHistory,
+    updateTask,
+    deleteTask,
+    addTask,
+    createTask,
+    createTaskAndReturn,
+    retryTaskSync,
+    getTasksByClient,
+    addTaskHistory,
+    deleteTaskHistory,
+    refetchTasks,
+    undo,
+    canUndo,
+  ]);
+
   return (
-    <TasksContext.Provider value={{
-      tasks,
-      isLoading,
-      error,
-      setTasks,
-      setTasksWithHistory,
-      updateTask,
-      deleteTask,
-      addTask,
-      createTask,
-      createTaskAndReturn,
-      retryTaskSync,
-      getTasksByClient,
-      addTaskHistory,
-      deleteTaskHistory,
-      refetchTasks,
-      undo,
-      canUndo,
-    }}>
+    <TasksContext.Provider value={contextValue}>
       {children}
     </TasksContext.Provider>
   );
