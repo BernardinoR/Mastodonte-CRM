@@ -57,7 +57,10 @@
       "Bash(gcloud auth print-access-token:*)",
       "Bash(env)",
       "mcp__stitch__generate_screen_from_text",
-      "mcp__ai-context__skill"
+      "mcp__ai-context__skill",
+      "mcp__n8n-mcp__n8n_list_workflows",
+      "mcp__n8n-mcp__n8n_get_workflow",
+      "mcp__n8n-mcp__n8n_update_partial_workflow"
     ]
   },
   "enableAllProjectMcpServers": true,
@@ -66,6 +69,7 @@
     "supabase",
     "ai-context",
     "prisma-remote",
-    "prisma-local"
+    "prisma-local",
+    "n8n-mcp"
   ]
 }

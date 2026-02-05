@@ -4,6 +4,7 @@
 // Pages
 export { default as Admin } from "./pages/Admin";
 export { default as Profile } from "./pages/Profile";
+export { default as GoogleCallback } from "./pages/GoogleCallback";
 
 // Contexts
 export { UsersProvider, useUsers } from "./contexts/UsersContext";

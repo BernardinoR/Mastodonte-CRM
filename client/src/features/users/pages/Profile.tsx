@@ -33,6 +33,7 @@ import { queryClient } from "@/shared/lib/queryClient";
 import { supabase } from "@/shared/lib/supabase";
 import { useCurrentUser } from "@features/users";
 import { ImageCropModal } from "../components/ImageCropModal";
+import GoogleCalendarCard from "../components/GoogleCalendarCard";
 import type { User as DbUser, Group } from "@shared/types";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -489,6 +490,7 @@ export default function Profile() {
               </div>
             </CardContent>
           </Card>
+          <GoogleCalendarCard />
         </TabsContent>
 
         <TabsContent value="security">

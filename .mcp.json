@@ -22,6 +22,17 @@
     "prisma-local": {
       "command": "npx",
       "args": ["-y", "prisma", "mcp"]
+    },
+    "n8n-mcp": {
+      "command": "npx",
+      "args": ["-y", "n8n-mcp"],
+      "env": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true",
+        "N8N_API_URL": "https://workflows.snowealth.com.br",
+        "N8N_API_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI0NTE4ODUxYi02OWYyLTQzZWMtOTA4OS0zNWE4OWQyOGI1MTciLCJpc3MiOiJuOG4iLCJhdWQiOiJwdWJsaWMtYXBpIiwiaWF0IjoxNzcwMjUxMjc1fQ.jq9FA5w8omOkxj6sVstQFmmd6SVUXXn1QxLPK-Dc6p0"
+      }
     }
   }
 }

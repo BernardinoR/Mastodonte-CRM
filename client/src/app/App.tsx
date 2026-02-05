@@ -17,7 +17,7 @@ import Clients from "@features/clients/pages/Clients";
 import ClientDetails from "@features/clients/pages/ClientDetails";
 // Feature imports
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
-import { UsersProvider, useCurrentUser, Admin, Profile } from "@features/users";
+import { UsersProvider, useCurrentUser, Admin, Profile, GoogleCallback } from "@features/users";
 import { StyleGuides } from "@features/style-guides";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
@@ -31,6 +31,7 @@ function AuthenticatedRouter() {
         <Route path="/tasks" component={Tasks} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
+        <Route path="/google-callback" component={GoogleCallback} />
         <Route path="/style-guides" component={StyleGuides} />
         <Route component={NotFound} />
       </Switch>
