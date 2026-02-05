@@ -172,7 +172,8 @@ function mapUpdatesToDb(updates: Record<string, unknown>): Record<string, unknow
 }
 
 // Supabase select query for clients with relations
-const CLIENT_SELECT = "*, owner:users!owner_id(id, name), whatsapp_groups(*)";
+const CLIENT_SELECT =
+  "*, owner:users!owner_id(id, name), whatsapp_groups(*), meetings(id, title, type, status, date, start_time, end_time, google_event_id, creator:users!creator_id(name))";
 
 // ============================================
 // Context
@@ -260,9 +261,18 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       // Initialize extended data for each client
       const newExtendedData: Record<string, ClientExtendedData> = {};
       for (const row of rows) {
+        const dbMeetings = (row as any).meetings || [];
+        const mappedMeetings: ClientMeeting[] = dbMeetings.map((m: any) => ({
+          id: String(m.id),
+          name: m.title || "",
+          type: m.type || "Prospecção",
+          status: m.status || "Agendada",
+          date: new Date(m.date),
+          assignees: m.creator?.name ? [m.creator.name] : [],
+        }));
         newExtendedData[row.id] = {
           stats: [],
-          meetings: [],
+          meetings: mappedMeetings,
           whatsappGroups: (row.whatsapp_groups || []).map(mapDbWhatsAppGroup),
         };
       }

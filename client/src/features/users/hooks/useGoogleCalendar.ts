@@ -42,7 +42,7 @@ export function useGoogleCalendar(): GoogleCalendarStatus {
       redirect_uri: GOOGLE_REDIRECT_URI,
       response_type: "code",
       scope:
-        "https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.email",
       access_type: "offline",
       prompt: "consent",
       state: clerkId,
