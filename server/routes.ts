@@ -281,6 +281,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update user's Fireflies API key
+  app.put("/api/users/fireflies-key", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      // Only consultors can set Fireflies API key
+      if (!currentUser.roles.includes("consultor")) {
+        return res.status(403).json({ error: "Only consultors can set Fireflies API key" });
+      }
+
+      const { firefliesApiKey } = req.body;
+
+      if (firefliesApiKey !== null && typeof firefliesApiKey !== "string") {
+        return res.status(400).json({ error: "firefliesApiKey must be a string or null" });
+      }
+
+      const updated = await storage.updateUser(currentUser.id, {
+        firefliesApiKey: firefliesApiKey || null,
+      });
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error updating Fireflies API key:", error);
+      return res.status(500).json({ error: "Failed to update Fireflies API key" });
+    }
+  });
+
+  // Test Fireflies API key connectivity
+  app.post("/api/users/fireflies-key/test", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { apiKey } = req.body;
+
+      if (!apiKey || typeof apiKey !== "string") {
+        return res.status(400).json({ error: "API key is required" });
+      }
+
+      // Test the API key by calling Fireflies API
+      const response = await fetch("https://api.fireflies.ai/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          query: `query { user { email } }`,
+        }),
+      });
+
+      if (!response.ok) {
+        return res.json({ valid: false, error: "Invalid API key" });
+      }
+
+      const result = await response.json();
+      if (result.errors) {
+        return res.json({ valid: false, error: result.errors[0]?.message || "API error" });
+      }
+
+      return res.json({ valid: true, email: result.data?.user?.email });
+    } catch (error) {
+      console.error("Error testing Fireflies API key:", error);
+      return res.json({ valid: false, error: "Connection failed" });
+    }
+  });
+
+  // Get meeting with full details (including AI summary data)
+  app.get("/api/meetings/:id/detail", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const meetingId = parseInt(id, 10);
+
+      if (isNaN(meetingId)) {
+        return res.status(400).json({ error: "Invalid meeting ID" });
+      }
+
+      const meeting = await prisma.meeting.findUnique({
+        where: { id: meetingId },
+        include: {
+          client: {
+            select: {
+              id: true,
+              name: true,
+              emails: true,
+            },
+          },
+          creator: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          transcripts: {
+            select: {
+              id: true,
+              firefliesId: true,
+              title: true,
+              date: true,
+              duration: true,
+              participants: true,
+            },
+          },
+        },
+      });
+
+      if (!meeting) {
+        return res.status(404).json({ error: "Meeting not found" });
+      }
+
+      return res.json({ meeting });
+    } catch (error) {
+      console.error("Error fetching meeting detail:", error);
+      return res.status(500).json({ error: "Failed to fetch meeting detail" });
+    }
+  });
+
+  // Get transcript by ID
+  app.get("/api/transcripts/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const transcriptId = parseInt(id, 10);
+
+      if (isNaN(transcriptId)) {
+        return res.status(400).json({ error: "Invalid transcript ID" });
+      }
+
+      const transcript = await prisma.transcript.findUnique({
+        where: { id: transcriptId },
+        include: {
+          meeting: {
+            select: {
+              id: true,
+              title: true,
+              date: true,
+              clientId: true,
+            },
+          },
+        },
+      });
+
+      if (!transcript) {
+        return res.status(404).json({ error: "Transcript not found" });
+      }
+
+      return res.json({ transcript });
+    } catch (error) {
+      console.error("Error fetching transcript:", error);
+      return res.status(500).json({ error: "Failed to fetch transcript" });
+    }
+  });
+
   // Update user's calendar link
   app.patch("/api/users/calendar-link", clerkAuthMiddleware, async (req, res) => {
     try {

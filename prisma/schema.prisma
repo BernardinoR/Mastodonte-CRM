@@ -34,9 +34,10 @@ model User {
   name     String?
   roles    String[] @default(["consultor"])
   groupId  Int?     @map("group_id")
-  isActive     Boolean  @default(true) @map("is_active")
-  calendarLink String?  @map("calendar_link")
-  group        Group?   @relation(fields: [groupId], references: [id])
+  isActive        Boolean  @default(true) @map("is_active")
+  calendarLink    String?  @map("calendar_link")
+  firefliesApiKey String?  @map("fireflies_api_key")
+  group           Group?   @relation(fields: [groupId], references: [id])
 
   // Relações
   clientsOwned      Client[]       @relation("ClientOwner")
@@ -99,24 +100,31 @@ model WhatsAppGroup {
 }
 
 model Meeting {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String?
-  date        DateTime
-  startTime   String?  @map("start_time")
-  endTime     String?  @map("end_time")
-  location    String?
-  type        String   @default("Prospecção")
-  status      String   @default("Agendada")
-  clientId    String   @map("client_id")
-  creatorId   Int?     @map("creator_id")
+  id            Int      @id @default(autoincrement())
+  title         String
+  description   String?
+  date          DateTime
+  startTime     String?  @map("start_time")
+  endTime       String?  @map("end_time")
+  location      String?
+  type          String   @default("Prospecção")
+  status        String   @default("Agendada")
+  clientId      String   @map("client_id")
+  creatorId     Int?     @map("creator_id")
   googleEventId String?  @map("google_event_id")
+  firefliesId   String?  @map("fireflies_id")
+  summary       String?  @db.Text
+  clientContext Json?    @map("client_context")
+  highlights    Json?    @default("[]")
+  agenda        Json?    @default("[]")
+  decisions     Json?    @default("[]")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  client  Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  creator User?  @relation("MeetingCreator", fields: [creatorId], references: [id])
-  tasks   Task[]
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  creator     User?        @relation("MeetingCreator", fields: [creatorId], references: [id])
+  tasks       Task[]
+  transcripts Transcript[]
 
   @@map("meetings")
 }
@@ -170,4 +178,25 @@ model TaskHistory {
   author User? @relation("TaskHistoryAuthor", fields: [authorId], references: [id])
 
   @@map("task_history")
+}
+
+// ============================================
+// TRANSCRIÇÕES (Fireflies.ai)
+// ============================================
+
+model Transcript {
+  id           Int       @id @default(autoincrement())
+  firefliesId  String    @unique @map("fireflies_id")
+  meetingId    Int?      @map("meeting_id")
+  title        String
+  date         DateTime
+  duration     Int?      // minutos
+  participants String[]  @default([])
+  sentences    Json      @default("[]") // [{speaker_name, text, start_time}]
+  rawContent   String?   @db.Text @map("raw_content")
+  processedAt  DateTime  @default(now()) @map("processed_at")
+
+  meeting Meeting? @relation(fields: [meetingId], references: [id])
+
+  @@map("transcripts")
 }

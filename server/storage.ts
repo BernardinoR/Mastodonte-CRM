@@ -10,6 +10,7 @@ export type InsertUser = {
   groupId?: number | null;
   isActive?: boolean;
   calendarLink?: string | null;
+  firefliesApiKey?: string | null;
 };
 
 export interface IStorage {

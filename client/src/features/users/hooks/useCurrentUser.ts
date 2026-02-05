@@ -12,6 +12,7 @@ export interface CurrentUser {
   groupId: number | null;
   isActive: boolean;
   calendarLink: string | null;
+  firefliesApiKey: string | null;
 }
 
 export function useCurrentUser() {

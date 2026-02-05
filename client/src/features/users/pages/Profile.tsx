@@ -34,6 +34,7 @@ import { supabase } from "@/shared/lib/supabase";
 import { useCurrentUser } from "@features/users";
 import { ImageCropModal } from "../components/ImageCropModal";
 import GoogleCalendarCard from "../components/GoogleCalendarCard";
+import FirefliesIntegrationCard from "../components/FirefliesIntegrationCard";
 import type { User as DbUser, Group } from "@shared/types";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -107,6 +108,7 @@ export default function Profile() {
         groupId: r.group_id as number | null,
         isActive: (r.is_active as boolean) ?? true,
         calendarLink: (r.calendar_link as string) || null,
+        firefliesApiKey: (r.fireflies_api_key as string) || null,
       }));
 
       return { group, members };
@@ -491,6 +493,7 @@ export default function Profile() {
             </CardContent>
           </Card>
           <GoogleCalendarCard />
+          <FirefliesIntegrationCard />
         </TabsContent>
 
         <TabsContent value="security">
