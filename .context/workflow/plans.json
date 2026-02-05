@@ -1,14 +1,4 @@
 {
-  "active": [
-    {
-      "slug": "optimize-client-task-creation",
-      "path": "plans/optimize-client-task-creation.md",
-      "title": "Migrar CRUD para Supabase Direto - Eliminar Delay de Express",
-      "summary": "O banco ja esta no Supabase. O Express adiciona ~150-250ms de overhead em 84% das rotas que sao CRUD puro. Migrar essas rotas para chamadas diretas do browser ao Supabase via RLS elimina esse overhead.",
-      "linkedAt": "2026-02-01T22:15:01.275Z",
-      "status": "active"
-    }
-  ],
-  "completed": [],
-  "primary": "optimize-client-task-creation"
+  "active": [],
+  "completed": []
 }

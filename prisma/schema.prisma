@@ -110,8 +110,9 @@ model Meeting {
   status      String   @default("Agendada")
   clientId    String   @map("client_id")
   creatorId   Int?     @map("creator_id")
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  googleEventId String?  @map("google_event_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   client  Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
   creator User?  @relation("MeetingCreator", fields: [creatorId], references: [id])
