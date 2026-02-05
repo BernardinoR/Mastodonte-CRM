@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { useAuth } from "@clerk/clerk-react";
-import { Loader2, Check, X, ExternalLink, Eye, EyeOff, Mic2 } from "lucide-react";
+import { Loader2, Check, X, ExternalLink, Eye, EyeOff, Mic2, Webhook, Copy } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
@@ -249,6 +249,40 @@ export default function FirefliesIntegrationCard() {
               </div>
             )}
           </div>
+
+          {hasApiKey && !editing && (
+            <div className="rounded-lg border border-dashed border-border bg-muted/30 p-4">
+              <div className="mb-2 flex items-center gap-2">
+                <Webhook className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Webhook URL</span>
+              </div>
+              <p className="mb-2 text-xs text-muted-foreground">
+                Configure este webhook no Fireflies para receber transcricoes automaticamente:
+              </p>
+              <div className="flex items-center gap-2">
+                <Input
+                  readOnly
+                  value="https://webhooks.snowealth.com.br/webhook/fireflies-transcript"
+                  className="font-mono text-xs"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      "https://webhooks.snowealth.com.br/webhook/fireflies-transcript",
+                    );
+                    toast({ title: "URL copiada!" });
+                  }}
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="mt-2 text-xs text-muted-foreground">
+                No Fireflies: Settings → Integrations → Webhooks → Add Webhook
+              </p>
+            </div>
+          )}
 
           <div className="rounded-lg border border-dashed p-3">
             <p className="text-xs text-muted-foreground">

@@ -197,17 +197,25 @@ export function ClientMeetings({
     return sortBy(searchFilter.filteredItems, ...sortFields);
   }, [searchFilter.filteredItems]);
 
-  const handleMeetingClick = (meeting: Meeting) => {
-    // Try to get stored detailed data first
-    const storedDetail = getMeetingDetail(clientId, meeting.id);
+  const handleMeetingClick = async (meeting: Meeting) => {
+    // Try to fetch detailed data from the API
+    const detail = await getMeetingDetail(clientId, meeting.id);
 
-    if (storedDetail) {
-      setSelectedMeeting(storedDetail);
+    if (detail) {
+      setSelectedMeeting(detail);
       setDetailModalOpen(true);
       return;
     }
 
-    // Fallback: Create MeetingDetail from basic meeting data
+    // Fallback: Create basic MeetingDetail from meeting data (for meetings without AI summary)
+    const getInitials = (name: string): string =>
+      name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
     const meetingDetail: MeetingDetail = {
       id: meeting.id,
       name: meeting.name,
@@ -215,133 +223,38 @@ export function ClientMeetings({
       status: meeting.status as "Agendada" | "Realizada" | "Cancelada",
       date: meeting.date,
       startTime: "10:00",
-      endTime: "11:15",
-      duration: "1h 15min",
+      endTime: "11:00",
+      duration: "1h",
       location: "Google Meet",
       assignees: meeting.assignees,
       responsible: {
-        name: meeting.assignees[0] || "Rafael",
-        initials:
-          meeting.assignees[0]
-            ?.split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase() || "RF",
+        name: meeting.assignees[0] || "Consultor",
+        initials: getInitials(meeting.assignees[0] || "Consultor"),
       },
       clientName: clientName,
-      summary: `Foi discutida a <strong>situação financeira</strong> e as prioridades do cliente, além de revisar o desempenho das <strong>carteiras de investimento</strong> e as estratégias de realocação.`,
-      clientContext: {
-        points: [
-          {
-            id: "1",
-            icon: "AlertCircle",
-            text: "Acompanhamento regular de investimentos e planejamento financeiro.",
-          },
-          {
-            id: "2",
-            icon: "Plane",
-            text: "Cliente valoriza flexibilidade e praticidade nas transações.",
-          },
-        ],
-      },
-      highlights: [
-        { id: "1", icon: "Building", text: "Revisão de carteira", type: "normal" },
-        { id: "2", icon: "Plane", text: "Planejamento", type: "normal" },
-      ],
-      agenda: [
-        {
-          id: "1",
-          number: 1,
-          title: "Revisão de Carteira de Investimentos",
-          status: "discussed",
-          subitems: [
-            {
-              id: "1-1",
-              title: "Análise de performance",
-              description: "Revisão do desempenho atual das carteiras e rentabilidade no período.",
-            },
-            {
-              id: "1-2",
-              title: "Estratégias de realocação",
-              description:
-                "Discussão sobre oportunidades de realocação para melhorar rentabilidade.",
-            },
-          ],
-        },
-        {
-          id: "2",
-          number: 2,
-          title: "Planejamento Financeiro",
-          status: "discussed",
-          subitems: [
-            {
-              id: "2-1",
-              title: "Objetivos de curto prazo",
-              description: "Definição de metas para os próximos 6 meses.",
-            },
-          ],
-        },
-      ],
-      decisions: [
-        {
-          id: "1",
-          content: "Revisão mensal de <strong>performance das carteiras</strong> será mantida",
-          type: "normal",
-        },
-        {
-          id: "2",
-          content:
-            "Avaliar novas <strong>oportunidades de investimento</strong> no próximo encontro",
-          type: "normal",
-        },
-      ],
-      linkedTasks: [
-        {
-          id: "1",
-          title: "Preparar relatório mensal de performance",
-          dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          assignee: meeting.assignees[0] || "Rafael",
-          priority: "Normal",
-          completed: false,
-        },
-      ],
+      summary: "",
+      clientContext: { points: [] },
+      highlights: [],
+      agenda: [],
+      decisions: [],
+      linkedTasks: [],
       participants: [
         {
           id: "1",
           name: clientName,
           role: "Cliente",
           avatarColor: "#a78bfa",
-          initials: clientName
-            .split(" ")
-            .map((n) => n[0])
-            .join("")
-            .slice(0, 2)
-            .toUpperCase(),
+          initials: getInitials(clientName),
         },
         {
           id: "2",
-          name: meeting.assignees[0] || "Rafael",
+          name: meeting.assignees[0] || "Consultor",
           role: "Consultor de Investimentos",
           avatarColor: "#2563eb",
-          initials:
-            meeting.assignees[0]
-              ?.split(" ")
-              .map((n) => n[0])
-              .join("")
-              .slice(0, 2)
-              .toUpperCase() || "RF",
+          initials: getInitials(meeting.assignees[0] || "Consultor"),
         },
       ],
-      attachments: [
-        {
-          id: "1",
-          name: "Relatório_Carteira.pdf",
-          type: "pdf",
-          size: "2.4 MB",
-          addedAt: meeting.date,
-        },
-      ],
+      attachments: [],
     };
 
     setSelectedMeeting(meetingDetail);

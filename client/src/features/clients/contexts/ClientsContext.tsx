@@ -16,10 +16,16 @@ import type {
   Address,
 } from "@features/clients";
 import type { ClientStatus } from "@features/tasks/lib/statusConfig";
-import type { MeetingDetail } from "@features/meetings";
+import type {
+  MeetingDetail,
+  MeetingAgendaItem,
+  MeetingDecision,
+  MeetingHighlight,
+  MeetingClientContext,
+} from "@features/meetings";
 import { useUsers } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
-import { MEETING_DETAILS_DATA, type ClientExtendedData } from "@/shared/mocks/clientsMock";
+import { type ClientExtendedData } from "@/shared/mocks/clientsMock";
 import type { ClientImportRow } from "../lib/clientImportExport";
 
 // ============================================
@@ -175,6 +181,77 @@ function mapUpdatesToDb(updates: Record<string, unknown>): Record<string, unknow
 const CLIENT_SELECT =
   "*, owner:users!owner_id(id, name), whatsapp_groups(*), meetings(id, title, type, status, date, start_time, end_time, google_event_id, creator:users!creator_id(name))";
 
+// Transform API meeting response to MeetingDetail format
+function transformApiMeetingToDetail(apiMeeting: any): MeetingDetail {
+  const startTime = apiMeeting.startTime || apiMeeting.start_time || "10:00";
+  const endTime = apiMeeting.endTime || apiMeeting.end_time || "11:00";
+  const creatorName = apiMeeting.creator?.name || "Consultor";
+  const clientName = apiMeeting.client?.name || "";
+
+  // Calculate duration from start/end times
+  const calculateDuration = (start: string, end: string): string => {
+    const [startH, startM] = start.split(":").map(Number);
+    const [endH, endM] = end.split(":").map(Number);
+    const totalMinutes = endH * 60 + endM - (startH * 60 + startM);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours > 0 && minutes > 0) return `${hours}h ${minutes}min`;
+    if (hours > 0) return `${hours}h`;
+    return `${minutes}min`;
+  };
+
+  const getInitials = (name: string): string => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+  };
+
+  return {
+    id: String(apiMeeting.id),
+    name: apiMeeting.title || "",
+    type: apiMeeting.type || "Reunião Mensal",
+    status: apiMeeting.status || "Agendada",
+    date: new Date(apiMeeting.date),
+    startTime,
+    endTime,
+    duration: calculateDuration(startTime, endTime),
+    location: apiMeeting.location || "Google Meet",
+    assignees: [creatorName],
+    responsible: {
+      name: creatorName,
+      initials: getInitials(creatorName),
+    },
+    clientName,
+    summary: apiMeeting.summary || "",
+    clientContext: (apiMeeting.clientContext ||
+      apiMeeting.client_context || { points: [] }) as MeetingClientContext,
+    highlights: (apiMeeting.highlights || []) as MeetingHighlight[],
+    agenda: (apiMeeting.agenda || []) as MeetingAgendaItem[],
+    decisions: (apiMeeting.decisions || []) as MeetingDecision[],
+    linkedTasks: [],
+    participants: [
+      {
+        id: "1",
+        name: clientName,
+        role: "Cliente",
+        avatarColor: "#a78bfa",
+        initials: getInitials(clientName),
+      },
+      {
+        id: "2",
+        name: creatorName,
+        role: "Consultor de Investimentos",
+        avatarColor: "#2563eb",
+        initials: getInitials(creatorName),
+      },
+    ],
+    attachments: [],
+  };
+}
+
 // ============================================
 // Context
 // ============================================
@@ -188,7 +265,7 @@ interface ClientsContextType {
   getClientByName: (name: string) => Client | undefined;
   getFullClientData: (id: string) => ClientFullData | undefined;
   getAllClients: () => Client[];
-  getMeetingDetail: (clientId: string, meetingId: string) => MeetingDetail | undefined;
+  getMeetingDetail: (clientId: string, meetingId: string) => Promise<MeetingDetail | undefined>;
   addClient: (clientData: {
     name: string;
     email: string;
@@ -336,9 +413,26 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   }, [clients]);
 
   const getMeetingDetail = useCallback(
-    (clientId: string, meetingId: string): MeetingDetail | undefined => {
-      const key = `${clientId}-${meetingId}`;
-      return MEETING_DETAILS_DATA[key];
+    async (clientId: string, meetingId: string): Promise<MeetingDetail | undefined> => {
+      try {
+        const response = await supabase
+          .from("meetings")
+          .select(
+            "*, client:clients!client_id(id, name, emails), creator:users!creator_id(id, name, email)",
+          )
+          .eq("id", parseInt(meetingId, 10))
+          .single();
+
+        if (response.error || !response.data) {
+          console.error("Error fetching meeting detail:", response.error);
+          return undefined;
+        }
+
+        return transformApiMeetingToDetail(response.data);
+      } catch (error) {
+        console.error("Error fetching meeting detail:", error);
+        return undefined;
+      }
     },
     [],
   );
@@ -899,6 +993,3 @@ export function useClients() {
   }
   return context;
 }
-
-// Re-exportar MEETING_DETAILS_DATA para compatibilidade
-export { MEETING_DETAILS_DATA };
