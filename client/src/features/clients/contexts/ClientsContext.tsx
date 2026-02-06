@@ -841,7 +841,14 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const deleteClientMeeting = useCallback((clientId: string, meetingId: string) => {
+  const deleteClientMeeting = useCallback(async (clientId: string, meetingId: string) => {
+    try {
+      await supabase.from("meetings").delete().eq("id", parseInt(meetingId));
+    } catch (err) {
+      console.error("Error deleting meeting:", err);
+      return;
+    }
+
     setExtendedData((prev) => {
       const clientData = prev[clientId];
       if (!clientData) return prev;
