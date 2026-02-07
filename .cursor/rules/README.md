@@ -1,0 +1,139 @@
+# Task Management System Documentation
+
+Welcome to the repository knowledge base for the Task Management System. This documentation provides a comprehensive overview of the project, its architecture, development workflow, and key features.
+
+## Project Overview
+
+This application is designed to streamline task management, client interactions, and meeting scheduling within a team environment. It aims to improve productivity through features like AI-powered meeting summaries, efficient task tracking, and robust client relationship management.
+
+## Architecture
+
+The system follows a standard client-server architecture:
+
+- **Client**: A React-based frontend application built with TypeScript and Vite, utilizing Tailwind CSS for styling and shadcn/ui components.
+- **Server**: A Node.js and Express-based backend API responsible for handling business logic and data persistence.
+- **Database**: PostgreSQL with Prisma ORM for data management.
+- **Authentication**: Clerk is integrated for robust authentication and authorization.
+
+**Key architectural components include:**
+
+- **Controllers**: Handle incoming requests and orchestrate responses (`server`, `client/src/features/tasks/hooks`).
+- **Utils**: A collection of utility functions, types, and hooks for common operations across the application (`client/src/shared/...`, `client/src/features/.../lib`).
+- **Repositories**: Abstract data access logic (primarily within `client/src/shared/lib` and `client/src/features/style-guides/components`).
+- **Components**: Reusable UI elements and feature-specific components (`client/src/features/.../components`, `client/src/app/pages`, `client/src/app/components`).
+
+## Technology Stack
+
+| Layer          | Technology                           |
+| :------------- | :----------------------------------- |
+| Frontend       | React, TypeScript, Vite, TailwindCSS |
+| Backend        | Node.js, Express                     |
+| Database       | PostgreSQL with Prisma ORM           |
+| Authentication | Clerk                                |
+| Styling        | shadcn/ui components                 |
+
+## Repository Structure
+
+```
+.
+├── client/             # React frontend application
+│   ├── src/            # Source code for the client
+│   │   ├── app/        # Application-level components and pages
+│   │   ├── features/   # Feature modules (tasks, clients, meetings, auth, users, style-guides)
+│   │   └── shared/     # Shared components, hooks, types, and utilities
+│   ├── index.html
+│   ├── package.json
+│   └── tsconfig.json
+├── server/             # Express backend API
+│   ├── auth.ts         # Authentication middleware and utilities
+│   ├── app.ts          # Express application setup
+│   ├── index-dev.ts    # Development server entry point
+│   ├── index-prod.ts   # Production server entry point
+│   ├── routes.ts       # API route definitions
+│   └── storage.ts      # Database storage logic
+├── prisma/             # Database schema and migrations
+│   ├── schema.prisma
+│   └── migrations/
+├── docs/               # Documentation files
+│   ├── README.md
+│   ├── architecture.md
+│   └── ...             # Other documentation files
+├── attached_assets/    # Static assets and resources
+├── .gitignore
+├── package.json
+└── tsconfig.json
+```
+
+## Quick Links
+
+- **Server Entry Point**: [`server/app.ts`](../server/app.ts)
+- **Client Entry Point**: [`client/src/main.tsx`](../client/src/main.tsx)
+- **API Routes**: [`server/routes.ts`](../server/routes.ts)
+- **Database Schema**: [`prisma/schema.prisma`](../prisma/schema.prisma)
+
+## Key Features
+
+- **Task Management**: Comprehensive task creation, assignment, tracking, and completion with priority and status management.
+- **Client Management**: Manage detailed client information, contact data, and relationships.
+- **Meeting Scheduling**: Schedule and track meetings with AI-powered summary generation for quick insights.
+- **User Roles & Permissions**: Role-based access control (Admin, Manager, User) ensuring appropriate data access.
+- **Turbo Mode**: An optimized workflow for handling bulk task operations efficiently.
+- **WhatsApp Integration**: Seamless linking of tasks to WhatsApp groups for enhanced communication tracking.
+
+## Core Guides
+
+- [Project Overview](./project-overview.md) - Purpose, goals, and high-level architecture.
+- [Architecture Notes](./architecture.md) - Detailed system layers, design patterns, and decision logs.
+- [Development Workflow](./development-workflow.md) - Guidelines for branching, CI/CD, and contributions.
+- [Testing Strategy](./testing-strategy.md) - Information on test configurations and quality assurance processes.
+- [Glossary & Domain Concepts](./glossary.md) - Definitions of business terminology and domain-specific rules.
+- [Data Flow & Integrations](./data-flow.md) - How data moves through the system and integrates with external services.
+- [Security & Compliance Notes](./security.md) - Details on authentication, authorization, and the overall security model.
+- [Tooling & Productivity Guide](./tooling.md) - Information on CLI scripts, IDE configurations, and other productivity tools.
+
+## Public API (Selected Exports)
+
+This project exposes a rich set of components, hooks, types, and utility functions. Below are some key examples:
+
+### Components
+
+- `AuthLayout`: Provides a layout structure for authentication pages.
+- `ClerkLogin`: Component for handling Clerk-based user login.
+- `Dashboard`: The main dashboard page component.
+- `BadgeProps`: Props definition for `Badge` UI component.
+- `ButtonProps`: Props definition for `Button` UI component.
+- `CalendarProps`: Props definition for `Calendar` UI component.
+
+### Hooks
+
+- `useCurrentUser`: Hook to fetch and manage the currently logged-in user's data.
+- `useGoogleCalendar`: Hook for interacting with Google Calendar functionalities.
+- `usePaginatedList`: Hook for handling paginated data fetching and management.
+- `useVirtualizedList`: Hook for efficient rendering of large lists.
+- `useInlineFieldEdit`: Hook for implementing inline editing experiences.
+- `useTaskFilters`: Hook for managing task filtering logic.
+- `useTaskDrag`: Hook for implementing drag-and-drop functionality for tasks.
+
+### Types and Interfaces
+
+- `Address`: Represents address information for clients.
+- `Client`: Core type for client data.
+- `ClientFullData`: Comprehensive type for client data with all relations.
+- `ClientMeeting`: Represents a meeting associated with a client.
+- `Task`: Core type for task data.
+- `TaskStatus`: Enum or type defining possible task statuses.
+- `TaskPriority`: Enum or type defining task priorities.
+- `MeetingStatus`: Enum or type defining meeting statuses.
+- `UserRole`: Enum or type defining user roles within the system.
+
+### Utility Functions
+
+- `cn`: Utility for conditionally joining class names (often used with Tailwind CSS).
+- `apiRequest`: A wrapper function for making API requests.
+- `calculateIsOverdue`: Function to determine if a task is overdue.
+- `createSorter`: Utility to create sorting functions for tasks.
+- `buildSchedulingMessage`: Helper function to construct scheduling messages.
+
+---
+
+This documentation aims to be a living resource. Please refer to the [Document Map](./document-map.md) for a clear overview of all available guides and their interdependencies.

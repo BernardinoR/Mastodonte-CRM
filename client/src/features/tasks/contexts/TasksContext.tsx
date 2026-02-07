@@ -345,6 +345,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   // Sync task to Supabase (background)
   const syncTaskToApi = useCallback(
     async (tempId: string, data: CreateTaskData) => {
+      if (!currentUser) {
+        console.error("Cannot create task: current user not loaded");
+        setTasks((prev) =>
+          prev.map((t) => (t.id === tempId ? { ...t, syncStatus: "error" as const } : t)),
+        );
+        return;
+      }
+
       try {
         // Find client by name if clientId not provided
         let clientId = data.clientId;
@@ -378,7 +386,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             task_type: data.taskType || "Tarefa",
             due_date: data.dueDate?.toISOString() || new Date().toISOString(),
             client_id: clientId || null,
-            creator_id: currentUser?.id ?? null,
+            creator_id: currentUser.id,
             order: data.order ?? 0,
           })
           .select("id")
@@ -503,6 +511,11 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   // Create task and return it (aguarda resposta do servidor)
   const createTaskAndReturn = useCallback(
     async (data: CreateTaskData): Promise<Task | null> => {
+      if (!currentUser) {
+        console.error("Cannot create task: current user not loaded");
+        return null;
+      }
+
       try {
         // Find client by name if clientId not provided
         let clientId = data.clientId;
@@ -536,7 +549,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             task_type: data.taskType || "Tarefa",
             due_date: data.dueDate?.toISOString() || new Date().toISOString(),
             client_id: clientId || null,
-            creator_id: currentUser?.id ?? null,
+            creator_id: currentUser.id,
             order: data.order ?? 0,
           })
           .select("id")

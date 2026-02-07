@@ -7,30 +7,26 @@ phases: [P, R]
 # API Design
 
 ## When to Use
-
 Use this skill when designing new APIs or reviewing API designs.
 
 ## REST Principles
 
 ### 1. Resource Naming
-
 - Use nouns, not verbs: `/users` not `/getUsers`
 - Use plural: `/users` not `/user`
 - Use hyphens: `/user-profiles` not `/userProfiles`
 - Nest for relationships: `/users/{id}/orders`
 
 ### 2. HTTP Methods
-
 | Method | Purpose | Idempotent |
-| ------ | ------- | ---------- |
-| GET    | Read    | Yes        |
-| POST   | Create  | No         |
-| PUT    | Replace | Yes        |
-| PATCH  | Update  | Yes        |
-| DELETE | Remove  | Yes        |
+|--------|---------|------------|
+| GET | Read | Yes |
+| POST | Create | No |
+| PUT | Replace | Yes |
+| PATCH | Update | Yes |
+| DELETE | Remove | Yes |
 
 ### 3. Status Codes
-
 - 200: OK
 - 201: Created
 - 204: No Content
@@ -43,7 +39,6 @@ Use this skill when designing new APIs or reviewing API designs.
 - 500: Internal Server Error
 
 ### 4. Response Format
-
 ```json
 {
   "data": { ... },
@@ -56,12 +51,10 @@ Use this skill when designing new APIs or reviewing API designs.
 ```
 
 ### 5. Versioning
-
 - URL path: `/v1/users`
 - Header: `Accept: application/vnd.api+json;version=1`
 
 ## Design Checklist
-
 - [ ] Resources clearly defined
 - [ ] Consistent naming convention
 - [ ] Proper HTTP methods used

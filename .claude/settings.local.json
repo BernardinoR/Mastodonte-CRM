@@ -69,7 +69,16 @@
       "Bash(git log:*)",
       "WebFetch(domain:docs.fireflies.ai)",
       "mcp__n8n-mcp__n8n_executions",
-      "Bash(jq:*)"
+      "Bash(jq:*)",
+      "mcp__n8n-mcp__n8n_autofix_workflow",
+      "mcp__n8n-mcp__n8n_health_check",
+      "mcp__n8n-mcp__tools_documentation",
+      "Bash(cat:*)",
+      "Bash(while read hash msg)",
+      "Bash(do if git diff $hash^ $hash -- prisma/schema.prisma)",
+      "Bash(then echo \"$hash: $msg\")",
+      "Bash(fi)",
+      "Bash(done)"
     ]
   },
   "enableAllProjectMcpServers": true,

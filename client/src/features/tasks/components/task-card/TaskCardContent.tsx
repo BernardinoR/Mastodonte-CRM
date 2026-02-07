@@ -3,6 +3,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { getInitials } from "@/shared/components/ui/task-assignees";
 import { Pencil, Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
+import { useUsers } from "@/features/users";
 import { format, startOfDay, isBefore } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
@@ -85,9 +86,11 @@ export function TaskCardContent({
     ? isBefore(startOfDay(dateValue), startOfDay(new Date())) && status !== "Done"
     : false;
 
-  // Get first assignee initials for avatar
-  const firstAssignee = stableAssignees[0];
-  const assigneeInitials = firstAssignee ? getInitials(firstAssignee) : null;
+  // Assignee avatar stack
+  const { getUserByName } = useUsers();
+  const maxVisible = 2;
+  const displayAssignees = stableAssignees.slice(0, maxVisible);
+  const remainingCount = Math.max(0, stableAssignees.length - maxVisible);
 
   return (
     <div className="px-4 pb-4 pt-2">
@@ -269,12 +272,7 @@ export function TaskCardContent({
           >
             <PopoverTrigger asChild>
               <div
-                className={cn(
-                  "flex h-6 w-6 cursor-pointer items-center justify-center rounded border text-[10px] font-bold transition-colors",
-                  assigneeInitials
-                    ? "border-[#3a3a3a] bg-[#333333] text-gray-300 hover:border-gray-500"
-                    : "border-dashed border-[#444444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
-                )}
+                className="flex cursor-pointer -space-x-2"
                 onClick={(e) => {
                   e.stopPropagation();
                   cancelClickTimeout();
@@ -282,7 +280,39 @@ export function TaskCardContent({
                 data-popover-trigger
                 data-testid={`trigger-assignee-${id}`}
               >
-                {assigneeInitials || "+"}
+                {stableAssignees.length === 0 ? (
+                  <div className="flex h-6 w-6 items-center justify-center rounded border border-dashed border-[#444444] text-[10px] font-bold text-gray-500 transition-colors hover:border-gray-400 hover:text-gray-400">
+                    +
+                  </div>
+                ) : (
+                  <>
+                    {displayAssignees.map((assignee, index) => {
+                      const user = getUserByName(assignee);
+                      const color = user?.avatarColor || "bg-gray-600";
+                      const initials = user?.initials || getInitials(assignee);
+                      return (
+                        <div
+                          key={index}
+                          className={cn(
+                            "relative flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold text-white ring-2 ring-[#1A1A1A] transition-colors hover:z-30",
+                            color,
+                          )}
+                          style={{ zIndex: displayAssignees.length - index }}
+                        >
+                          {initials}
+                        </div>
+                      );
+                    })}
+                    {remainingCount > 0 && (
+                      <div
+                        className="relative flex h-6 w-6 items-center justify-center rounded border border-[#3a3a3a] bg-[#2A2A2A] text-[10px] font-bold text-gray-400 ring-2 ring-[#1A1A1A] transition-colors hover:z-30"
+                        style={{ zIndex: 0 }}
+                      >
+                        +{remainingCount}
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </PopoverTrigger>
             <PopoverContent

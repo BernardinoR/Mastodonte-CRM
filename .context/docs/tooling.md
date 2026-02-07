@@ -1,51 +1,55 @@
 # Tooling & Productivity Guide
 
-This document covers CLI tools, IDE configuration, and automation workflows for development.
+This document outlines the essential tools, configurations, and workflows to ensure a smooth and productive development experience.
 
 ## Development Tools
 
-### Core Tools
+### Core CLI Tools
 
-| Tool | Purpose | Command |
-|------|---------|---------|
-| Vite | Dev server & bundler | `npm run dev` |
-| TypeScript | Type checking | `npx tsc --noEmit` |
-| ESLint | Code linting | `npm run lint` |
-| Prisma | Database ORM | `npx prisma` |
-| Jest | Testing | `npm run test` |
+The project relies on several standard development tools, accessible via npm scripts:
 
-### Vite Dev Server
+| Tool         | Purpose                                 | Primary Command(s)             |
+| :----------- | :-------------------------------------- | :----------------------------- |
+| Vite         | Dev server, build tool, and bundler     | `npm run dev`, `npm run build` |
+| TypeScript   | Static typing and compilation           | `npx tsc --noEmit`             |
+| ESLint       | Code linting and style enforcement      | `npm run lint`, `npm run lint:fix` |
+| Prisma       | Database ORM, migrations, and client generation | `npx prisma ...`               |
+| Jest         | Automated testing framework             | `npm run test`                 |
+
+### Vite Development Server
 
 ```bash
-# Start development server
+# Start the development server with hot module replacement
 npm run dev
 
-# Build for production
+# Build the application for production deployment
 npm run build
 
-# Preview production build
+# Preview the production build locally
 npm run preview
 ```
 
-### Prisma Commands
+### Prisma Database Management
+
+Prisma simplifies database interactions, including schema management and migrations.
 
 ```bash
-# Generate Prisma client
+# Generate the Prisma client based on your schema
 npx prisma generate
 
-# Create migration
+# Create a new database migration (e.g., 'add-users-table')
 npx prisma migrate dev --name migration_name
 
-# Apply migrations in production
+# Apply pending migrations to the production database
 npx prisma migrate deploy
 
-# Reset database (CAUTION: deletes all data)
+# Reset the database to its initial state (USE WITH CAUTION: ALL DATA WILL BE LOST)
 npx prisma migrate reset
 
-# Open Prisma Studio (database GUI)
+# Open Prisma Studio, a GUI for interacting with your database
 npx prisma studio
 
-# Format schema file
+# Format your schema.prisma file according to standard conventions
 npx prisma format
 ```
 
@@ -53,14 +57,17 @@ npx prisma format
 
 ### VS Code / Cursor Extensions
 
-Recommended extensions:
-- **ESLint** - Linting integration
-- **Prettier** - Code formatting
-- **Prisma** - Schema syntax highlighting
-- **Tailwind CSS IntelliSense** - Class autocompletion
-- **TypeScript Importer** - Auto-import suggestions
+For an optimized editing experience, consider installing the following extensions:
 
-### Workspace Settings
+-   **ESLint**: Integrates ESLint into the editor for real-time feedback.
+-   **Prettier - Code formatter**: Automatically formats code on save.
+-   **Prisma**: Provides syntax highlighting and IntelliSense for `schema.prisma` files.
+-   **Tailwind CSS IntelliSense**: Offers autocompletion and syntax highlighting for Tailwind CSS classes.
+-   **TypeScript Importer**: Helps automatically import modules.
+
+### Workspace Settings (`.vscode/settings.json`)
+
+These settings configure editor behavior for consistent formatting and linting on save:
 
 ```json
 // .vscode/settings.json
@@ -78,7 +85,9 @@ Recommended extensions:
 }
 ```
 
-### Launch Configuration
+### Debugging Configuration (`.vscode/launch.json`)
+
+Configure your debugger to easily launch and attach to the development server:
 
 ```json
 // .vscode/launch.json
@@ -91,7 +100,8 @@ Recommended extensions:
       "request": "launch",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "console": "integratedTerminal"
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
     }
   ]
 }
@@ -101,22 +111,25 @@ Recommended extensions:
 
 ### ESLint Configuration
 
-Key rules enforced:
-- TypeScript strict mode
-- React hooks rules
-- Import ordering
-- No unused variables
-- Consistent code style
+ESLint enforces code quality and consistency across the project. Key configurations include:
+
+-   TypeScript strict mode enabled.
+-   React hooks rules applied.
+-   Import ordering enforced.
+-   Rules against unused variables and imports.
+-   Consistent code styling.
 
 ```bash
-# Run linting
+# Run ESLint to check for code style issues
 npm run lint
 
-# Fix auto-fixable issues
-npm run lint -- --fix
+# Automatically fix any linting issues that can be resolved
+npm run lint:fix
 ```
 
-### Prettier Configuration
+### Prettier Configuration (`.prettierrc`)
+
+Prettier is used for opinionated code formatting.
 
 ```json
 // .prettierrc
@@ -133,18 +146,24 @@ npm run lint -- --fix
 
 ### Pre-commit Hook (Recommended)
 
-Using Husky and lint-staged:
+Automate code checks before committing using Husky and lint-staged.
+
+**Installation:**
 
 ```bash
-# Install
+# Install Husky and lint-staged as dev dependencies
 npm install -D husky lint-staged
 
 # Initialize Husky
 npx husky install
 
-# Add pre-commit hook
+# Add the pre-commit hook script
 npx husky add .husky/pre-commit "npx lint-staged"
 ```
+
+**Configuration (`package.json`):**
+
+Define which files should be linted and formatted by `lint-staged`:
 
 ```json
 // package.json
@@ -158,57 +177,66 @@ npx husky add .husky/pre-commit "npx lint-staged"
 
 ## Debugging
 
-### Browser DevTools
+### Browser Developer Tools
 
-- React Developer Tools for component inspection
-- TanStack Query DevTools for query debugging
-- Network tab for API request monitoring
+Leverage browser extensions for in-depth debugging:
 
-### Server Debugging
+-   **React Developer Tools**: Inspect component hierarchies, props, and state.
+-   **TanStack Query DevTools**: Visualize and debug your data fetching and caching.
+-   **Network Tab**: Monitor all outgoing API requests and responses.
+
+### Server-Side Logging
+
+Add `console.log` statements or use the `log` utility for server-side debugging:
 
 ```typescript
-// Add debug logging
-import { log } from './app';
+// Example usage of the log utility
+import { log } from './app'; // Adjust path as necessary
 
-log(`Processing task ${taskId}`);
+log(`Processing task with ID: ${taskId}`);
 ```
 
 ### Database Debugging
 
+Monitor Prisma queries or access the database directly:
+
 ```bash
-# View database queries
+# Enable verbose Prisma query logging in the development server
 DEBUG=prisma:query npm run dev
 
-# Open Prisma Studio
+# Open Prisma Studio to browse and modify database data
 npx prisma studio
 ```
 
 ## Useful Scripts
 
-### Quick Commands
+### Common Workflow Commands
+
+These scripts streamline frequent development tasks:
 
 ```bash
-# Fresh install
+# Ensure a clean state with a fresh installation
 rm -rf node_modules && npm install
 
-# Database reset and seed
+# Reset the database to its initial state and seed it (if applicable)
 npx prisma migrate reset
 
-# Type check without emit
+# Perform a type check without compiling/emitting JavaScript files
 npx tsc --noEmit
 
-# Find unused exports
+# Identify any exported types/functions that are not being used
 npx ts-prune
 
-# Check for outdated packages
+# Check for any outdated npm packages in your dependencies
 npm outdated
 ```
 
-### Custom npm Scripts
+### Custom npm Scripts (`package.json`)
 
-Add to `package.json`:
+The `package.json` file includes useful scripts for common tasks:
 
 ```json
+// package.json
 {
   "scripts": {
     "dev": "vite",
@@ -228,17 +256,22 @@ Add to `package.json`:
 
 ### Environment Files
 
-| File | Purpose | Git |
-|------|---------|-----|
-| `.env` | Local development | Ignored |
-| `.env.example` | Template with keys | Committed |
-| `.env.test` | Test environment | Ignored |
-| `.env.production` | Production (CI only) | Ignored |
+Different environment files are used to manage configuration variables:
 
-### Required Variables
+| File            | Purpose                             | Git Status |
+| :-------------- | :---------------------------------- | :--------- |
+| `.env`          | Local development overrides         | Ignored    |
+| `.env.example`  | Template for required environment variables | Committed  |
+| `.env.test`     | Test environment configuration      | Ignored    |
+| `.env.production` | Production configuration (CI/CD)  | Ignored    |
+
+### Locally Required Variables
+
+Ensure your `.env` file contains the necessary variables, using `.env.example` as a guide:
 
 ```bash
 # .env.example
+# Example variables - replace placeholders with actual values
 DATABASE_URL="postgresql://user:pass@localhost:5432/dbname"
 CLERK_PUBLISHABLE_KEY="pk_test_..."
 CLERK_SECRET_KEY="sk_test_..."
@@ -248,19 +281,23 @@ CLERK_SECRET_KEY="sk_test_..."
 
 ### Build Analysis
 
+Understand your production bundle size to identify optimization opportunities:
+
 ```bash
-# Analyze bundle size
+# Build the project and generate a bundle analysis report
 npm run build -- --analyze
 ```
 
-### Runtime Monitoring
+### Runtime Performance
 
-- Use React DevTools Profiler
-- Monitor TanStack Query cache hits
-- Track API response times
+Monitor application performance during runtime:
+
+-   Utilize the **React DevTools Profiler** to identify rendering bottlenecks.
+-   Track **TanStack Query** cache performance and data retrieval times.
+-   Analyze **API response times** in the browser's Network tab.
 
 ## Related Resources
 
-- [Development Workflow](./development-workflow.md)
-- [Testing Strategy](./testing-strategy.md)
-- [Architecture Notes](./architecture.md)
+-   [Development Workflow](./development-workflow.md)
+-   [Testing Strategy](./testing-strategy.md)
+-   [Architecture Notes](./architecture.md)

@@ -1,72 +1,141 @@
----
+```yaml
 name: Database Specialist
-description: Manages database schema design, migrations, query optimization, and data modeling
----
+description: Manages database schema design, migrations, query optimization, and data modeling.
+```
 
 # Database Specialist Agent Playbook
 
 ## Mission
 
-The Database Specialist agent manages database schema design, migrations, and query optimization for the Task Management System. Engage this agent for schema changes, performance tuning, and data modeling decisions.
+The Database Specialist agent is responsible for the design, implementation, and maintenance of the application's database, including schema definition, migration management, query optimization, and data integrity.
 
 ## Responsibilities
 
-- Design and maintain database schema
-- Create and manage Prisma migrations
-- Optimize database queries for performance
-- Ensure data integrity and constraints
-- Handle database indexes and relationships
-- Manage data migrations and transformations
+*   **Schema Design & Management**: Define, modify, and maintain the database schema using Prisma.
+*   **Migrations**: Create, review, and apply database migrations. Ensure backward and forward compatibility during schema evolution.
+*   **Query Optimization**: Analyze and optimize slow-running queries to improve application performance.
+*   **Data Modeling**: Design and refine data models to ensure efficiency, scalability, and adherence to business requirements.
+*   **Data Integrity**: Implement and enforce constraints, relationships, and validation rules to maintain data accuracy.
+*   **Indexing**: Strategically create and manage database indexes to accelerate data retrieval.
+*   **Data Migration & Transformation**: Plan and execute data migration scripts for significant data restructuring or updates.
 
 ## Best Practices
 
-- Use Prisma for all database operations
-- Create migrations for all schema changes
-- Add appropriate indexes for query performance
-- Define proper relationships and constraints
-- Test migrations before deploying
-- Back up data before destructive operations
+*   **Prisma as the ORM**: Use Prisma exclusively for all database interactions, including schema definition and query execution.
+*   **Migration-First Approach**: All schema changes *must* be accompanied by a corresponding Prisma migration.
+*   **Idempotent Migrations**: Design migrations to be safely re-runnable if necessary.
+*   **Index Wisely**: Add indexes to columns frequently used in `WHERE` clauses, `JOIN` conditions, and `ORDER BY` clauses. Analyze query performance to identify missing or redundant indexes.
+*   **Define Relationships Explicitly**: Clearly define one-to-one, one-to-many, and many-to-many relationships in the `schema.prisma` file.
+*   **Enforce Constraints**: Utilize Prisma's capabilities to enforce referential integrity (foreign keys), uniqueness, and other data constraints.
+*   **Testing Migrations**: *Always* test migrations in a staging or development environment that mirrors production data volume and structure before deploying. Test rollback procedures as well.
+*   **Data Backup**: Prior to any potentially destructive operations (e.g., large data migrations, dropping tables/columns), ensure a recent database backup is available.
+*   **Code Consistency**: Follow existing naming conventions and patterns within the `prisma/schema.prisma` file and `server/storage.ts`.
 
 ## Key Project Resources
 
-- [Documentation Index](../docs/README.md)
-- [Data Flow](../docs/data-flow.md)
-- [Architecture Notes](../docs/architecture.md)
-- [AGENTS.md](../../AGENTS.md)
+*   **Documentation**: The primary source for architectural decisions and data flow context.
+    *   [Documentation Index](../docs/README.md)
+    *   [Data Flow](../docs/data-flow.md)
+    *   [Architecture Notes](../docs/architecture.md)
+*   **Agent Registry**: Understanding the roles of other agents.
+    *   [AGENTS.md](../../AGENTS.md)
 
 ## Repository Starting Points
 
-- `prisma/` - Database schema and migrations
-- `server/storage.ts` - Data access layer
+*   **`prisma/`**: Contains the core database schema definition and migration history. This is the primary directory for schema changes.
+*   **`server/storage.ts`**: Implements the data access layer (`DbStorage`) using Prisma Client. Understanding this file is crucial for seeing how the schema is translated into application code.
 
 ## Key Files
 
-- [`prisma/schema.prisma`](../../prisma/schema.prisma) - Database schema
-- [`server/storage.ts`](../../server/storage.ts) - DbStorage implementation
+*   **`prisma/schema.prisma`**:
+    *   **Purpose**: Defines the database schema, including models (tables), fields (columns), relations, enums, and datasource configuration. This is the single source of truth for the database structure.
+    *   **Agent Focus**: All schema modifications, additions, or deletions should be made here. Index definitions and relation configurations are also managed in this file.
+*   **`server/storage.ts`**:
+    *   **Purpose**: Contains the `DbStorage` class, which acts as the repository pattern implementation for interacting with the database. It uses Prisma Client generated from `prisma/schema.prisma`.
+    *   **Agent Focus**: Understanding how schema changes in `prisma/schema.emploi` map to methods in `DbStorage` is important. Reviewing existing queries here can reveal opportunities for optimization. New relation access patterns might require modifications here.
+*   **`prisma/migrations/`**:
+    *   **Purpose**: Stores the history of database schema migrations generated by Prisma. Each subdirectory represents a migration with SQL statements for applying and reverting changes.
+    *   **Agent Focus**: Creating new migration files (`npx prisma migrate dev ...`), reviewing generated SQL, and understanding the evolution of the schema.
 
 ## Key Symbols for This Agent
 
-- `DbStorage` @ `server/storage.ts` - Data access class
-- `IStorage` @ `server/storage.ts` - Storage interface
-- `InsertTask`, `InsertClient`, `InsertUser` @ `server/storage.ts` - Insert types
-- `TaskWithRelations`, `ClientWithRelations` @ `server/storage.ts` - Query types
+*   **`PrismaClient`**: The main interface for interacting with the database using Prisma. It's instantiated and used within `server/storage.ts`.
+*   **Models within `prisma/schema.prisma`**: (e.g., `User`, `Task`, `Client`) - Represent database tables. Understanding their fields and relationships is fundamental.
+*   **`DbStorage`** (`server/storage.ts`): The primary class encapsulating database operations.
+*   **`IStorage`** (`server/storage.ts`): The interface `DbStorage` implements, defining the contract for data access.
+*   **Specific Query Types/Interfaces**: (e.g., `TaskWithRelations`, `ClientWithRelations` in `server/storage.ts`) - These interfaces define the shape of data returned by Prisma queries, often including related models.
 
 ## Documentation Touchpoints
 
-- [Data Flow](../docs/data-flow.md)
-- [Architecture Notes](../docs/architecture.md)
+*   **[Data Flow](../docs/data-flow.md)**: Understand how data moves through the application, which can inform query optimization and schema design.
+*   **[Architecture Notes](../docs/architecture.md)**: Provides context on broader system design decisions that may impact database choices.
 
 ## Collaboration Checklist
 
-- [ ] Review existing schema before changes
-- [ ] Create migration for schema changes
-- [ ] Test migration rollback
-- [ ] Add indexes for frequently queried fields
-- [ ] Update types after schema changes
-- [ ] Document schema decisions
+When proposing or implementing database changes, ensure the following steps are considered and ideally followed:
+
+1.  **[ ] Understand the Requirement**: Clearly define the business need for the database change.
+2.  **[ ] Consult Schema**: Review `prisma/schema.prisma` for existing models, fields, and relationships relevant to the change.
+3.  **[ ] Design Schema Change**: Modify or add models, fields, and relationships in `prisma/schema.prisma`. Define necessary indexes and constraints.
+4.  **[ ] Generate Migration**: Create a new migration file using `npx prisma migrate dev --name <migration_name>`.
+5.  **[ ] Review Migration**: Inspect the generated SQL in the migration file (`prisma/migrations/<timestamp>_<migration_name>/up.sql` and `down.sql`) for correctness.
+6.  **[ ] Test Migration (Apply)**: Apply the migration in a development or staging environment (`npx prisma migrate deploy`). Verify that the schema is updated as expected and that application features relying on the affected data function correctly.
+7.  **[ ] Test Migration (Rollback)**: Simulate a rollback scenario by reverting the migration (`npx prisma migrate reset` followed by applying previous migrations, or manually editing migration files if necessary) and ensure data can be recovered or the state is consistent.
+8.  **[ ] Test Data Access**: Ensure `server/storage.ts` (and any other data access points) work correctly with the new schema. Update types if necessary.
+9.  **[ ] Optimize Queries**: If the change involves performance-critical queries, analyze their execution plan and add/modify indexes in `prisma/schema.prisma` as needed. Re-test performance.
+10. **[ ] Document**: Update relevant parts of the documentation (`docs/`) if the schema changes introduce significant new concepts or affect data flow.
+11. **[ ] PR & Review**: Submit changes as a Pull Request for review by other team members, especially backend or full-stack developers.
+
+## Workflow Examples
+
+### 1. Adding a New Table (Model)
+
+*   **Trigger**: Requirement for a new type of data (e.g., `AuditLog`).
+*   **Steps**:
+    1.  Edit `prisma/schema.prisma`: Define the new `model` (e.g., `AuditLog`) with its fields, types, and any necessary relations.
+    2.  If indexes are clearly needed (e.g., on a timestamp for time-based queries), define them within the model.
+    3.  Run `npx prisma migrate dev --name add_audit_log`.
+    4.  Review the generated SQL migration file.
+    5.  Apply and test in a staging environment.
+    6.  Update `server/storage.ts` if direct access methods for `AuditLog` are required beyond basic Prisma Client operations.
+
+### 2. Adding a Field to an Existing Table
+
+*   **Trigger**: Need to store additional information for an existing entity (e.g., adding `priority` to `Task`).
+*   **Steps**:
+    1.  Edit `prisma/schema.prisma`: Add the new field (e.g., `priority String?`) to the relevant model (`Task`). Use `?` for optional fields.
+    2.  Consider if this new field will be queried/filtered often. If so, add an index definition for it.
+    3.  Run `npx prisma migrate dev --name add_priority_to_task`.
+    4.  Review the migration SQL.
+    5.  Test application functionality that uses `Task`, ensuring compatibility with the new optional field. Update relevant interfaces or types in `server/storage.ts` or elsewhere if needed.
+
+### 3. Modifying a Relationship
+
+*   **Trigger**: Changing how entities relate (e.g., making `Task` belong to a `Project` instead of just `User`).
+*   **Steps**:
+    1.  **Backup Data!** This can be a complex and data-altering operation.
+    2.  Carefully review the existing relation in `prisma/schema.prisma`.
+    3.  Modify the relation fields and potentially the foreign key definitions. This might involve removing old relations and adding new ones.
+    4.  Run `npx prisma migrate dev --name refactor_task_project_relation`.
+    5.  **Thoroughly review the migration SQL**. It will likely involve dropping/adding foreign keys and potentially re-linking existing data.
+    6.  **Extensive testing** is required in staging. This may involve writing data migration scripts (inline in the `up.sql` or separate scripts) to update existing records to conform to the new relationship structure.
+    7.  Update `server/storage.ts` methods and associated types (`TaskWithRelations`, etc.) to reflect the new relationship.
+
+### 4. Optimizing a Slow Query
+
+*   **Trigger**: User reports slowness, or monitoring indicates high query latency.
+*   **Steps**:
+    1.  Identify the specific slow query. This might involve checking logs, using database performance analysis tools (`EXPLAIN ANALYZE` in SQL), or debugging the application code in `server/storage.ts`.
+    2.  Examine the query in `server/storage.ts` and determine which table fields are used in `WHERE`, `JOIN`, or `ORDER BY` clauses.
+    3.  Check `prisma/schema.prisma` for existing indexes on these fields.
+    4.  If indexes are missing or inadequate, add them to the relevant models in `prisma/schema.prisma`.
+    5.  Generate and apply a migration for the index changes (`npx prisma migrate dev --name add_index_for_performance`).
+    6.  Re-run the query (or the performance test) to verify the improvement.
+    7.  If query structure is suboptimal (e.g., N+1 problem), refactor the query logic in `server/storage.ts`, possibly utilizing Prisma's relation loading capabilities (`include`).
 
 ## Related Resources
 
-- [Documentation Index](../docs/README.md)
-- [Agent Playbooks](./README.md)
-- [AGENTS.md](../../AGENTS.md)
+*   [Prisma Schema Documentation](https://www.prisma.io/docs/reference/api-reference/schema-reference)
+*   [Prisma Migrations Documentation](https://www.prisma.io/docs/guides/database/migrations-with-prisma)
+*   [Prisma Client Documentation](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference)
+```
