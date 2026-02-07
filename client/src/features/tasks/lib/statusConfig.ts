@@ -30,7 +30,7 @@ export const UI_COLORS = {
 
 // Classes Tailwind pré-definidas para reutilização
 export const UI_CLASSES = {
-  popover: "bg-[#2a2a2a] border-[#3a3a3a]",
+  popover: "bg-[#202020] border-[#333333]",
   panel: "bg-[#222222]",
   card: "bg-[#252730] border-[#3a3a3a]",
   hoverItem: "hover:bg-[#333333]",

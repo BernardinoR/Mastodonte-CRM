@@ -141,6 +141,7 @@ export const TaskCard = memo(function TaskCard({
   } = useTaskCardEditing({
     id,
     title,
+    clientId,
     clientName,
     priority,
     taskType,
@@ -279,9 +280,9 @@ export const TaskCard = memo(function TaskCard({
           <Card
             ref={cardRef}
             className={cn(
-              "group/task-card cursor-pointer select-none rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] shadow-sm transition-all hover:border-gray-600",
+              "group/task-card cursor-pointer select-none rounded-lg border border-[#333333] bg-[#202020] shadow-sm transition-all hover:border-gray-600",
               isSelected && !isEditing && "shadow-lg ring-2 ring-blue-500",
-              isOverdue && "border-y border-l-[3px] border-r border-[#3a3a3a] border-l-red-700",
+              isOverdue && "border-y border-l-[3px] border-r border-[#333333] border-l-red-700",
             )}
             onClick={handleCardClick}
             data-testid={`card-task-${id}`}
@@ -310,6 +311,7 @@ export const TaskCard = memo(function TaskCard({
               priority={priority}
               taskType={taskType}
               status={status}
+              isEditing={isEditing}
               editedTask={editedTask}
               stableAssignees={stableAssignees}
               activePopover={activePopover}

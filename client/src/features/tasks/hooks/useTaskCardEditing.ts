@@ -18,6 +18,7 @@ function activateCooldown() {
 
 export interface EditedTaskData {
   title: string;
+  clientId: string;
   clientName: string;
   priority: string;
   status: TaskStatus;
@@ -30,6 +31,7 @@ export interface EditedTaskData {
 interface UseTaskCardEditingProps {
   id: string;
   title: string;
+  clientId?: string;
   clientName?: string;
   priority?: TaskPriority;
   taskType?: TaskType;
@@ -67,6 +69,7 @@ interface UseTaskCardEditingReturn {
 export function useTaskCardEditing({
   id,
   title,
+  clientId,
   clientName,
   priority,
   taskType,
@@ -88,6 +91,7 @@ export function useTaskCardEditing({
   const [isEditing, setIsEditing] = useState(initialEditMode);
   const [editedTask, setEditedTask] = useState<EditedTaskData>(() => ({
     title,
+    clientId: clientId || "",
     clientName: clientName || "",
     priority: priority || "",
     status,
@@ -131,6 +135,7 @@ export function useTaskCardEditing({
 
       if (
         prev.title === title &&
+        prev.clientId === (clientId || "") &&
         prev.clientName === (clientName || "") &&
         prev.priority === (priority || "") &&
         prev.status === status &&
@@ -144,6 +149,7 @@ export function useTaskCardEditing({
 
       const newData = {
         title,
+        clientId: clientId || "",
         clientName: clientName || "",
         priority: priority || "",
         status,
@@ -157,6 +163,7 @@ export function useTaskCardEditing({
     });
   }, [
     title,
+    clientId,
     clientName,
     priority,
     status,
@@ -173,6 +180,7 @@ export function useTaskCardEditing({
 
       onUpdate(id, {
         title: data.title,
+        clientId: data.clientId || undefined,
         clientName: data.clientName || undefined,
         priority: (data.priority as TaskPriority) || undefined,
         status: data.status as TaskStatus,

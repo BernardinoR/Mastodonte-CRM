@@ -1,9 +1,11 @@
 import { useCallback } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/shared/components/ui/tooltip";
 import { getInitials } from "@/shared/components/ui/task-assignees";
 import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useUsers } from "@/features/users";
+import { useLocation } from "wouter";
 import { format, startOfDay, isBefore } from "date-fns";
 import { parseLocalDate } from "@/shared/lib/date-utils";
 import { ptBR } from "date-fns/locale";
@@ -31,8 +33,10 @@ interface TaskCardContentProps {
   priority?: TaskPriority;
   taskType?: TaskType;
   status: TaskStatus;
+  isEditing: boolean;
   editedTask: {
     dueDate: string;
+    clientId?: string;
     clientName?: string;
     assignees: string[];
   };
@@ -54,6 +58,7 @@ export function TaskCardContent({
   clientName,
   priority,
   status,
+  isEditing,
   editedTask,
   stableAssignees,
   activePopover,
@@ -66,6 +71,8 @@ export function TaskCardContent({
   onAddAssignee,
   onRemoveAssignee,
 }: TaskCardContentProps) {
+  const [, navigate] = useLocation();
+
   const cancelClickTimeout = useCallback(() => {
     if (clickTimeoutRef.current) {
       clearTimeout(clickTimeoutRef.current);
@@ -95,40 +102,62 @@ export function TaskCardContent({
     <div className="px-4 pb-4 pt-2">
       {/* Row 2: Client Popover + Date Popover */}
       <div className="mb-3 flex items-center gap-2">
-        {/* Client Popover */}
-        <Popover
-          open={activePopover === "client"}
-          onOpenChange={(open) => setActivePopover(open ? "client" : null)}
-        >
-          <PopoverTrigger asChild>
-            <span
-              className={cn(
-                "cursor-pointer truncate rounded border px-2 py-0.5 text-[11px] font-medium transition-colors",
-                clientName
-                  ? "border-[#3a3a3a] bg-[#2a2a2a] text-gray-400 hover:bg-[#333333]"
-                  : "border-dashed border-[#444444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                cancelClickTimeout();
-              }}
-              data-popover-trigger
-              data-testid={`trigger-client-${id}`}
-            >
-              {clientName || "+ Cliente"}
-            </span>
-          </PopoverTrigger>
-          <PopoverContent
-            className={cn("w-80 p-0", UI_CLASSES.popover)}
-            side="bottom"
-            align="start"
-            sideOffset={6}
-            avoidCollisions={true}
-            collisionPadding={8}
+        {/* Client: has client + not editing = navigate, otherwise = popover */}
+        {clientName && !isEditing ? (
+          <span
+            className="cursor-pointer truncate rounded border border-[#333333] bg-[#2a2a2a] px-2 py-0.5 text-[11px] font-medium text-gray-400 transition-colors hover:bg-[#333333]"
+            onClick={(e) => {
+              e.stopPropagation();
+              cancelClickTimeout();
+              const resolvedClientId = editedTask.clientId || clientId;
+              if (resolvedClientId) {
+                navigate(`/clients/${resolvedClientId}`);
+              }
+            }}
+            data-testid={`trigger-client-${id}`}
           >
-            <ClientSelector selectedClient={clientName || null} onSelect={onClientChange} />
-          </PopoverContent>
-        </Popover>
+            {clientName}
+          </span>
+        ) : (
+          <Popover
+            open={activePopover === "client"}
+            onOpenChange={(open) => setActivePopover(open ? "client" : null)}
+          >
+            <PopoverTrigger asChild>
+              <span
+                className={cn(
+                  "cursor-pointer truncate rounded border border-dashed px-2 py-0.5 text-[11px] font-medium transition-colors",
+                  isEditing
+                    ? cn(
+                        "border-blue-500/40",
+                        clientName
+                          ? "bg-[#2a2a2a] text-gray-400 hover:bg-[#333333]"
+                          : "text-gray-500 hover:border-blue-400/60 hover:text-gray-400",
+                      )
+                    : "border-[#444444] text-gray-500 hover:border-gray-400 hover:text-gray-400",
+                )}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  cancelClickTimeout();
+                }}
+                data-popover-trigger
+                data-testid={`trigger-client-${id}`}
+              >
+                {clientName || "+ Cliente"}
+              </span>
+            </PopoverTrigger>
+            <PopoverContent
+              className={cn("w-80 p-0", UI_CLASSES.popover)}
+              side="bottom"
+              align="start"
+              sideOffset={6}
+              avoidCollisions={true}
+              collisionPadding={8}
+            >
+              <ClientSelector selectedClient={clientName || null} onSelect={onClientChange} />
+            </PopoverContent>
+          </Popover>
+        )}
 
         {/* Date Popover */}
         <Popover
@@ -196,7 +225,7 @@ export function TaskCardContent({
               className={cn(
                 "flex cursor-pointer items-center gap-2 transition-colors",
                 activePopover === "priority"
-                  ? "-ml-1 rounded border border-[#3a3a3a] bg-[#2a2a2a] p-1"
+                  ? "-ml-1 rounded border border-[#333333] bg-[#2a2a2a] p-1"
                   : "",
               )}
               onClick={(e) => {
@@ -218,7 +247,7 @@ export function TaskCardContent({
             </div>
           </PopoverTrigger>
           <PopoverContent
-            className="w-40 rounded-lg border border-[#3a3a3a] bg-[#1a1a1a] p-1 shadow-2xl"
+            className="w-40 rounded-lg border border-[#333333] bg-[#202020] p-1 shadow-2xl"
             side="bottom"
             align="start"
             sideOffset={6}
@@ -280,21 +309,25 @@ export function TaskCardContent({
                       const color = user?.avatarColor || "bg-gray-600";
                       const initials = user?.initials || getInitials(assignee);
                       return (
-                        <div
-                          key={index}
-                          className={cn(
-                            "relative flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold text-white ring-2 ring-[#1A1A1A] transition-colors hover:z-30",
-                            color,
-                          )}
-                          style={{ zIndex: displayAssignees.length - index }}
-                        >
-                          {initials}
-                        </div>
+                        <Tooltip key={index}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={cn(
+                                "relative flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold text-white ring-2 ring-[#202020] transition-colors hover:z-30",
+                                color,
+                              )}
+                              style={{ zIndex: displayAssignees.length - index }}
+                            >
+                              {initials}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom">{assignee}</TooltipContent>
+                        </Tooltip>
                       );
                     })}
                     {remainingCount > 0 && (
                       <div
-                        className="relative flex h-6 w-6 items-center justify-center rounded border border-[#3a3a3a] bg-[#2A2A2A] text-[10px] font-bold text-gray-400 ring-2 ring-[#1A1A1A] transition-colors hover:z-30"
+                        className="relative flex h-6 w-6 items-center justify-center rounded border border-[#333333] bg-[#2A2A2A] text-[10px] font-bold text-gray-400 ring-2 ring-[#202020] transition-colors hover:z-30"
                         style={{ zIndex: 0 }}
                       >
                         +{remainingCount}
