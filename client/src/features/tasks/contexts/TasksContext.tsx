@@ -12,6 +12,7 @@ import type { Task, TaskStatus, TaskPriority, TaskType, TaskHistoryEvent } from 
 import { useClients } from "@features/clients";
 import { useUsers } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
+import { parseLocalDate, formatLocalDate } from "@/shared/lib/date-utils";
 
 // ============================================
 // Supabase DB row types (snake_case)
@@ -60,7 +61,7 @@ function mapDbRowToTask(row: DbTask): Task {
     priority: (row.priority as TaskPriority) || "Normal",
     status: (row.status as TaskStatus) || "To Do",
     taskType: (row.task_type as TaskType) || "Tarefa",
-    dueDate: row.due_date ? new Date(row.due_date) : new Date(),
+    dueDate: row.due_date ? parseLocalDate(row.due_date.substring(0, 10)) : new Date(),
     order: row.order,
     clientId: row.client_id || undefined,
     clientName: row.client?.name,
@@ -255,7 +256,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         if (updates.priority !== undefined) apiUpdates.priority = updates.priority;
         if (updates.status !== undefined) apiUpdates.status = updates.status;
         if (updates.taskType !== undefined) apiUpdates.taskType = updates.taskType;
-        if (updates.dueDate !== undefined) apiUpdates.dueDate = updates.dueDate?.toISOString();
+        if (updates.dueDate !== undefined)
+          apiUpdates.dueDate = updates.dueDate ? formatLocalDate(updates.dueDate) : null;
         if (updates.order !== undefined) apiUpdates.order = updates.order;
         if (updates.clientId !== undefined) apiUpdates.clientId = updates.clientId;
 
@@ -384,7 +386,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             priority: data.priority || "Normal",
             status: data.status || "To Do",
             task_type: data.taskType || "Tarefa",
-            due_date: data.dueDate?.toISOString() || new Date().toISOString(),
+            due_date: data.dueDate ? formatLocalDate(data.dueDate) : formatLocalDate(new Date()),
             client_id: clientId || null,
             creator_id: currentUser.id,
             order: data.order ?? 0,
@@ -547,7 +549,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             priority: data.priority || "Normal",
             status: data.status || "To Do",
             task_type: data.taskType || "Tarefa",
-            due_date: data.dueDate?.toISOString() || new Date().toISOString(),
+            due_date: data.dueDate ? formatLocalDate(data.dueDate) : formatLocalDate(new Date()),
             client_id: clientId || null,
             creator_id: currentUser.id,
             order: data.order ?? 0,

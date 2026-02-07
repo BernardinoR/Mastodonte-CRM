@@ -340,7 +340,7 @@ export function TaskDetailModal({
                   data-testid="button-modal-date"
                 >
                   <CalendarIcon className="h-4 w-4" />
-                  <span>{format(new Date(task.dueDate), "dd/MM/yyyy")}</span>
+                  <span>{format(task.dueDate, "dd/MM/yyyy")}</span>
                 </div>
               </PopoverTrigger>
               <PopoverContent

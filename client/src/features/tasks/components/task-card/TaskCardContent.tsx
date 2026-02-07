@@ -1,10 +1,11 @@
 import { useCallback } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { getInitials } from "@/shared/components/ui/task-assignees";
-import { Pencil, Check } from "lucide-react";
+import { Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useUsers } from "@/features/users";
 import { format, startOfDay, isBefore } from "date-fns";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
 import { ClientSelector, AssigneeSelector } from "../task-editors";
@@ -45,7 +46,6 @@ interface TaskCardContentProps {
   onPriorityChange: (value: string) => void;
   onAddAssignee: (assignee: string) => void;
   onRemoveAssignee: (assignee: string) => void;
-  onEditClick: (e: React.MouseEvent) => void;
 }
 
 export function TaskCardContent({
@@ -65,7 +65,6 @@ export function TaskCardContent({
   onPriorityChange,
   onAddAssignee,
   onRemoveAssignee,
-  onEditClick,
 }: TaskCardContentProps) {
   const cancelClickTimeout = useCallback(() => {
     if (clickTimeoutRef.current) {
@@ -80,7 +79,7 @@ export function TaskCardContent({
   const priorityLabel = priority ? PRIORITY_CONFIG[priority]?.label || priority : "Normal";
 
   // Parse date for display
-  const dateValue = editedTask.dueDate ? new Date(editedTask.dueDate) : null;
+  const dateValue = editedTask.dueDate ? parseLocalDate(editedTask.dueDate) : null;
   const formattedDate = dateValue ? format(dateValue, "dd MMM", { locale: ptBR }) : null;
   const isOverdue = dateValue
     ? isBefore(startOfDay(dateValue), startOfDay(new Date())) && status !== "Done"
@@ -185,7 +184,7 @@ export function TaskCardContent({
         </Popover>
       </div>
 
-      {/* Row 3: Priority Popover + Pencil + Avatar/Assignee Popover */}
+      {/* Row 3: Priority Popover + Avatar/Assignee Popover */}
       <div className="flex items-end justify-between">
         {/* Priority Popover */}
         <Popover
@@ -255,16 +254,6 @@ export function TaskCardContent({
         </Popover>
 
         <div className="flex items-center gap-1.5">
-          {/* Pencil - visible on hover */}
-          <button
-            className="flex h-6 w-6 items-center justify-center rounded text-gray-500 opacity-0 transition-all hover:bg-[#333333] hover:text-gray-300 group-hover/task-card:opacity-100"
-            onClick={onEditClick}
-            data-popover-trigger
-            data-testid={`button-edit-${id}`}
-          >
-            <Pencil className="h-3 w-3" />
-          </button>
-
           {/* Assignee Popover */}
           <Popover
             open={activePopover === "assignee"}

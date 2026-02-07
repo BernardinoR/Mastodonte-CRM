@@ -321,7 +321,6 @@ export const TaskCard = memo(function TaskCard({
               onPriorityChange={handlePriorityChange}
               onAddAssignee={addAssignee}
               onRemoveAssignee={removeAssignee}
-              onEditClick={handleEditClick}
             />
 
             {/* Indicador de erro de sincronização */}

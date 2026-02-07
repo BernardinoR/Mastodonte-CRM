@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import { format } from "date-fns";
-import { parseLocalDate } from "@/shared/lib/date-utils";
+import { parseLocalDate, formatLocalDate } from "@/shared/lib/date-utils";
 import type { TaskStatus, TaskPriority, TaskType, TaskUpdates } from "../types/task";
 
 const globalJustClosedEditRef = { current: false };
@@ -94,7 +93,7 @@ export function useTaskCardEditing({
     status,
     taskType: taskType || "Tarefa",
     assignees: [...safeAssignees],
-    dueDate: format(dueDate, "yyyy-MM-dd"),
+    dueDate: formatLocalDate(dueDate),
     description: description || "",
   }));
   const [activePopover, setActivePopover] = useState<
@@ -128,7 +127,7 @@ export function useTaskCardEditing({
   useEffect(() => {
     setEditedTask((prev) => {
       const newAssignees = safeAssignees;
-      const newDueDate = format(dueDate, "yyyy-MM-dd");
+      const newDueDate = formatLocalDate(dueDate);
 
       if (
         prev.title === title &&
