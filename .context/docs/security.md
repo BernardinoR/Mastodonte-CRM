@@ -157,6 +157,65 @@ The `TaskHistory` entity provides an immutable log of all changes made to tasks.
 *   **Data Export**: Functionality for users to export their data is provided, supporting GDPR compliance.
 *   **Right to Deletion**: The system is designed to support user requests for data deletion, aligning with privacy regulations.
 
+---
+
+## Audit Findings (2026-02-08)
+
+A comprehensive security audit identified **15 vulnerabilities**. See `.context/plans/software-audit.md` for the full report with code evidence.
+
+### Vulnerability Summary
+
+| # | Vulnerability | Severity | OWASP Category | Status |
+|---|---|---|---|---|
+| S1 | **IDOR: Meeting Details** - `/api/meetings/:id/detail` has no access control | **Critical** | A01: Broken Access Control | Open |
+| S2 | **IDOR: Transcripts** - `/api/transcripts/:id` has no authorization | **Critical** | A01: Broken Access Control | Open |
+| S3 | **IDOR: Client Scheduling** - `PATCH /api/clients/:id/scheduling-sent` no ownership check | **High** | A01: Broken Access Control | Open |
+| S4 | **Missing Input Validation** - Zod installed but not used in any route | **High** | A03: Injection | Open |
+| S5 | **`requireGroupAccess` never used** - Middleware defined but applied to 0 endpoints | **High** | A01: Broken Access Control | Open |
+| S6 | **Insufficient RBAC** - Only 1 of 11 endpoints uses role check | **High** | A01: Broken Access Control | Open |
+| S7 | **Missing env validation** - `CLERK_SECRET_KEY`, `DATABASE_URL` unchecked at startup | **High** | A05: Security Misconfiguration | Open |
+| S8 | Hardcoded production URL fallback | Medium | A05: Security Misconfiguration | Open |
+| S9 | Error handler `throw err` after `res.json()` | Medium | A05: Security Misconfiguration | Open |
+| S10 | Clerk error messages leaked to client | Medium | A04: Insecure Design | Open |
+| S11 | No CORS config, no Helmet, no security headers | Medium | A05: Security Misconfiguration | Open |
+| S12 | No rate limiting on any endpoint | Medium | A04: Insecure Design | Open |
+| S13 | Fireflies API key forwarded without format validation | Medium | A07: Auth Failures | Open |
+| S14 | Weak ID validation (`parseInt` only) | Low | A03: Injection | Open |
+| S15 | No request size limits on `express.json()` | Low | A05: Security Misconfiguration | Open |
+
+### Endpoint Authorization Matrix (Actual)
+
+| Method | Endpoint | Auth | RBAC | Group Check | **Gap** |
+|--------|----------|------|------|-------------|---------|
+| GET | `/api/auth/me` | clerkAuth | - | - | - |
+| POST | `/api/auth/sync` | clerkAuth | - | - | - |
+| GET | `/api/users/team` | clerkAuth | - | groupId filter | - |
+| POST | `/api/invitations` | clerkAuth | **requireAdmin** | - | - |
+| PUT | `/api/users/fireflies-key` | clerkAuth | manual consultor | - | Weak |
+| POST | `/api/users/fireflies-key/test` | clerkAuth | - | - | **No role** |
+| GET | `/api/meetings/:id/detail` | clerkAuth | - | **NONE** | **IDOR** |
+| GET | `/api/transcripts/:id` | clerkAuth | - | **NONE** | **IDOR** |
+| PATCH | `/api/users/calendar-link` | clerkAuth | - | - | **No role** |
+| PATCH | `/api/clients/:id/scheduling-sent` | clerkAuth | - | **NONE** | **IDOR** |
+| POST | `/api/validate-foundation` | clerkAuth | - | - | **No role** |
+
+### Positive Security Findings
+
+- Clerk JWT authentication properly implemented
+- Prisma ORM prevents SQL injection via parameterized queries
+- RBAC infrastructure exists (`requireRole`, `requireAdmin`, `requireGroupAccess`)
+- HTTPS enforced in production (Railway.app)
+- No hardcoded database credentials
+- TypeScript provides compile-time type safety
+
+### Remediation Priority
+
+1. **Immediate (< 1 day)**: Fix IDOR on S1, S2, S3. Remove DEV_BYPASS_AUTH. Add env validation.
+2. **Week 1**: Apply `requireGroupAccess` to all data endpoints. Add Zod validation. Install helmet + CORS + rate-limit.
+3. **Week 2**: Implement structured logging. Add role checks to remaining endpoints. Harden Fireflies key handling.
+
+---
+
 ## Security Checklist
 
 ### Development Phase

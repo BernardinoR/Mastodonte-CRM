@@ -838,7 +838,7 @@ export function FilterBar({
               </button>
             </PopoverTrigger>
             <PopoverContent
-              className="w-80 p-0"
+              className="w-80 rounded-lg border border-[#333333] bg-[#202020] p-0 shadow-2xl"
               side="bottom"
               align="start"
               sideOffset={8}
@@ -1030,7 +1030,7 @@ export function FilterBar({
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-48 p-1"
+                className="w-48 rounded-lg border border-[#333333] bg-[#202020] p-1 shadow-2xl"
                 side="bottom"
                 align="start"
                 sideOffset={8}

@@ -138,8 +138,96 @@ A high-level overview of the project's key directories:
 | `server/`               | ~15       | Backend API implementation.           |
 | `prisma/`               | ~5        | Database schema and migration files.  |
 
+---
+
+## Audit Findings (2026-02-08)
+
+### Known Architectural Issues
+
+The following issues were identified during a comprehensive audit. See `.context/plans/software-audit.md` for the full report.
+
+#### Critical
+
+| Issue | Location | Status |
+|-------|----------|--------|
+| `DEV_BYPASS_AUTH` flag hardcoded in production code | `App.tsx:125` | Open |
+
+#### High Severity
+
+| Issue | Location |
+|-------|----------|
+| **Backend monolitico**: All 11 endpoints in single `routes.ts` (527 lines), no controllers/services/validators | `server/routes.ts` |
+| **Provider Hell**: 3 nested contexts (Users>Clients>Tasks) without memoization, causing cascade re-renders | `App.tsx:84-120` |
+| **TasksContext monolitico**: 767 lines, 15+ responsibilities (CRUD, history, undo/redo, Supabase sync, optimistic updates) | `TasksContext.tsx` |
+| **ClientsContext monolitico**: 1002 lines, 30+ duplicate update methods | `ClientsContext.tsx` |
+| **Circular imports**: Tasks<->Clients bidirectional dependency (25+ files) | Cross-feature |
+| **Inconsistent data flow**: 3 patterns coexist (Express+Prisma, Context+Supabase direct, components+Supabase) | Multiple |
+
+#### Dependency Graph Issues
+
+```
+tasks ──imports──> clients (10+ files: useClients, types)
+clients ──imports──> tasks (15+ files: statusConfig, types, useTasks, components)
+meetings ──imports──> tasks (1 file: SingleAssigneeSelector - should be in shared/)
+meetings ──imports──> clients (1 file: useClients)
+```
+
+**Recommended fix**: Extract shared domain types to `@shared/types/domain.ts`, move `statusConfig.ts` to `@shared/lib/`.
+
+#### Data Flow Architecture (Current vs Recommended)
+
+**Current** (3 conflicting patterns):
+```
+Pattern 1: Admin pages → Express API → Prisma → DB
+Pattern 2: Tasks/Clients → React Context → Supabase direct → DB (bypasses backend)
+Pattern 3: Meetings → Components → Supabase direct → DB (no caching)
+```
+
+**Recommended** (single pattern):
+```
+Components → React Query → Express API → Prisma → DB
+Context reserved for UI state only (filters, selection, modals)
+```
+
+### Architecture Diagram (Updated)
+
+```mermaid
+graph TB
+    subgraph client [Client Layer - ISSUES]
+        React[React SPA]
+        TanStack[TanStack Query - underused]
+        Contexts[3 Monolithic Contexts - 2000+ lines total]
+        Supabase[Supabase Direct - should be removed]
+    end
+
+    subgraph server [Server Layer - ISSUES]
+        Express[Express.js]
+        Auth[Clerk Auth Middleware]
+        Routes[routes.ts - 527 lines monolith]
+        Storage[storage.ts - only User methods]
+    end
+
+    subgraph data [Data Layer]
+        Prisma[Prisma ORM]
+        PostgreSQL[(PostgreSQL)]
+    end
+
+    React --> Contexts
+    Contexts -->|bypasses backend| Supabase
+    Supabase -->|direct queries| PostgreSQL
+    React --> TanStack
+    TanStack --> Express
+    Express --> Auth
+    Auth --> Routes
+    Routes --> Prisma
+    Routes -->|some routes| Storage
+    Storage --> Prisma
+    Prisma --> PostgreSQL
+```
+
 ## Related Resources
 
 -   [Project Overview](./project-overview.md)
 -   [Data Flow & Integrations](./data-flow.md)
 -   [Development Workflow](./development-workflow.md)
+-   [Software Audit Report](../plans/software-audit.md)

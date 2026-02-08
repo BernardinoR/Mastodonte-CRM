@@ -152,14 +152,64 @@ jest.mock('@clerk/clerk-react', () => ({
 
 ## Coverage Goals
 
-| Metric    | Target | Current |
-| :-------- | :----- | :------ |
-| Statements | 70%    | -       |
-| Branches  | 60%    | -       |
-| Functions | 70%    | -       |
-| Lines     | 70%    | -       |
+| Metric    | Target | Current (2026-02-08) |
+| :-------- | :----- | :------------------- |
+| Statements | 70%    | **~0.4%** |
+| Branches  | 60%    | **~0%** |
+| Functions | 70%    | **~0.4%** |
+| Lines     | 70%    | **~0.4%** |
 
-*Note: Current coverage metrics will be populated after running tests with the `--coverage` flag.*
+### Current State (Audit 2026-02-08)
+
+**1 test file exists** in the entire codebase:
+- `client/src/shared/lib/utils.test.ts` - 3 assertions testing the `cn()` classname merge utility
+
+**0 test files** for:
+- 247 frontend TypeScript/TSX files (components, hooks, contexts, pages)
+- 7 backend TypeScript files (routes, auth, storage, app)
+- 0 integration tests for API endpoints
+- 0 component tests
+- 0 E2E tests
+
+**Testing infrastructure is configured but unused:**
+- Vitest configured in `vitest.config.ts` with path aliases
+- `@testing-library/react` + `@testing-library/user-event` + `jsdom` installed as devDependencies
+- `npm run test` and `npm run test:watch` scripts defined in `package.json`
+- No CI gate enforces test execution
+
+### Remediation Plan
+
+#### Phase 1: Quick Wins (Week 1 - target 5% coverage)
+Priority: Test the most critical and risky code paths first.
+
+| Area | Files to Test | Why |
+|------|--------------|-----|
+| Auth middleware | `server/auth.ts` | Security-critical: clerkAuthMiddleware, requireRole, requireAdmin |
+| Storage layer | `server/storage.ts` | Data integrity: CRUD operations |
+| Shared utils | `client/src/shared/lib/*.ts` | High reuse across codebase |
+| Filter types | `client/src/features/tasks/types/task.ts` | Complex discriminated unions, type guards |
+
+#### Phase 2: Core Business Logic (Weeks 2-3 - target 20% coverage)
+| Area | Files to Test | Why |
+|------|--------------|-----|
+| API routes | `server/routes.ts` (integration tests) | IDOR, auth, RBAC validation |
+| Task hooks | `client/src/features/tasks/hooks/*.ts` | Complex state mutations, debouncing |
+| Filter logic | `useTaskFilters`, `useTaskSelection` | Critical user-facing filtering |
+| Bulk operations | `useBulkTaskOperations` (to be extracted) | High mutation risk, Turbo Mode |
+
+#### Phase 3: Component Tests (Weeks 3-4 - target 30-50% coverage)
+| Area | Files to Test | Why |
+|------|--------------|-----|
+| TaskCard | Rendering, interactions | Most rendered component |
+| FilterBar | Filter state, presets | Complex UI state |
+| MeetingDetailModal | AI integration, editing | High complexity |
+
+#### Highest Risk Areas (MUST test first)
+Based on audit findings, these areas have the highest bug risk due to complexity + zero tests:
+1. **Task filtering** - duplicate type definitions + complex filter logic
+2. **Client data operations** - mixed Supabase + Express API data flow
+3. **Authentication** - Clerk middleware + RLS policies
+4. **Bulk operations** - Turbo Mode (untested, high mutation volume)
 
 ## Testing Best Practices
 

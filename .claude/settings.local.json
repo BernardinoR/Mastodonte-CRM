@@ -78,7 +78,8 @@
       "Bash(do if git diff $hash^ $hash -- prisma/schema.prisma)",
       "Bash(then echo \"$hash: $msg\")",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(npm audit:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

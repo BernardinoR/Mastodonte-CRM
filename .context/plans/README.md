@@ -8,6 +8,7 @@ This directory contains plans for coordinating work across documentation and pla
 3. [Optimistic Task Creation](./optimistic-task-creation.md)
 4. [Optimize Client Task Creation](./optimize-client-task-creation.md)
 5. [Peculiaridades](./peculiaridades.md)
+6. [Software Audit](./software-audit.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.
