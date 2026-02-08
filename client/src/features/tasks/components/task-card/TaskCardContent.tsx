@@ -303,15 +303,16 @@ export function TaskCardContent({
                     +
                   </div>
                 ) : (
-                  <>
-                    {displayAssignees.map((assignee, index) => {
-                      const user = getUserByName(assignee);
-                      const color = user?.avatarColor || "bg-gray-600";
-                      const initials = user?.initials || getInitials(assignee);
-                      return (
-                        <Tooltip key={index}>
-                          <TooltipTrigger asChild>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="flex -space-x-2">
+                        {displayAssignees.map((assignee, index) => {
+                          const user = getUserByName(assignee);
+                          const color = user?.avatarColor || "bg-gray-600";
+                          const initials = user?.initials || getInitials(assignee);
+                          return (
                             <div
+                              key={index}
                               className={cn(
                                 "relative flex h-6 w-6 items-center justify-center rounded text-[10px] font-bold text-white ring-2 ring-[#202020] transition-colors hover:z-30",
                                 color,
@@ -320,20 +321,20 @@ export function TaskCardContent({
                             >
                               {initials}
                             </div>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom">{assignee}</TooltipContent>
-                        </Tooltip>
-                      );
-                    })}
-                    {remainingCount > 0 && (
-                      <div
-                        className="relative flex h-6 w-6 items-center justify-center rounded border border-[#333333] bg-[#2A2A2A] text-[10px] font-bold text-gray-400 ring-2 ring-[#202020] transition-colors hover:z-30"
-                        style={{ zIndex: 0 }}
-                      >
-                        +{remainingCount}
-                      </div>
-                    )}
-                  </>
+                          );
+                        })}
+                        {remainingCount > 0 && (
+                          <div
+                            className="relative flex h-6 w-6 items-center justify-center rounded border border-[#333333] bg-[#2A2A2A] text-[10px] font-bold text-gray-400 ring-2 ring-[#202020] transition-colors hover:z-30"
+                            style={{ zIndex: 0 }}
+                          >
+                            +{remainingCount}
+                          </div>
+                        )}
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{stableAssignees.join(", ")}</TooltipContent>
+                  </Tooltip>
                 )}
               </div>
             </PopoverTrigger>

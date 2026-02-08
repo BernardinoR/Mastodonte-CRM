@@ -991,7 +991,7 @@ export function FilterBar({
                     filter.type === "client" || filter.type === "assignee"
                       ? "w-64 p-0"
                       : filter.type === "date"
-                        ? "w-auto p-0"
+                        ? "w-auto rounded-lg border border-[#333333] bg-[#202020] p-0 shadow-2xl"
                         : filter.type === "priority"
                           ? "w-44 rounded-lg border border-[#333333] bg-[#202020] p-1 shadow-2xl"
                           : "w-56",
