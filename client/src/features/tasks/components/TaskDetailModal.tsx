@@ -8,10 +8,11 @@ import {
 } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { TaskContactButtons, TaskDescription, TaskHistory } from "./task-detail";
-import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
-import { parseLocalDate } from "@/shared/lib/date-utils";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Calendar as CalendarIcon, Plus, Building2 } from "lucide-react";
+import { TaskContactButtons, TaskDescription, TaskHistory, TaskMeetingLink } from "./task-detail";
+import { format, isBefore, startOfDay } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
 import {
   PriorityBadge,
@@ -19,12 +20,23 @@ import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
 } from "@/shared/components/ui/task-badges";
-import { TaskClientPopover, TaskAssigneesPopover } from "./task-popovers";
-import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority } from "../types/task";
-import { STATUS_CONFIG, PRIORITY_CONFIG, UI_CLASSES, UI_COLORS } from "../lib/statusConfig";
+import { TaskClientPopover } from "./task-popovers";
+import { AssigneeSelector } from "./task-editors";
+import type { Task, TaskStatus, TaskPriority, TaskType } from "../types/task";
+import { TASK_TYPE_OPTIONS, STATUS_LABELS } from "../types/task";
+import {
+  UI_CLASSES,
+  UI_COLORS,
+  MODAL_STATUS_BADGE_STYLES,
+  MODAL_PRIORITY_BADGE_STYLES,
+  getTaskTypeConfig,
+} from "../lib/statusConfig";
 import { cn } from "@/shared/lib/utils";
 import { useClients } from "@features/clients";
 import { useTasks } from "../contexts/TasksContext";
+import { getInitials, getAvatarColor } from "@/shared/components/ui/task-assignees";
+import { useUsers } from "@features/users";
+import { parseLocalDate } from "@/shared/lib/date-utils";
 
 interface TaskDetailModalProps {
   task: Task | null;
@@ -41,28 +53,6 @@ function isTaskOverdue(dueDate: string | Date): boolean {
   return isBefore(startOfDay(dueDateObj), today);
 }
 
-function getDaysSinceLastUpdate(history?: TaskHistoryEvent[]): string {
-  if (!history || history.length === 0) {
-    return "Sem atualizações";
-  }
-
-  const sortedHistory = [...history].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-  );
-
-  const lastUpdate = new Date(sortedHistory[0].timestamp);
-  const today = startOfDay(new Date());
-  const days = differenceInDays(today, startOfDay(lastUpdate));
-
-  if (days === 0) {
-    return "Atualizado hoje";
-  } else if (days === 1) {
-    return "1 dia desde a última atualização";
-  } else {
-    return `${days} dias desde a última atualização`;
-  }
-}
-
 export function TaskDetailModal({
   task,
   open,
@@ -74,6 +64,7 @@ export function TaskDetailModal({
   const [, navigate] = useLocation();
   const { getFullClientData } = useClients();
   const { addTaskHistory, deleteTaskHistory } = useTasks();
+  const { getUserByName } = useUsers();
   const [description, setDescription] = useState(task?.description || "");
   const [newComment, setNewComment] = useState("");
   const [editingTitle, setEditingTitle] = useState(false);
@@ -83,6 +74,7 @@ export function TaskDetailModal({
   const [statusPopoverOpen, setStatusPopoverOpen] = useState(false);
   const [clientPopoverOpen, setClientPopoverOpen] = useState(false);
   const [assigneesPopoverOpen, setAssigneesPopoverOpen] = useState(false);
+  const [typePopoverOpen, setTypePopoverOpen] = useState(false);
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [noteType, setNoteType] = useState<"note" | "email" | "call" | "whatsapp">("note");
 
@@ -105,7 +97,6 @@ export function TaskDetailModal({
       const newDesc = task.description || "";
       const newTitle = task.title || "";
 
-      // Only update if values actually changed to prevent infinite loops
       if (
         !prevTaskRef.current ||
         prevTaskRef.current.id !== task.id ||
@@ -183,9 +174,7 @@ export function TaskDetailModal({
   const handlePriorityChange = useCallback(
     (priority: TaskPriority | "_none") => {
       if (!task) return;
-      // Fechar o popover primeiro para evitar conflito com re-render do trigger
       setPriorityPopoverOpen(false);
-      // Pequeno delay para o popover fechar completamente antes de atualizar o estado
       setTimeout(() => {
         onUpdateTask(task.id, { priority: priority === "_none" ? undefined : priority });
       }, 50);
@@ -201,19 +190,24 @@ export function TaskDetailModal({
         return;
       }
 
-      // Atualizar status
       onUpdateTask(task.id, { status });
-
-      // Registrar mudança no histórico (via API)
       addTaskHistory(
         task.id,
         "status_change",
         `Status alterado de '${task.status}' para '${status}'`,
       );
-
       setStatusPopoverOpen(false);
     },
     [task, onUpdateTask, addTaskHistory],
+  );
+
+  const handleTypeChange = useCallback(
+    (type: TaskType) => {
+      if (!task) return;
+      onUpdateTask(task.id, { taskType: type });
+      setTypePopoverOpen(false);
+    },
+    [task, onUpdateTask],
   );
 
   const handleAddAssignee = useCallback(
@@ -236,9 +230,6 @@ export function TaskDetailModal({
 
   if (!task) return null;
 
-  const statusConfig = STATUS_CONFIG[task.status];
-  const priorityConfig = task.priority ? PRIORITY_CONFIG[task.priority] : null;
-
   const handleDescriptionBlur = () => {
     if (description !== task.description) {
       onUpdateTask(task.id, { description });
@@ -255,7 +246,6 @@ export function TaskDetailModal({
       whatsapp: "whatsapp",
     } as const;
 
-    // Usar addTaskHistory do context (sincroniza com API)
     addTaskHistory(task.id, eventTypeMap[noteType], newComment.trim());
     setNewComment("");
     setNoteType("note");
@@ -267,17 +257,20 @@ export function TaskDetailModal({
 
   const handleDeleteEvent = (eventId: string) => {
     if (!task) return;
-    // Usar deleteTaskHistory do context (sincroniza com API)
     deleteTaskHistory(task.id, eventId);
   };
+
+  const taskTypeConfig = getTaskTypeConfig(task.taskType || "Tarefa");
+  const statusBadgeStyle = MODAL_STATUS_BADGE_STYLES[task.status];
+  const priorityBadgeStyle = task.priority ? MODAL_PRIORITY_BADGE_STYLES[task.priority] : null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         hideCloseButton
         className={cn(
-          "h-[85vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
-          UI_CLASSES.card,
+          "h-[85vh] w-[90vw] max-w-[1200px] overflow-hidden rounded-xl p-0",
+          UI_CLASSES.modalContainer,
           "border-l-[6px]",
           isTurboModeActive && turboActionPerformed && "turbo-border-green-pulse",
         )}
@@ -296,109 +289,208 @@ export function TaskDetailModal({
         </VisuallyHidden>
 
         <div className="flex h-full min-h-0">
-          <div className="flex min-h-0 flex-[1.5] flex-col overflow-hidden px-8 pb-4 pl-10 pt-8">
-            <div className="mb-5 flex items-center justify-between">
-              <div className="max-w-[50%] flex-1">
-                {editingTitle ? (
-                  <textarea
-                    ref={titleInputRef}
-                    value={titleValue}
-                    onChange={handleTitleChange}
-                    onBlur={handleTitleSave}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleTitleSave();
-                      }
-                      if (e.key === "Escape") {
-                        setTitleValue(task.title);
-                        setEditingTitle(false);
-                      }
-                    }}
-                    rows={1}
-                    className="-ml-2 w-full resize-none overflow-hidden border-none bg-transparent px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide text-white outline-none"
-                    style={{ fontSize: "1.125rem", lineHeight: "1.75rem" }}
-                    data-testid="input-modal-title"
-                  />
-                ) : (
-                  <h2
-                    className="-ml-2 cursor-pointer rounded-md px-2 py-0.5 text-lg font-extrabold uppercase tracking-wide text-white transition-colors hover:bg-gray-700/80"
-                    onClick={() => setEditingTitle(true)}
-                    data-testid="text-modal-title"
-                  >
-                    {task.title || "Sem título"}
-                  </h2>
-                )}
-              </div>
-              <span className={UI_CLASSES.clientBadge}>{getDaysSinceLastUpdate(task.history)}</span>
-            </div>
-
-            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-              <PopoverTrigger asChild>
-                <div
-                  className="-ml-2 mb-3 flex w-fit cursor-pointer items-center gap-2 rounded-md px-2 py-0.5 font-semibold text-white transition-colors hover:bg-gray-700/80"
-                  data-testid="button-modal-date"
-                >
-                  <CalendarIcon className="h-4 w-4" />
-                  <span>{format(task.dueDate, "dd/MM/yyyy")}</span>
-                </div>
-              </PopoverTrigger>
-              <PopoverContent
-                ref={datePopoverRef}
-                className={cn("w-auto p-0", UI_CLASSES.popover)}
-                side="bottom"
-                align="start"
-                sideOffset={6}
-              >
-                <DateInput
-                  value={task.dueDate}
-                  onChange={handleDateChange}
-                  className="font-semibold"
-                  dataTestId="input-modal-date"
-                  hideIcon
-                  commitOnInput={false}
-                />
-              </PopoverContent>
-            </Popover>
-
+          {/* Left Panel */}
+          <div className="flex min-h-0 flex-[1.5] flex-col overflow-y-auto px-8 pb-4 pl-10 pt-8">
+            {/* 1. Task Type Badge */}
             <div className="mb-4">
-              <TaskClientPopover
-                id={task.id}
-                clientName={task.clientName || null}
-                isOpen={clientPopoverOpen}
-                onOpenChange={setClientPopoverOpen}
-                onClientChange={handleClientSelect}
-                onNavigate={handleClientClick}
-                variant="modal"
-              />
+              <Popover open={typePopoverOpen} onOpenChange={setTypePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <span
+                    className={cn(
+                      "inline-flex cursor-pointer items-center rounded-md px-2.5 py-1 text-xs font-semibold transition-colors hover:opacity-80",
+                      taskTypeConfig.className,
+                    )}
+                    data-testid="button-modal-type"
+                  >
+                    {taskTypeConfig.label}
+                  </span>
+                </PopoverTrigger>
+                <PopoverContent
+                  className={cn("w-48 p-0", UI_CLASSES.popover)}
+                  side="bottom"
+                  align="start"
+                  sideOffset={6}
+                >
+                  <div className="w-full">
+                    <div className="px-3 py-1.5 text-xs text-gray-500">Tipo de tarefa</div>
+                    <div className="pb-1">
+                      {TASK_TYPE_OPTIONS.map((t) => {
+                        const cfg = getTaskTypeConfig(t);
+                        return (
+                          <div
+                            key={t}
+                            className={cn(
+                              UI_CLASSES.dropdownItem,
+                              t === (task.taskType || "Tarefa") && "bg-[#333333]",
+                            )}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleTypeChange(t);
+                            }}
+                          >
+                            <span
+                              className={cn(
+                                "rounded-md px-2 py-0.5 text-xs font-semibold",
+                                cfg.className,
+                              )}
+                            >
+                              {cfg.label}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <TaskContactButtons
-              clientEmail={
-                linkedClient?.emails?.[linkedClient.primaryEmailIndex] ||
-                linkedClient?.emails?.[0] ||
-                task.clientEmail
-              }
-              clientPhone={linkedClient?.phone || task.clientPhone}
-              clientName={linkedClient?.name || task.clientName}
-              clientId={task.clientId}
-              whatsappGroups={whatsappGroups}
-            />
+            {/* 2. Title */}
+            <div className="mb-4">
+              {editingTitle ? (
+                <textarea
+                  ref={titleInputRef}
+                  value={titleValue}
+                  onChange={handleTitleChange}
+                  onBlur={handleTitleSave}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      handleTitleSave();
+                    }
+                    if (e.key === "Escape") {
+                      setTitleValue(task.title);
+                      setEditingTitle(false);
+                    }
+                  }}
+                  rows={1}
+                  className="w-full resize-none overflow-hidden border-none bg-transparent text-3xl font-bold tracking-tight text-white outline-none"
+                  data-testid="input-modal-title"
+                />
+              ) : (
+                <h2
+                  className="cursor-pointer rounded-md text-3xl font-bold tracking-tight text-white transition-colors hover:text-gray-200"
+                  onClick={() => setEditingTitle(true)}
+                  data-testid="text-modal-title"
+                >
+                  {task.title || "Sem título"}
+                </h2>
+              )}
+            </div>
 
-            <div className="mb-8 flex gap-3">
+            {/* 3. Date + Client inline */}
+            <div className="mb-5 flex items-center gap-6">
+              <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div
+                    className="flex cursor-pointer items-center gap-2 text-sm text-gray-400 transition-colors hover:text-white"
+                    data-testid="button-modal-date"
+                  >
+                    <CalendarIcon className="h-[18px] w-[18px]" />
+                    <span>{format(task.dueDate, "dd MMM yyyy", { locale: ptBR })}</span>
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent
+                  ref={datePopoverRef}
+                  className={cn("w-auto p-0", UI_CLASSES.popover)}
+                  side="bottom"
+                  align="start"
+                  sideOffset={6}
+                >
+                  <DateInput
+                    value={task.dueDate}
+                    onChange={handleDateChange}
+                    className="font-semibold"
+                    dataTestId="input-modal-date"
+                    hideIcon
+                    commitOnInput={false}
+                  />
+                </PopoverContent>
+              </Popover>
+
+              <div className="flex items-center gap-2 text-sm text-gray-400">
+                <Building2 className="h-[18px] w-[18px]" />
+                <TaskClientPopover
+                  id={task.id}
+                  clientName={task.clientName || null}
+                  isOpen={clientPopoverOpen}
+                  onOpenChange={setClientPopoverOpen}
+                  onClientChange={handleClientSelect}
+                  onNavigate={handleClientClick}
+                  variant="modal"
+                />
+              </div>
+            </div>
+
+            {/* 4. Status + Priority badges (semi-transparent) */}
+            <div className="mb-6 flex gap-3">
+              <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <div
+                    className={cn(
+                      "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      statusBadgeStyle.bg,
+                      statusBadgeStyle.border,
+                      statusBadgeStyle.text,
+                    )}
+                    data-testid="button-modal-status"
+                  >
+                    <span className={cn("h-2 w-2 rounded-full", statusBadgeStyle.dot)} />
+                    {STATUS_LABELS[task.status]}
+                  </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                  <div className="w-full">
+                    <div className={cn("border-b", UI_CLASSES.border)}>
+                      <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
+                      <div className="px-3 py-1">
+                        <div
+                          className={cn(
+                            "flex items-center gap-2 rounded-md px-2 py-1.5",
+                            UI_CLASSES.selectedItem,
+                          )}
+                        >
+                          <StatusBadge status={task.status} />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
+                    <div className="pb-1">
+                      {STATUS_OPTIONS.filter((s) => s !== task.status).map((s) => (
+                        <div
+                          key={s}
+                          className={UI_CLASSES.dropdownItem}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleStatusChange(s);
+                          }}
+                        >
+                          <StatusBadge status={s} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <Popover open={priorityPopoverOpen} onOpenChange={setPriorityPopoverOpen}>
                 <PopoverTrigger asChild>
-                  {task.priority ? (
-                    <div className="cursor-pointer" data-testid="button-modal-priority">
-                      <PriorityBadge
-                        priority={task.priority}
-                        dotSize="md"
-                        className="cursor-pointer !gap-1.5 !px-3 !py-1.5 !text-sm"
-                      />
+                  {priorityBadgeStyle ? (
+                    <div
+                      className={cn(
+                        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                        priorityBadgeStyle.bg,
+                        priorityBadgeStyle.border,
+                        priorityBadgeStyle.text,
+                      )}
+                      data-testid="button-modal-priority"
+                    >
+                      <span className={cn("h-2 w-2 rounded-full", priorityBadgeStyle.dot)} />
+                      {task.priority}
                     </div>
                   ) : (
                     <span
-                      className="inline-flex cursor-pointer rounded-full px-4 py-1.5 text-sm text-muted-foreground hover:bg-gray-700/80 hover:text-foreground"
+                      className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-dashed border-[#333333] px-3 py-1.5 text-xs text-gray-500 transition-colors hover:border-gray-500 hover:text-gray-300"
                       data-testid="button-modal-priority"
                     >
                       + Prioridade
@@ -446,74 +538,85 @@ export function TaskDetailModal({
                   </div>
                 </PopoverContent>
               </Popover>
-
-              <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <div className="cursor-pointer" data-testid="button-modal-status">
-                    <StatusBadge
-                      status={task.status}
-                      dotSize="md"
-                      className="cursor-pointer !gap-1.5 !px-3 !py-1.5 !text-sm"
-                    />
-                  </div>
-                </PopoverTrigger>
-                <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
-                  <div className="w-full">
-                    <div className={cn("border-b", UI_CLASSES.border)}>
-                      <div className="px-3 py-1.5 text-xs text-gray-500">Selecionado</div>
-                      <div className="px-3 py-1">
-                        <div
-                          className={cn(
-                            "flex items-center gap-2 rounded-md px-2 py-1.5",
-                            UI_CLASSES.selectedItem,
-                          )}
-                        >
-                          <StatusBadge status={task.status} />
-                        </div>
-                      </div>
-                    </div>
-                    <div className="px-3 py-1.5 text-xs text-gray-500">Outras opções</div>
-                    <div className="pb-1">
-                      {STATUS_OPTIONS.filter((s) => s !== task.status).map((s) => (
-                        <div
-                          key={s}
-                          className={UI_CLASSES.dropdownItem}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleStatusChange(s);
-                          }}
-                        >
-                          <StatusBadge status={s} />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
             </div>
 
+            {/* 5. Quick Actions */}
+            <TaskContactButtons
+              clientEmail={
+                linkedClient?.emails?.[linkedClient.primaryEmailIndex] ||
+                linkedClient?.emails?.[0] ||
+                task.clientEmail
+              }
+              clientPhone={linkedClient?.phone || task.clientPhone}
+              clientName={linkedClient?.name || task.clientName}
+              clientId={task.clientId}
+              whatsappGroups={whatsappGroups}
+            />
+
+            {/* 6. Description */}
             <TaskDescription
               description={description}
               onChange={setDescription}
               onSave={handleDescriptionBlur}
             />
 
-            <div className={cn("mt-auto border-t pb-4 pt-4", UI_CLASSES.borderLight)}>
-              <label className={cn("mb-2 block text-xs font-bold uppercase", UI_CLASSES.labelText)}>
-                Responsáveis
-              </label>
-              <TaskAssigneesPopover
-                id={task.id}
-                assignees={task.assignees}
-                isOpen={assigneesPopoverOpen}
-                onOpenChange={setAssigneesPopoverOpen}
-                onAddAssignee={handleAddAssignee}
-                onRemoveAssignee={handleRemoveAssignee}
-                variant="modal"
-              />
+            {/* 7. Reunião de Origem (conditional) */}
+            {task.meeting && (
+              <div className="mt-6">
+                <TaskMeetingLink
+                  meeting={task.meeting}
+                  onNavigate={(meetingId) => {
+                    onOpenChange(false);
+                    navigate(`/meetings/${meetingId}`);
+                  }}
+                />
+              </div>
+            )}
+
+            {/* 8. Responsáveis */}
+            <div className={cn("mt-auto border-t pb-4 pt-4", "border-[#333333]")}>
+              <label className={UI_CLASSES.sectionLabel}>Responsáveis</label>
+              <div className="flex flex-wrap items-center gap-2">
+                {task.assignees.map((assignee, idx) => {
+                  const user = getUserByName(assignee);
+                  const avatarColor = user?.avatarColor || getAvatarColor(idx);
+                  return (
+                    <div
+                      key={idx}
+                      className={UI_CLASSES.assigneeChip}
+                      onClick={() => handleRemoveAssignee(assignee)}
+                    >
+                      <Avatar className={cn("h-6 w-6", avatarColor)}>
+                        <AvatarFallback className="bg-transparent text-[10px] font-medium text-white">
+                          {user?.initials || getInitials(assignee)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm text-gray-300">{assignee}</span>
+                    </div>
+                  );
+                })}
+                <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <button
+                      className={UI_CLASSES.assigneeAddBtn}
+                      data-testid={`button-edit-assignees-${task.id}`}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64 p-0" side="top" align="start" sideOffset={6}>
+                    <AssigneeSelector
+                      selectedAssignees={task.assignees}
+                      onSelect={handleAddAssignee}
+                      onRemove={handleRemoveAssignee}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
             </div>
           </div>
 
+          {/* Right Panel - History */}
           <TaskHistory
             history={task.history || []}
             newComment={newComment}

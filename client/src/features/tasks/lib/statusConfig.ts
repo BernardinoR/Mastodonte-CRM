@@ -22,6 +22,11 @@ export const UI_COLORS = {
   contactBtnBg: "white/5",
   contactBtnBorder: "#3a3a3a",
 
+  // Modal
+  modalBg: "#1a1a1a",
+  borderSubtle: "#333333",
+  surfaceDark: "#222222",
+
   // Task card borders (RGB for inline styles)
   taskBorderBlue: "rgb(66, 129, 220)",
   taskBorderRed: "rgb(185, 28, 28)",
@@ -39,7 +44,7 @@ export const UI_CLASSES = {
   borderLight: "border-[#3a3a3a]",
   labelText: "text-[#64666E]",
   contactBtn: "bg-white/5 border border-[#3a3a3a] hover:bg-white/10",
-  historyPanel: "bg-[#222222] border-l border-[#3a3a3a]",
+  historyPanel: "bg-[#1e1e1e] border-l border-[#333333]",
   historyEvent: "bg-[#2a2a2a] border border-[#3a3a3a]",
   historyTimeline: "bg-[#3a3a3a]",
   historyIcon: "bg-[#333333] border-2 border-[#222222]",
@@ -51,6 +56,18 @@ export const UI_CLASSES = {
     "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-[#333333] transition-colors",
   dropdownItemSelected:
     "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#333333] rounded-md",
+  // Modal specific - new design
+  modalContainer: "bg-[#1a1a1a] border-[#333333]",
+  sectionLabel: "text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3",
+  descriptionContainer: "bg-[#222222] border border-[#333333] rounded-lg p-5 shadow-inner",
+  quickActionBtn:
+    "bg-transparent hover:bg-white/5 border border-[#333333] rounded-md text-xs font-semibold text-gray-300 px-4 py-2 flex items-center gap-2 transition-all hover:border-gray-500 group",
+  assigneeChip:
+    "flex items-center gap-2.5 pl-1.5 pr-3 py-1.5 rounded-md bg-[#333333] border border-[#333333] hover:border-gray-500 transition-colors cursor-pointer group",
+  assigneeAddBtn:
+    "w-9 h-9 rounded-md bg-transparent hover:bg-white/5 border border-[#333333] border-dashed flex items-center justify-center transition-colors text-gray-500 hover:text-white hover:border-gray-500",
+  meetingLinkCard:
+    "bg-[#262626] border border-[#333333] rounded-lg flex items-center w-full p-2 shadow-sm hover:border-gray-500 hover:bg-[#2a2a2a] transition-all cursor-pointer group",
 } as const;
 
 export interface StatusConfig {
@@ -133,6 +150,60 @@ export const PRIORITY_CONFIG: Record<TaskPriority, PriorityConfig> = {
     borderColor: "border-blue-800",
     textColor: "text-white",
     dotColor: "bg-blue-500",
+  },
+};
+
+export const MODAL_STATUS_BADGE_STYLES: Record<
+  TaskStatus,
+  { bg: string; border: string; text: string; dot: string }
+> = {
+  "To Do": {
+    bg: "bg-gray-500/10",
+    border: "border-gray-500/20",
+    text: "text-gray-400",
+    dot: "bg-gray-400",
+  },
+  "In Progress": {
+    bg: "bg-[#2eaadc]/10",
+    border: "border-[#2eaadc]/20",
+    text: "text-[#2eaadc]",
+    dot: "bg-[#2eaadc]",
+  },
+  Done: {
+    bg: "bg-green-500/10",
+    border: "border-green-500/20",
+    text: "text-green-400",
+    dot: "bg-green-400",
+  },
+};
+
+export const MODAL_PRIORITY_BADGE_STYLES: Record<
+  TaskPriority,
+  { bg: string; border: string; text: string; dot: string }
+> = {
+  Urgente: {
+    bg: "bg-red-500/10",
+    border: "border-red-500/20",
+    text: "text-red-400",
+    dot: "bg-red-400",
+  },
+  Importante: {
+    bg: "bg-orange-500/10",
+    border: "border-orange-500/20",
+    text: "text-orange-400",
+    dot: "bg-orange-400",
+  },
+  Normal: {
+    bg: "bg-yellow-500/10",
+    border: "border-yellow-500/20",
+    text: "text-yellow-400",
+    dot: "bg-yellow-400",
+  },
+  Baixa: {
+    bg: "bg-blue-500/10",
+    border: "border-blue-500/20",
+    text: "text-blue-400",
+    dot: "bg-blue-400",
   },
 };
 

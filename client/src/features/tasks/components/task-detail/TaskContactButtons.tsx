@@ -31,7 +31,7 @@ export function TaskContactButtons({
 
   if (!clientEmail && !clientPhone) return null;
 
-  const buttonClass = `flex items-center gap-2 px-4 py-2 rounded-full text-sm text-gray-400 ${UI_CLASSES.contactBtn} hover:text-white transition-colors`;
+  const buttonClass = UI_CLASSES.quickActionBtn;
 
   const activeWhatsAppGroups = whatsappGroups.filter((g) => g.status === "Ativo" && g.link);
   const hasWhatsAppGroups = activeWhatsAppGroups.length > 0;
@@ -67,47 +67,101 @@ export function TaskContactButtons({
   };
 
   return (
-    <div className="mb-6 flex gap-3">
-      {clientEmail && (
-        <a
-          href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(clientEmail)}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={buttonClass}
-          data-testid="button-email-client"
-        >
-          <Mail className="h-4 w-4" />
-          Enviar Email
-        </a>
-      )}
-      {clientPhone && (
-        <>
-          <a href={`tel:${clientPhone}`} className={buttonClass} data-testid="button-call-client">
-            <Phone className="h-4 w-4" />
-            Ligar
+    <div className="mb-6">
+      <label className={UI_CLASSES.sectionLabel}>Ações Rápidas</label>
+      <div className="flex gap-3">
+        {clientEmail && (
+          <a
+            href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(clientEmail)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={buttonClass}
+            data-testid="button-email-client"
+          >
+            <Mail className="h-[18px] w-[18px] text-gray-500 group-hover:text-white" />
+            Email
           </a>
-          {hasWhatsAppGroups ? (
-            <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button className={buttonClass} data-testid="button-whatsapp-client">
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => {
-                      handleWhatsApp();
-                      setWhatsappPopoverOpen(false);
-                    }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
-                    data-testid="button-whatsapp-direct"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Chat direto
+        )}
+        {clientPhone && (
+          <>
+            <a href={`tel:${clientPhone}`} className={buttonClass} data-testid="button-call-client">
+              <Phone className="h-[18px] w-[18px] text-gray-500 group-hover:text-white" />
+              Phone
+            </a>
+            {hasWhatsAppGroups ? (
+              <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button className={buttonClass} data-testid="button-whatsapp-client">
+                    <MessageCircle className="h-[18px] w-[18px] text-green-500" />
+                    WhatsApp
                   </button>
-                  {calendarLink && clientName && (
+                </PopoverTrigger>
+                <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => {
+                        handleWhatsApp();
+                        setWhatsappPopoverOpen(false);
+                      }}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                      data-testid="button-whatsapp-direct"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Chat direto
+                    </button>
+                    {calendarLink && clientName && (
+                      <button
+                        onClick={() => {
+                          handleSchedulingWhatsApp();
+                          setWhatsappPopoverOpen(false);
+                        }}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                        data-testid="button-whatsapp-scheduling"
+                      >
+                        <Calendar className="h-4 w-4 text-emerald-500" />
+                        Enviar link de agendamento
+                      </button>
+                    )}
+                    <div className="my-1 border-t border-[#3a3a3a]" />
+                    <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
+                    {activeWhatsAppGroups.map((group) => (
+                      <button
+                        key={group.id}
+                        onClick={() => {
+                          handleWhatsApp(group.link || undefined, true);
+                          setWhatsappPopoverOpen(false);
+                        }}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                        data-testid={`button-whatsapp-group-${group.id}`}
+                      >
+                        <MessageCircle className="h-4 w-4 text-emerald-500" />
+                        {group.name}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : calendarLink && clientName ? (
+              <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button className={buttonClass} data-testid="button-whatsapp-client">
+                    <MessageCircle className="h-[18px] w-[18px] text-green-500" />
+                    WhatsApp
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => {
+                        handleWhatsApp();
+                        setWhatsappPopoverOpen(false);
+                      }}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                      data-testid="button-whatsapp-direct"
+                    >
+                      <MessageCircle className="h-4 w-4" />
+                      Chat direto
+                    </button>
                     <button
                       onClick={() => {
                         handleSchedulingWhatsApp();
@@ -119,73 +173,22 @@ export function TaskContactButtons({
                       <Calendar className="h-4 w-4 text-emerald-500" />
                       Enviar link de agendamento
                     </button>
-                  )}
-                  <div className="my-1 border-t border-[#3a3a3a]" />
-                  <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
-                  {activeWhatsAppGroups.map((group) => (
-                    <button
-                      key={group.id}
-                      onClick={() => {
-                        handleWhatsApp(group.link || undefined, true);
-                        setWhatsappPopoverOpen(false);
-                      }}
-                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
-                      data-testid={`button-whatsapp-group-${group.id}`}
-                    >
-                      <MessageCircle className="h-4 w-4 text-emerald-500" />
-                      {group.name}
-                    </button>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : calendarLink && clientName ? (
-            <Popover open={whatsappPopoverOpen} onOpenChange={setWhatsappPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button className={buttonClass} data-testid="button-whatsapp-client">
-                  <MessageCircle className="h-4 w-4" />
-                  WhatsApp
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
-                <div className="flex flex-col gap-1">
-                  <button
-                    onClick={() => {
-                      handleWhatsApp();
-                      setWhatsappPopoverOpen(false);
-                    }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
-                    data-testid="button-whatsapp-direct"
-                  >
-                    <MessageCircle className="h-4 w-4" />
-                    Chat direto
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleSchedulingWhatsApp();
-                      setWhatsappPopoverOpen(false);
-                    }}
-                    className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
-                    data-testid="button-whatsapp-scheduling"
-                  >
-                    <Calendar className="h-4 w-4 text-emerald-500" />
-                    Enviar link de agendamento
-                  </button>
-                </div>
-              </PopoverContent>
-            </Popover>
-          ) : (
-            <button
-              onClick={() => handleWhatsApp()}
-              className={buttonClass}
-              data-testid="button-whatsapp-client"
-            >
-              <MessageCircle className="h-4 w-4" />
-              WhatsApp
-            </button>
-          )}
-        </>
-      )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <button
+                onClick={() => handleWhatsApp()}
+                className={buttonClass}
+                data-testid="button-whatsapp-client"
+              >
+                <MessageCircle className="h-[18px] w-[18px] text-green-500" />
+                WhatsApp
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

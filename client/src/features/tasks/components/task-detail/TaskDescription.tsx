@@ -25,19 +25,15 @@ export function TaskDescription({ description, onChange, onSave }: TaskDescripti
 
   return (
     <div className="flex min-h-0 flex-[0.6] flex-col">
-      <label
-        className={cn("mb-3 block flex-shrink-0 text-xs font-bold uppercase", UI_CLASSES.labelText)}
-      >
-        Descrição
-      </label>
-      <div className="-ml-2 -mr-2 min-h-0 flex-1">
+      <label className={UI_CLASSES.sectionLabel}>Descrição</label>
+      <div className={cn("min-h-0 flex-1", UI_CLASSES.descriptionContainer)}>
         <Textarea
           ref={descriptionRef}
           value={description}
           onChange={(e) => onChange(e.target.value)}
           onBlur={handleBlur}
           placeholder="Adicione detalhes..."
-          className="h-full w-full cursor-pointer resize-none rounded-md !border-none bg-transparent px-2 py-1 text-base leading-relaxed text-gray-300 !outline-none !ring-0 transition-colors hover:bg-gray-700/80 focus:bg-transparent focus:text-white focus:!ring-0 focus:hover:bg-transparent focus-visible:!ring-0 focus-visible:!ring-offset-0"
+          className="h-full w-full resize-none !border-none bg-transparent p-0 text-sm font-normal leading-7 text-gray-300 !outline-none !ring-0 transition-colors focus:text-white focus:!ring-0 focus-visible:!ring-0 focus-visible:!ring-offset-0"
           data-testid="textarea-description"
         />
       </div>

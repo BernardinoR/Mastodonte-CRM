@@ -49,6 +49,13 @@ interface DbTask {
   task_assignees: DbTaskAssignee[];
   task_history: DbTaskHistory[];
   client: { id: string; name: string; emails: string[]; phone: string | null } | null;
+  meeting: {
+    id: number;
+    title: string;
+    date: string;
+    type: string;
+    client: { name: string } | null;
+  } | null;
   creator: { name: string | null } | null;
 }
 
@@ -67,6 +74,16 @@ function mapDbRowToTask(row: DbTask): Task {
     clientName: row.client?.name,
     clientEmail: row.client?.emails?.[0],
     clientPhone: row.client?.phone || undefined,
+    meetingId: row.meeting_id || undefined,
+    meeting: row.meeting
+      ? {
+          id: row.meeting.id,
+          title: row.meeting.title,
+          date: new Date(row.meeting.date),
+          type: row.meeting.type,
+          clientName: row.meeting.client?.name,
+        }
+      : undefined,
     assignees: (row.task_assignees || []).map((a) => a.user?.name || "Unknown"),
     history: (row.task_history || []).map((h) => ({
       id: h.id,
@@ -108,6 +125,7 @@ const TASK_SELECT = `
   task_assignees(user_id, user:users!user_id(id, name)),
   task_history(id, type, content, author_id, created_at, author:users!author_id(name)),
   client:clients!client_id(id, name, emails, phone),
+  meeting:meetings!meeting_id(id, title, date, type, client:clients!client_id(name)),
   creator:users!creator_id(name)
 `;
 
