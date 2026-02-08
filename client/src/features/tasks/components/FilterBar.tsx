@@ -577,6 +577,26 @@ export function FilterBar({
           </div>
         </div>
 
+        {/* Turbo Mode Button */}
+        <button
+          onClick={onTurboMode}
+          disabled={turboModeTaskCount === 0}
+          className={cn(
+            "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+            turboModeTaskCount > 0
+              ? "text-gray-500 hover:bg-orange-500/20 hover:text-orange-500"
+              : "cursor-not-allowed text-gray-600",
+          )}
+          title={
+            turboModeTaskCount > 0
+              ? `Modo Turbo: ${turboModeTaskCount} tarefas`
+              : "Nenhuma tarefa pendente"
+          }
+          data-testid="button-turbo-mode"
+        >
+          <Rocket className="h-4 w-4" />
+        </button>
+
         {/* Task Type Filter Toggle */}
         <Popover open={taskTypePopoverOpen} onOpenChange={setTaskTypePopoverOpen}>
           <PopoverTrigger asChild>
@@ -637,26 +657,6 @@ export function FilterBar({
             </div>
           </PopoverContent>
         </Popover>
-
-        {/* Turbo Mode Button */}
-        <button
-          onClick={onTurboMode}
-          disabled={turboModeTaskCount === 0}
-          className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-            turboModeTaskCount > 0
-              ? "text-gray-500 hover:bg-orange-500/20 hover:text-orange-500"
-              : "cursor-not-allowed text-gray-600",
-          )}
-          title={
-            turboModeTaskCount > 0
-              ? `Modo Turbo: ${turboModeTaskCount} tarefas`
-              : "Nenhuma tarefa pendente"
-          }
-          data-testid="button-turbo-mode"
-        >
-          <Rocket className="h-4 w-4" />
-        </button>
 
         {/* Presets Popover */}
         <Popover open={presetsPopoverOpen} onOpenChange={setPresetsPopoverOpen}>
@@ -992,7 +992,9 @@ export function FilterBar({
                       ? "w-64 p-0"
                       : filter.type === "date"
                         ? "w-auto p-0"
-                        : "w-56",
+                        : filter.type === "priority"
+                          ? "w-44 rounded-lg border border-[#333333] bg-[#202020] p-1 shadow-2xl"
+                          : "w-56",
                   )}
                   side="bottom"
                   align="start"
