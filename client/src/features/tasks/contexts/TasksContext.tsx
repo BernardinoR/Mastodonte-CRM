@@ -510,85 +510,61 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     [syncTaskToApi],
   );
 
-  // Create task and return it (aguarda resposta do servidor)
+  // Create task and return it (optimistic - retorna imediatamente com temp ID)
   const createTaskAndReturn = useCallback(
-    async (data: CreateTaskData): Promise<Task | null> => {
+    (data: CreateTaskData): Promise<Task | null> => {
       if (!currentUser) {
         console.error("Cannot create task: current user not loaded");
-        return null;
+        return Promise.resolve(null);
       }
 
-      try {
-        // Find client by name if clientId not provided
-        let clientId = data.clientId;
-        if (!clientId && data.clientName) {
-          const client = clients.find(
-            (c) => c.name.toLowerCase() === data.clientName?.toLowerCase(),
-          );
-          clientId = client?.id;
-        }
+      // Gerar temp ID compatível com verificações existentes
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-        // Convert assignee names to IDs
-        const assigneeIds: number[] = [];
-        if (data.assignees && data.assignees.length > 0) {
-          for (const name of data.assignees) {
-            const user = teamUsers.find((u) => u.name.toLowerCase() === name.toLowerCase());
-            if (user) {
-              assigneeIds.push(user.id);
-            }
-          }
-        } else if (currentUser) {
-          assigneeIds.push(currentUser.id);
-        }
-
-        // Insert task via Supabase
-        const { data: created, error: insertError } = await supabase
-          .from("tasks")
-          .insert({
-            title: data.title,
-            priority: data.priority || "Normal",
-            status: data.status || "To Do",
-            task_type: data.taskType || "Tarefa",
-            due_date: data.dueDate ? formatLocalDate(data.dueDate) : formatLocalDate(new Date()),
-            client_id: clientId || null,
-            creator_id: currentUser.id,
-            order: data.order ?? 0,
-          })
-          .select("id")
-          .single();
-
-        if (insertError) throw insertError;
-
-        const realTaskId = created.id;
-
-        // Insert assignees
-        if (assigneeIds.length > 0) {
-          await supabase
-            .from("task_assignees")
-            .insert(assigneeIds.map((userId) => ({ task_id: realTaskId, user_id: userId })));
-        }
-
-        // Fetch the complete task with relations
-        const { data: taskData, error: fetchError } = await supabase
-          .from("tasks")
-          .select(TASK_SELECT)
-          .eq("id", realTaskId)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        const newTask = mapDbRowToTask(taskData as DbTask);
-
-        // Adicionar à lista após confirmação do servidor
-        setTasks((prev) => [...prev, newTask]);
-
-        return newTask;
-      } catch (err) {
-        console.error("Error creating task:", err);
-        return null;
+      // Resolver client info localmente
+      let resolvedClientId = data.clientId;
+      let resolvedClientName = data.clientName;
+      if (!resolvedClientId && data.clientName) {
+        const client = clients.find((c) => c.name.toLowerCase() === data.clientName?.toLowerCase());
+        resolvedClientId = client?.id;
+        resolvedClientName = client?.name || data.clientName;
+      } else if (resolvedClientId && !resolvedClientName) {
+        const client = clients.find((c) => c.id === resolvedClientId);
+        resolvedClientName = client?.name;
       }
+
+      // Resolver nomes de assignees
+      const resolvedAssignees =
+        data.assignees && data.assignees.length > 0 ? data.assignees : [currentUser.name];
+
+      // Criar task optimística
+      const optimisticTask: Task = {
+        id: tempId,
+        title: data.title,
+        clientId: resolvedClientId,
+        clientName: resolvedClientName,
+        priority: data.priority || "Normal",
+        status: data.status || "To Do",
+        taskType: data.taskType || "Tarefa",
+        assignees: resolvedAssignees,
+        dueDate: data.dueDate || new Date(),
+        order: data.order ?? 0,
+        syncStatus: "pending",
+        _tempId: tempId,
+      };
+
+      // Adicionar ao state imediatamente (com suporte a undo)
+      setTasksWithHistory((prev) => [...prev, optimisticTask]);
+
+      // Guardar dados para retry
+      pendingCreateData.current.set(tempId, data);
+
+      // Sync em background
+      syncTaskToApi(tempId, data);
+
+      return Promise.resolve(optimisticTask);
     },
-    [clients, teamUsers, currentUser],
+    [clients, currentUser, setTasksWithHistory, syncTaskToApi],
   );
 
   // Create task (async version)

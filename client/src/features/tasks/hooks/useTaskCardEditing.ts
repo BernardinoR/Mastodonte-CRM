@@ -240,7 +240,7 @@ export function useTaskCardEditing({
 
     // If title is empty, set it to "Sem título"
     if (!dataToSave.title.trim()) {
-      dataToSave.title = "Sem título";
+      dataToSave.title = "Nova tarefa";
     }
 
     latestDraftRef.current = dataToSave;

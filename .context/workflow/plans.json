@@ -1,4 +1,14 @@
 {
-  "active": [],
-  "completed": []
+  "active": [
+    {
+      "slug": "optimistic-task-creation",
+      "path": "plans/optimistic-task-creation.md",
+      "title": "Optimistic Updates na Criação de Tarefas",
+      "summary": "Implementar optimistic updates ao criar novas tarefas para que a UI reflita instantaneamente a nova tarefa antes da confirmação do servidor, melhorando a experiência do usuário com feedback imediato.",
+      "linkedAt": "2026-02-08T13:16:18.665Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "optimistic-task-creation"
 }

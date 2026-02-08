@@ -283,6 +283,7 @@ export const TaskCard = memo(function TaskCard({
               "group/task-card cursor-pointer select-none rounded-lg border border-[#333333] bg-[#202020] shadow-sm transition-all hover:border-gray-600",
               isSelected && !isEditing && "shadow-lg ring-2 ring-blue-500",
               isOverdue && "border-y border-l-[3px] border-r border-[#333333] border-l-red-700",
+              syncStatus === "pending" && "opacity-60",
             )}
             onClick={handleCardClick}
             data-testid={`card-task-${id}`}
@@ -297,7 +298,11 @@ export const TaskCard = memo(function TaskCard({
               onEditingTitleChange={(value) => setEditedTask((prev) => ({ ...prev, title: value }))}
               onStartTitleEdit={handleEditClick}
               onSaveTitleEdit={() => {
-                handleUpdate("title", editedTask.title);
+                const titleToSave = editedTask.title.trim() || "Nova tarefa";
+                if (titleToSave !== editedTask.title) {
+                  setEditedTask((prev) => ({ ...prev, title: titleToSave }));
+                }
+                handleUpdate("title", titleToSave);
               }}
               onConfirmTitleEdit={() => onFinishEditing?.(id)}
               onTypeChange={(type) => handleUpdate("taskType", type)}

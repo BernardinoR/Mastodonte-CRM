@@ -30,7 +30,7 @@ export function useQuickAddTask({
 
       // Create task (aguarda resposta do servidor)
       const newTask = await createTaskAndReturn({
-        title: "Nova tarefa",
+        title: "",
         status,
         priority: "Normal",
         assignees: defaultAssignee ? [defaultAssignee] : [],
@@ -54,7 +54,7 @@ export function useQuickAddTask({
 
       // Create task (aguarda resposta do servidor)
       const newTask = await createTaskAndReturn({
-        title: "Nova tarefa",
+        title: "",
         status,
         priority: "Normal",
         assignees: defaultAssignee ? [defaultAssignee] : [],
@@ -78,7 +78,7 @@ export function useQuickAddTask({
 
       // Create task (aguarda resposta do servidor)
       const newTask = await createTaskAndReturn({
-        title: "Nova tarefa",
+        title: "",
         status: afterTask.status,
         priority: "Normal",
         assignees: defaultAssignee ? [defaultAssignee] : [],

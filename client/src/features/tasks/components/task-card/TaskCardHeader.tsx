@@ -76,6 +76,7 @@ export function TaskCardHeader({
               onKeyDown={handleTitleKeyDown}
               onClick={(e) => e.stopPropagation()}
               autoFocus
+              placeholder="Nome da tarefa..."
               className="w-full border-b border-[#2eaadc] bg-transparent text-sm font-semibold leading-snug text-gray-200 placeholder:text-muted-foreground focus:outline-none"
               data-testid={`input-tasktitle-${id}`}
             />

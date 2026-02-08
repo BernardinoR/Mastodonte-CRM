@@ -359,11 +359,12 @@ export default function Tasks() {
   // Explicit action to finish editing a new task
   const handleFinishEditing = useCallback(
     (taskId: string) => {
-      if (editingTaskId === taskId) {
+      const task = tasks.find((t) => t.id === taskId);
+      if (editingTaskId === taskId || (task?._tempId && editingTaskId === task._tempId)) {
         setEditingTaskId(null);
       }
     },
-    [editingTaskId],
+    [editingTaskId, tasks],
   );
 
   // Load more tasks for a column
@@ -436,7 +437,9 @@ export default function Tasks() {
         isSelected={selectedTaskIds.has(task.id)}
         selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}
         isDragActive={activeTaskId !== null}
-        initialEditMode={editingTaskId === task.id}
+        initialEditMode={
+          editingTaskId === task.id || (!!task._tempId && editingTaskId === task._tempId)
+        }
         isCompact={isCompact}
         onSelect={handleSelectTask}
         onUpdate={handleUpdateTaskWithClearEdit}
