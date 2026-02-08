@@ -333,7 +333,9 @@ export function TaskCardContent({
                         )}
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom">{stableAssignees.join(", ")}</TooltipContent>
+                    <TooltipContent side="bottom" className="z-[100]">
+                      {stableAssignees.join(", ")}
+                    </TooltipContent>
                   </Tooltip>
                 )}
               </div>

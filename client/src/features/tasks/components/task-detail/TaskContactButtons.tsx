@@ -67,7 +67,7 @@ export function TaskContactButtons({
   };
 
   return (
-    <div className="mb-6">
+    <div className="mb-8">
       <label className={UI_CLASSES.sectionLabel}>Ações Rápidas</label>
       <div className="flex gap-3">
         {clientEmail && (

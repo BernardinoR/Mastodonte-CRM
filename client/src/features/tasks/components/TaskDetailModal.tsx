@@ -423,19 +423,19 @@ export function TaskDetailModal({
             </div>
 
             {/* 4. Status + Priority badges (semi-transparent) */}
-            <div className="mb-6 flex gap-3">
+            <div className="mb-8 flex flex-wrap gap-3">
               <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                 <PopoverTrigger asChild>
                   <div
                     className={cn(
-                      "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                      "flex h-7 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
                       statusBadgeStyle.bg,
                       statusBadgeStyle.border,
                       statusBadgeStyle.text,
                     )}
                     data-testid="button-modal-status"
                   >
-                    <span className={cn("h-2 w-2 rounded-full", statusBadgeStyle.dot)} />
+                    <span className={cn("h-1.5 w-1.5 rounded-full", statusBadgeStyle.dot)} />
                     {STATUS_LABELS[task.status]}
                   </div>
                 </PopoverTrigger>
@@ -478,14 +478,14 @@ export function TaskDetailModal({
                   {priorityBadgeStyle ? (
                     <div
                       className={cn(
-                        "inline-flex cursor-pointer items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors",
+                        "flex h-7 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
                         priorityBadgeStyle.bg,
                         priorityBadgeStyle.border,
                         priorityBadgeStyle.text,
                       )}
                       data-testid="button-modal-priority"
                     >
-                      <span className={cn("h-2 w-2 rounded-full", priorityBadgeStyle.dot)} />
+                      <span className={cn("h-1.5 w-1.5 rounded-full", priorityBadgeStyle.dot)} />
                       {task.priority}
                     </div>
                   ) : (
@@ -586,12 +586,12 @@ export function TaskDetailModal({
                       className={UI_CLASSES.assigneeChip}
                       onClick={() => handleRemoveAssignee(assignee)}
                     >
-                      <Avatar className={cn("h-6 w-6", avatarColor)}>
-                        <AvatarFallback className="bg-transparent text-[10px] font-medium text-white">
+                      <Avatar className={cn("h-6 w-6 rounded", avatarColor)}>
+                        <AvatarFallback className="rounded bg-transparent text-[10px] font-bold text-white">
                           {user?.initials || getInitials(assignee)}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-sm text-gray-300">{assignee}</span>
+                      <span className="text-xs font-bold tracking-wide text-white">{assignee}</span>
                     </div>
                   );
                 })}
