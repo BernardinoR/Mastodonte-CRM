@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { Check, Plus, User } from "lucide-react";
+import { Check, Plus, X, User } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { useClients } from "@features/clients";
 
@@ -74,6 +74,97 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
         {filteredClients.length === 0 && (
           <div className="px-3 py-4 text-center text-sm text-gray-500">
             Nenhum cliente encontrado
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MultiClientSelector - Seleção múltipla de clientes (para filtros)
+// ============================================
+
+interface MultiClientSelectorProps {
+  selectedClients: string[];
+  onSelect: (clientName: string) => void;
+  onRemove: (clientName: string) => void;
+}
+
+export function MultiClientSelector({
+  selectedClients,
+  onSelect,
+  onRemove,
+}: MultiClientSelectorProps) {
+  const { clients } = useClients();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const availableClients = clients.filter(
+    (client) =>
+      client.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !selectedClients.includes(client.name),
+  );
+
+  const selectedClientObjects = clients.filter((client) => selectedClients.includes(client.name));
+
+  return (
+    <div className="w-full">
+      <div className="border-b border-[#3a3a3a] px-3 py-2.5">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Buscar cliente..."
+          className="h-auto border-0 bg-transparent p-0 text-sm text-gray-400 placeholder:text-gray-500 focus-visible:ring-0"
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+
+      {selectedClientObjects.length > 0 && (
+        <div className="border-b border-[#3a3a3a]">
+          <div className="px-3 py-1.5 text-xs text-gray-500">
+            {selectedClientObjects.length} selecionado{selectedClientObjects.length > 1 ? "s" : ""}
+          </div>
+          {selectedClientObjects.map((client) => (
+            <div key={client.id} className="px-3 py-1">
+              <div
+                className="group flex cursor-pointer items-center gap-2 rounded-md bg-[#2a2a2a] px-2 py-1.5"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRemove(client.name);
+                }}
+              >
+                <Check className="h-4 w-4 text-gray-400" />
+                <span className="flex-1 text-sm text-foreground">{client.name}</span>
+                <X className="h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="px-3 py-1.5 text-xs text-gray-500">
+        {selectedClientObjects.length > 0 ? "Adicionar mais" : "Selecionar cliente"}
+      </div>
+
+      <div className="max-h-52 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
+        {availableClients.map((client, index) => (
+          <div
+            key={client.id}
+            className="group flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors hover:bg-[#2a2a2a]"
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect(client.name);
+            }}
+            data-testid={`option-client-${index}`}
+          >
+            <User className="h-4 w-4 text-gray-500" />
+            <span className="flex-1 text-sm text-foreground">{client.name}</span>
+            <Plus className="h-4 w-4 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
+          </div>
+        ))}
+        {availableClients.length === 0 && (
+          <div className="px-3 py-4 text-center text-sm text-gray-500">
+            {searchQuery ? "Nenhum cliente encontrado" : "Todos os clientes já foram selecionados"}
           </div>
         )}
       </div>

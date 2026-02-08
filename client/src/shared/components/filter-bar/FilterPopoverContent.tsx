@@ -1,6 +1,5 @@
 import { memo, useCallback, useMemo } from "react";
 import { Input } from "@/shared/components/ui/input";
-import { SearchableMultiSelect } from "@/shared/components/ui/searchable-multi-select";
 import { UI_CLASSES } from "@features/tasks/lib/statusConfig";
 import { StatusBadge } from "@/shared/components/ui/task-badges";
 import { X, Check } from "lucide-react";
@@ -15,6 +14,8 @@ import {
   type DateFilterValue,
   type FilterValueMap,
 } from "@features/tasks";
+import { AssigneeSelector } from "@features/tasks/components/task-editors/AssigneeSelector";
+import { MultiClientSelector } from "@features/tasks/components/task-editors/ClientSelector";
 import { DateRangeFilterContent, formatDateFilterLabel } from "./DateRangeFilterContent";
 
 export { formatDateFilterLabel };
@@ -22,8 +23,8 @@ export { formatDateFilterLabel };
 interface FilterPopoverContentProps {
   filter: TypedActiveFilter;
   onUpdateFilter: <T extends FilterType>(id: string, type: T, value: FilterValueMap[T]) => void;
-  availableAssignees: string[];
-  availableClients: string[];
+  availableAssignees?: string[];
+  availableClients?: string[];
 }
 
 export const StatusFilterContent = memo(function StatusFilterContent({
@@ -237,18 +238,44 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
     [filter.id, onUpdateFilter],
   );
 
-  const handleAssigneeChange = useCallback(
-    (newSelection: string[]) => {
-      onUpdateFilter(filter.id, "assignee", newSelection);
+  const handleAssigneeAdd = useCallback(
+    (name: string) => {
+      if (filter.type !== "assignee") return;
+      onUpdateFilter(filter.id, "assignee", [...filter.value, name]);
     },
-    [filter.id, onUpdateFilter],
+    [filter.id, filter.type, filter.value, onUpdateFilter],
   );
 
-  const handleClientChange = useCallback(
-    (newSelection: string[]) => {
-      onUpdateFilter(filter.id, "client", newSelection);
+  const handleAssigneeRemove = useCallback(
+    (name: string) => {
+      if (filter.type !== "assignee") return;
+      onUpdateFilter(
+        filter.id,
+        "assignee",
+        filter.value.filter((v) => v !== name),
+      );
     },
-    [filter.id, onUpdateFilter],
+    [filter.id, filter.type, filter.value, onUpdateFilter],
+  );
+
+  const handleClientAdd = useCallback(
+    (name: string) => {
+      if (filter.type !== "client") return;
+      onUpdateFilter(filter.id, "client", [...filter.value, name]);
+    },
+    [filter.id, filter.type, filter.value, onUpdateFilter],
+  );
+
+  const handleClientRemove = useCallback(
+    (name: string) => {
+      if (filter.type !== "client") return;
+      onUpdateFilter(
+        filter.id,
+        "client",
+        filter.value.filter((v) => v !== name),
+      );
+    },
+    [filter.id, filter.type, filter.value, onUpdateFilter],
   );
 
   switch (filter.type) {
@@ -273,29 +300,19 @@ export const FilterPopoverContent = memo(function FilterPopoverContent({
 
     case "assignee":
       return (
-        <SearchableMultiSelect
-          items={availableAssignees}
-          selectedItems={filter.value}
-          onSelectionChange={handleAssigneeChange}
-          placeholder="Buscar responsável..."
-          selectedLabel="Responsável selecionado"
-          availableLabel="Selecione mais"
-          emptyMessage="Nenhum responsável encontrado"
-          itemType="user"
+        <AssigneeSelector
+          selectedAssignees={filter.value}
+          onSelect={handleAssigneeAdd}
+          onRemove={handleAssigneeRemove}
         />
       );
 
     case "client":
       return (
-        <SearchableMultiSelect
-          items={availableClients}
-          selectedItems={filter.value}
-          onSelectionChange={handleClientChange}
-          placeholder="Vincule ou crie uma página..."
-          selectedLabel="Cliente selecionado"
-          availableLabel="Selecione mais"
-          emptyMessage="Nenhum cliente encontrado"
-          itemType="client"
+        <MultiClientSelector
+          selectedClients={filter.value}
+          onSelect={handleClientAdd}
+          onRemove={handleClientRemove}
         />
       );
 
