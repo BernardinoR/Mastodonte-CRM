@@ -206,7 +206,7 @@ export function useTaskCardEditing({
 
         const isTitleEdit = field === "title";
         const isTextFieldEdit = isTitleEdit || field === "description";
-        const debounceTime = isTextFieldEdit ? 300 : 0;
+        const debounceTime = field === "description" ? 300 : 0;
 
         if (debounceTime > 0) {
           pendingUpdateRef.current = setTimeout(() => {
