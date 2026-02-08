@@ -53,13 +53,7 @@ interface UseTaskFiltersReturn {
 }
 
 const ALL_STATUSES: TaskStatus[] = ["To Do", "In Progress", "Done"];
-const ALL_PRIORITIES: (TaskPriority | "none")[] = [
-  "Urgente",
-  "Importante",
-  "Normal",
-  "Baixa",
-  "none",
-];
+const ALL_PRIORITIES: TaskPriority[] = ["Urgente", "Importante", "Normal", "Baixa"];
 
 const STATUS_ORDER: Record<string, number> = {
   "To Do": 1,
@@ -176,8 +170,8 @@ export function useTaskFilters(
         } else if (isPriorityFilter(filter)) {
           const priorityValues = filter.value;
           if (priorityValues.length > 0 && priorityValues.length < ALL_PRIORITIES.length) {
-            const taskPriority = task.priority || "none";
-            if (!priorityValues.includes(taskPriority as TaskPriority | "none")) return false;
+            if (!task.priority || !priorityValues.includes(task.priority as TaskPriority))
+              return false;
           }
         } else if (isTaskFilter(filter)) {
           const taskSearch = filter.value.toLowerCase();

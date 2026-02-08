@@ -200,7 +200,7 @@ function hasFilterValue(filter: TypedActiveFilter): boolean {
     case "status":
       return (filter.value as string[]).length < STATUS_OPTIONS.length;
     case "priority":
-      return (filter.value as string[]).length < PRIORITY_OPTIONS.length + 1;
+      return (filter.value as string[]).length < PRIORITY_OPTIONS.length;
     case "task":
       return !!(filter.value as string);
     case "assignee":
@@ -936,9 +936,9 @@ export function FilterBar({
                   if (statusValues.length === STATUS_OPTIONS.length) return config.label;
                   return statusValues.join(", ");
                 case "priority":
-                  const priorityValues = filter.value as (TaskPriority | "none")[];
-                  if (priorityValues.length === PRIORITY_OPTIONS.length + 1) return config.label;
-                  return priorityValues.map((p) => (p === "none" ? "Sem" : p)).join(", ");
+                  const priorityValues = filter.value as TaskPriority[];
+                  if (priorityValues.length === PRIORITY_OPTIONS.length) return config.label;
+                  return priorityValues.join(", ");
                 case "task":
                   return (filter.value as string) || config.label;
                 case "assignee":

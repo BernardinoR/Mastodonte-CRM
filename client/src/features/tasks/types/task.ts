@@ -20,7 +20,7 @@ export interface DateFilterValue {
 export interface FilterValueMap {
   date: DateFilterValue;
   status: TaskStatus[];
-  priority: (TaskPriority | "none")[];
+  priority: TaskPriority[];
   task: string;
   assignee: string[];
   client: string[];
@@ -30,7 +30,7 @@ export interface FilterValueMap {
 export type TypedActiveFilter =
   | { id: string; type: "date"; value: DateFilterValue }
   | { id: string; type: "status"; value: TaskStatus[] }
-  | { id: string; type: "priority"; value: (TaskPriority | "none")[] }
+  | { id: string; type: "priority"; value: TaskPriority[] }
   | { id: string; type: "task"; value: string }
   | { id: string; type: "assignee"; value: string[] }
   | { id: string; type: "client"; value: string[] };
@@ -42,7 +42,7 @@ export type FilterValueFor<T extends FilterType> = FilterValueMap[T];
 export const DEFAULT_FILTER_VALUES: FilterValueMap = {
   date: { type: "all" },
   status: ["To Do", "In Progress", "Done"],
-  priority: ["Urgente", "Importante", "Normal", "Baixa", "none"],
+  priority: ["Urgente", "Importante", "Normal", "Baixa"],
   task: "",
   assignee: [],
   client: [],
@@ -73,7 +73,7 @@ export function isStatusFilter(
 
 export function isPriorityFilter(
   filter: TypedActiveFilter,
-): filter is { id: string; type: "priority"; value: (TaskPriority | "none")[] } {
+): filter is { id: string; type: "priority"; value: TaskPriority[] } {
   return filter.type === "priority";
 }
 

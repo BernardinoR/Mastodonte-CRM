@@ -41,8 +41,7 @@ export interface ClientTasksProps {
 export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps) {
   // Estados dos filtros locais
   const [selectedStatuses, setSelectedStatuses] = useState<TaskStatus[]>(STATUS_OPTIONS);
-  const [selectedPriorities, setSelectedPriorities] =
-    useState<(TaskPriority | "none")[]>(PRIORITY_OPTIONS);
+  const [selectedPriorities, setSelectedPriorities] = useState<TaskPriority[]>(PRIORITY_OPTIONS);
   const [dateFilter, setDateFilter] = useState<DateFilterValue>({ type: "all" });
   const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
   const [isFiltersExpanded, setIsFiltersExpanded] = useState(false);
@@ -68,8 +67,8 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
     // Filtro de prioridade
     if (selectedPriorities.length < PRIORITY_OPTIONS.length) {
       result = result.filter((task) => {
-        const taskPriority = task.priority || "none";
-        return selectedPriorities.includes(taskPriority);
+        if (!task.priority) return false;
+        return selectedPriorities.includes(task.priority as TaskPriority);
       });
     }
 
@@ -148,7 +147,7 @@ export function ClientTasks({ tasks, inlineProps, clientName }: ClientTasksProps
     );
   }, []);
 
-  const handlePriorityToggle = useCallback((priority: TaskPriority | "none") => {
+  const handlePriorityToggle = useCallback((priority: TaskPriority) => {
     setSelectedPriorities((prev) =>
       prev.includes(priority) ? prev.filter((p) => p !== priority) : [...prev, priority],
     );
