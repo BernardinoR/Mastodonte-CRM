@@ -4,15 +4,10 @@ import { TaskCard, TaskCardProps } from "./TaskCard";
 
 interface SortableTaskCardProps extends Omit<TaskCardProps, "onEditStateChange"> {
   isDragActive?: boolean;
-  isCompact?: boolean;
 }
 
 export const SortableTaskCard = memo(
-  function SortableTaskCard({
-    isDragActive = false,
-    isCompact = false,
-    ...props
-  }: SortableTaskCardProps) {
+  function SortableTaskCard({ isDragActive = false, ...props }: SortableTaskCardProps) {
     // Track if child TaskCard is currently in edit mode
     const [isChildEditing, setIsChildEditing] = useState(false);
 
@@ -53,7 +48,7 @@ export const SortableTaskCard = memo(
         {...attributes}
         {...(isChildEditing ? {} : listeners)} // Only attach listeners when not editing
       >
-        <TaskCard {...props} isCompact={isCompact} onEditStateChange={handleEditStateChange} />
+        <TaskCard {...props} onEditStateChange={handleEditStateChange} />
       </div>
     );
   },
@@ -71,7 +66,6 @@ export const SortableTaskCard = memo(
     if (prev.selectedCount !== next.selectedCount) return false;
     if (prev.isDragActive !== next.isDragActive) return false;
     if (prev.initialEditMode !== next.initialEditMode) return false;
-    if (prev.isCompact !== next.isCompact) return false;
 
     if (prev.assignees.length !== next.assignees.length) return false;
     for (let i = 0; i < prev.assignees.length; i++) {

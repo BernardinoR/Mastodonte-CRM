@@ -22,14 +22,15 @@ import {
   Clock,
   CalendarRange,
   Rocket,
-  AlignJustify,
-  Rows3,
+  Layers,
 } from "lucide-react";
 import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/shared/lib/utils";
 import {
   STATUS_OPTIONS,
   PRIORITY_OPTIONS,
+  TASK_TYPE_OPTIONS,
+  type TaskType,
   type TaskStatus,
   type TaskPriority,
   type FilterType,
@@ -37,6 +38,7 @@ import {
   type DateFilterValue,
   type FilterValueMap,
 } from "../types/task";
+import { TASK_TYPE_CONFIG } from "../lib/statusConfig";
 import {
   FilterPopoverContent,
   formatDateFilterLabel,
@@ -87,8 +89,8 @@ interface FilterBarProps {
   onSearchChange?: (query: string) => void;
   showAssignee?: boolean;
   showPriority?: boolean;
-  isCompact?: boolean;
-  onCompactModeChange?: (isCompact: boolean) => void;
+  selectedTaskTypes?: TaskType[];
+  onSelectedTaskTypesChange?: (types: TaskType[]) => void;
 }
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
@@ -119,7 +121,7 @@ interface FilterPreset {
   matchTask: (task: { dueDate: Date; status: string }) => boolean;
 }
 
-const FILTER_PRESETS: FilterPreset[] = [
+export const FILTER_PRESETS: FilterPreset[] = [
   {
     id: "work",
     label: "Work",
@@ -325,8 +327,8 @@ export function FilterBar({
   tasks = [],
   activePresetId = null,
   onActivePresetChange = () => {},
-  isCompact = false,
-  onCompactModeChange = () => {},
+  selectedTaskTypes = [],
+  onSelectedTaskTypesChange = () => {},
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
@@ -335,6 +337,7 @@ export function FilterBar({
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [addFilterPopoverKey, setAddFilterPopoverKey] = useState(0);
   const [presetsPopoverOpen, setPresetsPopoverOpen] = useState(false);
+  const [taskTypePopoverOpen, setTaskTypePopoverOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Calculate task counts for each preset - fallback to empty array if tasks undefined
@@ -514,7 +517,8 @@ export function FilterBar({
   const handleResetWithPreset = useCallback(() => {
     onReset();
     onActivePresetChange(null);
-  }, [onReset, onActivePresetChange]);
+    onSelectedTaskTypesChange([]);
+  }, [onReset, onActivePresetChange, onSelectedTaskTypesChange]);
 
   return (
     <div className="mb-4 flex flex-col gap-2">
@@ -573,20 +577,66 @@ export function FilterBar({
           </div>
         </div>
 
-        {/* Compact Mode Toggle Button */}
-        <button
-          onClick={() => onCompactModeChange(!isCompact)}
-          className={cn(
-            "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
-            isCompact
-              ? "bg-blue-500/20 text-blue-400"
-              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
-          )}
-          title={isCompact ? "Modo expandido" : "Modo compacto"}
-          data-testid="button-compact-mode"
-        >
-          {isCompact ? <AlignJustify className="h-4 w-4" /> : <Rows3 className="h-4 w-4" />}
-        </button>
+        {/* Task Type Filter Toggle */}
+        <Popover open={taskTypePopoverOpen} onOpenChange={setTaskTypePopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                selectedTaskTypes.length > 0
+                  ? "bg-purple-500/20 text-purple-400"
+                  : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
+              )}
+              title="Tipo de tarefa"
+              data-testid="button-task-type-filter"
+            >
+              <Layers className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-56 border border-[#3a3a3a] bg-[#1a1a1a] p-2"
+            side="bottom"
+            align="start"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+          >
+            <div className="flex flex-col gap-1">
+              <div className="px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+                Tipo de Tarefa
+              </div>
+              {TASK_TYPE_OPTIONS.map((type) => {
+                const config = TASK_TYPE_CONFIG[type];
+                const isActive = selectedTaskTypes.includes(type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      if (isActive) {
+                        onSelectedTaskTypesChange(selectedTaskTypes.filter((t) => t !== type));
+                      } else {
+                        onSelectedTaskTypesChange([...selectedTaskTypes, type]);
+                      }
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
+                      isActive
+                        ? "border border-purple-500/30 bg-purple-500/10"
+                        : "hover:bg-[#2a2a2a]",
+                    )}
+                    data-testid={`task-type-${type}`}
+                  >
+                    <span
+                      className={cn("rounded px-2 py-0.5 text-xs font-medium", config.className)}
+                    >
+                      {config.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </PopoverContent>
+        </Popover>
 
         {/* Turbo Mode Button */}
         <button
@@ -730,7 +780,7 @@ export function FilterBar({
         </button>
 
         {/* Clear Filters */}
-        {(hasActiveFilters || activePreset) && (
+        {(hasActiveFilters || activePreset || selectedTaskTypes.length > 0) && (
           <button
             onClick={handleResetWithPreset}
             className="text-xs text-gray-500 transition-colors hover:text-gray-300"

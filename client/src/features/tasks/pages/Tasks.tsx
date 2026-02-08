@@ -2,7 +2,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { KanbanColumn } from "../components/KanbanColumn";
 import { SortableTaskCard } from "../components/SortableTaskCard";
 import { DragPreview } from "../components/DragPreview";
-import { FilterBar } from "../components/FilterBar";
+import { FilterBar, FILTER_PRESETS } from "../components/FilterBar";
 import { ViewModeToggle } from "../components/ViewModeToggle";
 import { TurboModeOverlay } from "../components/TurboModeOverlay";
 import { TurboSummaryModal } from "../components/TurboSummaryModal";
@@ -22,7 +22,7 @@ import {
   CollisionDetection,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import type { Task, TaskStatus, TaskPriority, TypedActiveFilter } from "../types/task";
+import type { Task, TaskType, TaskStatus, TaskPriority, TypedActiveFilter } from "../types/task";
 import { createTypedFilter } from "../types/task";
 import { createNewTask } from "@/shared/lib/mock-data";
 import { useTasks } from "../contexts/TasksContext";
@@ -40,8 +40,11 @@ export default function Tasks() {
   const [newTaskOpen, setNewTaskOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
-  const [activePresetId, setActivePresetId] = useState<string | null>(null);
-  const [isCompact, setIsCompact] = useState(false);
+  const [activePresetId, setActivePresetId] = useState<string | null>(() => {
+    const saved = sessionStorage.getItem("tasks-active-preset");
+    return saved !== null ? saved || null : "work";
+  });
+  const [selectedTaskTypes, setSelectedTaskTypes] = useState<TaskType[]>([]);
 
   // Pagination state per column - tracks how many tasks are visible
   const [visibleCounts, setVisibleCounts] = useState<Record<TaskStatus, number>>({
@@ -92,7 +95,29 @@ export default function Tasks() {
     todoTasks,
     inProgressTasks,
     doneTasks,
-  } = useTaskFilters(tasks, initialFilters);
+  } = useTaskFilters(tasks, initialFilters, selectedTaskTypes);
+
+  // Persistir preset ativo na sessionStorage
+  useEffect(() => {
+    sessionStorage.setItem("tasks-active-preset", activePresetId || "");
+  }, [activePresetId]);
+
+  // Aplicar preset inicial (Work default ou último salvo da sessão)
+  const hasAppliedInitialPreset = useRef(false);
+  useEffect(() => {
+    if (hasAppliedInitialPreset.current) return;
+    if (urlParams.clientFilter) return; // URL override
+
+    const preset = FILTER_PRESETS.find((p) => p.id === activePresetId);
+    if (preset) {
+      hasAppliedInitialPreset.current = true;
+      setSorts(preset.sorts);
+      addFilter("date", preset.getDateFilter());
+      if (preset.getStatusFilter) {
+        addFilter("status", preset.getStatusFilter());
+      }
+    }
+  }, [activePresetId]);
 
   // Aplicar ordenação baseados nos parâmetros da URL (apenas uma vez)
   useEffect(() => {
@@ -441,7 +466,6 @@ export default function Tasks() {
         initialEditMode={
           editingTaskId === task.id || (!!task._tempId && editingTaskId === task._tempId)
         }
-        isCompact={isCompact}
         onSelect={handleSelectTask}
         onUpdate={handleUpdateTaskWithClearEdit}
         onDelete={handleDeleteTask}
@@ -555,8 +579,8 @@ export default function Tasks() {
         tasks={tasks}
         activePresetId={activePresetId}
         onActivePresetChange={setActivePresetId}
-        isCompact={isCompact}
-        onCompactModeChange={setIsCompact}
+        selectedTaskTypes={selectedTaskTypes}
+        onSelectedTaskTypesChange={setSelectedTaskTypes}
       />
 
       <div className="mb-6 border-b border-[#3a3a3a]" />
@@ -597,7 +621,6 @@ export default function Tasks() {
               accentColor="#9B9A97"
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              isCompact={isCompact}
             >
               <SortableContext items={visibleTodoTaskIds} strategy={verticalListSortingStrategy}>
                 {renderTasksWithPlaceholder(todoTasks, "To Do")}
@@ -611,7 +634,6 @@ export default function Tasks() {
               accentColor="#4281DC"
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              isCompact={isCompact}
             >
               <SortableContext
                 items={visibleInProgressTaskIds}
@@ -629,7 +651,6 @@ export default function Tasks() {
               isDoneColumn
               onAddTask={handleQuickAdd}
               onAddTaskTop={handleQuickAddTop}
-              isCompact={isCompact}
             >
               <SortableContext items={visibleDoneTaskIds} strategy={verticalListSortingStrategy}>
                 {renderTasksWithPlaceholder(doneTasks, "Done")}

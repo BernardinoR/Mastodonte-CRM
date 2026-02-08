@@ -31,7 +31,6 @@ export interface TaskCardProps {
   selectedCount?: number;
   isDragActive?: boolean;
   initialEditMode?: boolean;
-  isCompact?: boolean;
   onSelect?: (taskId: string, shiftKey: boolean, ctrlKey: boolean) => void;
   onUpdate: (taskId: string, updates: TaskUpdates) => void;
   onDelete: (taskId: string) => void;
@@ -72,7 +71,6 @@ const PRIMITIVE_KEYS = [
   "selectedCount",
   "isDragActive",
   "initialEditMode",
-  "isCompact",
 ] as const;
 
 const arePropsEqual = (prev: TaskCardProps, next: TaskCardProps): boolean => {
@@ -108,7 +106,6 @@ export const TaskCard = memo(function TaskCard({
   selectedCount = 0,
   isDragActive = false,
   initialEditMode = false,
-  isCompact = false,
   onSelect,
   onUpdate,
   onDelete,

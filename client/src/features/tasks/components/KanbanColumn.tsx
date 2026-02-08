@@ -13,7 +13,6 @@ interface KanbanColumnProps {
   isDoneColumn?: boolean;
   onAddTask?: (status: TaskStatus) => void;
   onAddTaskTop?: (status: TaskStatus) => void;
-  isCompact?: boolean;
 }
 
 export const KanbanColumn = memo(function KanbanColumn({
@@ -25,7 +24,6 @@ export const KanbanColumn = memo(function KanbanColumn({
   isDoneColumn = false,
   onAddTask,
   onAddTaskTop,
-  isCompact = false,
 }: KanbanColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: id,

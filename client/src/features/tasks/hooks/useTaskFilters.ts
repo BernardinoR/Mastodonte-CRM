@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import {
   Task,
+  TaskType,
   TaskStatus,
   TaskPriority,
   FilterType,
@@ -69,6 +70,7 @@ const STATUS_ORDER: Record<string, number> = {
 export function useTaskFilters(
   tasks: Task[],
   initialFilters?: TypedActiveFilter[],
+  selectedTaskTypes: TaskType[] = [],
 ): UseTaskFiltersReturn {
   // Inicializar viewMode baseado na URL para evitar flash ao navegar
   const initialViewMode =
@@ -196,6 +198,12 @@ export function useTaskFilters(
         }
       }
 
+      // Task type filter
+      if (selectedTaskTypes.length > 0) {
+        const type = task.taskType || "Tarefa";
+        if (!selectedTaskTypes.includes(type as TaskType)) return false;
+      }
+
       return true;
     });
 
@@ -232,7 +240,7 @@ export function useTaskFilters(
     }
 
     return result;
-  }, [tasks, sorts, activeFilters]);
+  }, [tasks, sorts, activeFilters, selectedTaskTypes]);
 
   const todoTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "To Do");
