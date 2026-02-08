@@ -2,8 +2,6 @@ import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Input } from "@/shared/components/ui/input";
 import {
-  LayoutGrid,
-  List,
   ChevronDown,
   ArrowUpDown,
   X,
@@ -61,8 +59,6 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-type ViewMode = "board" | "table";
-
 type SortField = "priority" | "dueDate" | "title" | "status";
 type SortDirection = "asc" | "desc";
 
@@ -72,8 +68,6 @@ interface SortOption {
 }
 
 interface FilterBarProps {
-  viewMode?: ViewMode;
-  onViewModeChange?: (mode: ViewMode) => void;
   sorts?: SortOption[];
   onSortsChange?: (sorts: SortOption[]) => void;
   activeFilters?: TypedActiveFilter[];
@@ -197,6 +191,24 @@ const FILTER_PRESETS: FilterPreset[] = [
   },
 ];
 
+function hasFilterValue(filter: TypedActiveFilter): boolean {
+  switch (filter.type) {
+    case "date":
+      return (filter.value as DateFilterValue)?.type !== "all";
+    case "status":
+      return (filter.value as string[]).length < STATUS_OPTIONS.length;
+    case "priority":
+      return (filter.value as string[]).length < PRIORITY_OPTIONS.length + 1;
+    case "task":
+      return !!(filter.value as string);
+    case "assignee":
+    case "client":
+      return (filter.value as string[]).length > 0;
+    default:
+      return false;
+  }
+}
+
 interface SortableItemProps {
   sort: SortOption;
   onDirectionChange: (field: SortField, direction: SortDirection) => void;
@@ -298,8 +310,6 @@ function SortableItem({ sort, onDirectionChange, onRemove }: SortableItemProps) 
 }
 
 export function FilterBar({
-  viewMode = "board",
-  onViewModeChange = () => {},
   sorts = [],
   onSortsChange = () => {},
   activeFilters = [],
@@ -508,40 +518,8 @@ export function FilterBar({
 
   return (
     <div className="mb-4 flex flex-col gap-2">
-      {/* Main Filter Bar */}
-      <div className="flex items-center gap-3">
-        {/* View Mode Badges */}
-        <button
-          onClick={() => onViewModeChange("board")}
-          className={cn(
-            "flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-            viewMode === "board"
-              ? "border border-[#404040] bg-[#2a2a2a] text-white"
-              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
-          )}
-          data-testid="button-view-board"
-        >
-          <LayoutGrid className="h-4 w-4" />
-          <span>Kanban</span>
-        </button>
-
-        <button
-          onClick={() => onViewModeChange("table")}
-          className={cn(
-            "flex h-8 items-center gap-1.5 rounded-full px-3 text-sm font-medium transition-colors",
-            viewMode === "table"
-              ? "border border-[#404040] bg-[#2a2a2a] text-white"
-              : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
-          )}
-          data-testid="button-view-table"
-        >
-          <List className="h-4 w-4" />
-          <span>Lista</span>
-        </button>
-
-        {/* Spacer - pushes everything after to the right */}
-        <div className="flex-1" />
-
+      {/* Line 2: shortcuts + filters (left) | actions (right) */}
+      <div className="flex items-center gap-2">
         {/* Search - Expandable with animation */}
         <div
           className={cn(
@@ -751,16 +729,19 @@ export function FilterBar({
           )}
         </button>
 
-        {/* Reset Button - also shows when preset is active */}
+        {/* Clear Filters */}
         {(hasActiveFilters || activePreset) && (
           <button
             onClick={handleResetWithPreset}
-            className="text-sm text-gray-500 transition-colors hover:text-gray-300"
+            className="text-xs text-gray-500 transition-colors hover:text-gray-300"
             data-testid="button-reset-filters"
           >
-            Redefinir
+            Limpar filtros
           </button>
         )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
 
         {/* New Task Button */}
         <button
@@ -923,25 +904,6 @@ export function FilterBar({
               }
             };
 
-            const hasValue = () => {
-              switch (filter.type) {
-                case "date":
-                  const dateVal = filter.value as DateFilterValue;
-                  return dateVal && dateVal.type !== "all";
-                case "status":
-                  return (filter.value as string[]).length < STATUS_OPTIONS.length;
-                case "priority":
-                  return (filter.value as string[]).length < PRIORITY_OPTIONS.length + 1;
-                case "task":
-                  return !!(filter.value as string);
-                case "assignee":
-                case "client":
-                  return (filter.value as string[]).length > 0;
-                default:
-                  return false;
-              }
-            };
-
             return (
               <Popover
                 key={filter.id}
@@ -952,7 +914,7 @@ export function FilterBar({
                   <div
                     className={cn(
                       "flex h-8 cursor-pointer items-center gap-1.5 rounded-md px-3 text-sm transition-colors",
-                      hasValue()
+                      hasFilterValue(filter)
                         ? "border border-purple-500/30 bg-purple-500/20 text-purple-300"
                         : "border border-[#3a3a3a] bg-[#1a1a1a] text-gray-300",
                     )}

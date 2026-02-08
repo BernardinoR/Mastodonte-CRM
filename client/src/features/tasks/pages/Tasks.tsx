@@ -3,6 +3,7 @@ import { KanbanColumn } from "../components/KanbanColumn";
 import { SortableTaskCard } from "../components/SortableTaskCard";
 import { DragPreview } from "../components/DragPreview";
 import { FilterBar } from "../components/FilterBar";
+import { ViewModeToggle } from "../components/ViewModeToggle";
 import { TurboModeOverlay } from "../components/TurboModeOverlay";
 import { TurboSummaryModal } from "../components/TurboSummaryModal";
 import { TaskTableView } from "../components/TaskTableView";
@@ -533,11 +534,12 @@ export default function Tasks() {
         }
       }}
     >
-      <h1 className="mb-4 text-3xl font-bold tracking-tight text-white">Tarefas</h1>
+      <div className="mb-4 flex items-center gap-4">
+        <h1 className="text-3xl font-bold tracking-tight text-white">Tarefas</h1>
+        <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+      </div>
 
       <FilterBar
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
         sorts={sorts}
         onSortsChange={setSorts}
         activeFilters={activeFilters}
