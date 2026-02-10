@@ -9,7 +9,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { Calendar as CalendarIcon, Plus, Building2 } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory, TaskMeetingLink } from "./task-detail";
 import { format, isBefore, startOfDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -23,7 +23,7 @@ import {
 import { TaskClientPopover } from "./task-popovers";
 import { AssigneeSelector } from "./task-editors";
 import type { Task, TaskStatus, TaskPriority, TaskType } from "../types/task";
-import { TASK_TYPE_OPTIONS, STATUS_LABELS } from "../types/task";
+import { TASK_TYPE_OPTIONS } from "../types/task";
 import {
   UI_CLASSES,
   UI_COLORS,
@@ -408,18 +408,15 @@ export function TaskDetailModal({
                 </PopoverContent>
               </Popover>
 
-              <div className="flex items-center gap-2 text-sm text-gray-400">
-                <Building2 className="h-[18px] w-[18px]" />
-                <TaskClientPopover
-                  id={task.id}
-                  clientName={task.clientName || null}
-                  isOpen={clientPopoverOpen}
-                  onOpenChange={setClientPopoverOpen}
-                  onClientChange={handleClientSelect}
-                  onNavigate={handleClientClick}
-                  variant="modal"
-                />
-              </div>
+              <TaskClientPopover
+                id={task.id}
+                clientName={task.clientName || null}
+                isOpen={clientPopoverOpen}
+                onOpenChange={setClientPopoverOpen}
+                onClientChange={handleClientSelect}
+                onNavigate={handleClientClick}
+                variant="modal"
+              />
             </div>
 
             {/* 4. Status + Priority badges (semi-transparent) */}
@@ -428,15 +425,14 @@ export function TaskDetailModal({
                 <PopoverTrigger asChild>
                   <div
                     className={cn(
-                      "flex h-7 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
+                      "flex h-7 shrink-0 cursor-pointer items-center justify-center rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
                       statusBadgeStyle.bg,
                       statusBadgeStyle.border,
                       statusBadgeStyle.text,
                     )}
                     data-testid="button-modal-status"
                   >
-                    <span className={cn("h-1.5 w-1.5 rounded-full", statusBadgeStyle.dot)} />
-                    {STATUS_LABELS[task.status]}
+                    {task.status}
                   </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
@@ -478,14 +474,13 @@ export function TaskDetailModal({
                   {priorityBadgeStyle ? (
                     <div
                       className={cn(
-                        "flex h-7 shrink-0 cursor-pointer items-center justify-center gap-x-2 rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
+                        "flex h-7 shrink-0 cursor-pointer items-center justify-center rounded border px-3 text-xs font-semibold uppercase tracking-wide transition-colors",
                         priorityBadgeStyle.bg,
                         priorityBadgeStyle.border,
                         priorityBadgeStyle.text,
                       )}
                       data-testid="button-modal-priority"
                     >
-                      <span className={cn("h-1.5 w-1.5 rounded-full", priorityBadgeStyle.dot)} />
                       {task.priority}
                     </div>
                   ) : (

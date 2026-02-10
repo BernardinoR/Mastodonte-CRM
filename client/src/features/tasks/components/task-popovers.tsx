@@ -26,7 +26,8 @@ import type { TaskPriority, TaskStatus } from "../types/task";
 const TRIGGER_STYLES = {
   base: "inline-flex items-center gap-1.5 font-medium cursor-pointer px-2 py-0.5 rounded-full hover:bg-gray-700/80 hover:text-foreground transition-colors",
   card: "text-[13px]",
-  modal: "text-sm font-medium text-gray-200",
+  modal:
+    "truncate rounded border border-[#333333] bg-[#2a2a2a] text-[11px] text-gray-400 hover:bg-[#333333]",
   table: "text-sm text-muted-foreground",
 } as const;
 
@@ -468,7 +469,8 @@ export const TaskClientPopover = memo(function TaskClientPopover({
     const emptyLabel = isTable ? "Selecionar" : isModal ? "Sem cliente" : "+ Adicionar Cliente";
     const emptyStyles = cn(
       "inline-flex px-2 py-0.5 rounded-full cursor-pointer text-muted-foreground hover:text-foreground hover:bg-gray-700/80 transition-colors",
-      isModal && "text-sm font-medium",
+      isModal &&
+        "rounded border border-[#333333] bg-[#2a2a2a] text-[11px] font-medium text-gray-400 hover:bg-[#333333]",
       isTable && "text-sm",
     );
 

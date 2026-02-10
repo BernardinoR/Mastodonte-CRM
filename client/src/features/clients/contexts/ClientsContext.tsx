@@ -446,6 +446,12 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       name: string;
       email: string;
     }): Promise<{ success: true; data: string } | { success: false; error: string }> => {
+      if (!currentUser?.id) {
+        return {
+          success: false,
+          error: "Usuário não carregado. Aguarde e tente novamente.",
+        };
+      }
       try {
         const { data, error: insertError } = await supabase
           .from("clients")
@@ -870,6 +876,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
 
   const bulkInsertClients = useCallback(
     async (rows: ClientImportRow[]): Promise<{ inserted: number; errors: string[] }> => {
+      if (!currentUser?.id) {
+        return { inserted: 0, errors: ["Usuário não carregado. Aguarde e tente novamente."] };
+      }
       const BATCH_SIZE = 50;
       let inserted = 0;
       const errors: string[] = [];

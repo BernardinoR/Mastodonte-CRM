@@ -79,7 +79,9 @@
       "Bash(then echo \"$hash: $msg\")",
       "Bash(fi)",
       "Bash(done)",
-      "Bash(npm audit:*)"
+      "Bash(npm audit:*)",
+      "Bash(git -C /home/runner/workspace status)",
+      "Bash(git -C /home/runner/workspace diff client/src/features/tasks/components/TaskDetailModal.tsx)"
     ]
   },
   "enableAllProjectMcpServers": true,
