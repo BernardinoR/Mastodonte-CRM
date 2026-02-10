@@ -11,7 +11,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory, TaskMeetingLink } from "./task-detail";
-import { format, isBefore, startOfDay } from "date-fns";
+import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
 import {
@@ -22,7 +22,7 @@ import {
 } from "@/shared/components/ui/task-badges";
 import { TaskClientPopover } from "./task-popovers";
 import { AssigneeSelector } from "./task-editors";
-import type { Task, TaskStatus, TaskPriority, TaskType } from "../types/task";
+import type { Task, TaskHistoryEvent, TaskStatus, TaskPriority, TaskType } from "../types/task";
 import { TASK_TYPE_OPTIONS } from "../types/task";
 import {
   UI_CLASSES,
@@ -51,6 +51,28 @@ function isTaskOverdue(dueDate: string | Date): boolean {
   const today = startOfDay(new Date());
   const dueDateObj = typeof dueDate === "string" ? parseLocalDate(dueDate) : dueDate;
   return isBefore(startOfDay(dueDateObj), today);
+}
+
+function getDaysSinceLastUpdate(history?: TaskHistoryEvent[]): string {
+  if (!history || history.length === 0) {
+    return "Sem atualizações";
+  }
+
+  const sortedHistory = [...history].sort(
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  );
+
+  const lastUpdate = new Date(sortedHistory[0].timestamp);
+  const today = startOfDay(new Date());
+  const days = differenceInDays(today, startOfDay(lastUpdate));
+
+  if (days === 0) {
+    return "Atualizado hoje";
+  } else if (days === 1) {
+    return "1 dia desde a última atualização";
+  } else {
+    return `${days} dias desde a última atualização`;
+  }
 }
 
 export function TaskDetailModal({
@@ -346,36 +368,41 @@ export function TaskDetailModal({
             </div>
 
             {/* 2. Title */}
-            <div className="mb-4">
-              {editingTitle ? (
-                <textarea
-                  ref={titleInputRef}
-                  value={titleValue}
-                  onChange={handleTitleChange}
-                  onBlur={handleTitleSave}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault();
-                      handleTitleSave();
-                    }
-                    if (e.key === "Escape") {
-                      setTitleValue(task.title);
-                      setEditingTitle(false);
-                    }
-                  }}
-                  rows={1}
-                  className="w-full resize-none overflow-hidden border-none bg-transparent text-3xl font-bold tracking-tight text-white outline-none"
-                  data-testid="input-modal-title"
-                />
-              ) : (
-                <h2
-                  className="cursor-pointer rounded-md text-3xl font-bold tracking-tight text-white transition-colors hover:text-gray-200"
-                  onClick={() => setEditingTitle(true)}
-                  data-testid="text-modal-title"
-                >
-                  {task.title || "Sem título"}
-                </h2>
-              )}
+            <div className="mb-4 flex items-start justify-between gap-4">
+              <div className="min-w-0 flex-1">
+                {editingTitle ? (
+                  <textarea
+                    ref={titleInputRef}
+                    value={titleValue}
+                    onChange={handleTitleChange}
+                    onBlur={handleTitleSave}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTitleSave();
+                      }
+                      if (e.key === "Escape") {
+                        setTitleValue(task.title);
+                        setEditingTitle(false);
+                      }
+                    }}
+                    rows={1}
+                    className="w-full resize-none overflow-hidden border-none bg-transparent text-3xl font-bold tracking-tight text-white outline-none"
+                    data-testid="input-modal-title"
+                  />
+                ) : (
+                  <h2
+                    className="cursor-pointer rounded-md text-3xl font-bold tracking-tight text-white transition-colors hover:text-gray-200"
+                    onClick={() => setEditingTitle(true)}
+                    data-testid="text-modal-title"
+                  >
+                    {task.title || "Sem título"}
+                  </h2>
+                )}
+              </div>
+              <span className={cn(UI_CLASSES.clientBadge, "shrink-0 whitespace-nowrap")}>
+                {getDaysSinceLastUpdate(task.history)}
+              </span>
             </div>
 
             {/* 3. Date + Client inline */}

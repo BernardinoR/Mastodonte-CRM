@@ -21,7 +21,7 @@ interface DragPreviewProps {
 const PRIORITY_DOT_STYLES: Record<string, string> = {
   Urgente: "bg-red-500 shadow-[0_0_6px_rgba(239,68,68,0.5)]",
   Importante: "bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.5)]",
-  Normal: "bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.5)]",
+  Normal: "bg-blue-400 shadow-[0_0_6px_rgba(96,165,250,0.5)]",
   Baixa: "bg-gray-500",
 };
 

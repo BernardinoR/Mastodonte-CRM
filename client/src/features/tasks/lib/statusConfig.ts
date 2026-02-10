@@ -132,24 +132,24 @@ export const PRIORITY_CONFIG: Record<TaskPriority, PriorityConfig> = {
   },
   Importante: {
     label: "Importante",
-    bgColor: "bg-orange-800",
-    borderColor: "border-orange-800",
+    bgColor: "bg-amber-900",
+    borderColor: "border-amber-900",
     textColor: "text-white",
-    dotColor: "bg-orange-500",
+    dotColor: "bg-amber-500",
   },
   Normal: {
     label: "Normal",
-    bgColor: "bg-yellow-700",
-    borderColor: "border-yellow-700",
-    textColor: "text-white",
-    dotColor: "bg-yellow-500",
-  },
-  Baixa: {
-    label: "Baixa",
     bgColor: "bg-blue-800",
     borderColor: "border-blue-800",
     textColor: "text-white",
-    dotColor: "bg-blue-500",
+    dotColor: "bg-blue-400",
+  },
+  Baixa: {
+    label: "Baixa",
+    bgColor: "bg-gray-800",
+    borderColor: "border-gray-800",
+    textColor: "text-white",
+    dotColor: "bg-gray-500",
   },
 };
 
@@ -188,22 +188,22 @@ export const MODAL_PRIORITY_BADGE_STYLES: Record<
     dot: "bg-red-400",
   },
   Importante: {
-    bg: "bg-orange-500/10",
-    border: "border-orange-500/20",
-    text: "text-orange-400",
-    dot: "bg-orange-400",
+    bg: "bg-amber-500/10",
+    border: "border-amber-500/20",
+    text: "text-amber-400",
+    dot: "bg-amber-400",
   },
   Normal: {
-    bg: "bg-yellow-500/10",
-    border: "border-yellow-500/20",
-    text: "text-yellow-400",
-    dot: "bg-yellow-400",
-  },
-  Baixa: {
     bg: "bg-blue-500/10",
     border: "border-blue-500/20",
     text: "text-blue-400",
     dot: "bg-blue-400",
+  },
+  Baixa: {
+    bg: "bg-gray-500/10",
+    border: "border-gray-500/20",
+    text: "text-gray-400",
+    dot: "bg-gray-400",
   },
 };
 
@@ -281,9 +281,9 @@ export const TASK_STATUS_BADGE_COLORS: Record<TaskStatus, string> = {
 
 export const TASK_PRIORITY_BADGE_COLORS: Record<TaskPriority, string> = {
   Urgente: "bg-[#3d2626] text-[#e07a7a]",
-  Importante: "bg-[#422c24] text-[#dcb092]",
-  Normal: "bg-[#333333] text-[#a0a0a0]",
-  Baixa: "bg-[#1c3847] text-[#6db1d4]",
+  Importante: "bg-[#3d2e1a] text-[#d4a574]",
+  Normal: "bg-[#1c3847] text-[#6db1d4]",
+  Baixa: "bg-[#333333] text-[#a0a0a0]",
 };
 
 export const MEETING_STATUS_BADGE_COLORS: Record<string, string> = {
