@@ -81,7 +81,11 @@
       "Bash(done)",
       "Bash(npm audit:*)",
       "Bash(git -C /home/runner/workspace status)",
-      "Bash(git -C /home/runner/workspace diff client/src/features/tasks/components/TaskDetailModal.tsx)"
+      "Bash(git -C /home/runner/workspace diff client/src/features/tasks/components/TaskDetailModal.tsx)",
+      "Bash(lsof:*)",
+      "Bash(ss:*)",
+      "Bash(fuser:*)",
+      "Bash(netstat:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
