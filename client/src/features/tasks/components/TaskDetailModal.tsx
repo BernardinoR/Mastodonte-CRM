@@ -606,7 +606,7 @@ export function TaskDetailModal({
                       className={UI_CLASSES.assigneeChip}
                       onClick={() => handleRemoveAssignee(assignee)}
                     >
-                      <Avatar className={cn("h-6 w-6 rounded", avatarColor)}>
+                      <Avatar className={cn("h-6 w-6 rounded after:rounded", avatarColor)}>
                         <AvatarFallback className="rounded bg-transparent text-[10px] font-bold text-white">
                           {user?.initials || getInitials(assignee)}
                         </AvatarFallback>

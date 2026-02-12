@@ -59,7 +59,8 @@ export const UI_CLASSES = {
   // Modal specific - new design
   modalContainer: "bg-[#1a1a1a] border-[#333333]",
   sectionLabel: "text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3",
-  descriptionContainer: "bg-[#222222] border border-[#333333] rounded-lg p-5 shadow-inner",
+  descriptionContainer:
+    "bg-[#222222] border border-[#333333] rounded-lg p-5 shadow-inner hover:border-[#555555] transition-colors",
   quickActionBtn:
     "bg-transparent hover:bg-white/5 border border-[#333333] rounded-md text-xs font-semibold text-gray-300 px-4 py-2 flex items-center gap-2 transition-all hover:border-gray-500 group",
   assigneeChip:
