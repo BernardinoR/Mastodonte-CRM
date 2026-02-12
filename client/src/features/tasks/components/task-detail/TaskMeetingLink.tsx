@@ -131,52 +131,32 @@ export function TaskMeetingLink({
   return (
     <div className="mt-1" ref={containerRef}>
       <label className={UI_CLASSES.sectionLabel}>Reunião de Origem</label>
-      <div className="relative">
-        {/* Card fixo */}
-        <div className="group flex items-center justify-between rounded-lg border border-[#333333]/30 px-4 py-3 transition-all hover:border-[#333333]/50 hover:bg-white/5">
-          <div className="flex items-center gap-2.5">
-            <span className="rounded bg-gray-700/50 px-2 py-0.5 text-[11px] font-medium uppercase text-gray-400">
-              Não vinculado
-            </span>
-            <div className="group/info relative">
-              <Info className="h-3.5 w-3.5 cursor-help text-gray-600" />
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-[#333333] bg-[#202020] px-3.5 py-2.5 text-[11px] text-gray-400 opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100">
-                Vincule esta tarefa a uma reunião de origem para rastrear de onde ela surgiu.
-              </div>
-            </div>
+      {isSearching ? (
+        /* Barra de busca — substitui o card, inline no mesmo espaço */
+        <div className="relative">
+          <div className="flex items-center rounded-lg border border-primary bg-[#1a1a1a]">
+            <Search className="ml-3 h-4 w-4 flex-shrink-0 text-gray-400" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar reunião..."
+              className="w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none"
+            />
+            <button
+              onClick={() => {
+                setIsSearching(false);
+                setSearchQuery("");
+              }}
+              className="mr-2 rounded p-1 text-gray-400 transition-colors hover:bg-[#333333] hover:text-white"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            onClick={() => setIsSearching(true)}
-            className="text-[11px] font-semibold uppercase tracking-wider text-primary opacity-60 transition-all duration-200 hover:text-[#1a6ca8] group-hover:opacity-100"
-          >
-            Buscar
-          </button>
-        </div>
-
-        {/* Dropdown flutuante — só aparece quando isSearching */}
-        {isSearching && (
+          {/* Lista de resultados — flutuante abaixo da barra */}
           <div className="absolute left-0 right-0 top-full z-50 mt-1">
-            <div className="flex items-center rounded-lg border border-primary bg-[#1a1a1a]">
-              <Search className="ml-3 h-4 w-4 flex-shrink-0 text-gray-400" />
-              <input
-                ref={searchInputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Buscar reunião..."
-                className="w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none"
-              />
-              <button
-                onClick={() => {
-                  setIsSearching(false);
-                  setSearchQuery("");
-                }}
-                className="mr-2 rounded p-1 text-gray-400 transition-colors hover:bg-[#333333] hover:text-white"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#333333] bg-[#202020] shadow-lg">
+            <div className="max-h-48 overflow-y-auto rounded-lg border border-[#333333] bg-[#202020] shadow-lg">
               {filteredMeetings.length === 0 ? (
                 <div className="px-4 py-3 text-center text-xs text-gray-500">
                   {clientMeetings.length === 0
@@ -212,8 +192,29 @@ export function TaskMeetingLink({
               )}
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      ) : (
+        /* Card "Não vinculado" com uppercase, gap-2.5, tooltip */
+        <div className="group flex items-center justify-between rounded-lg border border-[#333333]/30 px-4 py-3 transition-all hover:border-[#333333]/50 hover:bg-white/5">
+          <div className="flex items-center gap-2.5">
+            <span className="rounded bg-gray-700/50 px-2 py-0.5 text-[11px] font-medium uppercase text-gray-400">
+              Não vinculado
+            </span>
+            <div className="group/info relative">
+              <Info className="h-3.5 w-3.5 cursor-help text-gray-600" />
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-[#333333] bg-[#202020] px-3.5 py-2.5 text-[11px] text-gray-400 opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100">
+                Vincule esta tarefa a uma reunião de origem para rastrear de onde ela surgiu.
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsSearching(true)}
+            className="text-[11px] font-semibold uppercase tracking-wider text-primary opacity-60 transition-all duration-200 hover:text-[#1a6ca8] group-hover:opacity-100"
+          >
+            Buscar
+          </button>
+        </div>
+      )}
     </div>
   );
 }
