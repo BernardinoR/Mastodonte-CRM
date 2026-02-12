@@ -69,7 +69,7 @@ export function TaskContactButtons({
   return (
     <div className="mb-8">
       <label className={UI_CLASSES.sectionLabel}>Ações Rápidas</label>
-      <div className="flex gap-3">
+      <div className="mt-3 flex gap-5">
         {clientEmail && (
           <a
             href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(clientEmail)}`}

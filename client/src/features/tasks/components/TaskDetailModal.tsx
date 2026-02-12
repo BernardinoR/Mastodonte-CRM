@@ -385,9 +385,9 @@ export function TaskDetailModal({
                   data-testid="input-modal-title"
                 />
               ) : (
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   <h2
-                    className="min-w-0 flex-1 text-3xl font-bold tracking-tight text-white"
+                    className="min-w-0 text-3xl font-bold tracking-tight text-white"
                     data-testid="text-modal-title"
                   >
                     {task.title || "Sem título"}
@@ -445,7 +445,7 @@ export function TaskDetailModal({
             </div>
 
             {/* 4. Status + Priority badges (semi-transparent) */}
-            <div className="mb-8 flex flex-wrap gap-3">
+            <div className="mb-5 flex flex-wrap gap-3">
               <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                 <PopoverTrigger asChild>
                   <div
