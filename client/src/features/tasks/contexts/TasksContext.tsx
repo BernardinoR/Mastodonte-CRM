@@ -278,6 +278,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           apiUpdates.dueDate = updates.dueDate ? formatLocalDate(updates.dueDate) : null;
         if (updates.order !== undefined) apiUpdates.order = updates.order;
         if (updates.clientId !== undefined) apiUpdates.clientId = updates.clientId;
+        if (updates.meetingId !== undefined) apiUpdates.meetingId = updates.meetingId;
 
         // Task field updates via Supabase
         const dbUpdates = mapTaskUpdatesToDb(apiUpdates);

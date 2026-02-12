@@ -113,6 +113,7 @@ export function TaskDetailModal({
 
   const linkedClient = linkedClientData?.client;
   const whatsappGroups = linkedClientData?.whatsappGroups || [];
+  const clientMeetings = linkedClientData?.meetings || [];
 
   useEffect(() => {
     if (task) {
@@ -239,6 +240,19 @@ export function TaskDetailModal({
     },
     [task, onUpdateTask],
   );
+
+  const handleLinkMeeting = useCallback(
+    (meetingId: number) => {
+      if (!task) return;
+      onUpdateTask(task.id, { meetingId });
+    },
+    [task, onUpdateTask],
+  );
+
+  const handleUnlinkMeeting = useCallback(() => {
+    if (!task) return;
+    onUpdateTask(task.id, { meetingId: undefined });
+  }, [task, onUpdateTask]);
 
   if (!task) return null;
 
@@ -580,58 +594,63 @@ export function TaskDetailModal({
               onSave={handleDescriptionBlur}
             />
 
-            {/* 7. Reunião de Origem (conditional) */}
-            {task.meeting && (
-              <div className="mt-6">
+            {/* 7. Reunião de Origem + 8. Responsáveis — alinhados ao fundo */}
+            <div className="mt-auto">
+              <div className="mb-4">
                 <TaskMeetingLink
                   meeting={task.meeting}
+                  clientMeetings={clientMeetings}
                   onNavigate={(meetingId) => {
                     onOpenChange(false);
                     navigate(`/meetings/${meetingId}`);
                   }}
+                  onLink={handleLinkMeeting}
+                  onUnlink={handleUnlinkMeeting}
                 />
               </div>
-            )}
 
-            {/* 8. Responsáveis */}
-            <div className={cn("mt-auto border-t pb-4 pt-4", "border-[#333333]")}>
-              <label className={UI_CLASSES.sectionLabel}>Responsáveis</label>
-              <div className="flex flex-wrap items-center gap-2">
-                {task.assignees.map((assignee, idx) => {
-                  const user = getUserByName(assignee);
-                  const avatarColor = user?.avatarColor || getAvatarColor(idx);
-                  return (
-                    <div
-                      key={idx}
-                      className={UI_CLASSES.assigneeChip}
-                      onClick={() => handleRemoveAssignee(assignee)}
-                    >
-                      <Avatar className={cn("h-6 w-6 rounded after:rounded", avatarColor)}>
-                        <AvatarFallback className="rounded bg-transparent text-[10px] font-bold text-white">
-                          {user?.initials || getInitials(assignee)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-xs font-bold tracking-wide text-white">{assignee}</span>
-                    </div>
-                  );
-                })}
-                <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <button
-                      className={UI_CLASSES.assigneeAddBtn}
-                      data-testid={`button-edit-assignees-${task.id}`}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 p-0" side="top" align="start" sideOffset={6}>
-                    <AssigneeSelector
-                      selectedAssignees={task.assignees}
-                      onSelect={handleAddAssignee}
-                      onRemove={handleRemoveAssignee}
-                    />
-                  </PopoverContent>
-                </Popover>
+              {/* 8. Responsáveis */}
+              <div className={cn("border-t pb-4 pt-4", "border-[#333333]")}>
+                <label className={UI_CLASSES.sectionLabel}>Responsáveis</label>
+                <div className="flex flex-wrap items-center gap-2">
+                  {task.assignees.map((assignee, idx) => {
+                    const user = getUserByName(assignee);
+                    const avatarColor = user?.avatarColor || getAvatarColor(idx);
+                    return (
+                      <div
+                        key={idx}
+                        className={UI_CLASSES.assigneeChip}
+                        onClick={() => handleRemoveAssignee(assignee)}
+                      >
+                        <Avatar className={cn("h-6 w-6 rounded after:rounded", avatarColor)}>
+                          <AvatarFallback className="rounded bg-transparent text-[10px] font-bold text-white">
+                            {user?.initials || getInitials(assignee)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs font-bold tracking-wide text-white">
+                          {assignee}
+                        </span>
+                      </div>
+                    );
+                  })}
+                  <Popover open={assigneesPopoverOpen} onOpenChange={setAssigneesPopoverOpen}>
+                    <PopoverTrigger asChild>
+                      <button
+                        className={UI_CLASSES.assigneeAddBtn}
+                        data-testid={`button-edit-assignees-${task.id}`}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-64 p-0" side="top" align="start" sideOffset={6}>
+                      <AssigneeSelector
+                        selectedAssignees={task.assignees}
+                        onSelect={handleAddAssignee}
+                        onRemove={handleRemoveAssignee}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
               </div>
             </div>
           </div>
