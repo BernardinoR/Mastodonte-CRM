@@ -177,6 +177,8 @@ export default function ClientDetails() {
     );
   }
 
+  const autoOpenMeetingId = new URLSearchParams(window.location.search).get("meetingId");
+
   const { client, meetings, whatsappGroups } = clientData;
 
   const handleAddPeculiarity = (text: string) => {
@@ -250,6 +252,7 @@ export default function ClientDetails() {
           onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
           inlineProps={inlineMeetingProps}
           clientId={clientId}
+          autoOpenMeetingId={autoOpenMeetingId}
         />
 
         <ClientTasks tasks={clientTasks} inlineProps={inlineTaskProps} clientName={client.name} />

@@ -58,7 +58,7 @@ export const UI_CLASSES = {
     "flex items-center gap-2 px-2 py-1.5 cursor-pointer bg-[#333333] rounded-md",
   // Modal specific - new design
   modalContainer: "bg-[#1a1a1a] border-[#333333]",
-  sectionLabel: "text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3",
+  sectionLabel: "block text-[11px] font-bold text-gray-500 uppercase tracking-widest mb-3",
   descriptionContainer:
     "bg-[#222222] border border-[#333333] rounded-lg p-5 shadow-inner hover:border-[#555555] transition-colors",
   quickActionBtn:
@@ -68,7 +68,7 @@ export const UI_CLASSES = {
   assigneeAddBtn:
     "w-9 h-9 rounded-md bg-transparent hover:bg-white/5 border border-[#333333] border-dashed flex items-center justify-center transition-colors text-gray-500 hover:text-white hover:border-gray-500",
   meetingLinkCard:
-    "bg-[#262626] border border-[#333333] rounded-lg flex items-center w-full p-2 shadow-sm hover:border-gray-500 hover:bg-[#2a2a2a] transition-all cursor-pointer group",
+    "bg-[#262626] border border-[#333333] rounded-lg flex items-center gap-2.5 w-full p-2 shadow-sm hover:border-gray-500 hover:bg-[#2a2a2a] transition-all cursor-pointer group",
 } as const;
 
 export interface StatusConfig {

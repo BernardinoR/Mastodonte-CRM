@@ -36,6 +36,7 @@ interface ClientMeetingsProps {
   onNewMeeting: () => void;
   inlineProps: ReturnType<typeof useInlineClientMeetings>;
   clientId: string;
+  autoOpenMeetingId?: string | null;
 }
 
 export function ClientMeetings({
@@ -43,6 +44,7 @@ export function ClientMeetings({
   onNewMeeting,
   inlineProps,
   clientId,
+  autoOpenMeetingId,
 }: ClientMeetingsProps) {
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingDetail | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -317,6 +319,19 @@ export function ClientMeetings({
       }
     }
   }, [meetings, selectedMeeting, detailModalOpen]);
+
+  // Auto-open meeting from query param
+  useEffect(() => {
+    if (!autoOpenMeetingId || meetings.length === 0) return;
+    const target = meetings.find((m) => m.id === autoOpenMeetingId);
+    if (target) {
+      handleMeetingClick(target);
+      // Clean the query param from the URL
+      const url = new URL(window.location.href);
+      url.searchParams.delete("meetingId");
+      window.history.replaceState({}, "", url.pathname + url.search);
+    }
+  }, [autoOpenMeetingId, meetings]);
 
   return (
     <div>

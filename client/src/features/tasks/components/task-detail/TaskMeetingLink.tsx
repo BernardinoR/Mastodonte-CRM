@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { FileText, Calendar, ChevronRight, Search, X, Info, Unlink } from "lucide-react";
+import { Calendar, ChevronRight, FileText, Search, X, Info, Unlink } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { UI_CLASSES } from "../../lib/statusConfig";
@@ -82,12 +82,10 @@ export function TaskMeetingLink({
         <label className={UI_CLASSES.sectionLabel}>Reunião de Origem</label>
         <div className="group/meeting relative">
           <div className={UI_CLASSES.meetingLinkCard} onClick={() => onNavigate?.(meeting.id)}>
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-[#2eaadc]/10">
-              <FileText className="h-5 w-5 text-[#2eaadc]" />
-            </div>
-            <div className="ml-3 min-w-0 flex-1">
+            <FileText className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="truncate text-sm font-semibold text-gray-200">
+                <span className="truncate text-xs font-medium text-gray-200">
                   {meeting.title}
                 </span>
                 <div className="h-3.5 w-px bg-[#444444]" />
@@ -209,7 +207,7 @@ export function TaskMeetingLink({
           </div>
           <button
             onClick={() => setIsSearching(true)}
-            className="text-[11px] font-semibold uppercase tracking-wider text-primary opacity-60 transition-all duration-200 hover:text-[#1a6ca8] group-hover:opacity-100"
+            className="text-[11px] font-semibold uppercase tracking-wider text-gray-500 transition-all duration-200 hover:text-gray-300"
           >
             Buscar
           </button>

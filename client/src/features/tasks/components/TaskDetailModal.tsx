@@ -244,9 +244,20 @@ export function TaskDetailModal({
   const handleLinkMeeting = useCallback(
     (meetingId: number) => {
       if (!task) return;
-      onUpdateTask(task.id, { meetingId });
+      const found = clientMeetings.find((m) => String(meetingId) === m.id);
+      onUpdateTask(task.id, {
+        meetingId,
+        meeting: found
+          ? {
+              id: meetingId,
+              title: found.name,
+              date: found.date,
+              type: found.type,
+            }
+          : undefined,
+      });
     },
-    [task, onUpdateTask],
+    [task, onUpdateTask, clientMeetings],
   );
 
   const handleUnlinkMeeting = useCallback(() => {
@@ -602,7 +613,7 @@ export function TaskDetailModal({
                   clientMeetings={clientMeetings}
                   onNavigate={(meetingId) => {
                     onOpenChange(false);
-                    navigate(`/meetings/${meetingId}`);
+                    navigate(`/clients/${task.clientId}?meetingId=${meetingId}`);
                   }}
                   onLink={handleLinkMeeting}
                   onUnlink={handleUnlinkMeeting}
