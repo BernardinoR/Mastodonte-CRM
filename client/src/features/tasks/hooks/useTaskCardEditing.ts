@@ -60,6 +60,7 @@ interface UseTaskCardEditingReturn {
   ) => void;
   handleSave: () => void;
   handleTitleEdit: (e: React.FocusEvent<HTMLDivElement>) => void;
+  updateEditingTitle: (title: string) => void;
   handleEditClick: (e: React.MouseEvent) => void;
   isJustClosedEdit: () => boolean;
   safeAssignees: string[];
@@ -318,6 +319,14 @@ export function useTaskCardEditing({
     [editedTask.title, handleUpdate],
   );
 
+  const updateEditingTitle = useCallback((title: string) => {
+    setEditedTask((prev) => {
+      const updated = { ...prev, title };
+      latestDraftRef.current = updated;
+      return updated;
+    });
+  }, []);
+
   const handleEditClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
 
@@ -351,6 +360,7 @@ export function useTaskCardEditing({
     handleUpdate,
     handleSave,
     handleTitleEdit,
+    updateEditingTitle,
     handleEditClick,
     isJustClosedEdit,
     safeAssignees,

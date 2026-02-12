@@ -132,6 +132,7 @@ export const TaskCard = memo(function TaskCard({
     clickTimeoutRef,
     handleUpdate,
     handleTitleEdit,
+    updateEditingTitle,
     handleEditClick,
     isJustClosedEdit,
     stableAssignees,
@@ -292,7 +293,7 @@ export const TaskCard = memo(function TaskCard({
               taskType={taskType}
               isEditing={isEditing}
               editingTitle={editedTask.title}
-              onEditingTitleChange={(value) => setEditedTask((prev) => ({ ...prev, title: value }))}
+              onEditingTitleChange={updateEditingTitle}
               onStartTitleEdit={handleEditClick}
               onSaveTitleEdit={() => {
                 const titleToSave = editedTask.title.trim() || "Nova tarefa";

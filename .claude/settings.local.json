@@ -85,7 +85,8 @@
       "Bash(lsof:*)",
       "Bash(ss:*)",
       "Bash(fuser:*)",
-      "Bash(netstat:*)"
+      "Bash(netstat:*)",
+      "mcp__supabase__search_docs"
     ]
   },
   "enableAllProjectMcpServers": true,

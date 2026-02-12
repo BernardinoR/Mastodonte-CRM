@@ -472,12 +472,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
             client_since: new Date().toISOString(),
             owner_id: currentUser?.id ?? null,
           })
-          .select(CLIENT_SELECT)
+          .select("*, owner:users!owner_id(id, name)")
           .single();
 
         if (insertError) throw insertError;
 
-        const newClient = mapDbRowToClient(data as DbClient);
+        const dataWithDefaults = { ...data, whatsapp_groups: [], meetings: [] };
+        const newClient = mapDbRowToClient(dataWithDefaults as DbClient);
 
         setClients((prev) => [newClient, ...prev]);
         setExtendedData((prev) => ({
