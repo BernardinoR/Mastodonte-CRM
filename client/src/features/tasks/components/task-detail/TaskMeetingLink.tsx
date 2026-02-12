@@ -75,73 +75,6 @@ export function TaskMeetingLink({
 
   const getTypeBadgeClass = (type: string) => MEETING_TYPE_COLORS[type] || MEETING_FALLBACK_COLOR;
 
-  // State 3 — Searching
-  if (isSearching) {
-    return (
-      <div ref={containerRef}>
-        <label className={UI_CLASSES.sectionLabel}>Reunião de Origem</label>
-        <div className="relative">
-          <div className="flex items-center rounded-lg border border-primary bg-[#1a1a1a]">
-            <Search className="ml-3 h-4 w-4 flex-shrink-0 text-gray-400" />
-            <input
-              ref={searchInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Buscar reunião..."
-              className="w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none"
-            />
-            <button
-              onClick={() => {
-                setIsSearching(false);
-                setSearchQuery("");
-              }}
-              className="mr-2 rounded p-1 text-gray-400 transition-colors hover:bg-[#333333] hover:text-white"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#333333] bg-[#202020] shadow-lg">
-            {filteredMeetings.length === 0 ? (
-              <div className="px-4 py-3 text-center text-xs text-gray-500">
-                {clientMeetings.length === 0
-                  ? "Nenhuma reunião disponível para este cliente"
-                  : "Nenhuma reunião encontrada"}
-              </div>
-            ) : (
-              filteredMeetings.map((m) => (
-                <div
-                  key={m.id}
-                  className="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[#333333]"
-                  onClick={() => {
-                    onLink(parseInt(m.id, 10));
-                    setIsSearching(false);
-                    setSearchQuery("");
-                  }}
-                >
-                  <span className="min-w-0 flex-1 truncate text-sm text-gray-200">{m.name}</span>
-                  <span
-                    className={cn(
-                      "flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
-                      getTypeBadgeClass(m.type),
-                    )}
-                  >
-                    {m.type}
-                  </span>
-                  <span className="flex flex-shrink-0 items-center gap-1 text-[11px] text-gray-500">
-                    <Calendar className="h-3 w-3" />
-                    {format(new Date(m.date), "dd/MM/yyyy", { locale: ptBR })}
-                  </span>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   // State 2 — Linked
   if (meeting) {
     return (
@@ -196,27 +129,90 @@ export function TaskMeetingLink({
 
   // State 1 — Not linked
   return (
-    <div>
+    <div className="mt-1" ref={containerRef}>
       <label className={UI_CLASSES.sectionLabel}>Reunião de Origem</label>
-      <div className="flex items-center justify-between rounded-lg border border-[#333333] bg-[#262626] px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <span className="rounded bg-gray-700/50 px-2 py-0.5 text-[11px] font-medium text-gray-400">
-            Não vinculado
-          </span>
-          <div className="group/info relative">
-            <Info className="h-3.5 w-3.5 cursor-help text-gray-600" />
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-[#333333] bg-[#202020] px-3 py-2 text-[11px] text-gray-400 opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100">
-              Vincule esta tarefa a uma reunião de origem para rastrear de onde ela surgiu.
+      <div className="relative">
+        {/* Card fixo */}
+        <div className="group flex items-center justify-between rounded-lg border border-[#333333]/30 px-4 py-3 transition-all hover:border-[#333333]/50 hover:bg-white/5">
+          <div className="flex items-center gap-2.5">
+            <span className="rounded bg-gray-700/50 px-2 py-0.5 text-[11px] font-medium uppercase text-gray-400">
+              Não vinculado
+            </span>
+            <div className="group/info relative">
+              <Info className="h-3.5 w-3.5 cursor-help text-gray-600" />
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-52 -translate-x-1/2 rounded-lg border border-[#333333] bg-[#202020] px-3.5 py-2.5 text-[11px] text-gray-400 opacity-0 shadow-lg transition-opacity group-hover/info:opacity-100">
+                Vincule esta tarefa a uma reunião de origem para rastrear de onde ela surgiu.
+              </div>
             </div>
           </div>
+          <button
+            onClick={() => setIsSearching(true)}
+            className="text-[11px] font-semibold uppercase tracking-wider text-primary opacity-60 transition-all duration-200 hover:text-[#1a6ca8] group-hover:opacity-100"
+          >
+            Buscar
+          </button>
         </div>
-        <button
-          onClick={() => setIsSearching(true)}
-          className="flex items-center gap-1.5 text-xs font-medium text-primary transition-colors hover:text-primary/80"
-        >
-          <Search className="h-3.5 w-3.5" />
-          Buscar
-        </button>
+
+        {/* Dropdown flutuante — só aparece quando isSearching */}
+        {isSearching && (
+          <div className="absolute left-0 right-0 top-full z-50 mt-1">
+            <div className="flex items-center rounded-lg border border-primary bg-[#1a1a1a]">
+              <Search className="ml-3 h-4 w-4 flex-shrink-0 text-gray-400" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar reunião..."
+                className="w-full bg-transparent px-3 py-2.5 text-sm text-white placeholder:text-gray-500 focus:outline-none"
+              />
+              <button
+                onClick={() => {
+                  setIsSearching(false);
+                  setSearchQuery("");
+                }}
+                className="mr-2 rounded p-1 text-gray-400 transition-colors hover:bg-[#333333] hover:text-white"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="mt-1 max-h-48 overflow-y-auto rounded-lg border border-[#333333] bg-[#202020] shadow-lg">
+              {filteredMeetings.length === 0 ? (
+                <div className="px-4 py-3 text-center text-xs text-gray-500">
+                  {clientMeetings.length === 0
+                    ? "Nenhuma reunião disponível para este cliente"
+                    : "Nenhuma reunião encontrada"}
+                </div>
+              ) : (
+                filteredMeetings.map((m) => (
+                  <div
+                    key={m.id}
+                    className="flex cursor-pointer items-center gap-3 px-3 py-2.5 transition-colors hover:bg-[#333333]"
+                    onClick={() => {
+                      onLink(parseInt(m.id, 10));
+                      setIsSearching(false);
+                      setSearchQuery("");
+                    }}
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm text-gray-200">{m.name}</span>
+                    <span
+                      className={cn(
+                        "flex-shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium",
+                        getTypeBadgeClass(m.type),
+                      )}
+                    >
+                      {m.type}
+                    </span>
+                    <span className="flex flex-shrink-0 items-center gap-1 text-[11px] text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      {format(new Date(m.date), "dd/MM/yyyy", { locale: ptBR })}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
