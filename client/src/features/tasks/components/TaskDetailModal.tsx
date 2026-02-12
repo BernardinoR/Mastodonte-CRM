@@ -251,7 +251,7 @@ export function TaskDetailModal({
 
   const handleUnlinkMeeting = useCallback(() => {
     if (!task) return;
-    onUpdateTask(task.id, { meetingId: undefined });
+    onUpdateTask(task.id, { meetingId: null, meeting: undefined });
   }, [task, onUpdateTask]);
 
   if (!task) return null;

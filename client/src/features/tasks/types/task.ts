@@ -122,7 +122,7 @@ export interface Task {
   order: number;
   syncStatus?: SyncStatus; // undefined = sincronizado
   _tempId?: string; // ID temporário usado antes da sincronização com a API
-  meetingId?: number;
+  meetingId?: number | null;
   meeting?: {
     id: number;
     title: string;
