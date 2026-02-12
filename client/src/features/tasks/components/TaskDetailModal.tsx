@@ -9,7 +9,7 @@ import {
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { Calendar as CalendarIcon, Pencil, Plus } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory, TaskMeetingLink } from "./task-detail";
 import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -100,7 +100,7 @@ export function TaskDetailModal({
   const [hoveredEventId, setHoveredEventId] = useState<string | null>(null);
   const [noteType, setNoteType] = useState<"note" | "email" | "call" | "whatsapp">("note");
 
-  const titleInputRef = useRef<HTMLTextAreaElement>(null);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
   const prevTaskRef = useRef<{ id: string; title: string; description: string } | null>(null);
 
@@ -136,18 +136,8 @@ export function TaskDetailModal({
     if (editingTitle && titleInputRef.current) {
       titleInputRef.current.focus();
       titleInputRef.current.select();
-      titleInputRef.current.style.height = "auto";
-      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + "px";
     }
   }, [editingTitle]);
-
-  const handleTitleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setTitleValue(e.target.value);
-    if (titleInputRef.current) {
-      titleInputRef.current.style.height = "auto";
-      titleInputRef.current.style.height = titleInputRef.current.scrollHeight + "px";
-    }
-  }, []);
 
   const handleTitleSave = useCallback(() => {
     if (!task) return;
@@ -313,8 +303,8 @@ export function TaskDetailModal({
         <div className="flex h-full min-h-0">
           {/* Left Panel */}
           <div className="flex min-h-0 flex-[1.5] flex-col overflow-y-auto px-8 pb-4 pl-10 pt-8">
-            {/* 1. Task Type Badge */}
-            <div className="mb-4">
+            {/* 1. Task Type Badge + Updated timestamp */}
+            <div className="mb-4 flex items-center justify-between">
               <Popover open={typePopoverOpen} onOpenChange={setTypePopoverOpen}>
                 <PopoverTrigger asChild>
                   <span
@@ -365,44 +355,52 @@ export function TaskDetailModal({
                   </div>
                 </PopoverContent>
               </Popover>
+              <span className={cn(UI_CLASSES.clientBadge, "shrink-0 whitespace-nowrap")}>
+                {getDaysSinceLastUpdate(task.history)}
+              </span>
             </div>
 
             {/* 2. Title */}
-            <div className="mb-4 flex items-start justify-between gap-4">
-              <div className="min-w-0 flex-1">
-                {editingTitle ? (
-                  <textarea
-                    ref={titleInputRef}
-                    value={titleValue}
-                    onChange={handleTitleChange}
-                    onBlur={handleTitleSave}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleTitleSave();
-                      }
-                      if (e.key === "Escape") {
-                        setTitleValue(task.title);
-                        setEditingTitle(false);
-                      }
-                    }}
-                    rows={1}
-                    className="w-full resize-none overflow-hidden border-none bg-transparent text-3xl font-bold tracking-tight text-white outline-none"
-                    data-testid="input-modal-title"
-                  />
-                ) : (
+            <div className="group/title mb-4">
+              {editingTitle ? (
+                <input
+                  ref={titleInputRef}
+                  type="text"
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onBlur={handleTitleSave}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleTitleSave();
+                    }
+                    if (e.key === "Escape") {
+                      setTitleValue(task.title);
+                      setEditingTitle(false);
+                    }
+                  }}
+                  autoFocus
+                  placeholder="Nome da tarefa..."
+                  className="w-full border-b border-[#2eaadc] bg-transparent text-3xl font-bold tracking-tight text-white placeholder:text-gray-500 focus:outline-none"
+                  data-testid="input-modal-title"
+                />
+              ) : (
+                <div className="flex items-center gap-3">
                   <h2
-                    className="cursor-pointer rounded-md text-3xl font-bold tracking-tight text-white transition-colors hover:text-gray-200"
-                    onClick={() => setEditingTitle(true)}
+                    className="min-w-0 flex-1 text-3xl font-bold tracking-tight text-white"
                     data-testid="text-modal-title"
                   >
                     {task.title || "Sem título"}
                   </h2>
-                )}
-              </div>
-              <span className={cn(UI_CLASSES.clientBadge, "shrink-0 whitespace-nowrap")}>
-                {getDaysSinceLastUpdate(task.history)}
-              </span>
+                  <button
+                    onClick={() => setEditingTitle(true)}
+                    className="shrink-0 rounded p-1.5 opacity-0 transition-all hover:bg-[#333333] group-hover/title:opacity-100"
+                    data-testid="button-edit-modal-title"
+                  >
+                    <Pencil className="h-4 w-4 text-gray-400 hover:text-white" />
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* 3. Date + Client inline */}
