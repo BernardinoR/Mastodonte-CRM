@@ -109,7 +109,7 @@ export function EmailsPopover({
             <Mail className="h-3.5 w-3.5" />
             Email
             {emails.length > 1 && (
-              <span className="rounded bg-[#333333] px-1.5 py-0.5 text-[10px]">
+              <span className="rounded bg-[#333333] px-1 py-px text-[10px] leading-none">
                 +{emails.length - 1}
               </span>
             )}
