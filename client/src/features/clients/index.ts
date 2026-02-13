@@ -11,6 +11,7 @@ export { ClientProfile } from "./components/ClientProfile";
 export { ClientStatusBadge } from "./components/ClientStatusBadge";
 export { NewClientDialog } from "./components/NewClientDialog";
 export { NewClientInlineCard } from "./components/NewClientInlineCard";
+export { ClientContextMenu } from "./components/ClientContextMenu";
 export { AddressPopover } from "./components/AddressPopover";
 export { AdvisorPopover } from "./components/AdvisorPopover";
 export { EmailsPopover } from "./components/EmailsPopover";

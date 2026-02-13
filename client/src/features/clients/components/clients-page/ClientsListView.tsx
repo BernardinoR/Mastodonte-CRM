@@ -1,10 +1,13 @@
 import { AlertTriangle, Eye, CalendarPlus, ArrowUpDown } from "lucide-react";
 import { useLocation } from "wouter";
 import { cn } from "@/shared/lib/utils";
+import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
+import { ClientContextMenu } from "../ClientContextMenu";
 import type { EnrichedClient } from "@features/clients";
 
 interface ClientsListViewProps {
   clients: EnrichedClient[];
+  onDeleteClient: (clientId: string) => void;
 }
 
 // Formatar data para exibição
@@ -27,7 +30,7 @@ function formatMeetingDate(date: Date): string {
   return `${d.getDate().toString().padStart(2, "0")} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
-export function ClientsListView({ clients }: ClientsListViewProps) {
+export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProps) {
   const [, setLocation] = useLocation();
 
   const handleRowClick = (clientId: string) => {
@@ -117,104 +120,108 @@ export function ClientsListView({ clients }: ClientsListViewProps) {
 
       {/* Body */}
       {clients.map((client) => (
-        <div
-          key={client.id}
-          className={cn(
-            "grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] items-center gap-3 border-b border-[#3a3a3a] px-4 py-3 transition-colors hover:bg-[#222222]",
-            getRowBorderClass(client),
-          )}
-          onClick={() => handleRowClick(client.id)}
-          data-testid={`row-client-${client.id}`}
-        >
-          {/* Cliente */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#333333] text-xs font-semibold text-[#8c8c8c]">
-              {client.initials}
+        <ContextMenu key={client.id}>
+          <ContextMenuTrigger asChild>
+            <div
+              className={cn(
+                "grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] items-center gap-3 border-b border-[#3a3a3a] px-4 py-3 transition-colors hover:bg-[#222222]",
+                getRowBorderClass(client),
+              )}
+              onClick={() => handleRowClick(client.id)}
+              data-testid={`row-client-${client.id}`}
+            >
+              {/* Cliente */}
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#333333] text-xs font-semibold text-[#8c8c8c]">
+                  {client.initials}
+                </div>
+                <div className="flex min-w-0 flex-col gap-0.5">
+                  <span className="truncate text-sm font-medium text-[#ededed]">{client.name}</span>
+                  <span className="truncate text-xs text-[#8c8c8c]">
+                    {client.emails[client.primaryEmailIndex]}
+                  </span>
+                </div>
+              </div>
+
+              {/* AUM */}
+              <div className="text-[14px] font-semibold text-[#6ecf8e]">{client.aumFormatted}</div>
+
+              {/* Status */}
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a2e1a] px-2.5 py-1 text-[11px] font-semibold text-[#6ecf8e]">
+                  <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                  {client.status}
+                </span>
+              </div>
+
+              {/* Última Reunião */}
+              <div className={cn("text-[14px]", getDateColor(client))}>
+                {client.lastMeeting ? formatMeetingDate(client.lastMeeting) : "-"}
+              </div>
+
+              {/* Consultor */}
+              <div className="text-[13px] text-[#ededed]">{client.advisor}</div>
+
+              {/* Telefone */}
+              <div className="text-[13px] text-[#ededed]">{client.phone}</div>
+
+              {/* Cidade */}
+              <div className="text-[13px] text-[#ededed]">{client.cityState}</div>
+
+              {/* Cliente Desde */}
+              <div className="text-[13px] text-[#ededed]">{client.clientSince}</div>
+
+              {/* Dias sem Reunião */}
+              <div>{getDaysBadge(client.daysSinceLastMeeting, client.meetingDelayStatus)}</div>
+
+              {/* Tasks Urgentes */}
+              <div>
+                {client.urgentTasksCount > 0 ? (
+                  <span className="inline-flex items-center gap-1 text-[#e07a7a]">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span className="text-sm font-bold">{client.urgentTasksCount}</span>
+                  </span>
+                ) : isIncompleteRegistration(client) ? (
+                  <span className="inline-flex items-center gap-1 text-[#e07a7a]">
+                    <AlertTriangle className="h-4 w-4" />
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-[#6ecf8e]">
+                    <span className="text-sm font-medium">0</span>
+                  </span>
+                )}
+              </div>
+
+              {/* Ações */}
+              <div className="flex items-center justify-end gap-2">
+                {client.urgentTasksCount > 0 || client.meetingDelayStatus !== "ok" ? (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Handle schedule
+                    }}
+                    className="flex items-center gap-1.5 rounded-md border border-[#3a5a3a] bg-transparent px-3 py-1.5 text-xs font-semibold text-[#6ecf8e] transition-colors hover:border-[#6ecf8e] hover:bg-[#1a2e1a]"
+                  >
+                    <CalendarPlus className="h-3.5 w-3.5" />
+                    Agendar
+                  </button>
+                ) : (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setLocation(`/clients/${client.id}`);
+                    }}
+                    className="flex h-8 w-8 items-center justify-center rounded-md border border-[#3a3a3a] text-[#8c8c8c] transition-colors hover:bg-[#333333] hover:text-[#ededed]"
+                    title="Ver detalhes"
+                  >
+                    <Eye className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
             </div>
-            <div className="flex min-w-0 flex-col gap-0.5">
-              <span className="truncate text-sm font-medium text-[#ededed]">{client.name}</span>
-              <span className="truncate text-xs text-[#8c8c8c]">
-                {client.emails[client.primaryEmailIndex]}
-              </span>
-            </div>
-          </div>
-
-          {/* AUM */}
-          <div className="text-[14px] font-semibold text-[#6ecf8e]">{client.aumFormatted}</div>
-
-          {/* Status */}
-          <div>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a2e1a] px-2.5 py-1 text-[11px] font-semibold text-[#6ecf8e]">
-              <span className="h-1.5 w-1.5 rounded-full bg-current" />
-              {client.status}
-            </span>
-          </div>
-
-          {/* Última Reunião */}
-          <div className={cn("text-[14px]", getDateColor(client))}>
-            {client.lastMeeting ? formatMeetingDate(client.lastMeeting) : "-"}
-          </div>
-
-          {/* Consultor */}
-          <div className="text-[13px] text-[#ededed]">{client.advisor}</div>
-
-          {/* Telefone */}
-          <div className="text-[13px] text-[#ededed]">{client.phone}</div>
-
-          {/* Cidade */}
-          <div className="text-[13px] text-[#ededed]">{client.cityState}</div>
-
-          {/* Cliente Desde */}
-          <div className="text-[13px] text-[#ededed]">{client.clientSince}</div>
-
-          {/* Dias sem Reunião */}
-          <div>{getDaysBadge(client.daysSinceLastMeeting, client.meetingDelayStatus)}</div>
-
-          {/* Tasks Urgentes */}
-          <div>
-            {client.urgentTasksCount > 0 ? (
-              <span className="inline-flex items-center gap-1 text-[#e07a7a]">
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-sm font-bold">{client.urgentTasksCount}</span>
-              </span>
-            ) : isIncompleteRegistration(client) ? (
-              <span className="inline-flex items-center gap-1 text-[#e07a7a]">
-                <AlertTriangle className="h-4 w-4" />
-              </span>
-            ) : (
-              <span className="inline-flex items-center gap-1 text-[#6ecf8e]">
-                <span className="text-sm font-medium">0</span>
-              </span>
-            )}
-          </div>
-
-          {/* Ações */}
-          <div className="flex items-center justify-end gap-2">
-            {client.urgentTasksCount > 0 || client.meetingDelayStatus !== "ok" ? (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle schedule
-                }}
-                className="flex items-center gap-1.5 rounded-md border border-[#3a5a3a] bg-transparent px-3 py-1.5 text-xs font-semibold text-[#6ecf8e] transition-colors hover:border-[#6ecf8e] hover:bg-[#1a2e1a]"
-              >
-                <CalendarPlus className="h-3.5 w-3.5" />
-                Agendar
-              </button>
-            ) : (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setLocation(`/clients/${client.id}`);
-                }}
-                className="flex h-8 w-8 items-center justify-center rounded-md border border-[#3a3a3a] text-[#8c8c8c] transition-colors hover:bg-[#333333] hover:text-[#ededed]"
-                title="Ver detalhes"
-              >
-                <Eye className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-        </div>
+          </ContextMenuTrigger>
+          <ClientContextMenu onDelete={() => onDeleteClient(client.id)} />
+        </ContextMenu>
       ))}
 
       {clients.length === 0 && (

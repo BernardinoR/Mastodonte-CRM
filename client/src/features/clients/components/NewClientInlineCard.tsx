@@ -17,7 +17,6 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
   const isSavingRef = useRef(false);
   const nameRef = useRef(name);
 
@@ -59,24 +58,6 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
     }
   };
 
-  const handleBlur = useCallback(
-    (e: React.FocusEvent) => {
-      const relatedTarget = e.relatedTarget as Node | null;
-      const isInsideCard = cardRef.current?.contains(relatedTarget);
-
-      if (!isInsideCard) {
-        setTimeout(() => {
-          if (nameRef.current.trim() && !isSavingRef.current) {
-            commitSave();
-          } else if (!nameRef.current.trim()) {
-            handleCancel();
-          }
-        }, 150);
-      }
-    },
-    [commitSave, handleCancel],
-  );
-
   // Gerar iniciais do nome
   const getInitials = (name: string): string => {
     if (!name.trim()) return "?";
@@ -89,12 +70,10 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
 
   return (
     <div
-      ref={cardRef}
       className={cn(
         "rounded-xl border border-dashed border-[#3a3a3a] bg-[#1a1a1a] p-5 transition-all",
         "hover:border-[#444444] hover:bg-[#222222]",
       )}
-      onBlur={handleBlur}
     >
       {/* Header */}
       <div className="flex items-start gap-3">

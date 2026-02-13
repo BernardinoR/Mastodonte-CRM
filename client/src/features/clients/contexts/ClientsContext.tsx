@@ -302,6 +302,7 @@ interface ClientsContextType {
     updates: Partial<Omit<ClientMeeting, "id">>,
   ) => void;
   deleteClientMeeting: (clientId: string, meetingId: string) => void;
+  deleteClient: (clientId: string) => Promise<void>;
   bulkInsertClients: (rows: ClientImportRow[]) => Promise<{ inserted: number; errors: string[] }>;
   dataVersion: number;
 }
@@ -871,6 +872,16 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     setDataVersion((v) => v + 1);
   }, []);
 
+  const deleteClient = useCallback(async (clientId: string) => {
+    setClients((prev) => prev.filter((c) => c.id !== clientId));
+    setDataVersion((v) => v + 1);
+    try {
+      await supabase.from("clients").delete().eq("id", clientId);
+    } catch (err) {
+      console.error("Error deleting client:", err);
+    }
+  }, []);
+
   // ============================================
   // Bulk import
   // ============================================
@@ -961,6 +972,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       addClientMeeting,
       updateClientMeeting,
       deleteClientMeeting,
+      deleteClient,
       bulkInsertClients,
       dataVersion,
     }),
@@ -995,6 +1007,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       addClientMeeting,
       updateClientMeeting,
       deleteClientMeeting,
+      deleteClient,
       bulkInsertClients,
       dataVersion,
     ],

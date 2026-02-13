@@ -4,6 +4,8 @@ import { NewClientInlineCard } from "@features/clients";
 import { useClientsPage } from "@features/clients";
 import { useClients } from "@features/clients";
 import { useToast } from "@/shared/hooks/use-toast";
+import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
+import { ClientContextMenu } from "../components/ClientContextMenu";
 import {
   ClientsToolbar,
   ClientsStatsGrid,
@@ -16,7 +18,7 @@ import { ImportClientsDialog } from "../components/ImportClientsDialog";
 export default function Clients() {
   const [isCreatingClient, setIsCreatingClient] = useState(false);
   const [showImportDialog, setShowImportDialog] = useState(false);
-  const { addClient, refetchClients } = useClients();
+  const { addClient, deleteClient, refetchClients } = useClients();
   const { toast } = useToast();
 
   // Refetch clientes ao montar a página para garantir dados atualizados
@@ -119,7 +121,14 @@ export default function Clients() {
             />
           )}
           {filteredClients.map((client) => (
-            <ClientCard key={client.id} client={client} isCompact={isCompact} />
+            <ContextMenu key={client.id}>
+              <ContextMenuTrigger asChild>
+                <div>
+                  <ClientCard client={client} isCompact={isCompact} />
+                </div>
+              </ContextMenuTrigger>
+              <ClientContextMenu onDelete={() => deleteClient(client.id)} />
+            </ContextMenu>
           ))}
           {filteredClients.length === 0 && !isCreatingClient && (
             <div className="col-span-full py-12 text-center text-[#8c8c8c]">
@@ -128,7 +137,7 @@ export default function Clients() {
           )}
         </div>
       ) : (
-        <ClientsListView clients={filteredClients} />
+        <ClientsListView clients={filteredClients} onDeleteClient={deleteClient} />
       )}
 
       {/* Import Dialog */}
