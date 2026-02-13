@@ -128,6 +128,7 @@ function mapDbRowToClient(row: DbClient): Client {
     },
     foundationCode: row.foundation_code || "",
     clientSince: formatClientSince(clientSinceDate),
+    clientSinceDate,
     status: (row.status as ClientStatus) || "Ativo",
     schedulingMessageSentAt: row.scheduling_message_sent_at
       ? new Date(row.scheduling_message_sent_at)
@@ -294,6 +295,8 @@ interface ClientsContextType {
   updateClientAddress: (clientId: string, address: Address) => Promise<void>;
   updateClientFoundationCode: (clientId: string, foundationCode: string) => Promise<void>;
   updateClientPeculiarities: (clientId: string, peculiarities: string[]) => Promise<void>;
+  updateClientLastMeeting: (clientId: string, date: Date) => Promise<void>;
+  updateClientSince: (clientId: string, date: Date) => Promise<void>;
   updateClientMonthlyMeetingDisabled: (clientId: string, disabled: boolean) => Promise<void>;
   addClientMeeting: (clientId: string, meeting: Omit<ClientMeeting, "id">) => void;
   updateClientMeeting: (
@@ -809,6 +812,32 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     [updateClientApi],
   );
 
+  const updateClientLastMeeting = useCallback(
+    async (clientId: string, date: Date) => {
+      setClients((prev) =>
+        prev.map((client) => (client.id === clientId ? { ...client, lastMeeting: date } : client)),
+      );
+      setDataVersion((v) => v + 1);
+      await updateClientApi(clientId, { lastMeeting: date.toISOString() });
+    },
+    [updateClientApi],
+  );
+
+  const updateClientSince = useCallback(
+    async (clientId: string, date: Date) => {
+      setClients((prev) =>
+        prev.map((client) =>
+          client.id === clientId
+            ? { ...client, clientSince: formatClientSince(date), clientSinceDate: date }
+            : client,
+        ),
+      );
+      setDataVersion((v) => v + 1);
+      await updateClientApi(clientId, { clientSince: date.toISOString() });
+    },
+    [updateClientApi],
+  );
+
   // Meetings are still managed locally for now
   const addClientMeeting = useCallback((clientId: string, meeting: Omit<ClientMeeting, "id">) => {
     setExtendedData((prev) => {
@@ -968,6 +997,8 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       updateClientAddress,
       updateClientFoundationCode,
       updateClientPeculiarities,
+      updateClientLastMeeting,
+      updateClientSince,
       updateClientMonthlyMeetingDisabled,
       addClientMeeting,
       updateClientMeeting,
@@ -1003,6 +1034,8 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       updateClientAddress,
       updateClientFoundationCode,
       updateClientPeculiarities,
+      updateClientLastMeeting,
+      updateClientSince,
       updateClientMonthlyMeetingDisabled,
       addClientMeeting,
       updateClientMeeting,

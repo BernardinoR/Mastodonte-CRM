@@ -6,9 +6,13 @@ export interface UseClientHeaderEditingOptions {
   clientName: string;
   clientCpf: string;
   clientPhone: string;
+  clientLastMeeting: Date;
+  clientSinceDate: Date;
   onUpdateName: (id: string, name: string) => void | Promise<void>;
   onUpdateCpf: (id: string, cpf: string) => void | Promise<void>;
   onUpdatePhone: (id: string, phone: string) => void | Promise<void>;
+  onUpdateLastMeeting: (id: string, date: Date) => void | Promise<void>;
+  onUpdateClientSince: (id: string, date: Date) => void | Promise<void>;
 }
 
 // Formatters
@@ -44,10 +48,23 @@ const formatPhone = (value: string): string => {
 };
 
 export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
-  const { clientId, clientName, clientCpf, clientPhone, onUpdateName, onUpdateCpf, onUpdatePhone } =
-    options;
+  const {
+    clientId,
+    clientName,
+    clientCpf,
+    clientPhone,
+    clientLastMeeting,
+    clientSinceDate,
+    onUpdateName,
+    onUpdateCpf,
+    onUpdatePhone,
+    onUpdateLastMeeting,
+    onUpdateClientSince,
+  } = options;
 
   const [isBulkEditing, setIsBulkEditing] = useState(false);
+  const [draftLastMeeting, setDraftLastMeeting] = useState<Date | null>(null);
+  const [draftClientSince, setDraftClientSince] = useState<Date | null>(null);
 
   // Bulk editing handlers
   const commitAllChanges = useCallback(() => {
@@ -104,6 +121,14 @@ export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
       onUpdatePhone(clientId, trimmedPhone);
     }
 
+    if (draftLastMeeting && draftLastMeeting.getTime() !== clientLastMeeting.getTime()) {
+      onUpdateLastMeeting(clientId, draftLastMeeting);
+    }
+
+    if (draftClientSince && draftClientSince.getTime() !== clientSinceDate.getTime()) {
+      onUpdateClientSince(clientId, draftClientSince);
+    }
+
     setIsBulkEditing(false);
   }, [
     nameField.draft,
@@ -116,20 +141,39 @@ export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
     onUpdateName,
     onUpdateCpf,
     onUpdatePhone,
+    draftLastMeeting,
+    clientLastMeeting,
+    onUpdateLastMeeting,
+    draftClientSince,
+    clientSinceDate,
+    onUpdateClientSince,
   ]);
 
   const handleEditClient = useCallback(() => {
     nameField.setDraft(clientName);
     cpfField.setDraft(clientCpf);
     phoneField.setDraft(clientPhone);
+    setDraftLastMeeting(clientLastMeeting);
+    setDraftClientSince(clientSinceDate);
     setIsBulkEditing(true);
-  }, [clientName, clientCpf, clientPhone, nameField, cpfField, phoneField]);
+  }, [
+    clientName,
+    clientCpf,
+    clientPhone,
+    clientLastMeeting,
+    clientSinceDate,
+    nameField,
+    cpfField,
+    phoneField,
+  ]);
 
   const cancelAllChangesImpl = useCallback(() => {
     setIsBulkEditing(false);
     nameField.setDraft("");
     cpfField.setDraft("");
     phoneField.setDraft("");
+    setDraftLastMeeting(null);
+    setDraftClientSince(null);
   }, [nameField, cpfField, phoneField]);
 
   // Focus name input when bulk editing starts
@@ -175,6 +219,12 @@ export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
     handlePhoneChange: phoneField.handleChange,
     handlePhoneKeyDown: phoneField.handleKeyDown,
     handlePhoneBlur: phoneField.handleBlur,
+
+    // Date drafts
+    draftLastMeeting,
+    setDraftLastMeeting,
+    draftClientSince,
+    setDraftClientSince,
 
     // Bulk editing
     isBulkEditing,

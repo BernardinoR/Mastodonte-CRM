@@ -22,6 +22,7 @@ export interface Client {
   address: Address;
   foundationCode: string;
   clientSince: string;
+  clientSinceDate: Date;
   status: ClientStatus;
   folderLink?: string;
   schedulingMessageSentAt?: Date | null;

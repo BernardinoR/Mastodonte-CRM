@@ -27,6 +27,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "652e3f56-10e6-4423-a667-fdd711f856f2",
     clientSince: "Junho de 2023",
+    clientSinceDate: new Date("2023-06-01"),
     status: "Ativo",
     folderLink: "https://vault.repl.ai/file/com.google.drive/id/example",
   },
@@ -50,6 +51,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "a1b2c3d4-5e6f-7890-abcd-ef1234567890",
     clientSince: "Dezembro de 2022",
+    clientSinceDate: new Date("2022-12-01"),
     status: "Ativo",
   },
   {
@@ -72,6 +74,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "b2c3d4e5-6f70-8901-bcde-f12345678901",
     clientSince: "Março de 2021",
+    clientSinceDate: new Date("2021-03-01"),
     status: "Ativo",
   },
   {
@@ -94,6 +97,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "c3d4e5f6-7081-9012-cdef-123456789012",
     clientSince: "Outubro de 2025",
+    clientSinceDate: new Date("2025-10-01"),
     status: "Prospect",
   },
   {
@@ -116,6 +120,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "d4e5f6a7-8192-0123-defa-234567890123",
     clientSince: "Fevereiro de 2022",
+    clientSinceDate: new Date("2022-02-01"),
     status: "Ativo",
   },
   {
@@ -138,6 +143,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "e5f6a7b8-9203-1234-efab-345678901234",
     clientSince: "Agosto de 2022",
+    clientSinceDate: new Date("2022-08-01"),
     status: "Ativo",
   },
   {
@@ -160,6 +166,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "f6a7b8c9-0314-2345-fabc-456789012345",
     clientSince: "Janeiro de 2024",
+    clientSinceDate: new Date("2024-01-01"),
     status: "Ativo",
   },
   {
@@ -182,6 +189,7 @@ export const INITIAL_CLIENTS: Client[] = [
     },
     foundationCode: "a7b8c9d0-1425-3456-abcd-567890123456",
     clientSince: "Maio de 2024",
+    clientSinceDate: new Date("2024-05-01"),
     status: "Ativo",
   },
 ];

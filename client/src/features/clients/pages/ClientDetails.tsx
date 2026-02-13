@@ -77,6 +77,8 @@ export default function ClientDetails() {
     updateClientAddress,
     updateClientFoundationCode,
     updateClientPeculiarities,
+    updateClientLastMeeting,
+    updateClientSince,
     updateClientMonthlyMeetingDisabled,
     dataVersion,
   } = useClients();
@@ -157,9 +159,13 @@ export default function ClientDetails() {
     clientName: clientData?.client.name || "",
     clientCpf: clientData?.client.cpf || "",
     clientPhone: clientData?.client.phone || "",
+    clientLastMeeting: clientData?.client.lastMeeting || new Date(),
+    clientSinceDate: clientData?.client.clientSinceDate || new Date(),
     onUpdateName: updateClientName,
     onUpdateCpf: updateClientCpf,
     onUpdatePhone: updateClientPhone,
+    onUpdateLastMeeting: updateClientLastMeeting,
+    onUpdateClientSince: updateClientSince,
   });
 
   if (!clientData) {

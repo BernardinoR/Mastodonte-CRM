@@ -10,9 +10,14 @@ import {
   Clock,
   Check,
   X,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/shared/components/ui/button";
+import { Input } from "@/shared/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { Calendar } from "@/shared/components/ui/calendar";
 import { ClientStatusBadge } from "@features/clients";
 import { EmailsPopover } from "@features/clients";
 import { AdvisorPopover } from "@features/clients";
@@ -52,6 +57,213 @@ function MetaItem({
   );
 }
 
+const MONTH_LABELS = [
+  "Jan",
+  "Fev",
+  "Mar",
+  "Abr",
+  "Mai",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Set",
+  "Out",
+  "Nov",
+  "Dez",
+];
+
+const MONTH_FULL = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
+];
+
+function MonthYearPicker({
+  value,
+  onChange,
+  label,
+}: {
+  value: Date;
+  onChange: (date: Date) => void;
+  label: string;
+}) {
+  const [viewYear, setViewYear] = useState(value.getFullYear());
+  const [monthInput, setMonthInput] = useState("");
+  const selectedMonth = value.getMonth();
+  const selectedYear = value.getFullYear();
+
+  const displayLabel = `${MONTH_FULL[value.getMonth()]} de ${value.getFullYear()}`;
+
+  const handleMonthInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 6) raw = raw.slice(0, 6);
+    if (raw.length > 2) raw = raw.slice(0, 2) + "/" + raw.slice(2);
+    setMonthInput(raw);
+
+    const match = raw.match(/^(\d{2})\/(\d{4})$/);
+    if (match) {
+      const month = parseInt(match[1], 10);
+      const year = parseInt(match[2], 10);
+      if (month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+        onChange(new Date(year, month - 1, 1));
+        setViewYear(year);
+      }
+    }
+  };
+
+  const handleMonthSelect = (monthIndex: number) => {
+    const newDate = new Date(viewYear, monthIndex, 1);
+    onChange(newDate);
+    setMonthInput(String(monthIndex + 1).padStart(2, "0") + "/" + viewYear);
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div className="flex cursor-pointer flex-col gap-1" data-testid="picker-client-since">
+          <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <Clock className="h-3.5 w-3.5" />
+            Cliente Desde
+          </span>
+          <span className="-mx-1 flex items-center rounded-md px-1 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]">
+            {displayLabel}
+            <ChevronDown className="ml-1 h-3 w-3 text-muted-foreground" />
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-64 border-[#3a3a3a] bg-[#1a1a1a] p-4" align="start">
+        <div className="mb-3 border-b border-[#3a3a3a] pb-3">
+          <Input
+            type="text"
+            placeholder="MM/yyyy"
+            value={monthInput}
+            onChange={handleMonthInputChange}
+            className="h-8 border-[#3a3a3a] bg-[#2a2a2a] text-sm text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+        <div className="mb-3 flex items-center justify-between">
+          <button
+            type="button"
+            onClick={() => setViewYear((y) => y - 1)}
+            className="rounded-md p-1 text-gray-400 transition-colors hover:bg-[#2a2a2a] hover:text-white"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+          <span className="text-sm font-medium text-white">{viewYear}</span>
+          <button
+            type="button"
+            onClick={() => setViewYear((y) => y + 1)}
+            className="rounded-md p-1 text-gray-400 transition-colors hover:bg-[#2a2a2a] hover:text-white"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </button>
+        </div>
+        <div className="grid grid-cols-4 gap-1.5">
+          {MONTH_LABELS.map((m, i) => {
+            const isSelected = i === selectedMonth && viewYear === selectedYear;
+            return (
+              <button
+                key={m}
+                type="button"
+                onClick={() => handleMonthSelect(i)}
+                className={cn(
+                  "rounded-md px-2 py-1.5 text-xs font-medium transition-colors",
+                  isSelected
+                    ? "bg-blue-500 text-white"
+                    : "text-gray-300 hover:bg-[#2a2a2a] hover:text-white",
+                )}
+              >
+                {m}
+              </button>
+            );
+          })}
+        </div>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function LastMeetingPicker({ value, onChange }: { value: Date; onChange: (date: Date) => void }) {
+  const [dateInput, setDateInput] = useState("");
+  const [calendarMonth, setCalendarMonth] = useState<Date>(value);
+
+  const displayValue = format(value, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+
+  const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 8) raw = raw.slice(0, 8);
+    if (raw.length > 4) raw = raw.slice(0, 2) + "/" + raw.slice(2, 4) + "/" + raw.slice(4);
+    else if (raw.length > 2) raw = raw.slice(0, 2) + "/" + raw.slice(2);
+    setDateInput(raw);
+
+    const match = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (match) {
+      const day = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10);
+      const year = parseInt(match[3], 10);
+      if (day >= 1 && day <= 31 && month >= 1 && month <= 12 && year >= 1900 && year <= 2100) {
+        const parsed = new Date(year, month - 1, day);
+        if (parsed.getDate() === day && parsed.getMonth() === month - 1) {
+          onChange(parsed);
+          setCalendarMonth(parsed);
+        }
+      }
+    }
+  };
+
+  const handleCalendarSelect = (date: Date | undefined) => {
+    if (date) {
+      onChange(date);
+      setDateInput(format(date, "dd/MM/yyyy"));
+    }
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <div className="flex cursor-pointer flex-col gap-1" data-testid="picker-last-meeting">
+          <span className="flex items-center gap-1.5 text-xs uppercase tracking-wide text-muted-foreground">
+            <CalendarIcon className="h-3.5 w-3.5" />
+            Última Reunião
+          </span>
+          <span className="-mx-1 flex items-center rounded-md px-1 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]">
+            {displayValue}
+            <ChevronDown className="ml-1 h-3 w-3 text-muted-foreground" />
+          </span>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto border-[#3a3a3a] bg-[#1a1a1a] p-0" align="start">
+        <div className="border-b border-[#3a3a3a] px-4 pb-3 pt-4">
+          <Input
+            type="text"
+            placeholder="dd/MM/yyyy"
+            value={dateInput}
+            onChange={handleDateInputChange}
+            className="h-8 border-[#3a3a3a] bg-[#2a2a2a] text-sm text-foreground placeholder:text-muted-foreground"
+          />
+        </div>
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={handleCalendarSelect}
+          locale={ptBR}
+          month={calendarMonth}
+          onMonthChange={setCalendarMonth}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
 interface ClientMeeting {
   id: string;
   name: string;
@@ -75,6 +287,7 @@ interface ClientHeaderProps {
     address: Address;
     foundationCode: string;
     clientSince: string;
+    clientSinceDate: Date;
     status: ClientStatus;
     monthlyMeetingDisabled: boolean;
   };
@@ -148,6 +361,10 @@ export function ClientHeader({
     handleEditClient,
     commitAllChanges,
     cancelAllChanges,
+    draftLastMeeting,
+    setDraftLastMeeting,
+    draftClientSince,
+    setDraftClientSince,
   } = editingState;
 
   const handleWhatsApp = (link?: string, isGroup?: boolean) => {
@@ -272,18 +489,33 @@ export function ClientHeader({
               onSetPrimaryEmail={onSetPrimaryEmail}
             />
             <AdvisorPopover currentAdvisor={client.advisor} onAdvisorChange={onUpdateAdvisor} />
-            <MetaItem
-              icon={CalendarIcon}
-              label="Última Reunião"
-              value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-              disabled={client.monthlyMeetingDisabled}
-            />
+            {isBulkEditing ? (
+              <LastMeetingPicker
+                value={draftLastMeeting ?? lastMonthlyMeetingDate}
+                onChange={setDraftLastMeeting}
+              />
+            ) : (
+              <MetaItem
+                icon={CalendarIcon}
+                label="Última Reunião"
+                value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                disabled={client.monthlyMeetingDisabled}
+              />
+            )}
             <AddressPopover address={client.address} onAddressChange={onUpdateAddress} />
             <FoundationCodeField
               code={client.foundationCode}
               onCodeChange={onUpdateFoundationCode}
             />
-            <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
+            {isBulkEditing ? (
+              <MonthYearPicker
+                value={draftClientSince ?? client.clientSinceDate}
+                onChange={setDraftClientSince}
+                label={client.clientSince}
+              />
+            ) : (
+              <MetaItem icon={Clock} label="Cliente Desde" value={client.clientSince} />
+            )}
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
