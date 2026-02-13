@@ -115,7 +115,7 @@ export const TableBulkActions = memo(function TableBulkActions({
             {STATUS_OPTIONS.map((s) => (
               <div
                 key={s}
-                className={cn("cursor-pointer rounded-md px-2 py-1.5", UI_CLASSES.dropdownItem)}
+                className={UI_CLASSES.dropdownItem}
                 onClick={() => handleStatusSelect(s)}
               >
                 <StatusBadge status={s} />
@@ -144,7 +144,7 @@ export const TableBulkActions = memo(function TableBulkActions({
             {PRIORITY_OPTIONS.map((p) => (
               <div
                 key={p}
-                className={cn("cursor-pointer rounded-md px-2 py-1.5", UI_CLASSES.dropdownItem)}
+                className={UI_CLASSES.dropdownItem}
                 onClick={() => handlePrioritySelect(p)}
               >
                 <PriorityBadge priority={p} />

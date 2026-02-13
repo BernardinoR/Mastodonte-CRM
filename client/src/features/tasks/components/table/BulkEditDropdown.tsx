@@ -19,6 +19,7 @@ import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
 } from "@/shared/components/ui/task-badges";
+import { UI_CLASSES } from "../../lib/statusConfig";
 import { cn } from "@/shared/lib/utils";
 import type { TaskStatus, TaskPriority } from "../../types/task";
 import { useClients } from "@features/clients";
@@ -206,9 +207,13 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
         <SubMenu label="Prioridade" icon={<AlertTriangle className="h-4 w-4" />}>
           <div className="p-1">
             {PRIORITY_OPTIONS.map((priority) => (
-              <MenuItem key={priority} onClick={() => onPriorityChange(priority)}>
+              <div
+                key={priority}
+                className={UI_CLASSES.dropdownItem}
+                onClick={() => onPriorityChange(priority)}
+              >
                 <PriorityBadge priority={priority} />
-              </MenuItem>
+              </div>
             ))}
           </div>
         </SubMenu>
@@ -216,9 +221,13 @@ export const BulkEditDropdown = memo(function BulkEditDropdown({
         <SubMenu label="Status" icon={<Circle className="h-4 w-4" />}>
           <div className="p-1">
             {STATUS_OPTIONS.map((status) => (
-              <MenuItem key={status} onClick={() => onStatusChange(status)}>
+              <div
+                key={status}
+                className={UI_CLASSES.dropdownItem}
+                onClick={() => onStatusChange(status)}
+              >
                 <StatusBadge status={status} />
-              </MenuItem>
+              </div>
             ))}
           </div>
         </SubMenu>

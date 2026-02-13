@@ -30,6 +30,7 @@ import {
   PRIORITY_OPTIONS,
   STATUS_OPTIONS,
 } from "@/shared/components/ui/task-badges";
+import { UI_CLASSES } from "../lib/statusConfig";
 import type { TaskStatus, TaskPriority } from "../types/task";
 import { useClients } from "@features/clients";
 
@@ -159,12 +160,12 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <AlertTriangle className="h-4 w-4" />
           <span>Prioridade</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a]">
+        <ContextMenuSubContent className={UI_CLASSES.popover}>
           {PRIORITY_OPTIONS.map((priority) => (
             <ContextMenuItem
               key={priority}
               onClick={() => onPriorityChange(priority)}
-              className="flex items-center gap-2"
+              className={UI_CLASSES.dropdownItem}
             >
               <PriorityBadge priority={priority} />
             </ContextMenuItem>
@@ -177,12 +178,12 @@ export const TaskCardContextMenu = memo(function TaskCardContextMenu({
           <Circle className="h-4 w-4" />
           <span>Status</span>
         </ContextMenuSubTrigger>
-        <ContextMenuSubContent className="border-[#3a3a3a] bg-[#1a1a1a]">
+        <ContextMenuSubContent className={UI_CLASSES.popover}>
           {STATUS_OPTIONS.map((status) => (
             <ContextMenuItem
               key={status}
               onClick={() => onStatusChange(status)}
-              className="flex items-center gap-2"
+              className={UI_CLASSES.dropdownItem}
             >
               <StatusBadge status={status} />
             </ContextMenuItem>
