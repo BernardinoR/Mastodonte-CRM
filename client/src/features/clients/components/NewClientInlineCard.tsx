@@ -9,15 +9,15 @@ export interface NewClientInlineData {
 }
 
 interface NewClientInlineCardProps {
-  onSave: (data: NewClientInlineData) => void;
+  onSave: (data: NewClientInlineData) => void | Promise<void>;
   onCancel: () => void;
 }
 
 export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
-  const isSavingRef = useRef(false);
   const nameRef = useRef(name);
 
   useEffect(() => {
@@ -29,18 +29,17 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
     nameInputRef.current?.focus();
   }, []);
 
-  const commitSave = useCallback(() => {
+  const commitSave = useCallback(async () => {
     const currentName = nameRef.current;
-    if (currentName.trim() && !isSavingRef.current) {
-      isSavingRef.current = true;
-      onSave({ name: currentName.trim(), email: email.trim() });
-      setName("");
-      setEmail("");
-      setTimeout(() => {
-        isSavingRef.current = false;
-      }, 100);
+    if (currentName.trim() && !isSaving) {
+      setIsSaving(true);
+      try {
+        await onSave({ name: currentName.trim(), email: email.trim() });
+      } finally {
+        setIsSaving(false);
+      }
     }
-  }, [email, onSave]);
+  }, [email, isSaving, onSave]);
 
   const handleCancel = useCallback(() => {
     setName("");
@@ -52,7 +51,7 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
     if (e.key === "Enter" && nameRef.current.trim()) {
       e.preventDefault();
       commitSave();
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && !isSaving) {
       e.preventDefault();
       handleCancel();
     }
@@ -73,6 +72,7 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
       className={cn(
         "rounded-xl border border-dashed border-[#3a3a3a] bg-[#1a1a1a] p-5 transition-all",
         "hover:border-[#444444] hover:bg-[#222222]",
+        isSaving && "pointer-events-none animate-pulse",
       )}
     >
       {/* Header */}
@@ -90,8 +90,9 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={handleKeyDown}
+            disabled={isSaving}
             placeholder="Nome do cliente"
-            className="w-full border-b border-[#2eaadc] bg-transparent pb-1 text-sm font-medium text-[#ededed] placeholder:text-[#666666] focus:outline-none"
+            className="w-full border-b border-[#2eaadc] bg-transparent pb-1 text-sm font-medium text-[#ededed] placeholder:text-[#666666] focus:outline-none disabled:opacity-50"
             data-testid="input-new-client-name"
           />
           <input
@@ -99,8 +100,9 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             onKeyDown={handleKeyDown}
+            disabled={isSaving}
             placeholder="email@exemplo.com"
-            className="w-full border-b border-[#3a3a3a] bg-transparent pb-1 text-sm text-[#ededed] placeholder:text-[#666666] focus:border-[#2eaadc] focus:outline-none"
+            className="w-full border-b border-[#3a3a3a] bg-transparent pb-1 text-sm text-[#ededed] placeholder:text-[#666666] focus:border-[#2eaadc] focus:outline-none disabled:opacity-50"
             data-testid="input-new-client-email"
           />
         </div>
@@ -110,7 +112,7 @@ export function NewClientInlineCard({ onSave, onCancel }: NewClientInlineCardPro
           <Button
             size="icon"
             onClick={commitSave}
-            disabled={!name.trim()}
+            disabled={!name.trim() || isSaving}
             className="h-9 w-9 border border-[#3a5a3a] bg-[#1a2e1a] text-[#6ecf8e] hover:border-[#6ecf8e] hover:bg-[#243a24] disabled:cursor-not-allowed disabled:opacity-50"
             data-testid="button-save-new-client"
           >
