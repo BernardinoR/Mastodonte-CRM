@@ -1,9 +1,9 @@
 import { Calendar, AlertTriangle } from "lucide-react";
 import { useLocation } from "wouter";
-import { useCallback } from "react";
 import type { Client, EnrichedClient } from "@features/clients";
 import { cn } from "@/shared/lib/utils";
 import { toast } from "@/shared/hooks/use-toast";
+import { useCopyToClipboard } from "@/shared/hooks";
 import { useCurrentUser } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
 import { buildSchedulingMessage, buildWhatsAppSchedulingUrl } from "../lib/schedulingMessage";
@@ -92,14 +92,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
     setLocation(`/clients/${id}`);
   };
 
-  const handleCopyClick = useCallback((e: React.MouseEvent, value: string, label: string) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(value);
-    toast({
-      title: "Copiado!",
-      description: `${label} copiado para a área de transferência`,
-    });
-  }, []);
+  const copy = useCopyToClipboard();
 
   const handleScheduleClick = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -177,7 +170,10 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
           </div>
           <div
             className="m-0 -mx-1 -my-0.5 inline-block cursor-pointer rounded p-0 px-1 py-0.5 text-xs leading-[1.3] text-[#6c6c6c] transition-colors hover:bg-[rgba(176,176,176,0.1)] hover:text-[#b0b0b0]"
-            onClick={(e) => handleCopyClick(e, email, "Email")}
+            onClick={(e) => {
+              e.stopPropagation();
+              copy(email, "Email");
+            }}
           >
             {email}
           </div>
@@ -214,7 +210,10 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
           </span>
           <span
             className="-mx-1 inline-block cursor-pointer whitespace-nowrap rounded px-1 py-0.5 text-[14px] font-medium text-[#ededed] transition-colors hover:bg-[rgba(176,176,176,0.1)] hover:text-[#b0b0b0]"
-            onClick={(e) => handleCopyClick(e, phone, "Telefone")}
+            onClick={(e) => {
+              e.stopPropagation();
+              copy(phone, "Telefone");
+            }}
           >
             {phone}
           </span>

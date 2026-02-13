@@ -21,6 +21,7 @@ import { FoundationCodeField } from "@features/clients";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/shared/lib/utils";
+import { useCopyToClipboard } from "@/shared/hooks";
 import type { Address, WhatsAppGroup } from "@features/clients";
 import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { useClientHeaderEditing } from "@features/clients";
@@ -111,6 +112,7 @@ export function ClientHeader({
   onUpdateStatus,
 }: ClientHeaderProps) {
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
+  const copy = useCopyToClipboard();
 
   // Calcular última reunião mensal realizada (tipo "Mensal" + status "Realizada")
   const lastMonthlyMeetingDate = useMemo(() => {
@@ -226,10 +228,10 @@ export function ClientHeader({
               ) : (
                 <span
                   className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
-                  onClick={startEditingCpf}
+                  onClick={() => (client.cpf ? copy(client.cpf, "CPF") : startEditingCpf())}
                   data-testid="text-client-cpf"
                 >
-                  {client.cpf}
+                  {client.cpf || "—"}
                 </span>
               )}
             </div>
@@ -252,10 +254,12 @@ export function ClientHeader({
               ) : (
                 <span
                   className="-mx-1.5 -my-0.5 cursor-pointer rounded-md px-1.5 py-0.5 text-sm font-medium text-foreground transition-colors hover:bg-[#333333]"
-                  onClick={startEditingPhone}
+                  onClick={() =>
+                    client.phone ? copy(client.phone, "Telefone") : startEditingPhone()
+                  }
                   data-testid="text-client-phone"
                 >
-                  {client.phone}
+                  {client.phone || "—"}
                 </span>
               )}
             </div>

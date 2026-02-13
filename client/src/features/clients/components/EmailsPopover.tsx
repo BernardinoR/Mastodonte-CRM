@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, type KeyboardEvent } from "react";
-import { Mail, Plus, Circle, X, Check, CheckCircle2 } from "lucide-react";
+import { Mail, Plus, Circle, X, Check, CheckCircle2, Copy } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Button } from "@/shared/components/ui/button";
+import { useCopyToClipboard } from "@/shared/hooks";
 
 interface EmailsPopoverProps {
   emails: string[];
@@ -20,6 +21,7 @@ export function EmailsPopover({
   onUpdateEmail,
   onSetPrimaryEmail,
 }: EmailsPopoverProps) {
+  const copy = useCopyToClipboard();
   const [isOpen, setIsOpen] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftEmail, setDraftEmail] = useState("");
@@ -173,6 +175,27 @@ export function EmailsPopover({
                 >
                   {email}
                 </span>
+              )}
+
+              {editingIndex === index ? (
+                <button
+                  type="button"
+                  onClick={cancelEdit}
+                  className="rounded p-1 text-muted-foreground hover:bg-[#333333] hover:text-red-400"
+                  title="Cancelar edição"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => copy(email, "Email")}
+                  className="rounded p-1 text-muted-foreground opacity-0 transition-opacity hover:bg-[#333333] hover:text-foreground group-hover:opacity-100"
+                  title="Copiar email"
+                  data-testid={`button-copy-email-${index}`}
+                >
+                  <Copy className="h-3.5 w-3.5" />
+                </button>
               )}
 
               {emails.length > 1 && editingIndex !== index && (
