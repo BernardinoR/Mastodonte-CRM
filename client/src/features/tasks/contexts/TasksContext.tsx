@@ -10,7 +10,7 @@ import {
 } from "react";
 import type { Task, TaskStatus, TaskPriority, TaskType, TaskHistoryEvent } from "../types/task";
 import { useClients } from "@features/clients";
-import { useUsers } from "@features/users";
+import { useUsers, useCurrentUser } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
 import { parseLocalDate, formatLocalDate } from "@/shared/lib/date-utils";
 
@@ -172,6 +172,8 @@ const MAX_HISTORY = 20;
 export function TasksProvider({ children }: { children: ReactNode }) {
   const { clients } = useClients();
   const { teamUsers, currentUser } = useUsers();
+  const { data: currentUserData } = useCurrentUser();
+  const activeRole = currentUserData?.user?.activeRole ?? null;
 
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -208,10 +210,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Load tasks on mount
+  // Load tasks on mount and when active role changes
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+  }, [fetchTasks, activeRole]);
 
   const refetchTasks = useCallback(async () => {
     await fetchTasks();

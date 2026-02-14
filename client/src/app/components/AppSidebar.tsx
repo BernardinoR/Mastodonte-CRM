@@ -96,26 +96,11 @@ export function AppSidebar() {
       }
       return res.json();
     },
-    onMutate: async (newRole) => {
-      await queryClient.cancelQueries({ queryKey: ["/api/auth/me"] });
-
-      const previousData = queryClient.getQueryData(["/api/auth/me"]);
-
-      queryClient.setQueryData(["/api/auth/me"], (old: any) => {
-        if (!old?.user) return old;
-        return { ...old, user: { ...old.user, activeRole: newRole } };
-      });
-
-      return { previousData };
-    },
     onSuccess: (data) => {
       queryClient.setQueryData(["/api/auth/me"], data);
       queryClient.invalidateQueries({ queryKey: ["/api/users/team"] });
     },
-    onError: (error, _variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(["/api/auth/me"], context.previousData);
-      }
+    onError: (error) => {
       console.error("[switchRole] Mutation failed:", error);
       toast({
         title: "Erro ao trocar visão",
