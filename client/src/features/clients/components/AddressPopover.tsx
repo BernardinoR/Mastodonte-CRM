@@ -1,6 +1,6 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import { MapPin, Copy, Pencil, Check, X } from "lucide-react";
+import { MapPin, Copy, Pencil, Check, X, Loader2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
@@ -16,13 +16,15 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [draftAddress, setDraftAddress] = useState<Address>(address);
-  const streetInputRef = useRef<HTMLInputElement>(null);
+  const [isFetchingCep, setIsFetchingCep] = useState(false);
+  const [cepError, setCepError] = useState<string | null>(null);
+  const cepInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isEditing && streetInputRef.current) {
-      streetInputRef.current.focus();
-      streetInputRef.current.select();
+    if (isEditing && cepInputRef.current) {
+      cepInputRef.current.focus();
+      cepInputRef.current.select();
     }
   }, [isEditing]);
 
@@ -60,6 +62,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
 
   const handleStartEditing = () => {
     setDraftAddress(address);
+    setCepError(null);
     setIsEditing(true);
   };
 
@@ -92,6 +95,7 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
 
   const handleCancel = () => {
     setDraftAddress(address);
+    setCepError(null);
     setIsEditing(false);
   };
 
@@ -105,6 +109,37 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
 
   const updateField = (field: keyof Address, value: string) => {
     setDraftAddress((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCepChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "");
+    if (raw.length > 8) raw = raw.slice(0, 8);
+    const formatted = raw.length > 5 ? `${raw.slice(0, 5)}-${raw.slice(5)}` : raw;
+    updateField("zipCode", formatted);
+    setCepError(null);
+
+    if (raw.length === 8) {
+      setIsFetchingCep(true);
+      try {
+        const res = await fetch(`https://viacep.com.br/ws/${raw}/json/`);
+        const data = await res.json();
+        if (data.erro) {
+          setCepError("CEP não encontrado");
+        } else {
+          setDraftAddress((prev) => ({
+            ...prev,
+            street: data.logradouro || prev.street,
+            neighborhood: data.bairro || prev.neighborhood,
+            city: data.localidade || prev.city,
+            state: data.uf || prev.state,
+          }));
+        }
+      } catch {
+        setCepError("Erro ao buscar CEP");
+      } finally {
+        setIsFetchingCep(false);
+      }
+    }
   };
 
   return (
@@ -173,10 +208,34 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
         <div className="p-4">
           <div className="space-y-2.5">
             <div className="flex flex-col">
+              <span className="mb-0.5 text-xs text-gray-500">CEP</span>
+              {isEditing ? (
+                <>
+                  <div className="relative">
+                    <Input
+                      ref={cepInputRef}
+                      value={draftAddress.zipCode}
+                      onChange={handleCepChange}
+                      onKeyDown={handleKeyDown}
+                      placeholder="Ex: 01310-100"
+                      className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
+                      data-testid="input-address-zipcode"
+                    />
+                    {isFetchingCep && (
+                      <Loader2 className="absolute right-2 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                    )}
+                  </div>
+                  {cepError && <span className="mt-0.5 text-xs text-red-500">{cepError}</span>}
+                </>
+              ) : (
+                <span className="text-sm text-foreground">{address.zipCode || "—"}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
               <span className="mb-0.5 text-xs text-gray-500">Rua/Número</span>
               {isEditing ? (
                 <Input
-                  ref={streetInputRef}
                   value={draftAddress.street}
                   onChange={(e) => updateField("street", e.target.value)}
                   onKeyDown={handleKeyDown}
@@ -257,22 +316,6 @@ export function AddressPopover({ address, onAddressChange }: AddressPopoverProps
                 </span>
               </div>
             )}
-
-            <div className="flex flex-col">
-              <span className="mb-0.5 text-xs text-gray-500">CEP</span>
-              {isEditing ? (
-                <Input
-                  value={draftAddress.zipCode}
-                  onChange={(e) => updateField("zipCode", e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Ex: 01310-100"
-                  className="h-7 border-[#3a3a3a] bg-[#1a1a1a] px-2 py-1 text-sm text-foreground"
-                  data-testid="input-address-zipcode"
-                />
-              ) : (
-                <span className="text-sm text-foreground">{address.zipCode || "—"}</span>
-              )}
-            </div>
           </div>
 
           {!isEditing && (

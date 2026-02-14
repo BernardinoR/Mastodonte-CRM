@@ -87,7 +87,8 @@
       "Bash(fuser:*)",
       "Bash(netstat:*)",
       "mcp__supabase__search_docs",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(gh api:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
