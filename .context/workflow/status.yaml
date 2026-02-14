@@ -1,41 +1,43 @@
 project:
-  name: "optimistic-task-creation"
-  scale: MEDIUM
-  started: "2026-02-08T13:16:14.894Z"
-  current_phase: V
+  name: "fix-cross-consultant-client-visibility"
+  scale: SMALL
+  started: "2026-02-14T17:33:08.371Z"
+  current_phase: P
 
 phases:
   P:
-    status: filled
-    started_at: "2026-02-08T13:16:14.894Z"
-    completed_at: "2026-02-08T13:20:10.433Z"
-  R:
-    status: filled
-    started_at: "2026-02-08T13:20:10.435Z"
-    completed_at: "2026-02-08T13:20:15.925Z"
-  E:
-    status: filled
-    started_at: "2026-02-08T13:20:15.927Z"
-    completed_at: "2026-02-08T13:22:33.749Z"
-  V:
     status: in_progress
-    started_at: "2026-02-08T13:22:33.750Z"
+    started_at: "2026-02-14T17:33:08.371Z"
+  R:
+    status: skipped
+    reason: "Not required for scale SMALL"
+  E:
+    status: pending
+  V:
+    status: pending
   C:
     status: skipped
-    reason: "Not required for scale MEDIUM"
+    reason: "Not required for scale SMALL"
 
 execution:
   history:
-    - timestamp: "2026-02-08T13:22:33.750Z"
-      phase: V
+    - timestamp: "2026-02-14T17:33:08.371Z"
+      phase: P
       action: started
-  last_activity: "2026-02-08T13:22:33.750Z"
-  resume_context: "Fase V (Validação) em progresso"
+    - timestamp: "2026-02-14T17:33:14.829Z"
+      phase: R
+      action: phase_skipped
+    - timestamp: "2026-02-14T17:33:14.829Z"
+      phase: C
+      action: phase_skipped
+    - timestamp: "2026-02-14T17:33:14.829Z"
+      phase: P
+      action: plan_linked
+      plan: "fix-cross-consultant-client-visibility"
+  last_activity: "2026-02-14T17:33:14.829Z"
+  resume_context: "Plano vinculado - aguardando revisão"
 
 approval:
   plan_created: true
-  plan_approved: true
-  approved_by: "solo-dev"
-  approved_at: "2026-02-08T13:20:13.836Z"
-  approval_notes: "Plano aprovado pelo usuário. Infraestrutura de temp IDs e syncStatus já existe no codebase."
+  plan_approved: false
 

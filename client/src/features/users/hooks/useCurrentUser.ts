@@ -9,6 +9,7 @@ export interface CurrentUser {
   email: string;
   name: string | null;
   roles: UserRole[];
+  activeRole: string | null;
   groupId: number | null;
   isActive: boolean;
   calendarLink: string | null;

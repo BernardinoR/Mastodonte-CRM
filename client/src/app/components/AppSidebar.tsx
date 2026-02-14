@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { LayoutDashboard, Users, CheckSquare, LogOut, Shield, Check } from "lucide-react";
 import { Link, useLocation } from "wouter";
-import { useClerk, useUser } from "@clerk/clerk-react";
+import { useClerk, useUser, useAuth } from "@clerk/clerk-react";
+import { useMutation } from "@tanstack/react-query";
 import {
   Sidebar,
   SidebarContent,
@@ -23,6 +23,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import { queryClient } from "@/shared/lib/queryClient";
+import { useToast } from "@/shared/hooks/use-toast";
 import { useCurrentUser, type UserRole } from "@features/users";
 
 const menuItems = [
@@ -64,12 +66,64 @@ export function AppSidebar() {
   const [location] = useLocation();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { data: currentUserData } = useCurrentUser();
   const currentUser = currentUserData?.user;
-  const [activeRole, setActiveRole] = useState<UserRole | null>(null);
   const [, navigate] = useLocation();
 
   const hasMultipleRoles = currentUser?.roles && currentUser.roles.length > 1;
+
+  const { toast } = useToast();
+
+  const switchRoleMutation = useMutation({
+    mutationFn: async (role: UserRole) => {
+      const token = await getToken();
+      const res = await fetch("/api/users/active-role", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ activeRole: role }),
+      });
+      if (!res.ok) {
+        const errorBody = await res.text().catch(() => "");
+        throw new Error(`Failed to switch role (${res.status}): ${errorBody}`);
+      }
+      const contentType = res.headers.get("content-type");
+      if (!contentType?.includes("application/json")) {
+        throw new Error("Server returned non-JSON response. The server may need to be restarted.");
+      }
+      return res.json();
+    },
+    onMutate: async (newRole) => {
+      await queryClient.cancelQueries({ queryKey: ["/api/auth/me"] });
+
+      const previousData = queryClient.getQueryData(["/api/auth/me"]);
+
+      queryClient.setQueryData(["/api/auth/me"], (old: any) => {
+        if (!old?.user) return old;
+        return { ...old, user: { ...old.user, activeRole: newRole } };
+      });
+
+      return { previousData };
+    },
+    onSuccess: (data) => {
+      queryClient.setQueryData(["/api/auth/me"], data);
+      queryClient.invalidateQueries({ queryKey: ["/api/users/team"] });
+    },
+    onError: (error, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(["/api/auth/me"], context.previousData);
+      }
+      console.error("[switchRole] Mutation failed:", error);
+      toast({
+        title: "Erro ao trocar visão",
+        description: "Não foi possível alterar a role. Tente novamente.",
+        variant: "destructive",
+      });
+    },
+  });
 
   const getInitials = (name: string | null | undefined) => {
     if (!name) return "U";
@@ -89,7 +143,8 @@ export function AppSidebar() {
     navigate("/profile");
   };
 
-  const displayedRole = activeRole || (currentUser?.roles?.[0] as UserRole) || null;
+  const displayedRole =
+    (currentUser?.activeRole as UserRole) || (currentUser?.roles?.[0] as UserRole) || null;
 
   return (
     <Sidebar>
@@ -193,7 +248,7 @@ export function AppSidebar() {
               {currentUser?.roles?.map((role) => (
                 <ContextMenuItem
                   key={role}
-                  onClick={() => setActiveRole(role as UserRole)}
+                  onSelect={() => switchRoleMutation.mutate(role as UserRole)}
                   className="flex items-center justify-between"
                   data-testid={`context-role-${role}`}
                 >
@@ -216,7 +271,7 @@ export function AppSidebar() {
               ))}
               <ContextMenuSeparator />
               <ContextMenuItem
-                onClick={handleLogout}
+                onSelect={handleLogout}
                 className="text-destructive focus:text-destructive"
                 data-testid="context-logout"
               >

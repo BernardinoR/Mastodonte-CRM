@@ -23,7 +23,7 @@ import type {
   MeetingHighlight,
   MeetingClientContext,
 } from "@features/meetings";
-import { useUsers } from "@features/users";
+import { useUsers, useCurrentUser } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
 import { type ClientExtendedData } from "@/shared/mocks/clientsMock";
 import type { ClientImportRow } from "../lib/clientImportExport";
@@ -314,6 +314,8 @@ const ClientsContext = createContext<ClientsContextType | null>(null);
 
 export function ClientsProvider({ children }: { children: ReactNode }) {
   const { currentUser } = useUsers();
+  const { data: currentUserData } = useCurrentUser();
+  const activeRole = currentUserData?.user?.activeRole ?? null;
 
   const [clients, setClients] = useState<Client[]>([]);
   const [extendedData, setExtendedData] = useState<Record<string, ClientExtendedData>>({});
@@ -366,10 +368,10 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Load clients on mount
+  // Load clients on mount and when active role changes
   useEffect(() => {
     fetchClients();
-  }, [fetchClients]);
+  }, [fetchClients, activeRole]);
 
   const refetchClients = useCallback(async () => {
     await fetchClients();

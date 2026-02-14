@@ -33,6 +33,7 @@ model User {
   email    String
   name     String?
   roles    String[] @default(["consultor"])
+  activeRole      String?  @map("active_role")
   groupId  Int?     @map("group_id")
   isActive        Boolean  @default(true) @map("is_active")
   calendarLink    String?  @map("calendar_link")

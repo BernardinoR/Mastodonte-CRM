@@ -465,6 +465,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Switch active role (admin toggle between admin/consultant view)
+  app.patch("/api/users/active-role", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const currentUser = req.auth?.user;
+      if (!currentUser) {
+        return res.status(401).json({ error: "User not found" });
+      }
+
+      const { activeRole } = req.body;
+
+      // Validate: must be null (reset) or a role the user actually has
+      if (activeRole !== null && !currentUser.roles.includes(activeRole)) {
+        return res.status(400).json({ error: "Role not available for this user" });
+      }
+
+      const updated = await storage.updateUser(currentUser.id, {
+        activeRole: activeRole ?? null,
+      });
+      if (!updated) {
+        return res.status(404).json({ error: "User not found" });
+      }
+
+      return res.json({ user: updated });
+    } catch (error) {
+      console.error("Error updating active role:", error);
+      return res.status(500).json({ error: "Failed to update active role" });
+    }
+  });
+
   // Record scheduling message sent timestamp for a client
   app.patch("/api/clients/:id/scheduling-sent", clerkAuthMiddleware, async (req, res) => {
     try {
