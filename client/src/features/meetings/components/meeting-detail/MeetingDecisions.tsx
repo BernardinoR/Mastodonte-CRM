@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Zap, CheckCircle2, AlertTriangle, Plus, Trash2, Check } from "lucide-react";
+import { Zap, AlertTriangle, Plus, Trash2, Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingDecision } from "@features/meetings/types/meeting";
@@ -184,7 +184,7 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                       {isWarning ? (
                         <AlertTriangle className="h-4 w-4 text-orange-400" />
                       ) : (
-                        <CheckCircle2 className="h-4 w-4 text-purple-400" />
+                        <Check className="h-3.5 w-3.5 text-purple-400" />
                       )}
                     </div>
                   </button>
@@ -229,14 +229,12 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                   {isWarning ? (
                     <AlertTriangle className="h-4 w-4 text-orange-400" />
                   ) : (
-                    <CheckCircle2 className="h-4 w-4 text-purple-400" />
+                    <Check className="h-3.5 w-3.5 text-purple-400" />
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-xs font-medium text-white">{title}</div>
-                  {description && (
-                    <div className="mt-0.5 text-[11px] text-gray-400">{description}</div>
-                  )}
+                  <div className="text-xs font-semibold text-white">{title}</div>
+                  {description && <div className="mt-0.5 text-xs text-gray-400">{description}</div>}
                 </div>
               </div>
             </div>
