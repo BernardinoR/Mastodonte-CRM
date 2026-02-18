@@ -1,6 +1,16 @@
 import { useState, useMemo } from "react";
 import { CheckSquare, Plus, Calendar as CalendarIcon, Trash2 } from "lucide-react";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/shared/components/ui/alert-dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { DateInput } from "@/shared/components/ui/date-input";
 import { EditableCell } from "@/shared/components/ui/editable-cell";
@@ -61,12 +71,16 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
     setDatePopoverOpen,
     assigneePopoverOpen,
     setAssigneePopoverOpen,
+    deleteConfirmOpen,
+    setDeleteConfirmOpen,
     datePopoverRef,
     handleStatusChange,
     handlePriorityChange,
     handleDateChange,
     handleAddAssignee,
     handleRemoveAssignee,
+    handleDeleteClick,
+    handleConfirmDelete,
     handleInteractOutside,
   } = useInlineTaskEdit();
 
@@ -504,32 +518,40 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
                       </Popover>
                     </td>
                     <td className="px-4 py-3">
-                      <Popover
-                        open={assigneePopoverOpen === task.id}
-                        onOpenChange={(open) => setAssigneePopoverOpen(open ? task.id : null)}
-                      >
-                        <PopoverTrigger asChild data-popover-trigger>
-                          <div className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-[#262626]">
-                            <span className="text-gray-400">
-                              {task.assignees.length > 0
-                                ? task.assignees.map((a) => abbreviateName(a)).join(", ")
-                                : "—"}
-                            </span>
-                          </div>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          className="w-64 p-0"
-                          side="bottom"
-                          align="start"
-                          sideOffset={6}
+                      <div className="flex items-center gap-2">
+                        <Popover
+                          open={assigneePopoverOpen === task.id}
+                          onOpenChange={(open) => setAssigneePopoverOpen(open ? task.id : null)}
                         >
-                          <AssigneeSelector
-                            selectedAssignees={task.assignees}
-                            onSelect={(assignee) => handleAddAssignee(task.id, assignee)}
-                            onRemove={(assignee) => handleRemoveAssignee(task.id, assignee)}
-                          />
-                        </PopoverContent>
-                      </Popover>
+                          <PopoverTrigger asChild data-popover-trigger>
+                            <div className="inline-flex cursor-pointer items-center gap-2 rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-[#262626]">
+                              <span className="text-gray-400">
+                                {task.assignees.length > 0
+                                  ? task.assignees.map((a) => abbreviateName(a)).join(", ")
+                                  : "—"}
+                              </span>
+                            </div>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-64 p-0"
+                            side="bottom"
+                            align="start"
+                            sideOffset={6}
+                          >
+                            <AssigneeSelector
+                              selectedAssignees={task.assignees}
+                              onSelect={(assignee) => handleAddAssignee(task.id, assignee)}
+                              onRemove={(assignee) => handleRemoveAssignee(task.id, assignee)}
+                            />
+                          </PopoverContent>
+                        </Popover>
+                        <button
+                          onClick={() => handleDeleteClick(task.id, task.title)}
+                          className="rounded p-1 opacity-0 transition-all hover:bg-red-500/10 group-hover/row:opacity-100"
+                        >
+                          <Trash2 className="h-3.5 w-3.5 text-red-400" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -550,6 +572,32 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
           onUpdateTask={updateTask}
         />
       )}
+
+      <AlertDialog
+        open={!!deleteConfirmOpen}
+        onOpenChange={(open) => !open && setDeleteConfirmOpen(null)}
+      >
+        <AlertDialogContent className="border-[#3a3a3a] bg-[#2a2a2a]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-foreground">Excluir tarefa?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja excluir a tarefa "{deleteConfirmOpen?.taskTitle}"? Esta ação
+              não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="border-[#444444] bg-[#333333] text-foreground hover:bg-[#3a3a3a]">
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmDelete}
+              className="bg-red-600 text-white hover:bg-red-700"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
