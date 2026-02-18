@@ -18,6 +18,7 @@ import {
 } from "@shared/components/filter-bar/MeetingFilterContent";
 import { SingleAssigneeSelector } from "@features/tasks/components/task-editors/AssigneeSelector";
 import { useUsers } from "@features/users";
+import { useClients } from "@features/clients";
 import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
@@ -55,6 +56,7 @@ export function MeetingDetailModal({
   const [localMeeting, setLocalMeeting] = useState<MeetingDetail | null>(meeting);
   const { isLoading: isAILoading, processWithAI } = useAISummary();
   const { getUserByName } = useUsers();
+  const { getClientByName } = useClients();
 
   // Estados para edicao do titulo
   const [isEditingName, setIsEditingName] = useState(false);
@@ -604,7 +606,11 @@ export function MeetingDetailModal({
                   onUpdate={handleDecisionsUpdate}
                 />
 
-                <MeetingTasks tasks={localMeeting.linkedTasks} />
+                <MeetingTasks
+                  meetingId={Number(localMeeting.id)}
+                  clientId={getClientByName(localMeeting.clientName)?.id || ""}
+                  clientName={localMeeting.clientName}
+                />
 
                 <MeetingAttachments attachments={localMeeting.attachments} />
               </div>

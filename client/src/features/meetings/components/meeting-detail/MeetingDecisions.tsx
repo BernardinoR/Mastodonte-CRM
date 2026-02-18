@@ -160,8 +160,10 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                 key={decision.id}
                 className="flex items-stretch overflow-hidden rounded-lg border border-[#262626] bg-[#161616]"
               >
-                <div className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")} />
-                <div className="flex w-full items-center gap-4 p-4">
+                <div
+                  className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")}
+                />
+                <div className="flex w-full items-center gap-3 p-3">
                   <button
                     onClick={() =>
                       updateDecision(decision.id, {
@@ -173,7 +175,7 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                   >
                     <div
                       className={cn(
-                        "flex h-8 w-8 items-center justify-center rounded-full border",
+                        "flex h-7 w-7 items-center justify-center rounded-full border",
                         isWarning
                           ? "border-orange-500/50 bg-orange-500/10"
                           : "border-purple-500/50 bg-purple-500/10",
@@ -212,11 +214,13 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
               key={decision.id}
               className="flex items-stretch overflow-hidden rounded-lg border border-[#262626] bg-[#161616]"
             >
-              <div className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")} />
-              <div className="flex w-full items-center gap-4 p-4">
+              <div
+                className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")}
+              />
+              <div className="flex w-full items-center gap-3 p-3">
                 <div
                   className={cn(
-                    "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full border",
+                    "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border",
                     isWarning
                       ? "border-orange-500/50 bg-orange-500/10"
                       : "border-purple-500/50 bg-purple-500/10",
@@ -229,9 +233,9 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                   )}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-white">{title}</div>
+                  <div className="text-xs font-medium text-white">{title}</div>
                   {description && (
-                    <div className="mt-0.5 text-xs text-gray-400">{description}</div>
+                    <div className="mt-0.5 text-[11px] text-gray-400">{description}</div>
                   )}
                 </div>
               </div>

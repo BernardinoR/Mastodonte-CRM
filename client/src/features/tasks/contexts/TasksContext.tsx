@@ -137,6 +137,7 @@ interface CreateTaskData {
   title: string;
   clientId?: string;
   clientName?: string;
+  meetingId?: number;
   priority?: TaskPriority;
   status?: TaskStatus;
   taskType?: TaskType;
@@ -409,6 +410,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             task_type: data.taskType || "Tarefa",
             due_date: data.dueDate ? formatLocalDate(data.dueDate) : formatLocalDate(new Date()),
             client_id: clientId || null,
+            meeting_id: data.meetingId || null,
             creator_id: currentUser.id,
             order: data.order ?? 0,
           })

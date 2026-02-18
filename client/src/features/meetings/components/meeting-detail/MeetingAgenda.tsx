@@ -1,5 +1,15 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { ClipboardList, ChevronRight, Plus, Trash2, GripVertical, Check, MessageSquare, ListChecks, FileText } from "lucide-react";
+import {
+  ClipboardList,
+  ChevronRight,
+  Plus,
+  Trash2,
+  GripVertical,
+  Check,
+  MessageSquare,
+  ListChecks,
+  FileText,
+} from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingAgendaItem, MeetingAgendaSubitem } from "@features/meetings/types/meeting";
@@ -233,7 +243,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
       <div className="relative pl-2">
         {/* Vertical line */}
         {!isEditing && displayAgenda.length > 1 && (
-          <div className="absolute left-[15px] top-4 bottom-4 w-px bg-[#333]" />
+          <div className="absolute bottom-4 left-[13px] top-4 w-[1px] bg-[#262626]" />
         )}
 
         <div className="flex flex-col gap-2">
@@ -344,20 +354,36 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
             }
 
             // View mode - timeline layout
+            const isFirstItem = index === 0;
+
             return (
               <div key={item.id} className="relative flex gap-3">
-                {/* Timeline icon */}
-                <div className="relative z-10 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border border-[#333] bg-[#1c1c1c]">
-                  <IconForItem className="h-3.5 w-3.5 text-gray-500" />
-                </div>
+                {/* Timeline circle */}
+                {isFirstItem ? (
+                  <div className="border-crm-accent-blue/50 relative z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border bg-[#111]">
+                    <IconForItem className="text-crm-accent-blue h-3 w-3" />
+                  </div>
+                ) : (
+                  <div className="relative z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[#333] bg-[#111]">
+                    <span className="text-[9px] font-bold text-gray-500">{item.number}</span>
+                  </div>
+                )}
 
                 {/* Card */}
                 <div
-                  className="flex-1 cursor-pointer rounded-md border border-[#262626] bg-[#161616] p-3 transition-colors hover:bg-[#1a1a1a]"
+                  className={cn(
+                    "flex-1 cursor-pointer rounded-md border border-[#262626] bg-[#161616] transition-colors hover:bg-[#1a1a1a]",
+                    isFirstItem || isExpanded ? "p-3" : "px-3 py-1.5",
+                  )}
                   onClick={() => toggleItem(item.id)}
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-semibold text-gray-200">
+                    <span
+                      className={cn(
+                        "text-xs",
+                        isExpanded ? "font-semibold text-white" : "font-medium text-gray-300",
+                      )}
+                    >
                       {item.number}. {item.title}
                     </span>
                     <div className="flex items-center gap-2">
@@ -383,7 +409,10 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                       {item.subitems.map((subitem) => (
                         <div key={subitem.id} className="flex items-start gap-2">
                           <div className="mt-[6px] h-1 w-1 flex-shrink-0 rounded-full bg-[#2eaadc]" />
-                          <span className="text-xs text-gray-500">{subitem.title}{subitem.description ? ` - ${subitem.description}` : ""}</span>
+                          <span className="text-xs text-gray-500">
+                            {subitem.title}
+                            {subitem.description ? ` - ${subitem.description}` : ""}
+                          </span>
                         </div>
                       ))}
                     </div>

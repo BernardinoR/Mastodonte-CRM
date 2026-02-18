@@ -408,7 +408,13 @@ export function MeetingSummary({
     // Merge highlights into context points for "Principais Pontos" display
     const allPoints = [
       ...clientContext.points.map((p) => ({ ...p, source: "context" as const })),
-      ...highlights.map((h) => ({ id: h.id, icon: h.icon, text: h.text, source: "highlight" as const, type: h.type })),
+      ...highlights.map((h) => ({
+        id: h.id,
+        icon: h.icon,
+        text: h.text,
+        source: "highlight" as const,
+        type: h.type,
+      })),
     ];
 
     return (
@@ -429,38 +435,28 @@ export function MeetingSummary({
             dangerouslySetInnerHTML={{ __html: summary }}
           />
 
-          {/* Principais Pontos */}
+          {/* Contexto da Cliente */}
           {allPoints.length > 0 && (
             <div className="mt-5 border-t border-[#262626] pt-5">
-              <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#2eaadc]">
-                Principais Pontos
+              <div className="mb-5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                CONTEXTO DA CLIENTE — {clientName}
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {allPoints.map((point) => {
+              <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+                {allPoints.slice(0, 4).map((point) => {
                   const IconComponent = getIconFromName(point.icon);
-                  const colorClass = getIconColor(point.icon);
-                  // Extract label from text (first word/phrase before colon, or icon name)
+                  // Split on colon: before = title, after = description
                   const parts = point.text.split(":");
-                  const hasLabel = parts.length > 1;
-                  const label = hasLabel ? parts[0].trim() : "";
-                  const value = hasLabel ? parts.slice(1).join(":").trim() : point.text;
+                  const hasColon = parts.length > 1;
+                  const titulo = hasColon ? parts[0].trim() : point.text;
+                  const descricao = hasColon ? parts.slice(1).join(":").trim() : "";
 
                   return (
-                    <div
-                      key={point.id}
-                      className="flex items-start gap-2.5 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a]/60 p-3"
-                    >
-                      <IconComponent className={cn("mt-0.5 h-4 w-4 flex-shrink-0", colorClass)} />
+                    <div key={point.id} className="flex items-start gap-3">
+                      <IconComponent className="mt-0.5 h-6 w-6 flex-shrink-0 text-gray-500" />
                       <div className="min-w-0 flex-1">
-                        {hasLabel ? (
-                          <>
-                            <div className="text-[9px] font-medium uppercase tracking-wider text-gray-500">
-                              {label}
-                            </div>
-                            <div className="text-[11px] font-bold text-white">{value}</div>
-                          </>
-                        ) : (
-                          <div className="text-[11px] font-bold text-white">{point.text}</div>
+                        <p className="text-sm font-bold text-white">{titulo}</p>
+                        {descricao && (
+                          <p className="mt-1 text-xs leading-normal text-gray-400">{descricao}</p>
                         )}
                       </div>
                     </div>
