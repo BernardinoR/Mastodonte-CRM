@@ -452,14 +452,14 @@ export function MeetingDetailModal({
           </div>
 
           {/* Meta Info Bar */}
-          <div className="flex items-center border-b border-[#262626] bg-[#111] px-6 py-4">
-            <div className="grid flex-1 grid-cols-3 gap-12">
+          <div className="flex items-center justify-between border-b border-[#262626] bg-[#111] px-6 py-4">
+            <div className="grid w-full max-w-2xl grid-cols-3 gap-12">
               {/* Data */}
               <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex cursor-pointer items-center gap-3 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
+                    className="flex cursor-pointer items-center gap-4 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
                       <Calendar className="h-3.5 w-3.5 text-gray-500" />
@@ -491,7 +491,7 @@ export function MeetingDetailModal({
 
               {/* Horario */}
               <div
-                className="flex cursor-pointer items-center gap-3 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
+                className="flex cursor-pointer items-center gap-4 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
                 onClick={!isEditingTime ? handleStartEditTime : undefined}
               >
                 <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
@@ -528,7 +528,7 @@ export function MeetingDetailModal({
                 <PopoverTrigger asChild>
                   <button
                     type="button"
-                    className="flex cursor-pointer items-center gap-3 rounded-lg transition-colors hover:bg-[#1a1a1a]"
+                    className="flex cursor-pointer items-center gap-4 rounded-lg transition-colors hover:bg-[#1a1a1a]"
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
                       <Video className="h-3.5 w-3.5 text-gray-500" />
@@ -553,32 +553,37 @@ export function MeetingDetailModal({
             </div>
 
             {/* Responsavel */}
-            <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="ml-auto flex cursor-pointer items-center gap-2 rounded border border-[#333] bg-[#262626] py-1 pl-1 pr-3 transition-colors hover:bg-[#333]"
+            <div className="ml-auto flex flex-col items-end gap-1 border-l border-[#262626] pl-8">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                Responsavel
+              </span>
+              <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex cursor-pointer items-center gap-2 rounded border border-[#333] bg-[#262626] py-1 pl-1 pr-3 transition-colors hover:bg-[#333]"
+                  >
+                    <div className="flex h-6 w-6 items-center justify-center rounded bg-[#383838] text-[10px] font-bold text-white">
+                      {localMeeting.responsible.initials}
+                    </div>
+                    <span className="text-xs font-bold text-white">
+                      {localMeeting.responsible.name}
+                    </span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-64 border-[#262626] bg-[#1a1a1a] p-0"
+                  side="bottom"
+                  align="end"
+                  sideOffset={6}
                 >
-                  <div className="flex h-6 w-6 items-center justify-center rounded bg-[#383838] text-[10px] font-bold text-white">
-                    {localMeeting.responsible.initials}
-                  </div>
-                  <span className="text-xs font-bold text-white">
-                    {localMeeting.responsible.name}
-                  </span>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-64 border-[#262626] bg-[#1a1a1a] p-0"
-                side="bottom"
-                align="end"
-                sideOffset={6}
-              >
-                <SingleAssigneeSelector
-                  selectedAssignee={localMeeting.responsible.name}
-                  onSelect={handleResponsibleChange}
-                />
-              </PopoverContent>
-            </Popover>
+                  <SingleAssigneeSelector
+                    selectedAssignee={localMeeting.responsible.name}
+                    onSelect={handleResponsibleChange}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
           </div>
 
           {/* Modal Body - Scrollable */}

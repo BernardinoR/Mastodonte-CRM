@@ -75,12 +75,11 @@ export function AIGenerateButton({
         <button
           disabled={disabled || isLoading}
           className={cn(
-            "inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-all duration-300",
-            "bg-gradient-to-r from-[#7c3aed] to-[#6366f1]",
-            "hover:from-[#6d28d9] hover:to-[#4f46e5]",
-            "text-white shadow-lg shadow-purple-500/20",
+            "flex h-8 items-center gap-2 rounded px-3 py-1.5 text-xs font-medium transition-colors",
+            "border border-purple-500/50 bg-transparent",
+            "hover:bg-purple-500/10",
+            "text-purple-400",
             "disabled:cursor-not-allowed disabled:opacity-50",
-            "border border-purple-400/20",
           )}
         >
           {isLoading ? (
