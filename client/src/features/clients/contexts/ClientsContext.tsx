@@ -230,7 +230,15 @@ function transformApiMeetingToDetail(apiMeeting: any): MeetingDetail {
     clientContext: (apiMeeting.clientContext ||
       apiMeeting.client_context || { points: [] }) as MeetingClientContext,
     highlights: (apiMeeting.highlights || []) as MeetingHighlight[],
-    agenda: (apiMeeting.agenda || []) as MeetingAgendaItem[],
+    agenda: ((apiMeeting.agenda || []) as MeetingAgendaItem[]).map((item, index) => ({
+      ...item,
+      id: item.id || crypto.randomUUID(),
+      number: item.number || index + 1,
+      subitems: (item.subitems || []).map((sub) => ({
+        ...sub,
+        id: sub.id || crypto.randomUUID(),
+      })),
+    })),
     decisions: (apiMeeting.decisions || []) as MeetingDecision[],
     linkedTasks: [],
     participants: [

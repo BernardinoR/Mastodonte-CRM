@@ -389,7 +389,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                     {item.subitems.length > 0 && (
                       <div className="ml-0.5 space-y-1 border-l border-[#262626] pl-2">
                         {item.subitems.map((subitem) => (
-                          <p key={subitem.id} className="text-[11px] leading-tight text-gray-400">
+                          <p key={subitem.id} className="text-xs leading-relaxed text-gray-400">
                             {"\u2022"} {subitem.title}
                             {subitem.description ? ` ${subitem.description}` : ""}
                           </p>
@@ -415,7 +415,7 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                   className="flex flex-1 cursor-pointer items-center justify-between rounded-md border border-[#262626] bg-[#161616] px-3 py-1.5 transition-colors hover:border-gray-600 hover:bg-[#1c1c1c]"
                   onClick={() => toggleItem(item.id)}
                 >
-                  <h4 className="text-xs font-medium text-gray-300 transition-colors group-hover:text-white">
+                  <h4 className="text-xs font-bold text-gray-300 transition-colors group-hover:text-white">
                     {item.title}
                   </h4>
                   <span
