@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { useInlineHeaderField } from "@/shared/hooks/useInlineHeaderField";
+import { formatPhone, formatPhoneAsYouType } from "@/shared/lib/formatters";
 
 export interface UseClientHeaderEditingOptions {
   clientId: string;
@@ -24,28 +25,6 @@ const formatCpf = (value: string): string => {
   return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
 };
 
-const formatPhone = (value: string): string => {
-  const digits = value.replace(/\D/g, "");
-  if (digits.length === 0) return "";
-
-  if (digits.startsWith("55") && digits.length >= 3) {
-    const country = "+55";
-    const rest = digits.slice(2);
-    if (rest.length <= 2) return `${country} (${rest}`;
-    const ddd = rest.slice(0, 2);
-    const number = rest.slice(2);
-    if (number.length <= 4) return `${country} (${ddd}) ${number}`;
-    if (number.length <= 8) return `${country} (${ddd}) ${number.slice(0, 4)}-${number.slice(4)}`;
-    return `${country} (${ddd}) ${number.slice(0, 5)}-${number.slice(5, 9)}`;
-  }
-
-  if (digits.length <= 2) return `+${digits}`;
-  const countryCode = digits.slice(0, 2);
-  const number = digits.slice(2);
-  if (number.length <= 4) return `+${countryCode} ${number}`;
-  if (number.length <= 8) return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4)}`;
-  return `+${countryCode} ${number.slice(0, 4)} ${number.slice(4, 8)} ${number.slice(8, 12)}`;
-};
 
 export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
   const {
@@ -98,7 +77,7 @@ export function useClientHeaderEditing(options: UseClientHeaderEditingOptions) {
   const phoneField = useInlineHeaderField({
     initialValue: clientPhone,
     onCommit: (value) => onUpdatePhone(clientId, value),
-    format: formatPhone,
+    format: formatPhoneAsYouType,
     isBulkEditing,
     onBulkCommit: commitAllChanges,
     onBulkCancel: cancelAllChanges,

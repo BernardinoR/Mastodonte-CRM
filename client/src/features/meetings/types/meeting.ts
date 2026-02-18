@@ -17,6 +17,7 @@ export interface MeetingAgendaItem {
 export interface MeetingDecision {
   id: string;
   content: string;
+  title?: string;
   type: "normal" | "warning";
 }
 

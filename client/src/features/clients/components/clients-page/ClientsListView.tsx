@@ -4,6 +4,7 @@ import { cn } from "@/shared/lib/utils";
 import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
 import { ClientContextMenu } from "../ClientContextMenu";
 import type { EnrichedClient } from "@features/clients";
+import { formatPhone } from "@/shared/lib/formatters";
 
 interface ClientsListViewProps {
   clients: EnrichedClient[];
@@ -163,7 +164,7 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
               <div className="text-[13px] text-[#ededed]">{client.advisor}</div>
 
               {/* Telefone */}
-              <div className="text-[13px] text-[#ededed]">{client.phone}</div>
+              <div className="text-[13px] text-[#ededed]">{formatPhone(client.phone)}</div>
 
               {/* Cidade */}
               <div className="text-[13px] text-[#ededed]">{client.cityState}</div>

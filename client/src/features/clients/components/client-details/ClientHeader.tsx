@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/shared/lib/utils";
 import { useCopyToClipboard } from "@/shared/hooks";
+import { formatPhone } from "@/shared/lib/formatters";
 import type { Address, WhatsAppGroup } from "@features/clients";
 import type { ClientStatus } from "@features/tasks/lib/statusConfig";
 import type { useClientHeaderEditing } from "@features/clients";
@@ -476,7 +477,7 @@ export function ClientHeader({
                   }
                   data-testid="text-client-phone"
                 >
-                  {client.phone || "—"}
+                  {client.phone ? formatPhone(client.phone) : "—"}
                 </span>
               )}
             </div>

@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { CheckSquare, Plus, Calendar, User, Check } from "lucide-react";
-import { Badge } from "@/shared/components/ui/badge";
+import { CheckSquare, Plus, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/shared/lib/utils";
@@ -27,95 +26,90 @@ export function MeetingTasks({ tasks }: MeetingTasksProps) {
     });
   };
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
-  };
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <CheckSquare className="h-[18px] w-[18px] text-[#8c8c8c]" />
-          <h2 className="text-sm font-semibold text-[#ededed]">Tasks Vinculadas</h2>
-          <span className="rounded bg-[#333333] px-2 py-0.5 text-xs font-medium text-[#8c8c8c]">
-            {tasks.length}
-          </span>
+        <div className="flex items-center gap-2">
+          <CheckSquare className="h-[18px] w-[18px] text-gray-400" />
+          <h3 className="text-sm font-bold text-white">Tarefas Vinculadas</h3>
         </div>
-        <button className="inline-flex items-center gap-1.5 rounded-md border border-dashed border-[#3a3a3a] bg-transparent px-3 py-1.5 text-[0.8125rem] font-medium text-[#2eaadc] transition-all hover:border-[#2eaadc] hover:bg-[#1c3847]">
+        <button className="inline-flex items-center gap-1.5 text-xs font-medium text-[#2eaadc] transition-colors hover:text-[#3bc0f0]">
           <Plus className="h-3.5 w-3.5" />
-          Nova Task
+          Nova Tarefa
         </button>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="overflow-hidden rounded-lg border border-[#262626] bg-[#161616]">
+        {/* Table header */}
+        <div className="grid grid-cols-[1fr_100px_100px_110px_100px] gap-4 bg-[#1a1a1a] px-4 py-2.5">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            Tarefa
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            Status
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            Prioridade
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            Prazo
+          </span>
+          <span className="text-right text-[10px] font-bold uppercase tracking-wider text-gray-500">
+            Responsavel
+          </span>
+        </div>
+
+        {/* Table rows */}
         {tasks.map((task) => {
           const isCompleted = completedTasks.has(task.id);
           return (
             <div
               key={task.id}
-              className={cn(
-                "flex cursor-pointer items-center gap-3.5 rounded-lg border border-[#3a3a3a] bg-[#252730] px-4 py-3.5 transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]",
-                "border-l-4",
-                isCompleted
-                  ? "border-l-[#10b981]"
-                  : task.priority === "Importante"
-                    ? "border-l-[#f59e0b]"
-                    : "border-l-[#4281dc]",
-              )}
+              className="grid cursor-pointer grid-cols-[1fr_100px_100px_110px_100px] items-center gap-4 border-t border-[#262626] px-4 py-3 transition-colors hover:bg-[#1f1f1f]"
               onClick={() => toggleTask(task.id)}
             >
-              <div
+              {/* Task name */}
+              <span
                 className={cn(
-                  "flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded border-2 transition-all",
-                  isCompleted ? "border-[#10b981] bg-[#10b981]" : "border-[#444]",
+                  "text-xs font-medium",
+                  isCompleted ? "text-gray-500 line-through" : "text-gray-200",
                 )}
               >
-                {isCompleted && <Check className="h-3 w-3 text-[#121212]" />}
-              </div>
+                {task.title}
+              </span>
 
-              <div className="min-w-0 flex-1">
-                <div
-                  className={cn(
-                    "mb-1 text-sm font-medium",
-                    isCompleted ? "text-[#8c8c8c] line-through" : "text-[#ededed]",
-                  )}
-                >
-                  {task.title}
-                </div>
-                <div className="flex items-center gap-3 text-xs text-[#8c8c8c]">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3" />
-                    {format(task.dueDate, "dd MMM yyyy", { locale: ptBR })}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <User className="h-3 w-3" />
-                    {task.assignee}
-                  </span>
-                </div>
-              </div>
-
-              <Badge
+              {/* Status */}
+              <span
                 className={cn(
-                  "text-[0.6875rem]",
+                  "inline-flex w-fit rounded px-2 py-0.5 text-[9px] font-medium",
+                  isCompleted
+                    ? "bg-[#064e3b]/30 text-emerald-500"
+                    : "bg-[#1e293b] text-blue-300",
+                )}
+              >
+                {isCompleted ? "Concluida" : "Em Progresso"}
+              </span>
+
+              {/* Priority */}
+              <span
+                className={cn(
+                  "inline-flex w-fit rounded px-2 py-0.5 text-[9px] font-medium",
                   task.priority === "Importante"
-                    ? "bg-[#422c24] text-[#f59e0b]"
-                    : "bg-[#333333] text-[#a0a0a0]",
+                    ? "bg-[#451a03] text-orange-400"
+                    : "bg-[#262626] text-gray-400",
                 )}
               >
-                {task.priority}
-              </Badge>
+                {task.priority === "Importante" ? "Alta" : "Normal"}
+              </span>
 
-              <div
-                className="flex h-[26px] w-[26px] items-center justify-center rounded-full text-[0.625rem] font-semibold text-white"
-                style={{ backgroundColor: "#2563eb" }}
-              >
-                {getInitials(task.assignee)}
-              </div>
+              {/* Due date */}
+              <span className="flex items-center gap-1 text-xs text-gray-400">
+                <Calendar className="h-3 w-3" />
+                {format(task.dueDate, "dd MMM yyyy", { locale: ptBR })}
+              </span>
+
+              {/* Assignee */}
+              <span className="text-right text-xs text-gray-400">{task.assignee}</span>
             </div>
           );
         })}

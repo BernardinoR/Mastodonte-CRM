@@ -126,19 +126,78 @@ function pascalToKebab(str: string): string {
 
 // Get icon component from name (supports both PascalCase and kebab-case)
 function getIconFromName(iconName: string): React.ElementType {
-  // Try direct lookup first
   if (iconMap[iconName]) {
     return iconMap[iconName];
   }
-
-  // Try converting PascalCase to kebab-case
   const kebabCase = pascalToKebab(iconName);
   if (iconMap[kebabCase]) {
     return iconMap[kebabCase];
   }
-
-  // Fallback to AlertCircle
   return AlertCircle;
+}
+
+// Color mapping for icon types
+const iconColors: Record<string, string> = {
+  "dollar-sign": "text-emerald-400",
+  "trending-up": "text-emerald-400",
+  "trending-down": "text-red-400",
+  "alert-triangle": "text-amber-400",
+  "alert-circle": "text-amber-400",
+  "credit-card": "text-blue-400",
+  building: "text-blue-400",
+  briefcase: "text-blue-400",
+  target: "text-purple-400",
+  star: "text-yellow-400",
+  heart: "text-pink-400",
+  shield: "text-cyan-400",
+  home: "text-orange-400",
+  car: "text-orange-400",
+  plane: "text-sky-400",
+  truck: "text-orange-400",
+  calendar: "text-blue-400",
+  clock: "text-gray-400",
+  timer: "text-gray-400",
+  user: "text-blue-400",
+  users: "text-blue-400",
+  info: "text-blue-400",
+  "check-circle": "text-emerald-400",
+  lock: "text-gray-400",
+  settings: "text-gray-400",
+  "file-text": "text-gray-400",
+  "piggy-bank": "text-emerald-400",
+  "bar-chart": "text-purple-400",
+  DollarSign: "text-emerald-400",
+  TrendingUp: "text-emerald-400",
+  TrendingDown: "text-red-400",
+  AlertTriangle: "text-amber-400",
+  AlertCircle: "text-amber-400",
+  CreditCard: "text-blue-400",
+  Building: "text-blue-400",
+  Briefcase: "text-blue-400",
+  Target: "text-purple-400",
+  Star: "text-yellow-400",
+  Heart: "text-pink-400",
+  Shield: "text-cyan-400",
+  Home: "text-orange-400",
+  Car: "text-orange-400",
+  Plane: "text-sky-400",
+  Truck: "text-orange-400",
+  Calendar: "text-blue-400",
+  Clock: "text-gray-400",
+  Timer: "text-gray-400",
+  User: "text-blue-400",
+  Users: "text-blue-400",
+  Info: "text-blue-400",
+  CheckCircle: "text-emerald-400",
+  Lock: "text-gray-400",
+  Settings: "text-gray-400",
+  FileText: "text-gray-400",
+  PiggyBank: "text-emerald-400",
+  BarChart: "text-purple-400",
+};
+
+function getIconColor(iconName: string): string {
+  return iconColors[iconName] || "text-[#2eaadc]";
 }
 
 export function MeetingSummary({
@@ -223,7 +282,6 @@ export function MeetingSummary({
 
   // Cancel editing
   const handleCancel = () => {
-    // Reset to original values
     setSummaryHtml(summary);
     setShowContext(clientContext.points.length > 0);
     setContextCards(
@@ -305,7 +363,6 @@ export function MeetingSummary({
       );
     }
 
-    // Activate edit mode to show the updated data
     setIsEditing(true);
   };
 
@@ -348,66 +405,68 @@ export function MeetingSummary({
 
   // Render view mode
   if (!isEditing) {
+    // Merge highlights into context points for "Principais Pontos" display
+    const allPoints = [
+      ...clientContext.points.map((p) => ({ ...p, source: "context" as const })),
+      ...highlights.map((h) => ({ id: h.id, icon: h.icon, text: h.text, source: "highlight" as const, type: h.type })),
+    ];
+
     return (
-      <div className="space-y-4">
+      <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <EditableSectionTitle
-            icon={<FileText className="h-[18px] w-[18px]" />}
-            title="Resumo da Reunião"
-            isEditing={false}
-            onEditClick={handleStartEditing}
-          />
+          <h3
+            className="flex cursor-pointer items-center gap-2 text-sm font-bold text-white"
+            onClick={handleStartEditing}
+          >
+            <FileText className="h-[18px] w-[18px] text-gray-400" />
+            Resumo da Reuniao
+          </h3>
         </div>
 
-        <div className="rounded-[10px] border border-[#3a3a3a] bg-[#1a1a1a] p-6">
+        <div className="rounded-lg border border-[#262626] bg-[#161616] p-5">
           <p
-            className="text-sm leading-[1.7] text-[#a0a0a0]"
+            className="text-[13px] leading-relaxed text-gray-400 [&_b]:font-semibold [&_b]:text-white [&_strong]:font-semibold [&_strong]:text-white"
             dangerouslySetInnerHTML={{ __html: summary }}
           />
 
-          {/* Client Context */}
-          {clientContext.points.length > 0 && (
-            <div className="mt-5 border-t border-[#3a3a3a] pt-5">
-              <div className="mb-3 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-[#a78bfa]">
-                <User className="h-3.5 w-3.5" />
-                Contexto da Cliente - {clientName}
+          {/* Principais Pontos */}
+          {allPoints.length > 0 && (
+            <div className="mt-5 border-t border-[#262626] pt-5">
+              <div className="mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#2eaadc]">
+                Principais Pontos
               </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {clientContext.points.map((point) => {
+              <div className="grid grid-cols-2 gap-2">
+                {allPoints.map((point) => {
                   const IconComponent = getIconFromName(point.icon);
+                  const colorClass = getIconColor(point.icon);
+                  // Extract label from text (first word/phrase before colon, or icon name)
+                  const parts = point.text.split(":");
+                  const hasLabel = parts.length > 1;
+                  const label = hasLabel ? parts[0].trim() : "";
+                  const value = hasLabel ? parts.slice(1).join(":").trim() : point.text;
+
                   return (
                     <div
                       key={point.id}
-                      className="flex items-start gap-2.5 rounded-lg bg-[#1a1a1a] p-3"
+                      className="flex items-start gap-2.5 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a]/60 p-3"
                     >
-                      <IconComponent className="mt-0.5 h-4 w-4 flex-shrink-0 text-[#6db1d4]" />
-                      <span className="text-[0.8125rem] leading-[1.5] text-[#b0b0b0]">
-                        {point.text}
-                      </span>
+                      <IconComponent className={cn("mt-0.5 h-4 w-4 flex-shrink-0", colorClass)} />
+                      <div className="min-w-0 flex-1">
+                        {hasLabel ? (
+                          <>
+                            <div className="text-[9px] font-medium uppercase tracking-wider text-gray-500">
+                              {label}
+                            </div>
+                            <div className="text-[11px] font-bold text-white">{value}</div>
+                          </>
+                        ) : (
+                          <div className="text-[11px] font-bold text-white">{point.text}</div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          )}
-
-          {/* Highlights */}
-          {highlights.length > 0 && (
-            <div className="mt-5 flex flex-wrap gap-2.5 border-t border-[#3a3a3a] pt-5">
-              {highlights.map((highlight) => {
-                const IconComponent = getIconFromName(highlight.icon);
-                return (
-                  <span
-                    key={highlight.id}
-                    className="inline-flex items-center gap-1.5 rounded-md border border-[#3a3a3a] bg-[#252730] px-3 py-1.5 text-xs text-[#ededed]"
-                  >
-                    <IconComponent
-                      className={`h-3 w-3 ${highlight.type === "warning" ? "text-[#f59e0b]" : "text-[#6ecf8e]"}`}
-                    />
-                    {highlight.text}
-                  </span>
-                );
-              })}
             </div>
           )}
         </div>
@@ -417,33 +476,30 @@ export function MeetingSummary({
 
   // Render edit mode
   return (
-    <div ref={sectionRef} className="space-y-4">
+    <div ref={sectionRef} className="space-y-3">
       <div className="flex items-center justify-between">
         <EditableSectionTitle
           icon={<FileText className="h-[18px] w-[18px]" />}
-          title="Resumo da Reunião"
+          title="Resumo da Reuniao"
           isEditing={true}
         />
 
-        {/* Botões à direita */}
         <div className="flex items-center gap-3">
-          {/* Botão Check para salvar */}
           <button
             type="button"
             onClick={handleSave}
             className="group/check flex h-8 w-8 items-center justify-center rounded-md border border-emerald-500/30 bg-emerald-500/10 transition-all duration-200 hover:border-emerald-500/50 hover:bg-emerald-500/20"
-            title="Salvar alterações"
+            title="Salvar alteracoes"
           >
             <Check className="h-4 w-4 text-emerald-500 transition-transform group-hover/check:scale-110" />
           </button>
 
-          {/* Botão Contexto */}
           <button
             type="button"
             onClick={toggleContextSection}
             className={cn(
-              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a] px-4 py-2.5 text-[0.8125rem] font-medium text-[#888888] transition-all hover:border-[#444444] hover:bg-[#333333] hover:text-[#ededed]",
-              showContext && "border-[#a78bfa] bg-[#2d2640] text-[#a78bfa]",
+              "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#262626] bg-[#1c1c1c] px-4 py-2.5 text-[0.8125rem] font-medium text-gray-500 transition-all hover:border-[#333] hover:bg-[#262626] hover:text-white",
+              showContext && "border-purple-500/50 bg-purple-500/10 text-purple-400",
             )}
           >
             {showContext ? (
@@ -462,7 +518,7 @@ export function MeetingSummary({
       </div>
 
       {/* Summary Container */}
-      <div className="rounded-xl border border-[#3a3a3a] bg-[#1a1a1a]">
+      <div className="rounded-lg border border-[#262626] bg-[#161616]">
         {/* Main Text Editor */}
         <div className="p-5">
           <div
@@ -470,9 +526,9 @@ export function MeetingSummary({
             contentEditable
             onInput={handleEditorInput}
             onKeyDown={handleKeyDown}
-            data-placeholder="Escreva o resumo da reunião aqui. Selecione texto e pressione Ctrl+B para negrito..."
+            data-placeholder="Escreva o resumo da reuniao aqui. Selecione texto e pressione Ctrl+B para negrito..."
             className={cn(
-              "min-h-[60px] text-sm leading-[1.7] text-[#a0a0a0] outline-none",
+              "min-h-[60px] text-[13px] leading-relaxed text-gray-400 outline-none",
               "[&:empty]:before:text-[#555555] [&:empty]:before:content-[attr(data-placeholder)]",
               "[&_strong]:font-semibold [&_strong]:text-white",
               "[&_b]:font-semibold [&_b]:text-white",
@@ -491,7 +547,7 @@ export function MeetingSummary({
         )}
 
         {/* Tags Section */}
-        <div className="flex flex-wrap gap-2.5 border-t border-[#3a3a3a] px-6 py-4">
+        <div className="flex flex-wrap gap-2.5 border-t border-[#262626] px-6 py-4">
           {tags.map((tag) => (
             <TagDisplay key={tag.id} tag={tag} onRemove={() => handleRemoveTag(tag.id)} />
           ))}

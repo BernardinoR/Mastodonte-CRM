@@ -7,6 +7,7 @@ import { useCopyToClipboard } from "@/shared/hooks";
 import { useCurrentUser } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
 import { buildSchedulingMessage, buildWhatsAppSchedulingUrl } from "../lib/schedulingMessage";
+import { formatPhone } from "@/shared/lib/formatters";
 
 interface ClientCardProps {
   client: Client | EnrichedClient;
@@ -215,7 +216,7 @@ export function ClientCard({ client, isCompact = false, onSchedule }: ClientCard
               copy(phone, "Telefone");
             }}
           >
-            {phone}
+            {formatPhone(phone)}
           </span>
         </div>
 

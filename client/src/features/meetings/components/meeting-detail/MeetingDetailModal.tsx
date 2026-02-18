@@ -6,11 +6,10 @@ import {
   DialogDescription,
 } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { Badge } from "@/shared/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText, X, Calendar, Clock, Video, Timer, Pencil } from "lucide-react";
+import { FileText, X, Calendar, Clock, Video, Pencil } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import {
   MeetingTypeFilterContent,
@@ -23,7 +22,6 @@ import { MeetingSummary } from "./MeetingSummary";
 import { MeetingAgenda } from "./MeetingAgenda";
 import { MeetingDecisions } from "./MeetingDecisions";
 import { MeetingTasks } from "./MeetingTasks";
-import { MeetingParticipants } from "./MeetingParticipants";
 import { MeetingAttachments } from "./MeetingAttachments";
 import { AIGenerateButton, type GenerateOption } from "./AIGenerateButton";
 import { useAISummary, type AIResponse } from "@features/meetings/hooks/useAISummary";
@@ -35,8 +33,6 @@ import type {
   MeetingDecision,
 } from "@features/meetings/types/meeting";
 import {
-  MEETING_TYPE_COLORS,
-  MEETING_STATUS_COLORS,
   type MeetingType,
   type MeetingStatus,
   type MeetingLocation,
@@ -50,10 +46,6 @@ interface MeetingDetailModalProps {
   onUpdateMeeting?: (meetingId: string, updates: Partial<MeetingDetail>) => void;
 }
 
-// Usar constantes centralizadas
-const typeColors = MEETING_TYPE_COLORS;
-const statusColors = MEETING_STATUS_COLORS;
-
 export function MeetingDetailModal({
   meeting,
   open,
@@ -64,7 +56,7 @@ export function MeetingDetailModal({
   const { isLoading: isAILoading, processWithAI } = useAISummary();
   const { getUserByName } = useUsers();
 
-  // Estados para edição do título
+  // Estados para edicao do titulo
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState("");
 
@@ -76,25 +68,23 @@ export function MeetingDetailModal({
   const [datePopoverOpen, setDatePopoverOpen] = useState(false);
   const [locationPopoverOpen, setLocationPopoverOpen] = useState(false);
 
-  // Estados para edição inline do horário
+  // Estados para edicao inline do horario
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [editingTimeValue, setEditingTimeValue] = useState("");
 
-  // Estado para popover de responsável
+  // Estado para popover de responsavel
   const [responsiblePopoverOpen, setResponsiblePopoverOpen] = useState(false);
 
   // Update local meeting when prop changes (ID, type, or status)
   useEffect(() => {
     if (meeting) {
       if (!localMeeting || localMeeting.id !== meeting.id) {
-        // Meeting changed completely
         setLocalMeeting(meeting);
       } else if (
         localMeeting.type !== meeting.type ||
         localMeeting.status !== meeting.status ||
         localMeeting.name !== meeting.name
       ) {
-        // Update specific fields that might have changed from table
         setLocalMeeting((prev) => (prev ? { ...prev, ...meeting } : meeting));
       }
     }
@@ -181,7 +171,6 @@ export function MeetingDetailModal({
   const applyAIResult = (result: AIResponse, options: GenerateOption[]) => {
     if (!localMeeting) return;
 
-    // Apply to summary section via window method
     if (options.includes("summary") && result.summary) {
       const applySummary = (window as any).__applySummaryAIData;
       if (applySummary) {
@@ -193,7 +182,6 @@ export function MeetingDetailModal({
       }
     }
 
-    // Apply to agenda section via window method
     if (options.includes("agenda") && result.agenda) {
       const applyAgenda = (window as any).__applyAgendaAIData;
       if (applyAgenda) {
@@ -212,7 +200,6 @@ export function MeetingDetailModal({
       }
     }
 
-    // Apply to decisions section via window method
     if (options.includes("decisions") && result.decisions) {
       const applyDecisions = (window as any).__applyDecisionsAIData;
       if (applyDecisions) {
@@ -283,16 +270,16 @@ export function MeetingDetailModal({
     [localMeeting, onUpdateMeeting],
   );
 
-  // Handler para iniciar edição do horário
+  // Handler para iniciar edicao do horario
   const handleStartEditTime = useCallback(() => {
     if (!localMeeting) return;
     setEditingTimeValue(`${localMeeting.startTime} - ${localMeeting.endTime}`);
     setIsEditingTime(true);
   }, [localMeeting]);
 
-  // Handler para máscara do horário (HH:MM - HH:MM)
+  // Handler para mascara do horario (HH:MM - HH:MM)
   const handleTimeInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/[^\d]/g, ""); // Remove tudo exceto números
+    const value = e.target.value.replace(/[^\d]/g, "");
     let formatted = "";
 
     for (let i = 0; i < value.length && i < 8; i++) {
@@ -304,11 +291,10 @@ export function MeetingDetailModal({
     setEditingTimeValue(formatted);
   }, []);
 
-  // Handler para salvar horário
+  // Handler para salvar horario
   const handleSaveTime = useCallback(() => {
     if (!localMeeting) return;
 
-    // Parse: "HH:MM - HH:MM"
     const match = editingTimeValue.match(/^(\d{2}):(\d{2})\s*-\s*(\d{2}):(\d{2})$/);
     if (match) {
       const startTime = `${match[1]}:${match[2]}`;
@@ -322,7 +308,7 @@ export function MeetingDetailModal({
     setIsEditingTime(false);
   }, [localMeeting, editingTimeValue, onUpdateMeeting]);
 
-  // Handler para mudar responsável (sincroniza com assignees da tabela)
+  // Handler para mudar responsavel
   const handleResponsibleChange = useCallback(
     (name: string) => {
       if (!localMeeting) return;
@@ -339,7 +325,6 @@ export function MeetingDetailModal({
             .toUpperCase(),
       };
 
-      // Substituir apenas o primeiro assignee, mantendo os demais
       const currentAssignees = localMeeting.assignees || [];
       const assignees = [name, ...currentAssignees.slice(1)];
 
@@ -363,20 +348,20 @@ export function MeetingDetailModal({
         hideCloseButton
         className={cn(
           "max-h-[90vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
-          "border-[#3a3a3a] bg-[#1a1a1a]",
+          "border-[#262626] bg-[#111]",
         )}
       >
         <VisuallyHidden>
           <DialogTitle>{localMeeting.name}</DialogTitle>
-          <DialogDescription>Detalhes da reunião {localMeeting.name}</DialogDescription>
+          <DialogDescription>Detalhes da reuniao {localMeeting.name}</DialogDescription>
         </VisuallyHidden>
 
         <div className="flex h-full max-h-[90vh] flex-col">
           {/* Modal Header */}
-          <div className="flex items-start justify-between gap-4 border-b border-[#3a3a3a] px-8 py-6">
+          <div className="flex items-start justify-between gap-4 border-b border-[#262626] bg-[#0f1115] p-6 pb-5">
             <div className="flex items-start gap-4">
-              <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-[10px] border border-[#3a3a3a] bg-[#252730] text-[#8c8c8c]">
-                <FileText className="h-[22px] w-[22px]" />
+              <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded border border-[#333] bg-[#262626] text-gray-500">
+                <FileText className="h-5 w-5" />
               </div>
               <div>
                 {isEditingName ? (
@@ -390,11 +375,11 @@ export function MeetingDetailModal({
                       if (e.key === "Escape") setIsEditingName(false);
                     }}
                     autoFocus
-                    className="mb-2.5 w-full border-b border-[#2eaadc] bg-transparent text-[1.375rem] font-semibold text-white focus:outline-none"
+                    className="mb-2.5 w-full border-b border-[#2eaadc] bg-transparent text-xl font-bold tracking-tight text-white focus:outline-none"
                   />
                 ) : (
                   <div className="group/title mb-2.5 flex items-center gap-2">
-                    <h1 className="text-[1.375rem] font-semibold text-white">
+                    <h1 className="text-xl font-bold leading-none tracking-tight text-white">
                       {localMeeting.name}
                     </h1>
                     <button
@@ -402,25 +387,20 @@ export function MeetingDetailModal({
                         setIsEditingName(true);
                         setEditingName(localMeeting.name);
                       }}
-                      className="rounded p-1 opacity-0 transition-opacity hover:bg-[#3a3a3a] group-hover/title:opacity-100"
+                      className="rounded p-1 opacity-0 transition-opacity hover:bg-[#333] group-hover/title:opacity-100"
                     >
                       <Pencil className="h-4 w-4 text-muted-foreground" />
                     </button>
                   </div>
                 )}
                 <div className="flex flex-wrap gap-2">
-                  {/* Badge Tipo - Clicável */}
+                  {/* Badge Tipo - Clicavel */}
                   <Popover open={typePopoverOpen} onOpenChange={setTypePopoverOpen}>
                     <PopoverTrigger asChild>
                       <button type="button">
-                        <Badge
-                          className={cn(
-                            typeColors[localMeeting.type] || "bg-[#333333] text-[#a0a0a0]",
-                            "cursor-pointer text-xs transition-opacity hover:opacity-80",
-                          )}
-                        >
-                          ● {localMeeting.type}
-                        </Badge>
+                        <span className="inline-flex cursor-pointer items-center rounded border border-[#333] bg-[#262626] px-2.5 py-1 text-xs text-gray-400 transition-opacity hover:opacity-80">
+                          {localMeeting.type}
+                        </span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
@@ -431,19 +411,23 @@ export function MeetingDetailModal({
                     </PopoverContent>
                   </Popover>
 
-                  {/* Badge Status - Clicável */}
+                  {/* Badge Status - Clicavel */}
                   <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                     <PopoverTrigger asChild>
                       <button type="button">
-                        <Badge
+                        <span
                           className={cn(
-                            statusColors[localMeeting.status],
-                            "flex cursor-pointer items-center gap-1.5 text-xs transition-opacity hover:opacity-80",
+                            "inline-flex cursor-pointer items-center gap-1.5 rounded border px-2.5 py-1 text-xs transition-opacity hover:opacity-80",
+                            localMeeting.status === "Realizada"
+                              ? "border-emerald-900/50 bg-[#064e3b]/40 text-emerald-400"
+                              : localMeeting.status === "Cancelada"
+                                ? "border-red-900/50 bg-red-900/20 text-red-400"
+                                : "border-[#333] bg-[#262626] text-gray-400",
                           )}
                         >
                           <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {localMeeting.status}
-                        </Badge>
+                        </span>
                       </button>
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
@@ -454,9 +438,9 @@ export function MeetingDetailModal({
                     </PopoverContent>
                   </Popover>
 
-                  <Badge className="bg-[#2d2640] text-xs text-[#a78bfa]">
+                  <span className="inline-flex items-center rounded border border-[#333] bg-[#262626] px-2.5 py-1 text-xs text-purple-400">
                     Cliente: {localMeeting.clientName}
-                  </Badge>
+                  </span>
                 </div>
               </div>
             </div>
@@ -464,7 +448,7 @@ export function MeetingDetailModal({
               <AIGenerateButton onGenerate={handleAIGenerate} isLoading={isAILoading} />
               <button
                 onClick={handleClose}
-                className="flex h-9 w-9 items-center justify-center rounded-lg text-[#8c8c8c] transition-all hover:bg-[#252730] hover:text-[#ededed]"
+                className="flex h-8 w-8 items-center justify-center rounded text-gray-500 transition-all hover:bg-[#262626] hover:text-white"
               >
                 <X className="h-[18px] w-[18px]" />
               </button>
@@ -472,130 +456,123 @@ export function MeetingDetailModal({
           </div>
 
           {/* Meta Info Bar */}
-          <div className="flex flex-wrap items-center gap-8 border-b border-[#3a3a3a] bg-[#1a1a1a] px-8 py-4">
-            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
+          <div className="flex items-center border-b border-[#262626] bg-[#111] px-6 py-4">
+            <div className="grid flex-1 grid-cols-3 gap-12">
+              {/* Data */}
+              <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex cursor-pointer items-center gap-3 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
+                      <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                        Data
+                      </span>
+                      <span className="text-xs font-semibold text-white">
+                        {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
+                      </span>
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  className="w-auto border-[#262626] bg-[#1a1a1a] p-0"
+                  side="bottom"
+                  align="start"
+                  sideOffset={6}
                 >
-                  <Calendar className="h-4 w-4 text-[#8c8c8c]" />
-                  <div className="flex flex-col text-left">
-                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                      Data
-                    </span>
-                    <span className="text-sm font-medium text-[#ededed]">
-                      {format(localMeeting.date, "dd MMM yyyy", { locale: ptBR })}
-                    </span>
-                  </div>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                className="w-auto border-[#3a3a3a] bg-[#1a1a1a] p-0"
-                side="bottom"
-                align="start"
-                sideOffset={6}
-              >
-                <DateInput
-                  value={localMeeting.date}
-                  onChange={handleDateChange}
-                  hideIcon
-                  commitOnInput={false}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <div className="h-8 w-px bg-[#333333]" />
-
-            <div
-              className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
-              onClick={!isEditingTime ? handleStartEditTime : undefined}
-            >
-              <Clock className="h-4 w-4 text-[#8c8c8c]" />
-              <div className="flex flex-col">
-                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                  Horário
-                </span>
-                {isEditingTime ? (
-                  <input
-                    type="text"
-                    value={editingTimeValue}
-                    onChange={handleTimeInputChange}
-                    onBlur={handleSaveTime}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSaveTime();
-                      if (e.key === "Escape") setIsEditingTime(false);
-                    }}
-                    autoFocus
-                    placeholder="00:00 - 00:00"
-                    className="w-[110px] border-b border-[#2eaadc] bg-transparent text-sm font-medium text-white focus:outline-none"
+                  <DateInput
+                    value={localMeeting.date}
+                    onChange={handleDateChange}
+                    hideIcon
+                    commitOnInput={false}
                   />
-                ) : (
-                  <span className="text-sm font-medium text-[#ededed]">
-                    {localMeeting.startTime} - {localMeeting.endTime}
+                </PopoverContent>
+              </Popover>
+
+              {/* Horario */}
+              <div
+                className="flex cursor-pointer items-center gap-3 rounded-lg border-r border-[#262626] pr-8 transition-colors hover:bg-[#1a1a1a]"
+                onClick={!isEditingTime ? handleStartEditTime : undefined}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
+                  <Clock className="h-3.5 w-3.5 text-gray-500" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                    Horario
                   </span>
-                )}
+                  {isEditingTime ? (
+                    <input
+                      type="text"
+                      value={editingTimeValue}
+                      onChange={handleTimeInputChange}
+                      onBlur={handleSaveTime}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSaveTime();
+                        if (e.key === "Escape") setIsEditingTime(false);
+                      }}
+                      autoFocus
+                      placeholder="00:00 - 00:00"
+                      className="w-[110px] border-b border-[#2eaadc] bg-transparent text-xs font-semibold text-white focus:outline-none"
+                    />
+                  ) : (
+                    <span className="text-xs font-semibold text-white">
+                      {localMeeting.startTime} - {localMeeting.endTime}
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Local */}
+              <Popover open={locationPopoverOpen} onOpenChange={setLocationPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex cursor-pointer items-center gap-3 rounded-lg transition-colors hover:bg-[#1a1a1a]"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full border border-[#262626] bg-[#1c1c1c]">
+                      <Video className="h-3.5 w-3.5 text-gray-500" />
+                    </div>
+                    <div className="flex flex-col text-left">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                        Local
+                      </span>
+                      <span className="text-xs font-semibold text-white">
+                        {localMeeting.location}
+                      </span>
+                    </div>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
+                  <MeetingLocationFilterContent
+                    selectedValues={[localMeeting.location as MeetingLocation]}
+                    onToggle={handleLocationChange}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
-            <div className="h-8 w-px bg-[#333333]" />
-
-            <Popover open={locationPopoverOpen} onOpenChange={setLocationPopoverOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="-mx-2 -my-1.5 flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
-                >
-                  <Video className="h-4 w-4 text-[#8c8c8c]" />
-                  <div className="flex flex-col text-left">
-                    <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                      Local
-                    </span>
-                    <span className="text-sm font-medium text-[#ededed]">
-                      {localMeeting.location}
-                    </span>
-                  </div>
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
-                <MeetingLocationFilterContent
-                  selectedValues={[localMeeting.location as MeetingLocation]}
-                  onToggle={handleLocationChange}
-                />
-              </PopoverContent>
-            </Popover>
-
-            <div className="h-8 w-px bg-[#333333]" />
-
-            <div className="flex items-center gap-2.5">
-              <Timer className="h-4 w-4 text-[#8c8c8c]" />
-              <div className="flex flex-col">
-                <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                  Duração
-                </span>
-                <span className="text-sm font-medium text-[#ededed]">{localMeeting.duration}</span>
-              </div>
-            </div>
-
+            {/* Responsavel */}
             <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="-mx-2 -my-1.5 ml-auto flex cursor-pointer items-center gap-2.5 rounded-lg px-2 py-1.5 transition-colors hover:bg-[#2a2a2a]"
+                  className="ml-auto flex cursor-pointer items-center gap-2 rounded border border-[#333] bg-[#262626] py-1 pl-1 pr-3 transition-colors hover:bg-[#333]"
                 >
-                  <span className="text-[0.625rem] font-medium uppercase tracking-wider text-[#64666E]">
-                    Responsável:
-                  </span>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#2563eb] text-xs font-semibold text-white">
+                  <div className="flex h-6 w-6 items-center justify-center rounded bg-[#383838] text-[10px] font-bold text-white">
                     {localMeeting.responsible.initials}
                   </div>
-                  <span className="text-sm font-medium text-[#ededed]">
+                  <span className="text-xs font-bold text-white">
                     {localMeeting.responsible.name}
                   </span>
                 </button>
               </PopoverTrigger>
               <PopoverContent
-                className="w-64 border-[#3a3a3a] bg-[#1a1a1a] p-0"
+                className="w-64 border-[#262626] bg-[#1a1a1a] p-0"
                 side="bottom"
                 align="end"
                 sideOffset={6}
@@ -609,9 +586,9 @@ export function MeetingDetailModal({
           </div>
 
           {/* Modal Body - Scrollable */}
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 overflow-y-auto bg-[#111] p-6">
             {localMeeting.status === "Realizada" ? (
-              <div className="space-y-8">
+              <div className="space-y-6">
                 <MeetingSummary
                   summary={localMeeting.summary}
                   clientName={localMeeting.clientName}
@@ -629,26 +606,24 @@ export function MeetingDetailModal({
 
                 <MeetingTasks tasks={localMeeting.linkedTasks} />
 
-                <MeetingParticipants participants={localMeeting.participants} />
-
                 <MeetingAttachments attachments={localMeeting.attachments} />
               </div>
             ) : (
               <div className="flex h-full min-h-[300px] flex-col items-center justify-center text-center">
-                <div className="text-lg text-[#8c8c8c]">
+                <div className="text-lg text-gray-500">
                   {localMeeting.status === "Agendada"
-                    ? "Esta reunião está agendada. O conteúdo estará disponível após sua realização."
-                    : "Esta reunião foi cancelada."}
+                    ? "Esta reuniao esta agendada. O conteudo estara disponivel apos sua realizacao."
+                    : "Esta reuniao foi cancelada."}
                 </div>
               </div>
             )}
           </div>
 
           {/* Modal Footer */}
-          <div className="flex items-center justify-end gap-3 border-t border-[#3a3a3a] bg-[#1a1a1a] px-8 py-4">
+          <div className="flex items-center justify-end gap-3 border-t border-[#262626] bg-[#0f1115] p-4">
             <button
               onClick={handleClose}
-              className="rounded-lg border border-[#3a3a3a] bg-[#252730] px-4 py-2.5 text-sm font-medium text-[#ededed] transition-all hover:border-[#4a4f5c] hover:bg-[#2a2d38]"
+              className="rounded border border-[#333] bg-[#262626] px-5 py-1.5 text-xs font-medium text-gray-300 transition-all hover:bg-[#333]"
             >
               Fechar
             </button>

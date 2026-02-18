@@ -88,7 +88,8 @@
       "Bash(netstat:*)",
       "mcp__supabase__search_docs",
       "Bash(git stash:*)",
-      "Bash(gh api:*)"
+      "Bash(gh api:*)",
+      "Bash(dd:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

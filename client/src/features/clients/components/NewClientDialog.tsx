@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import { useState } from "react";
+import { formatPhoneAsYouType } from "@/shared/lib/formatters";
 
 export interface NewClientFormData {
   name: string;
@@ -91,8 +92,8 @@ export function NewClientDialog({ open, onOpenChange, onSubmit }: NewClientDialo
                 id="phone"
                 type="tel"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+55 11 99999-9999"
+                onChange={(e) => setFormData({ ...formData, phone: formatPhoneAsYouType(e.target.value) })}
+                placeholder="+55 54 99999-9999"
                 data-testid="input-phone"
               />
             </div>
