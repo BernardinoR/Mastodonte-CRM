@@ -71,14 +71,16 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
   } = useInlineTaskEdit();
 
   const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
-  const detailTask = detailTaskId ? meetingTasks.find((t) => t.id === detailTaskId) : null;
+  const detailTask = useMemo(() => {
+    if (!detailTaskId) return null;
+    return meetingTasks.find((t) => t.id === detailTaskId) || null;
+  }, [detailTaskId, meetingTasks]);
 
   const handleRowClick = (taskId: string, e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     if (
       target.closest("[data-popover-trigger]") ||
       target.closest("button") ||
-      target.closest('[role="dialog"]') ||
       target.closest("[data-radix-popper-content-wrapper]") ||
       target.closest("input") ||
       titleEdit.editingId

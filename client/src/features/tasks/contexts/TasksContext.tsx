@@ -449,12 +449,31 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           },
         );
 
+        // Re-fetch da task completa com todas as relações (meeting, client, assignees)
+        const { data: fullRow } = await supabase
+          .from("tasks")
+          .select(TASK_SELECT)
+          .eq("id", realTaskId)
+          .single();
+
         // Pegar histórico pendente (adicionado localmente enquanto task era temp)
         let pendingHistory: TaskHistoryEvent[] = [];
         setTasks((prev) => {
           const tempTask = prev.find((t) => t.id === tempId);
           if (tempTask?.history) {
             pendingHistory = tempTask.history.filter((h) => h.id.startsWith("temp-"));
+          }
+          if (fullRow) {
+            const mapped = mapDbRowToTask(fullRow as DbTask);
+            return prev.map((t) =>
+              t.id === tempId
+                ? {
+                    ...mapped,
+                    _tempId: tempId,
+                    history: [...(mapped.history || []), ...pendingHistory],
+                  }
+                : t,
+            );
           }
           return prev.map((t) =>
             t.id === tempId

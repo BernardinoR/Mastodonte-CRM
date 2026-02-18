@@ -348,6 +348,8 @@ export function MeetingDetailModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         hideCloseButton
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onInteractOutside={(e) => e.preventDefault()}
         className={cn(
           "max-h-[90vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
           "border-[#262626] bg-[#111]",
