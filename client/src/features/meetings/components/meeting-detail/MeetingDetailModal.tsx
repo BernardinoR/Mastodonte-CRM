@@ -602,7 +602,7 @@ export function MeetingDetailModal({
                   clientName={localMeeting.clientName}
                 />
 
-                <MeetingAttachments attachments={localMeeting.attachments} />
+                <MeetingAttachments meetingId={Number(localMeeting.id)} />
               </div>
             ) : (
               <div className="flex h-full min-h-[300px] flex-col items-center justify-center text-center">

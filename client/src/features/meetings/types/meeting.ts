@@ -26,6 +26,7 @@ export interface MeetingAttachment {
   name: string;
   type: "pdf" | "excel" | "doc" | "image";
   size: string;
+  storagePath: string;
   addedAt: Date;
 }
 

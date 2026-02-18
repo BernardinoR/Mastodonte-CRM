@@ -780,6 +780,7 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         name: "Relatório_Carteira_Setembro.pdf",
         type: "pdf",
         size: "2.4 MB",
+        storagePath: "",
         addedAt: new Date("2025-09-18"),
       },
       {
@@ -787,6 +788,7 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         name: "Comparativo_Consórcios.xlsx",
         type: "excel",
         size: "856 KB",
+        storagePath: "",
         addedAt: new Date("2025-09-20"),
       },
       {
@@ -794,6 +796,7 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         name: "Proposta_C6_Upgrade.docx",
         type: "doc",
         size: "320 KB",
+        storagePath: "",
         addedAt: new Date("2025-09-19"),
       },
       {
@@ -801,6 +804,7 @@ export const MEETING_DETAILS_DATA: Record<string, MeetingDetail> = {
         name: "Concierge_Milhas_Apresentação.pdf",
         type: "pdf",
         size: "1.8 MB",
+        storagePath: "",
         addedAt: new Date("2025-09-18"),
       },
     ],
