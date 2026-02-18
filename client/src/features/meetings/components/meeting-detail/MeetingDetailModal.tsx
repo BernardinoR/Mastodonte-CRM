@@ -9,7 +9,7 @@ import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { FileText, X, Calendar, Clock, Video, Pencil } from "lucide-react";
+import { FileText, Calendar, Clock, Video, Pencil } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import {
   MeetingTypeFilterContent,
@@ -348,8 +348,6 @@ export function MeetingDetailModal({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent
         hideCloseButton
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onInteractOutside={(e) => e.preventDefault()}
         className={cn(
           "max-h-[90vh] w-[90vw] max-w-[1200px] overflow-hidden p-0",
           "border-[#262626] bg-[#111]",
@@ -450,12 +448,6 @@ export function MeetingDetailModal({
             </div>
             <div className="flex items-center gap-3">
               <AIGenerateButton onGenerate={handleAIGenerate} isLoading={isAILoading} />
-              <button
-                onClick={handleClose}
-                className="flex h-8 w-8 items-center justify-center rounded text-gray-500 transition-all hover:bg-[#262626] hover:text-white"
-              >
-                <X className="h-[18px] w-[18px]" />
-              </button>
             </div>
           </div>
 
