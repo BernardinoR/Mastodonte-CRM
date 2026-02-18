@@ -492,7 +492,7 @@ export function MeetingSummary({
 
         <div className="rounded-lg border border-[#262626] bg-[#161616] p-5">
           <p
-            className="text-[13px] leading-relaxed text-gray-400 [&_b]:font-semibold [&_b]:text-white [&_strong]:font-semibold [&_strong]:text-white"
+            className="text-xs leading-relaxed text-gray-400 [&_b]:font-semibold [&_b]:text-white [&_strong]:font-semibold [&_strong]:text-white"
             dangerouslySetInnerHTML={{ __html: summary }}
           />
 
@@ -596,7 +596,7 @@ export function MeetingSummary({
             onKeyDown={handleKeyDown}
             data-placeholder="Escreva o resumo da reuniao aqui. Selecione texto e pressione Ctrl+B para negrito..."
             className={cn(
-              "min-h-[60px] text-[13px] leading-relaxed text-gray-400 outline-none",
+              "min-h-[60px] text-xs leading-relaxed text-gray-400 outline-none",
               "[&:empty]:before:text-[#555555] [&:empty]:before:content-[attr(data-placeholder)]",
               "[&_strong]:font-semibold [&_strong]:text-white",
               "[&_b]:font-semibold [&_b]:text-white",

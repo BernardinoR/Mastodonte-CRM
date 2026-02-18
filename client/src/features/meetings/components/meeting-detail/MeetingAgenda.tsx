@@ -22,11 +22,11 @@ interface MeetingAgendaProps {
 const statusConfig: Record<string, { label: string; className: string }> = {
   discussed: {
     label: "Discutido",
-    className: "bg-[#064e3b]/30 text-emerald-400",
+    className: "bg-[#064e3b]/30 text-emerald-400 border border-emerald-900/50",
   },
   action_pending: {
     label: "Acao Pendente",
-    className: "bg-[#1e293b] text-blue-300",
+    className: "bg-[#1e293b] text-blue-300 border border-[#334155]",
   },
 };
 
@@ -240,13 +240,13 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
       </div>
 
       {/* Timeline layout */}
-      <div className="relative pl-2">
+      <div className="relative pl-1">
         {/* Vertical line */}
         {!isEditing && displayAgenda.length > 1 && (
-          <div className="absolute bottom-4 left-[13px] top-4 w-[1px] bg-[#262626]" />
+          <div className="absolute bottom-3 left-[13px] top-2 w-[1px] bg-[#262626]" />
         )}
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col">
           {displayAgenda.map((item, index) => {
             const isExpanded = expandedItems.has(item.id);
             const IconForItem = agendaIcons[index % agendaIcons.length];
@@ -353,70 +353,76 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
               );
             }
 
-            // View mode - timeline layout
-            const isFirstItem = index === 0;
-
-            return (
-              <div key={item.id} className="relative flex gap-3">
-                {/* Timeline circle */}
-                {isFirstItem ? (
-                  <div className="border-crm-accent-blue/50 relative z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border bg-[#111]">
-                    <IconForItem className="text-crm-accent-blue h-3 w-3" />
+            // View mode - two distinct visual states
+            if (isExpanded) {
+              return (
+                <div key={item.id} className="group relative mb-2 flex items-start gap-3">
+                  {/* Circle accent blue with icon */}
+                  <div className="z-10 mt-0.5 shrink-0">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#2eaadc]/50 bg-[#1c1c1c] text-[#2eaadc] shadow-sm shadow-black/50">
+                      <IconForItem className="h-[14px] w-[14px]" />
+                    </div>
                   </div>
-                ) : (
-                  <div className="relative z-10 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-[#333] bg-[#111]">
-                    <span className="text-[9px] font-bold text-gray-500">{item.number}</span>
-                  </div>
-                )}
-
-                {/* Card */}
-                <div
-                  className={cn(
-                    "flex-1 cursor-pointer rounded-md border border-[#262626] bg-[#161616] transition-colors hover:bg-[#1a1a1a]",
-                    isFirstItem || isExpanded ? "p-3" : "px-3 py-1.5",
-                  )}
-                  onClick={() => toggleItem(item.id)}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
+                  {/* Full card with subitems */}
+                  <div
+                    className="flex-1 cursor-pointer rounded-md border border-[#262626] bg-[#161616] p-3 transition-colors"
+                    onClick={() => toggleItem(item.id)}
+                  >
+                    <div
                       className={cn(
-                        "text-xs",
-                        isExpanded ? "font-semibold text-white" : "font-medium text-gray-300",
+                        "flex items-center justify-between",
+                        item.subitems.length > 0 && "mb-2",
                       )}
                     >
-                      {item.number}. {item.title}
-                    </span>
-                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-semibold text-white">
+                        {item.number}. {item.title}
+                      </h4>
                       <span
                         className={cn(
-                          "inline-flex rounded px-2 py-0.5 text-[9px] font-medium",
+                          "rounded px-1.5 py-0.5 text-[9px] font-medium",
                           status.className,
                         )}
                       >
                         {status.label}
                       </span>
-                      <ChevronRight
-                        className={cn(
-                          "h-3.5 w-3.5 text-gray-500 transition-transform",
-                          isExpanded && "rotate-90",
-                        )}
-                      />
                     </div>
+                    {item.subitems.length > 0 && (
+                      <div className="ml-0.5 space-y-1 border-l border-[#262626] pl-2">
+                        {item.subitems.map((subitem) => (
+                          <p key={subitem.id} className="text-[11px] leading-tight text-gray-400">
+                            {"\u2022"} {subitem.title}
+                            {subitem.description ? ` ${subitem.description}` : ""}
+                          </p>
+                        ))}
+                      </div>
+                    )}
                   </div>
+                </div>
+              );
+            }
 
-                  {isExpanded && item.subitems.length > 0 && (
-                    <div className="mt-3 space-y-2 border-t border-[#262626] pt-3">
-                      {item.subitems.map((subitem) => (
-                        <div key={subitem.id} className="flex items-start gap-2">
-                          <div className="mt-[6px] h-1 w-1 flex-shrink-0 rounded-full bg-[#2eaadc]" />
-                          <span className="text-xs text-gray-500">
-                            {subitem.title}
-                            {subitem.description ? ` - ${subitem.description}` : ""}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+            // Collapsed item
+            return (
+              <div key={item.id} className="group relative mb-1.5 flex items-center gap-3">
+                {/* Neutral circle with number */}
+                <div className="z-10 shrink-0">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full border border-[#262626] bg-[#111] text-gray-500 transition-colors group-hover:border-gray-600">
+                    <span className="text-[9px] font-bold">{item.number}</span>
+                  </div>
+                </div>
+                {/* Compact inline card */}
+                <div
+                  className="flex flex-1 cursor-pointer items-center justify-between rounded-md border border-[#262626] bg-[#161616] px-3 py-1.5 transition-colors hover:border-gray-600 hover:bg-[#1c1c1c]"
+                  onClick={() => toggleItem(item.id)}
+                >
+                  <h4 className="text-xs font-medium text-gray-300 transition-colors group-hover:text-white">
+                    {item.title}
+                  </h4>
+                  <span
+                    className={cn("rounded px-1.5 py-0.5 text-[9px] font-medium", status.className)}
+                  >
+                    {status.label}
+                  </span>
                 </div>
               </div>
             );
