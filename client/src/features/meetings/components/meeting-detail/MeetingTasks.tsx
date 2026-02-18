@@ -329,16 +329,18 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
       </div>
 
       {meetingTasks.length === 0 && !isAddingTask ? (
-        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[#262626] bg-[#161616] p-8">
-          <CheckSquare className="h-8 w-8 text-[#555]" />
-          <p className="text-sm text-[#666]">Nenhuma tarefa vinculada</p>
-          <button
-            onClick={handleStartAddTask}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-[#1c3847] px-4 py-2 text-sm font-medium text-[#2eaadc] transition-all hover:bg-[#234a5c]"
-          >
-            <Plus className="h-4 w-4" />
-            Nova Tarefa
-          </button>
+        <div className="overflow-hidden rounded-lg border border-[#262626] bg-[#161616]">
+          <div className="p-6 text-center">
+            <p className="mb-3 text-sm text-muted-foreground">
+              Nenhuma tarefa vinculada a esta reunião
+            </p>
+            <div
+              className="cursor-pointer text-sm text-[#2eaadc] hover:underline"
+              onClick={handleStartAddTask}
+            >
+              + Nova tarefa
+            </div>
+          </div>
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-[#262626] bg-[#161616]">
