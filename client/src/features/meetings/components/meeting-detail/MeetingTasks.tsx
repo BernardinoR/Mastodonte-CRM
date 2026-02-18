@@ -129,7 +129,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
           placeholder="Nome da tarefa"
           value={newTaskTitle}
           onChange={(e) => setNewTaskTitle(e.target.value)}
-          className="w-full border-b border-[#2eaadc] bg-transparent text-xs font-medium text-white placeholder:text-[#555] focus:outline-none"
+          className="w-full border-b border-[#2eaadc] bg-transparent text-xs font-semibold text-white placeholder:text-[#555] focus:outline-none"
           autoFocus
         />
       </td>
@@ -138,7 +138,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
           <PopoverTrigger asChild>
             <div className="inline-block cursor-pointer">
               <Badge
-                className={`${statusColors[newTaskStatus]} cursor-pointer text-xs transition-opacity hover:opacity-80`}
+                className={`${statusColors[newTaskStatus]} cursor-pointer text-[10px] transition-opacity hover:opacity-80`}
               >
                 {newTaskStatus}
               </Badge>
@@ -186,7 +186,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
           <PopoverTrigger asChild>
             <div className="inline-block cursor-pointer">
               <Badge
-                className={`${priorityColors[newTaskPriority]} cursor-pointer text-xs transition-opacity hover:opacity-80`}
+                className={`${priorityColors[newTaskPriority]} cursor-pointer text-[10px] transition-opacity hover:opacity-80`}
               >
                 {newTaskPriority}
               </Badge>
@@ -323,22 +323,22 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
       ) : (
         <div className="overflow-hidden rounded-lg border border-[#262626] bg-[#161616]">
           <div className="overflow-x-auto">
-            <table className="w-full table-fixed text-sm">
+            <table className="w-full table-fixed text-xs">
               <thead>
                 <tr className="border-b border-[#262626]">
-                  <th className="w-[280px] px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[280px] px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
                     Tarefa
                   </th>
-                  <th className="w-[100px] px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[100px] px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
                     Status
                   </th>
-                  <th className="w-[100px] px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[100px] px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
                     Prioridade
                   </th>
-                  <th className="w-[110px] px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[110px] px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
                     Prazo
                   </th>
-                  <th className="w-[150px] px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-gray-500">
+                  <th className="w-[150px] px-4 py-2.5 text-left text-xs font-bold uppercase tracking-wider text-gray-500">
                     Responsavel
                   </th>
                 </tr>
@@ -359,6 +359,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
                         onStartEdit={(e) => titleEdit.startEdit(task, e)}
                         onSave={titleEdit.save}
                         onKeyDown={titleEdit.handleKeyDown}
+                        className="[&>input]:text-xs [&>input]:font-semibold [&>span]:font-semibold"
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -369,7 +370,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
                         <PopoverTrigger asChild data-popover-trigger>
                           <div className="inline-block cursor-pointer">
                             <Badge
-                              className={`${statusColors[task.status]} cursor-pointer text-xs transition-opacity hover:opacity-80`}
+                              className={`${statusColors[task.status]} cursor-pointer text-[10px] transition-opacity hover:opacity-80`}
                             >
                               {task.status}
                             </Badge>
@@ -420,7 +421,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
                         <PopoverTrigger asChild data-popover-trigger>
                           <div className="inline-block cursor-pointer">
                             <Badge
-                              className={`${priorityColors[task.priority]} cursor-pointer text-xs transition-opacity hover:opacity-80`}
+                              className={`${priorityColors[task.priority]} cursor-pointer text-[10px] transition-opacity hover:opacity-80`}
                             >
                               {task.priority}
                             </Badge>
