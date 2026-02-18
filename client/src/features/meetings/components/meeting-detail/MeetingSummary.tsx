@@ -200,6 +200,67 @@ function getIconColor(iconName: string): string {
   return iconColors[iconName] || "text-[#2eaadc]";
 }
 
+function getIconCircleColors(iconName: string): { bg: string; border: string; text: string } {
+  const color = getIconColor(iconName);
+  const map: Record<string, { bg: string; border: string; text: string }> = {
+    "text-emerald-400": {
+      bg: "bg-emerald-500/5",
+      border: "border-emerald-500/10",
+      text: "text-emerald-400/90",
+    },
+    "text-blue-400": {
+      bg: "bg-blue-500/5",
+      border: "border-blue-500/10",
+      text: "text-blue-400/90",
+    },
+    "text-amber-400": {
+      bg: "bg-amber-500/5",
+      border: "border-amber-500/10",
+      text: "text-amber-400/90",
+    },
+    "text-red-400": { bg: "bg-red-500/5", border: "border-red-500/10", text: "text-red-400/90" },
+    "text-purple-400": {
+      bg: "bg-purple-500/5",
+      border: "border-purple-500/10",
+      text: "text-purple-400/90",
+    },
+    "text-orange-400": {
+      bg: "bg-orange-500/5",
+      border: "border-orange-500/10",
+      text: "text-orange-400/90",
+    },
+    "text-pink-400": {
+      bg: "bg-pink-500/5",
+      border: "border-pink-500/10",
+      text: "text-pink-400/90",
+    },
+    "text-cyan-400": {
+      bg: "bg-cyan-500/5",
+      border: "border-cyan-500/10",
+      text: "text-cyan-400/90",
+    },
+    "text-yellow-400": {
+      bg: "bg-yellow-500/5",
+      border: "border-yellow-500/10",
+      text: "text-yellow-400/90",
+    },
+    "text-sky-400": { bg: "bg-sky-500/5", border: "border-sky-500/10", text: "text-sky-400/90" },
+    "text-gray-400": {
+      bg: "bg-gray-500/5",
+      border: "border-gray-500/10",
+      text: "text-gray-400/90",
+    },
+    "text-[#2eaadc]": {
+      bg: "bg-blue-500/5",
+      border: "border-blue-500/10",
+      text: "text-blue-400/90",
+    },
+  };
+  return (
+    map[color] || { bg: "bg-blue-500/5", border: "border-blue-500/10", text: "text-blue-400/90" }
+  );
+}
+
 export function MeetingSummary({
   summary,
   clientName,
@@ -435,29 +496,40 @@ export function MeetingSummary({
             dangerouslySetInnerHTML={{ __html: summary }}
           />
 
-          {/* Contexto da Cliente */}
+          {/* Principais Pontos */}
           {allPoints.length > 0 && (
             <div className="mt-5 border-t border-[#262626] pt-5">
-              <div className="mb-5 text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                CONTEXTO DA CLIENTE — {clientName}
-              </div>
-              <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+              <h4 className="text-crm-accent-blue mb-3 flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
+                Principais Pontos
+              </h4>
+              <div className="grid grid-cols-2 gap-2">
                 {allPoints.slice(0, 4).map((point) => {
                   const IconComponent = getIconFromName(point.icon);
-                  // Split on colon: before = title, after = description
+                  const circleColors = getIconCircleColors(point.icon);
                   const parts = point.text.split(":");
                   const hasColon = parts.length > 1;
-                  const titulo = hasColon ? parts[0].trim() : point.text;
-                  const descricao = hasColon ? parts.slice(1).join(":").trim() : "";
+                  const label = hasColon ? parts[0].trim() : "";
+                  const valor = hasColon ? parts.slice(1).join(":").trim() : point.text;
 
                   return (
-                    <div key={point.id} className="flex items-start gap-3">
-                      <IconComponent className="mt-0.5 h-6 w-6 flex-shrink-0 text-gray-500" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-bold text-white">{titulo}</p>
-                        {descricao && (
-                          <p className="mt-1 text-xs leading-normal text-gray-400">{descricao}</p>
+                    <div
+                      key={point.id}
+                      className="flex items-center gap-3 rounded-lg border border-[#3a3a3a] bg-[#2a2a2a]/60 p-2.5 transition-colors hover:bg-[#2a2a2a]"
+                    >
+                      <div
+                        className={`h-7 w-7 rounded-full ${circleColors.bg} flex shrink-0 items-center justify-center border ${circleColors.border}`}
+                      >
+                        <IconComponent className={`h-[15px] w-[15px] ${circleColors.text}`} />
+                      </div>
+                      <div className="flex min-w-0 flex-col justify-center">
+                        {label && (
+                          <span className="mb-0.5 text-[9px] font-bold uppercase tracking-wider text-gray-500">
+                            {label}
+                          </span>
                         )}
+                        <span className="block w-full truncate text-[11px] font-bold leading-tight text-white">
+                          {valor}
+                        </span>
                       </div>
                     </div>
                   );
