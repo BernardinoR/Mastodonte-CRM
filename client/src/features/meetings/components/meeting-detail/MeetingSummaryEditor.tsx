@@ -61,6 +61,7 @@ export function MeetingSummaryEditor({
     return initialHighlights.map((h) => ({
       id: crypto.randomUUID(),
       icon: h.icon as IconName,
+      title: h.title,
       text: h.text,
       type: h.type === "warning" ? "warning" : ("finance" as TagType),
     }));
@@ -133,6 +134,7 @@ export function MeetingSummaryEditor({
         response.highlights.map((h) => ({
           id: crypto.randomUUID(),
           icon: h.icon as IconName,
+          title: h.title,
           text: h.text,
           type: h.type === "warning" ? "warning" : ("finance" as TagType),
         })),
@@ -179,6 +181,7 @@ export function MeetingSummaryEditor({
     const highlights: MeetingHighlight[] = tags.map((t) => ({
       id: t.id,
       icon: t.icon,
+      title: t.title,
       text: t.text,
       type: t.type === "warning" ? "warning" : "normal",
     }));

@@ -10,6 +10,7 @@ export interface AIContextPoint {
 
 export interface AIHighlight {
   icon: string;
+  title?: string;
   text: string;
   type: "normal" | "warning";
 }
@@ -27,6 +28,7 @@ export interface AIAgendaItem {
 }
 
 export interface AIDecision {
+  title?: string;
   content: string;
   type: "normal" | "warning";
 }

@@ -49,6 +49,7 @@ export interface MeetingClientContext {
 export interface MeetingHighlight {
   id: string;
   icon: string;
+  title?: string;
   text: string;
   type: "normal" | "warning";
 }

@@ -293,6 +293,7 @@ export function MeetingSummary({
     return highlights.map((h) => ({
       id: h.id || crypto.randomUUID(),
       icon: h.icon as IconName,
+      title: h.title,
       text: h.text,
       type: h.type === "warning" ? "warning" : ("finance" as TagType),
     }));
@@ -356,6 +357,7 @@ export function MeetingSummary({
       highlights.map((h) => ({
         id: h.id || crypto.randomUUID(),
         icon: h.icon as IconName,
+        title: h.title,
         text: h.text,
         type: h.type === "warning" ? "warning" : ("finance" as TagType),
       })),
@@ -378,6 +380,7 @@ export function MeetingSummary({
     const newHighlights: MeetingHighlight[] = tags.map((t) => ({
       id: t.id,
       icon: t.icon,
+      title: t.title,
       text: t.text,
       type: t.type === "warning" ? "warning" : "normal",
     }));
@@ -396,7 +399,7 @@ export function MeetingSummary({
   const applyAIData = (data: {
     summary?: string;
     clientContext?: { points: { icon: string; text: string }[] };
-    highlights?: { icon: string; text: string; type: string }[];
+    highlights?: { icon: string; title?: string; text: string; type: string }[];
   }) => {
     if (data.summary) {
       setSummaryHtml(data.summary);
@@ -418,6 +421,7 @@ export function MeetingSummary({
         data.highlights.map((h) => ({
           id: crypto.randomUUID(),
           icon: h.icon as IconName,
+          title: h.title,
           text: h.text,
           type: h.type === "warning" ? "warning" : ("finance" as TagType),
         })),
@@ -472,6 +476,7 @@ export function MeetingSummary({
       ...highlights.map((h) => ({
         id: h.id,
         icon: h.icon,
+        title: h.title,
         text: h.text,
         source: "highlight" as const,
         type: h.type,
@@ -506,10 +511,18 @@ export function MeetingSummary({
                 {allPoints.slice(0, 4).map((point) => {
                   const IconComponent = getIconFromName(point.icon);
                   const circleColors = getIconCircleColors(point.icon);
-                  const parts = point.text.split(":");
-                  const hasColon = parts.length > 1;
-                  const label = hasColon ? parts[0].trim() : "";
-                  const valor = hasColon ? parts.slice(1).join(":").trim() : point.text;
+                  // Use explicit title if available, fallback to split on ":"
+                  let label = "";
+                  let valor = point.text;
+                  if ("title" in point && point.title) {
+                    label = point.title;
+                  } else {
+                    const parts = point.text.split(":");
+                    if (parts.length > 1) {
+                      label = parts[0].trim();
+                      valor = parts.slice(1).join(":").trim();
+                    }
+                  }
 
                   return (
                     <div

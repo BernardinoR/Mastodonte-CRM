@@ -15,6 +15,7 @@ export type TagType = "finance" | "travel" | "vehicle" | "warning";
 export interface TagData {
   id: string;
   icon: IconName;
+  title?: string;
   text: string;
   type: TagType;
 }

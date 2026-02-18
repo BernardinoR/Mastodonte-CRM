@@ -209,6 +209,7 @@ export function MeetingDetailModal({
       if (applyDecisions) {
         const formattedDecisions = result.decisions.map((d) => ({
           id: crypto.randomUUID(),
+          title: d.title,
           content: d.content,
           type: d.type,
         }));
