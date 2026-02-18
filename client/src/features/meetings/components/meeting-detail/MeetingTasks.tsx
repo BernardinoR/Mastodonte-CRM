@@ -7,6 +7,7 @@ import { EditableCell } from "@/shared/components/ui/editable-cell";
 import { AssigneeSelector } from "@features/tasks/components/task-editors";
 import { abbreviateName } from "@/shared/components/ui/task-assignees";
 import { useTasks, useInlineTaskEdit, TaskDetailModal } from "@features/tasks";
+import { useCurrentUser } from "@features/users";
 import { useInlineEdit } from "@/shared/hooks/useInlineEdit";
 import { useInlineMeetingTasks } from "@features/meetings/hooks/useInlineMeetingTasks";
 import {
@@ -31,6 +32,7 @@ const priorityOptions: TaskPriority[] = ["Urgente", "Importante", "Normal", "Bai
 
 export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksProps) {
   const { tasks: allTasks, updateTask } = useTasks();
+  const { data: currentUserData } = useCurrentUser();
 
   const meetingTasks = useMemo(
     () => allTasks.filter((t) => t.meetingId === meetingId),
@@ -41,6 +43,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
     meetingId,
     clientId,
     clientName,
+    defaultAssignee: currentUserData?.user?.name || undefined,
   });
 
   const titleEdit = useInlineEdit<Task>({
@@ -129,6 +132,7 @@ export function MeetingTasks({ meetingId, clientId, clientName }: MeetingTasksPr
           placeholder="Nome da tarefa"
           value={newTaskTitle}
           onChange={(e) => setNewTaskTitle(e.target.value)}
+          onKeyDown={handleKeyDown}
           className="w-full border-b border-[#2eaadc] bg-transparent text-xs font-semibold text-white placeholder:text-[#555] focus:outline-none"
           autoFocus
         />

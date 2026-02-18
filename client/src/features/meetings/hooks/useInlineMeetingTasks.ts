@@ -144,10 +144,12 @@ export function useInlineMeetingTasks(options: UseInlineMeetingTasksOptions) {
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && newTaskTitleRef.current.trim()) {
         e.preventDefault();
+        e.stopPropagation();
         commitNewTask();
       }
       if (e.key === "Escape") {
         e.preventDefault();
+        e.stopPropagation();
         handleCancelAddTask();
       }
     },

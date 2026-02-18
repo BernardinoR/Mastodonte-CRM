@@ -572,6 +572,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         assignees: resolvedAssignees,
         dueDate: data.dueDate || new Date(),
         order: data.order ?? 0,
+        meetingId: data.meetingId,
         syncStatus: "pending",
         _tempId: tempId,
       };

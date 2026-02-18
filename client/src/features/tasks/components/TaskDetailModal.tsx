@@ -305,6 +305,8 @@ export function TaskDetailModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         hideCloseButton
+        onEscapeKeyDown={(e) => e.stopPropagation()}
+        onPointerDownOutside={(e) => e.stopPropagation()}
         className={cn(
           "h-[85vh] w-[90vw] max-w-[1200px] overflow-hidden rounded-xl p-0",
           UI_CLASSES.modalContainer,
