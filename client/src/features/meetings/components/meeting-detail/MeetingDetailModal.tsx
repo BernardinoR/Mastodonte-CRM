@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { FileText, Calendar, Clock, Video, Pencil } from "lucide-react";
+import { Badge } from "@/shared/components/ui/badge";
 import { cn } from "@/shared/lib/utils";
 import {
   MeetingTypeFilterContent,
@@ -26,6 +27,7 @@ import { MeetingTasks } from "./MeetingTasks";
 import { MeetingAttachments } from "./MeetingAttachments";
 import { AIGenerateButton, type GenerateOption } from "./AIGenerateButton";
 import { useAISummary, type AIResponse } from "@features/meetings/hooks/useAISummary";
+import { MEETING_STATUS_BADGE_COLORS } from "@features/tasks/lib/statusConfig";
 import type {
   MeetingDetail,
   MeetingClientContext,
@@ -416,21 +418,13 @@ export function MeetingDetailModal({
                   {/* Badge Status - Clicavel */}
                   <Popover open={statusPopoverOpen} onOpenChange={setStatusPopoverOpen}>
                     <PopoverTrigger asChild>
-                      <button type="button">
-                        <span
-                          className={cn(
-                            "inline-flex cursor-pointer items-center gap-1.5 rounded border px-2.5 py-1 text-xs transition-opacity hover:opacity-80",
-                            localMeeting.status === "Realizada"
-                              ? "border-emerald-900/50 bg-[#064e3b]/40 text-emerald-400"
-                              : localMeeting.status === "Cancelada"
-                                ? "border-red-900/50 bg-red-900/20 text-red-400"
-                                : "border-[#333] bg-[#262626] text-gray-400",
-                          )}
+                      <div className="inline-block cursor-pointer">
+                        <Badge
+                          className={`${MEETING_STATUS_BADGE_COLORS[localMeeting.status] || MEETING_STATUS_BADGE_COLORS["Agendada"]} cursor-pointer text-xs transition-opacity hover:opacity-80`}
                         >
-                          <span className="h-1.5 w-1.5 rounded-full bg-current" />
                           {localMeeting.status}
-                        </span>
-                      </button>
+                        </Badge>
+                      </div>
                     </PopoverTrigger>
                     <PopoverContent className="w-56 p-0" side="bottom" align="start" sideOffset={6}>
                       <MeetingStatusFilterContent
@@ -553,10 +547,7 @@ export function MeetingDetailModal({
             </div>
 
             {/* Responsavel */}
-            <div className="ml-auto flex flex-col items-end gap-1 border-l border-[#262626] pl-8">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                Responsavel
-              </span>
+            <div className="ml-auto flex items-center border-l border-[#262626] pl-8">
               <Popover open={responsiblePopoverOpen} onOpenChange={setResponsiblePopoverOpen}>
                 <PopoverTrigger asChild>
                   <button
