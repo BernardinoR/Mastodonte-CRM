@@ -349,7 +349,7 @@ export function MeetingsTable({
           onClick={handleStartAddMeeting}
           data-testid="button-add-meeting-empty"
         >
-          + Agendar nova reunião
+          + Criar nova reunião
         </div>
       </div>
     );
