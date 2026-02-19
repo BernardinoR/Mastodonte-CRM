@@ -341,7 +341,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         .from("clients")
         .select(CLIENT_SELECT)
         .eq("status", "Ativo")
-        .order("created_at", { ascending: false });
+        .order("name", { ascending: true });
 
       if (fetchError) throw fetchError;
 
