@@ -5,6 +5,7 @@ const WEBHOOK_URL = "https://webhooks.snowealth.com.br/webhook/reuniao_resumo";
 
 export interface AIContextPoint {
   icon: string;
+  title?: string;
   text: string;
 }
 

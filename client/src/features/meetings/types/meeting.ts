@@ -42,6 +42,7 @@ export interface MeetingClientContext {
   points: {
     id: string;
     icon: string;
+    title?: string;
     text: string;
   }[];
 }
