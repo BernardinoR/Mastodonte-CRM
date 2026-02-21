@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { Zap, AlertTriangle, Plus, Trash2, Check } from "lucide-react";
+import { Zap, AlertTriangle, TrendingUp, Plus, Trash2, Check } from "lucide-react";
 import { cn } from "@/shared/lib/utils";
 import { EditableSectionTitle } from "./EditableSectionTitle";
 import type { MeetingDecision } from "@features/meetings/types/meeting";
@@ -153,6 +153,33 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
       <div className="flex flex-col gap-3">
         {displayDecisions.map((decision) => {
           const isWarning = decision.type === "warning";
+          const isOpportunity = decision.type === "opportunity";
+
+          const nextType = (current: string) => {
+            if (current === "normal") return "warning" as const;
+            if (current === "warning") return "opportunity" as const;
+            return "normal" as const;
+          };
+
+          const barColor = isOpportunity
+            ? "bg-amber-500"
+            : isWarning
+              ? "bg-orange-500"
+              : "bg-purple-500";
+
+          const iconCircleClass = isOpportunity
+            ? "border-amber-500/50 bg-amber-500/10"
+            : isWarning
+              ? "border-orange-500/50 bg-orange-500/10"
+              : "border-purple-500/50 bg-purple-500/10";
+
+          const iconElement = isOpportunity ? (
+            <TrendingUp className="h-4 w-4 text-amber-400" />
+          ) : isWarning ? (
+            <AlertTriangle className="h-4 w-4 text-orange-400" />
+          ) : (
+            <Check className="h-3.5 w-3.5 text-purple-400" />
+          );
 
           if (isEditing) {
             return (
@@ -160,32 +187,30 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
                 key={decision.id}
                 className="flex items-stretch overflow-hidden rounded-lg border border-[#262626] bg-[#161616]"
               >
-                <div
-                  className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")}
-                />
+                <div className={cn("w-1 flex-shrink-0", barColor)} />
                 <div className="flex w-full items-center gap-3 p-3">
                   <button
                     onClick={() =>
                       updateDecision(decision.id, {
-                        type: isWarning ? "normal" : "warning",
+                        type: nextType(decision.type),
                       })
                     }
                     className="flex-shrink-0"
-                    title={isWarning ? "Mudar para normal" : "Marcar como atencao"}
+                    title={
+                      isOpportunity
+                        ? "Mudar para normal"
+                        : isWarning
+                          ? "Mudar para oportunidade"
+                          : "Marcar como atencao"
+                    }
                   >
                     <div
                       className={cn(
                         "flex h-7 w-7 items-center justify-center rounded-full border",
-                        isWarning
-                          ? "border-orange-500/50 bg-orange-500/10"
-                          : "border-purple-500/50 bg-purple-500/10",
+                        iconCircleClass,
                       )}
                     >
-                      {isWarning ? (
-                        <AlertTriangle className="h-4 w-4 text-orange-400" />
-                      ) : (
-                        <Check className="h-3.5 w-3.5 text-purple-400" />
-                      )}
+                      {iconElement}
                     </div>
                   </button>
                   <textarea
@@ -214,23 +239,15 @@ export function MeetingDecisions({ decisions, onUpdate }: MeetingDecisionsProps)
               key={decision.id}
               className="flex items-stretch overflow-hidden rounded-lg border border-[#262626] bg-[#161616]"
             >
-              <div
-                className={cn("w-1 flex-shrink-0", isWarning ? "bg-orange-500" : "bg-purple-500")}
-              />
+              <div className={cn("w-1 flex-shrink-0", barColor)} />
               <div className="flex w-full items-center gap-3 p-3">
                 <div
                   className={cn(
                     "flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border",
-                    isWarning
-                      ? "border-orange-500/50 bg-orange-500/10"
-                      : "border-purple-500/50 bg-purple-500/10",
+                    iconCircleClass,
                   )}
                 >
-                  {isWarning ? (
-                    <AlertTriangle className="h-4 w-4 text-orange-400" />
-                  ) : (
-                    <Check className="h-3.5 w-3.5 text-purple-400" />
-                  )}
+                  {iconElement}
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-xs font-semibold text-white">{title}</div>

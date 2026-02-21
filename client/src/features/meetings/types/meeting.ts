@@ -10,7 +10,7 @@ export interface MeetingAgendaItem {
   id: string;
   number: number;
   title: string;
-  status: "discussed" | "action_pending";
+  status: "discussed" | "action_pending" | "opportunity";
   subitems: MeetingAgendaSubitem[];
 }
 
@@ -18,7 +18,7 @@ export interface MeetingDecision {
   id: string;
   content: string;
   title?: string;
-  type: "normal" | "warning";
+  type: "normal" | "warning" | "opportunity";
 }
 
 export interface MeetingAttachment {

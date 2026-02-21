@@ -28,6 +28,10 @@ const statusConfig: Record<string, { label: string; className: string }> = {
     label: "Acao Pendente",
     className: "bg-[#1e293b] text-blue-300 border border-[#334155]",
   },
+  opportunity: {
+    label: "Oportunidade",
+    className: "bg-amber-500/10 text-amber-400 border border-amber-500/30",
+  },
 };
 
 // Icons for agenda items based on index
@@ -275,13 +279,14 @@ export function MeetingAgenda({ agenda, onUpdate }: MeetingAgendaProps) {
                       value={item.status}
                       onChange={(e) =>
                         updateAgendaItem(item.id, {
-                          status: e.target.value as "discussed" | "action_pending",
+                          status: e.target.value as "discussed" | "action_pending" | "opportunity",
                         })
                       }
                       className="rounded-md border border-[#262626] bg-[#1c1c1c] px-2 py-1 text-[9px] font-medium text-gray-400 outline-none"
                     >
                       <option value="discussed">Discutido</option>
                       <option value="action_pending">Acao Pendente</option>
+                      <option value="opportunity">Oportunidade</option>
                     </select>
                     <button
                       onClick={() => removeAgendaItem(item.id)}
