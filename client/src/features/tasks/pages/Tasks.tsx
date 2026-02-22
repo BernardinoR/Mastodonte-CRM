@@ -162,6 +162,7 @@ export default function Tasks() {
     doneTasks,
     selectedTaskIds,
     setTasksWithHistory,
+    updateTask,
     clearSelection,
   });
 

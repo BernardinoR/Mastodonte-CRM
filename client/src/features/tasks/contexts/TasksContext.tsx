@@ -152,7 +152,11 @@ interface TasksContextType {
   error: string | null;
   setTasks: React.Dispatch<React.SetStateAction<Task[]>>;
   setTasksWithHistory: (fn: (prev: Task[]) => Task[]) => void;
-  updateTask: (taskId: string, updates: Partial<Task>) => void;
+  updateTask: (
+    taskId: string,
+    updates: Partial<Task>,
+    options?: { skipLocalState?: boolean },
+  ) => void;
   deleteTask: (taskId: string) => void;
   addTask: (task: Task) => void;
   createTask: (data: CreateTaskData) => Promise<Task | null>;
@@ -190,6 +194,21 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   // Fetch tasks from Supabase
   const fetchTasks = useCallback(async () => {
+    // Flush all pending debounced updates before fetching so we don't overwrite them
+    Array.from(debounceTimers.current.entries()).forEach(([taskId, timer]) => {
+      clearTimeout(timer);
+      debounceTimers.current.delete(taskId);
+    });
+    const flushPromises: Promise<void>[] = [];
+    Array.from(pendingUpdates.current.keys()).forEach((taskId) => {
+      if (flushUpdateRef.current) {
+        flushPromises.push(flushUpdateRef.current(taskId));
+      }
+    });
+    if (flushPromises.length > 0) {
+      await Promise.all(flushPromises);
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -211,10 +230,23 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Load tasks on mount and when active role changes
+  // Refs to stabilize activeRole effect and avoid spurious refetches
+  const fetchTasksRef = useRef(fetchTasks);
+  fetchTasksRef.current = fetchTasks;
+  const prevActiveRoleRef = useRef(activeRole);
+
+  // Load tasks on mount and when active role actually changes value
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks, activeRole]);
+    if (prevActiveRoleRef.current !== activeRole) {
+      prevActiveRoleRef.current = activeRole;
+      fetchTasksRef.current();
+    }
+  }, [activeRole]);
+
+  // Initial load on mount
+  useEffect(() => {
+    fetchTasksRef.current();
+  }, []);
 
   const refetchTasks = useCallback(async () => {
     await fetchTasks();
@@ -259,6 +291,9 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [undo]);
+
+  // Ref to flushUpdate so fetchTasks can call it without dependency issues
+  const flushUpdateRef = useRef<(taskId: string) => Promise<void>>();
 
   // Flush pending updates to Supabase
   const flushUpdate = useCallback(
@@ -314,13 +349,18 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     [teamUsers],
   );
 
+  // Keep ref in sync with latest flushUpdate
+  flushUpdateRef.current = flushUpdate;
+
   // Update task (local + Supabase com debounce)
   const updateTask = useCallback(
-    (taskId: string, updates: Partial<Task>) => {
-      // Update local imediato
-      setTasksWithHistory((prevTasks) =>
-        prevTasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task)),
-      );
+    (taskId: string, updates: Partial<Task>, options?: { skipLocalState?: boolean }) => {
+      // Update local imediato (skip se drag já fez isso)
+      if (!options?.skipLocalState) {
+        setTasksWithHistory((prevTasks) =>
+          prevTasks.map((task) => (task.id === taskId ? { ...task, ...updates } : task)),
+        );
+      }
 
       // Ignorar tasks temporárias (ainda não criadas na API)
       if (taskId.startsWith("temp-")) return;
@@ -333,6 +373,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       const existingTimer = debounceTimers.current.get(taskId);
       if (existingTimer) {
         clearTimeout(existingTimer);
+      }
+
+      // Status changes: flush imediato (sem debounce) para persistir rápido
+      if (updates.status !== undefined) {
+        flushUpdate(taskId);
+        return;
       }
 
       // Debounce - enviar após 500ms sem novas edições

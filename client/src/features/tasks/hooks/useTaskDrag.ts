@@ -21,6 +21,11 @@ interface UseTaskDragProps {
   doneTasks: Task[];
   selectedTaskIds: Set<string>;
   setTasksWithHistory: (updater: (prev: Task[]) => Task[]) => void;
+  updateTask: (
+    taskId: string,
+    updates: Partial<Task>,
+    options?: { skipLocalState?: boolean },
+  ) => void;
   clearSelection: () => void;
 }
 
@@ -42,6 +47,7 @@ export function useTaskDrag({
   doneTasks,
   selectedTaskIds,
   setTasksWithHistory,
+  updateTask,
   clearSelection,
 }: UseTaskDragProps): UseTaskDragReturn {
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
@@ -345,6 +351,9 @@ export function useTaskDrag({
 
       const overSortableIndex = over.data?.current?.sortable?.index;
 
+      // Collect changes to persist to Supabase after local state update
+      const changesToPersist: Array<{ id: string; updates: Partial<Task> }> = [];
+
       setTasksWithHistory((prevTasks) => {
         const newTasks = [...prevTasks];
         const sourceStatus = activeTask.status;
@@ -392,6 +401,7 @@ export function useTaskDrag({
             const taskIndex = newTasks.findIndex((nt) => nt.id === t.id);
             if (taskIndex !== -1) {
               newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+              changesToPersist.push({ id: t.id, updates: { order: idx } });
             }
           });
         } else {
@@ -408,6 +418,7 @@ export function useTaskDrag({
             const taskIndex = newTasks.findIndex((nt) => nt.id === t.id);
             if (taskIndex !== -1) {
               newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+              changesToPersist.push({ id: t.id, updates: { order: idx } });
             }
           });
 
@@ -424,6 +435,7 @@ export function useTaskDrag({
             const taskIndex = newTasks.findIndex((nt) => nt.id === t.id);
             if (taskIndex !== -1) {
               newTasks[taskIndex] = { ...newTasks[taskIndex], order: idx };
+              changesToPersist.push({ id: t.id, updates: { order: idx } });
             }
           });
 
@@ -446,6 +458,11 @@ export function useTaskDrag({
                 order: finalInsertIndex + idx,
                 history: [...(task.history || []), statusChangeEvent],
               };
+
+              changesToPersist.push({
+                id,
+                updates: { status: targetStatus, order: finalInsertIndex + idx },
+              });
             }
           });
 
@@ -456,6 +473,10 @@ export function useTaskDrag({
                 ...newTasks[taskIndex],
                 order: finalInsertIndex + movingIds.length + idx,
               };
+              changesToPersist.push({
+                id: t.id,
+                updates: { order: finalInsertIndex + movingIds.length + idx },
+              });
             }
           });
         }
@@ -463,9 +484,14 @@ export function useTaskDrag({
         return newTasks;
       });
 
+      // Persist all changes to Supabase (skipLocalState since drag already updated local state)
+      for (const { id, updates } of changesToPersist) {
+        updateTask(id, updates, { skipLocalState: true });
+      }
+
       clearSelection();
     },
-    [tasks, selectedTaskIds, setTasksWithHistory, clearSelection],
+    [tasks, selectedTaskIds, setTasksWithHistory, updateTask, clearSelection],
   );
 
   return {
