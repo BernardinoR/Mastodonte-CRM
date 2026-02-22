@@ -98,6 +98,23 @@ export function WhatsAppGroupsTable({
     setVisibleCount((prev) => prev + 5);
   };
 
+  if (groups.length === 0 && !isAddingGroup) {
+    return (
+      <div className="p-6 text-center">
+        <p className="mb-3 text-sm text-muted-foreground">
+          Nenhum grupo de WhatsApp encontrado para este cliente
+        </p>
+        <div
+          className="cursor-pointer text-sm text-[#2eaadc] hover:underline"
+          onClick={handleStartAddGroup}
+          data-testid="button-add-whatsapp-group-empty"
+        >
+          + Novo grupo
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
