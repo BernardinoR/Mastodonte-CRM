@@ -135,6 +135,7 @@ function mapDbRowToClient(row: DbClient): Client {
       : null,
     peculiarities: row.peculiarities || [],
     monthlyMeetingDisabled: row.monthly_meeting_disabled ?? false,
+    hasScheduledMeeting: false,
   };
 }
 
@@ -346,7 +347,21 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       if (fetchError) throw fetchError;
 
       const rows = (data || []) as DbClient[];
-      const mappedClients = rows.map(mapDbRowToClient);
+
+      // Build set of client IDs that have a scheduled monthly meeting
+      const scheduledMonthlySet = new Set<string>();
+      for (const row of rows) {
+        const dbMeetings = (row as any).meetings || [];
+        const hasScheduled = dbMeetings.some(
+          (m: any) => m.type === "Mensal" && m.status === "Agendada",
+        );
+        if (hasScheduled) scheduledMonthlySet.add(row.id);
+      }
+
+      const mappedClients = rows.map((row) => ({
+        ...mapDbRowToClient(row),
+        hasScheduledMeeting: scheduledMonthlySet.has(row.id),
+      }));
       setClients(mappedClients);
 
       // Initialize extended data for each client

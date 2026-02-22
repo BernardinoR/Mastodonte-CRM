@@ -28,6 +28,7 @@ export interface Client {
   schedulingMessageSentAt?: Date | null;
   peculiarities: string[];
   monthlyMeetingDisabled: boolean;
+  hasScheduledMeeting: boolean;
 }
 
 export interface ClientStats {

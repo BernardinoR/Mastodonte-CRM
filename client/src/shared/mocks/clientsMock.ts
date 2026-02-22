@@ -30,6 +30,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSinceDate: new Date("2023-06-01"),
     status: "Ativo",
     folderLink: "https://vault.repl.ai/file/com.google.drive/id/example",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "2",
@@ -53,6 +56,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Dezembro de 2022",
     clientSinceDate: new Date("2022-12-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "3",
@@ -76,6 +82,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Março de 2021",
     clientSinceDate: new Date("2021-03-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "4",
@@ -99,6 +108,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Outubro de 2025",
     clientSinceDate: new Date("2025-10-01"),
     status: "Prospect",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "5",
@@ -122,6 +134,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Fevereiro de 2022",
     clientSinceDate: new Date("2022-02-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "6",
@@ -145,6 +160,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Agosto de 2022",
     clientSinceDate: new Date("2022-08-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "7",
@@ -168,6 +186,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Janeiro de 2024",
     clientSinceDate: new Date("2024-01-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
   {
     id: "8",
@@ -191,6 +212,9 @@ export const INITIAL_CLIENTS: Client[] = [
     clientSince: "Maio de 2024",
     clientSinceDate: new Date("2024-05-01"),
     status: "Ativo",
+    peculiarities: [],
+    monthlyMeetingDisabled: false,
+    hasScheduledMeeting: false,
   },
 ];
 

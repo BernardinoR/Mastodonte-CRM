@@ -36,9 +36,10 @@ export function useClientsPage() {
 
       // Calcula dias desde última reunião
       const days = daysSinceLastMeeting(client.lastMeeting);
-      const meetingDelayStatus = client.monthlyMeetingDisabled
-        ? ("ok" as const)
-        : getMeetingDelayStatus(days, client.schedulingMessageSentAt);
+      const meetingDelayStatus =
+        client.monthlyMeetingDisabled || client.hasScheduledMeeting
+          ? ("ok" as const)
+          : getMeetingDelayStatus(days, client.schedulingMessageSentAt);
 
       // Conta tasks urgentes
       const clientTasks = getTasksByClient(client.id);
@@ -71,9 +72,7 @@ export function useClientsPage() {
     // Aplica filtro de modo
     switch (filterMode) {
       case "noMeeting":
-        filtered = filtered.filter(
-          (c) => c.daysSinceLastMeeting >= 30 && !c.monthlyMeetingDisabled,
-        );
+        filtered = filtered.filter((c) => c.meetingDelayStatus !== "ok");
         break;
       case "urgentTasks":
         filtered = filtered.filter((c) => c.urgentTasksCount > 0);
@@ -106,9 +105,7 @@ export function useClientsPage() {
     const activeClients = enrichedClients.filter((c) => c.status === "Ativo").length;
     const totalAUM = enrichedClients.reduce((sum, c) => sum + c.aum, 0);
     const averageAUM = enrichedClients.length > 0 ? totalAUM / enrichedClients.length : 0;
-    const noMeeting30Days = enrichedClients.filter(
-      (c) => c.daysSinceLastMeeting >= 30 && !c.monthlyMeetingDisabled,
-    ).length;
+    const noMeeting30Days = enrichedClients.filter((c) => c.meetingDelayStatus !== "ok").length;
     const urgentTasksClients = enrichedClients.filter((c) => c.urgentTasksCount > 0).length;
 
     // Dados mockados para as novas stats
@@ -149,9 +146,7 @@ export function useClientsPage() {
     enrichedClients,
     stats,
     totalClients: enrichedClients.length,
-    noMeetingCount: enrichedClients.filter(
-      (c) => c.daysSinceLastMeeting >= 30 && !c.monthlyMeetingDisabled,
-    ).length,
+    noMeetingCount: enrichedClients.filter((c) => c.meetingDelayStatus !== "ok").length,
 
     // Handlers
     handleStatsClick,

@@ -328,6 +328,10 @@ export function ClientHeader({
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
   const copy = useCopyToClipboard();
 
+  const hasScheduledMonthlyMeeting = useMemo(() => {
+    return meetings.some((m) => m.type === "Mensal" && m.status === "Agendada");
+  }, [meetings]);
+
   // Calcular última reunião mensal realizada (tipo "Mensal" + status "Realizada")
   const lastMonthlyMeetingDate = useMemo(() => {
     const monthlyMeetings = meetings
@@ -500,7 +504,7 @@ export function ClientHeader({
                 icon={CalendarIcon}
                 label="Última Reunião"
                 value={format(lastMonthlyMeetingDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                disabled={client.monthlyMeetingDisabled}
+                disabled={client.monthlyMeetingDisabled || hasScheduledMonthlyMeeting}
               />
             )}
             <AddressPopover address={client.address} onAddressChange={onUpdateAddress} />
