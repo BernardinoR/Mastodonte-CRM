@@ -59,6 +59,10 @@ interface DbTask {
   creator: { name: string | null } | null;
 }
 
+function sortHistoryDesc(events: TaskHistoryEvent[]): TaskHistoryEvent[] {
+  return events.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+}
+
 // Map Supabase DB row → frontend Task type
 function mapDbRowToTask(row: DbTask): Task {
   return {
@@ -85,13 +89,15 @@ function mapDbRowToTask(row: DbTask): Task {
         }
       : undefined,
     assignees: (row.task_assignees || []).map((a) => a.user?.name || "Unknown"),
-    history: (row.task_history || []).map((h) => ({
-      id: h.id,
-      type: h.type as TaskHistoryEvent["type"],
-      content: h.content,
-      author: h.author?.name || "Sistema",
-      timestamp: new Date(h.created_at),
-    })),
+    history: sortHistoryDesc(
+      (row.task_history || []).map((h) => ({
+        id: h.id,
+        type: h.type as TaskHistoryEvent["type"],
+        content: h.content,
+        author: h.author?.name || "Sistema",
+        timestamp: new Date(h.created_at),
+      })),
+    ),
   };
 }
 
@@ -516,7 +522,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
                 ? {
                     ...mapped,
                     _tempId: tempId,
-                    history: [...(mapped.history || []), ...pendingHistory],
+                    history: sortHistoryDesc([...(mapped.history || []), ...pendingHistory]),
                   }
                 : t,
             );
@@ -527,7 +533,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
                   ...t,
                   id: realTaskId,
                   _tempId: tempId,
-                  history: [...apiHistory, ...pendingHistory],
+                  history: sortHistoryDesc([...apiHistory, ...pendingHistory]),
                   syncStatus: undefined,
                 }
               : t,

@@ -18,8 +18,8 @@ export function sortTasksByDateAndPriority<T extends { dueDate: Date | string; p
     if (dateB !== dateA) return dateB - dateA;
 
     // Urgente primeiro
-    const priorityA = PRIORITY_ORDER[(a.priority || "Normal") as TaskPriority] || 3;
-    const priorityB = PRIORITY_ORDER[(b.priority || "Normal") as TaskPriority] || 3;
+    const priorityA = PRIORITY_ORDER[(a.priority || "Normal") as TaskPriority] ?? 3;
+    const priorityB = PRIORITY_ORDER[(b.priority || "Normal") as TaskPriority] ?? 3;
     return priorityA - priorityB;
   });
 }

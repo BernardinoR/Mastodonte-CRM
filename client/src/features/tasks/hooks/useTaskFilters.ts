@@ -208,8 +208,8 @@ export function useTaskFilters(
 
           switch (sort.field) {
             case "priority":
-              const aPriority = PRIORITY_ORDER[a.priority || "Normal"] || 3;
-              const bPriority = PRIORITY_ORDER[b.priority || "Normal"] || 3;
+              const aPriority = PRIORITY_ORDER[a.priority || "Normal"] ?? 3;
+              const bPriority = PRIORITY_ORDER[b.priority || "Normal"] ?? 3;
               comparison = aPriority - bPriority;
               break;
             case "dueDate":
@@ -236,10 +236,17 @@ export function useTaskFilters(
     return result;
   }, [tasks, sorts, activeFilters, selectedTaskTypes]);
 
+  const defaultTaskSort = (a: Task, b: Task) => {
+    const aPriority = PRIORITY_ORDER[a.priority || "Normal"] ?? 3;
+    const bPriority = PRIORITY_ORDER[b.priority || "Normal"] ?? 3;
+    if (aPriority !== bPriority) return aPriority - bPriority;
+    return a.order - b.order;
+  };
+
   const todoTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "To Do");
     if (sorts.length === 0) {
-      return filtered.sort((a, b) => a.order - b.order);
+      return filtered.sort(defaultTaskSort);
     }
     return filtered;
   }, [filteredTasks, sorts]);
@@ -247,7 +254,7 @@ export function useTaskFilters(
   const inProgressTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "In Progress");
     if (sorts.length === 0) {
-      return filtered.sort((a, b) => a.order - b.order);
+      return filtered.sort(defaultTaskSort);
     }
     return filtered;
   }, [filteredTasks, sorts]);
@@ -255,7 +262,7 @@ export function useTaskFilters(
   const doneTasks = useMemo(() => {
     const filtered = filteredTasks.filter((task) => task.status === "Done");
     if (sorts.length === 0) {
-      return filtered.sort((a, b) => a.order - b.order);
+      return filtered.sort(defaultTaskSort);
     }
     return filtered;
   }, [filteredTasks, sorts]);
