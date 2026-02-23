@@ -198,6 +198,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const pendingUpdates = useRef<Map<string, Partial<Task>>>(new Map());
   const debounceTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
+  // Track recently flushed task IDs to avoid processing our own realtime events
+  const recentlyFlushedRef = useRef<Set<string>>(new Set());
+  const realtimeFetchTimers = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
   // Fetch tasks from Supabase
   const fetchTasks = useCallback(async () => {
     // Flush all pending debounced updates before fetching so we don't overwrite them
@@ -254,9 +258,109 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     fetchTasksRef.current();
   }, []);
 
+  // ============================================
+  // Real-time handler for cross-user sync
+  // ============================================
+  const handleRealtimeTaskChange = useCallback((taskId: string, eventType: string) => {
+    // Skip our own changes
+    if (recentlyFlushedRef.current.has(taskId)) return;
+    // Skip tasks with pending local updates
+    if (pendingUpdates.current.has(taskId)) return;
+
+    if (eventType === "DELETE") {
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+      return;
+    }
+
+    // Debounce multiple rapid events for the same task
+    const existing = realtimeFetchTimers.current.get(taskId);
+    if (existing) clearTimeout(existing);
+
+    const timer = setTimeout(async () => {
+      realtimeFetchTimers.current.delete(taskId);
+      const updatedTask = await fetchSingleTaskRef.current?.(taskId);
+      if (!updatedTask) return;
+
+      setTasks((prev) => {
+        const idx = prev.findIndex((t) => t.id === taskId);
+        if (idx >= 0) {
+          const newTasks = [...prev];
+          newTasks[idx] = updatedTask;
+          return newTasks;
+        }
+        // New task (created by another user)
+        return [updatedTask, ...prev];
+      });
+    }, 300);
+
+    realtimeFetchTimers.current.set(taskId, timer);
+  }, []);
+
+  const handleRealtimeRef = useRef(handleRealtimeTaskChange);
+  handleRealtimeRef.current = handleRealtimeTaskChange;
+
+  // Real-time subscription for cross-user sync
+  useEffect(() => {
+    const channel = supabase
+      .channel("tasks-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, (payload) => {
+        const taskId =
+          (payload.new as Record<string, unknown>)?.id ||
+          (payload.old as Record<string, unknown>)?.id;
+        if (taskId) handleRealtimeRef.current?.(taskId as string, payload.eventType);
+      })
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "task_assignees" },
+        (payload) => {
+          const taskId =
+            (payload.new as Record<string, unknown>)?.task_id ||
+            (payload.old as Record<string, unknown>)?.task_id;
+          if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "task_history" },
+        (payload) => {
+          const taskId =
+            (payload.new as Record<string, unknown>)?.task_id ||
+            (payload.old as Record<string, unknown>)?.task_id;
+          if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      // Clear any pending realtime fetch timers
+      realtimeFetchTimers.current.forEach((timer) => clearTimeout(timer));
+      realtimeFetchTimers.current.clear();
+    };
+  }, []);
+
   const refetchTasks = useCallback(async () => {
     await fetchTasks();
   }, [fetchTasks]);
+
+  // Fetch a single task with all relations (used by realtime handler)
+  const fetchSingleTask = useCallback(async (taskId: string): Promise<Task | null> => {
+    try {
+      const { data, error } = await supabase
+        .from("tasks")
+        .select(TASK_SELECT)
+        .eq("id", taskId)
+        .single();
+
+      if (error || !data) return null;
+      return mapDbRowToTask(data as DbTask);
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const fetchSingleTaskRef = useRef(fetchSingleTask);
+  fetchSingleTaskRef.current = fetchSingleTask;
 
   // History management (local undo functionality)
   const setTasksWithHistory = useCallback((updater: (prev: Task[]) => Task[]) => {
@@ -330,6 +434,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           await supabase.from("tasks").update(dbUpdates).eq("id", taskId);
         }
 
+        // Mark as recently flushed to ignore our own realtime events
+        recentlyFlushedRef.current.add(taskId);
+        setTimeout(() => {
+          recentlyFlushedRef.current.delete(taskId);
+        }, 2000);
+
         // Assignees update (separate table)
         if (updates.assignees !== undefined) {
           const assigneeIds: number[] = [];
@@ -402,6 +512,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       setTasksWithHistory((prevTasks) => prevTasks.filter((task) => task.id !== taskId));
 
       try {
+        // Mark as recently flushed to ignore our own realtime events
+        recentlyFlushedRef.current.add(taskId);
+        setTimeout(() => {
+          recentlyFlushedRef.current.delete(taskId);
+        }, 2000);
+
         await supabase.from("tasks").delete().eq("id", taskId);
       } catch (err) {
         console.error("Error deleting task:", err);
@@ -472,6 +588,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         if (insertError) throw insertError;
 
         const realTaskId = created.id;
+
+        // Mark as recently flushed to ignore our own realtime events
+        recentlyFlushedRef.current.add(realTaskId);
+        setTimeout(() => {
+          recentlyFlushedRef.current.delete(realTaskId);
+        }, 2000);
 
         // Insert assignees
         if (assigneeIds.length > 0) {
@@ -719,6 +841,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       // Sync em background via Supabase
       (async () => {
         try {
+          // Mark as recently flushed to ignore our own realtime events
+          recentlyFlushedRef.current.add(taskId);
+          setTimeout(() => {
+            recentlyFlushedRef.current.delete(taskId);
+          }, 2000);
+
           const { data: newHistory, error: insertError } = await supabase
             .from("task_history")
             .insert({
@@ -802,6 +930,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     // Sync em background via Supabase
     (async () => {
       try {
+        // Mark as recently flushed to ignore our own realtime events
+        recentlyFlushedRef.current.add(taskId);
+        setTimeout(() => {
+          recentlyFlushedRef.current.delete(taskId);
+        }, 2000);
+
         await supabase.from("task_history").delete().eq("id", eventId);
       } catch {
         // Silencioso - item já foi removido da UI
