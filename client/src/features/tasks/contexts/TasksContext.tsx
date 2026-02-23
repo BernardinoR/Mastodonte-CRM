@@ -381,8 +381,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         clearTimeout(existingTimer);
       }
 
-      // Status changes: flush imediato (sem debounce) para persistir rápido
-      if (updates.status !== undefined) {
+      // Status and date changes: flush immediately to prevent race conditions
+      if (updates.status !== undefined || updates.dueDate !== undefined) {
         flushUpdate(taskId);
         return;
       }

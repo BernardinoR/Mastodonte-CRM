@@ -153,9 +153,7 @@ export function DateInput({
     if (parsed) {
       setInputValue(format(parsed, "dd/MM/yyyy", { locale: ptBR }));
       setIsInvalid(false);
-      if (commitOnInput) {
-        onChange(parsed);
-      }
+      onChange(parsed);
     } else if (inputValue.trim()) {
       setIsInvalid(true);
     }
