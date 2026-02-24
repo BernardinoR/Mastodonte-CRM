@@ -35,6 +35,7 @@ export function DateInput({
   const [isInvalid, setIsInvalid] = React.useState(false);
   const [displayMonth, setDisplayMonth] = React.useState<Date>(new Date());
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const containerRef = React.useRef<HTMLDivElement>(null);
   const prevValueRef = React.useRef<string | null>(null);
 
   // Initialize input value and display month from prop
@@ -148,7 +149,7 @@ export function DateInput({
     }
   };
 
-  const handleInputBlur = () => {
+  const commitInputValue = () => {
     const parsed = parseDate(inputValue);
     if (parsed) {
       setInputValue(format(parsed, "dd/MM/yyyy", { locale: ptBR }));
@@ -157,6 +158,14 @@ export function DateInput({
     } else if (inputValue.trim()) {
       setIsInvalid(true);
     }
+  };
+
+  const handleInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    // Skip commit when focus stays within the component (e.g. clicking calendar nav)
+    if (containerRef.current?.contains(e.relatedTarget as Node)) {
+      return;
+    }
+    commitInputValue();
   };
 
   const handleCalendarSelect = (date: Date | undefined) => {
@@ -172,7 +181,7 @@ export function DateInput({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
-      handleInputBlur();
+      commitInputValue();
       setOpen(false);
     }
     if (e.key === "Escape") {
@@ -190,7 +199,7 @@ export function DateInput({
 
   if (hideIcon) {
     return (
-      <div className={cn("w-auto", className)}>
+      <div ref={containerRef} className={cn("w-auto", className)}>
         <div className="border-b border-[#3a3a3a] p-3">
           <Input
             ref={inputRef}
@@ -256,42 +265,44 @@ export function DateInput({
           className="date-input-calendar-popover w-auto border-[#3a3a3a] bg-[#1a1a1a] p-0"
           align="start"
         >
-          {/* Input no topo com visual dark sofisticado */}
-          <div className="border-b border-[#3a3a3a] p-3">
-            <Input
-              ref={inputRef}
-              id={dataTestId}
-              value={inputValue}
-              onChange={handleInputChange}
-              onBlur={handleInputBlur}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              disabled={disabled}
-              className={cn(
-                "text-center text-sm font-medium",
-                "border-[#3a3a3a] bg-[#0f0f0f]",
-                "text-white placeholder:text-gray-500",
-                "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
-                isInvalid && "border-red-500 focus-visible:ring-red-500",
+          <div ref={containerRef}>
+            {/* Input no topo com visual dark sofisticado */}
+            <div className="border-b border-[#3a3a3a] p-3">
+              <Input
+                ref={inputRef}
+                id={dataTestId}
+                value={inputValue}
+                onChange={handleInputChange}
+                onBlur={handleInputBlur}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                disabled={disabled}
+                className={cn(
+                  "text-center text-sm font-medium",
+                  "border-[#3a3a3a] bg-[#0f0f0f]",
+                  "text-white placeholder:text-gray-500",
+                  "focus-visible:border-blue-500 focus-visible:ring-1 focus-visible:ring-blue-500",
+                  isInvalid && "border-red-500 focus-visible:ring-red-500",
+                )}
+                onClick={(e) => e.stopPropagation()}
+              />
+              {isInvalid && (
+                <span className="mt-2 block text-center text-xs text-red-400">Data inválida</span>
               )}
-              onClick={(e) => e.stopPropagation()}
-            />
-            {isInvalid && (
-              <span className="mt-2 block text-center text-xs text-red-400">Data inválida</span>
-            )}
-          </div>
+            </div>
 
-          {/* Calendário com tema dark */}
-          <Calendar
-            mode="single"
-            selected={currentDate}
-            onSelect={handleCalendarSelect}
-            month={displayMonth}
-            onMonthChange={setDisplayMonth}
-            locale={ptBR}
-            initialFocus
-            className="rounded-b-lg"
-          />
+            {/* Calendário com tema dark */}
+            <Calendar
+              mode="single"
+              selected={currentDate}
+              onSelect={handleCalendarSelect}
+              month={displayMonth}
+              onMonthChange={setDisplayMonth}
+              locale={ptBR}
+              initialFocus
+              className="rounded-b-lg"
+            />
+          </div>
         </PopoverContent>
       </Popover>
     </div>
