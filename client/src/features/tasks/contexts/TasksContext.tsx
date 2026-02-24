@@ -329,7 +329,17 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
         },
       )
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("[Realtime] Connected to tasks channel");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("[Realtime] Channel error:", err?.message);
+        } else if (status === "TIMED_OUT") {
+          console.warn("[Realtime] Subscription timed out, retrying...");
+        } else if (status === "CLOSED") {
+          console.warn("[Realtime] Channel closed");
+        }
+      });
 
     return () => {
       supabase.removeChannel(channel);
