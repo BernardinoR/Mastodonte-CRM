@@ -130,6 +130,7 @@ export function useTaskCardEditing({
   }, [initialEditMode, onFinishEditing, id]);
 
   useEffect(() => {
+    if (isEditing) return;
     setEditedTask((prev) => {
       const newAssignees = safeAssignees;
       const newDueDate = formatLocalDate(dueDate);
@@ -173,6 +174,7 @@ export function useTaskCardEditing({
     dueDate,
     description,
     safeAssignees,
+    isEditing,
   ]);
 
   const flushUpdate = useCallback(
@@ -200,28 +202,10 @@ export function useTaskCardEditing({
       setEditedTask((prev) => {
         const updated = { ...prev, [field]: value };
         latestDraftRef.current = updated;
-
-        if (pendingUpdateRef.current) {
-          clearTimeout(pendingUpdateRef.current);
-        }
-
-        const isTitleEdit = field === "title";
-        const isTextFieldEdit = isTitleEdit || field === "description";
-        const debounceTime = field === "description" ? 300 : 0;
-
-        if (debounceTime > 0) {
-          pendingUpdateRef.current = setTimeout(() => {
-            flushUpdate(updated);
-            pendingUpdateRef.current = null;
-          }, debounceTime);
-        } else {
-          flushUpdate(updated);
-        }
-
         return updated;
       });
     },
-    [flushUpdate],
+    [],
   );
 
   const handleSave = useCallback(() => {
