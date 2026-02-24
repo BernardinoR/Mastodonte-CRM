@@ -263,9 +263,17 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   // ============================================
   const handleRealtimeTaskChange = useCallback((taskId: string, eventType: string) => {
     // Skip our own changes
-    if (recentlyFlushedRef.current.has(taskId)) return;
+    if (recentlyFlushedRef.current.has(taskId)) {
+      console.debug("[Realtime] Skipping own change for task:", taskId);
+      return;
+    }
     // Skip tasks with pending local updates
-    if (pendingUpdates.current.has(taskId)) return;
+    if (pendingUpdates.current.has(taskId)) {
+      console.debug("[Realtime] Skipping task with pending updates:", taskId);
+      return;
+    }
+
+    console.log("[Realtime] Processing event:", eventType, "for task:", taskId);
 
     if (eventType === "DELETE") {
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
@@ -279,7 +287,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const timer = setTimeout(async () => {
       realtimeFetchTimers.current.delete(taskId);
       const updatedTask = await fetchSingleTaskRef.current?.(taskId);
-      if (!updatedTask) return;
+      if (!updatedTask) {
+        console.warn(
+          "[Realtime] Could not fetch updated task:",
+          taskId,
+          "- may be RLS or network issue",
+        );
+        return;
+      }
 
       setTasks((prev) => {
         const idx = prev.findIndex((t) => t.id === taskId);
@@ -304,6 +319,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
     const channel = supabase
       .channel("tasks-realtime")
       .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, (payload) => {
+        console.debug("[Realtime] Event received on tasks table:", payload.eventType);
         const taskId =
           (payload.new as Record<string, unknown>)?.id ||
           (payload.old as Record<string, unknown>)?.id;
@@ -313,6 +329,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         "postgres_changes",
         { event: "*", schema: "public", table: "task_assignees" },
         (payload) => {
+          console.debug("[Realtime] Event received on task_assignees table:", payload.eventType);
           const taskId =
             (payload.new as Record<string, unknown>)?.task_id ||
             (payload.old as Record<string, unknown>)?.task_id;
@@ -323,6 +340,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         "postgres_changes",
         { event: "*", schema: "public", table: "task_history" },
         (payload) => {
+          console.debug("[Realtime] Event received on task_history table:", payload.eventType);
           const taskId =
             (payload.new as Record<string, unknown>)?.task_id ||
             (payload.old as Record<string, unknown>)?.task_id;
@@ -362,7 +380,10 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         .eq("id", taskId)
         .single();
 
-      if (error || !data) return null;
+      if (error || !data) {
+        console.warn("[Realtime] fetchSingleTask failed for", taskId, error?.message);
+        return null;
+      }
       return mapDbRowToTask(data as DbTask);
     } catch {
       return null;
