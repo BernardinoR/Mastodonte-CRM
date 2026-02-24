@@ -163,6 +163,13 @@ export function TaskDetailModal({
     [task, onUpdateTask],
   );
 
+  const handleClose = useCallback(() => {
+    if (task && description !== (task.description || "")) {
+      onUpdateTask(task.id, { description });
+    }
+    onOpenChange(false);
+  }, [task, description, onUpdateTask, onOpenChange]);
+
   const handleClientClick = useCallback(() => {
     if (task?.clientId) {
       handleClose();
@@ -264,13 +271,6 @@ export function TaskDetailModal({
     if (!task) return;
     onUpdateTask(task.id, { meetingId: null, meeting: undefined });
   }, [task, onUpdateTask]);
-
-  const handleClose = useCallback(() => {
-    if (task && description !== (task.description || "")) {
-      onUpdateTask(task.id, { description });
-    }
-    onOpenChange(false);
-  }, [task, description, onUpdateTask, onOpenChange]);
 
   if (!task) return null;
 
