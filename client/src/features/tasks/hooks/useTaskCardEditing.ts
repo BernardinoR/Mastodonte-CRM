@@ -112,6 +112,7 @@ export function useTaskCardEditing({
   const lastSavedRef = useRef<EditedTaskData | null>(null);
   const latestDraftRef = useRef<EditedTaskData>(editedTask);
   const prevInitialEditModeRef = useRef(initialEditMode);
+  const prevActivePopoverRef = useRef(activePopover);
 
   // Sync isEditing with initialEditMode prop changes
   // Always honor prop transitions from parent
@@ -128,6 +129,18 @@ export function useTaskCardEditing({
       }
     }
   }, [initialEditMode, onFinishEditing, id]);
+
+  // Flush dueDate change to global context only when the date popover closes,
+  // so the task doesn't re-sort while the user is still picking a date.
+  useEffect(() => {
+    const prev = prevActivePopoverRef.current;
+    prevActivePopoverRef.current = activePopover;
+
+    if (prev === "date" && activePopover !== "date") {
+      const currentDate = latestDraftRef.current.dueDate;
+      onUpdate(id, { dueDate: currentDate ? parseLocalDate(currentDate) : undefined });
+    }
+  }, [activePopover, id, onUpdate]);
 
   useEffect(() => {
     if (isEditing) return;
@@ -208,9 +221,6 @@ export function useTaskCardEditing({
       // Immediately persist discrete field changes to avoid data loss
       // (title, description, assignees stay deferred to handleSave)
       switch (field) {
-        case "dueDate":
-          onUpdate(id, { dueDate: value ? parseLocalDate(value as string) : undefined });
-          break;
         case "priority":
           onUpdate(id, { priority: value as TaskPriority });
           break;
