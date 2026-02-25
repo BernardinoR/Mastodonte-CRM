@@ -39,6 +39,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
   const [showFlash, setShowFlash] = useState(false);
   const prevActionPerformed = useRef(actionPerformed);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevHistoryRef = useRef<{ id: string | null; length: number }>({ id: null, length: 0 });
 
   // Flash animation when action is performed (edge detection)
   useEffect(() => {
@@ -99,6 +100,20 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isActive, goToNext, goToPrevious, exitTurboMode]);
+
+  // Detect history additions on current task and mark action performed
+  useEffect(() => {
+    const taskId = currentTask?.id ?? null;
+    const currentLength = currentTask?.history?.length ?? 0;
+    const prev = prevHistoryRef.current;
+
+    // Only mark action if history grew on the SAME task (not when navigating to a different task)
+    if (taskId === prev.id && currentLength > prev.length) {
+      markActionPerformed();
+    }
+
+    prevHistoryRef.current = { id: taskId, length: currentLength };
+  }, [currentTask?.id, currentTask?.history?.length, markActionPerformed]);
 
   // Handle task update - only mark action performed for history additions
   const handleTaskUpdate = useCallback(
