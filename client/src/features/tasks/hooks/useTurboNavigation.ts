@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo, useRef } from "react";
 import type { Task } from "../types/task";
 import { PRIORITY_ORDER, type TaskTurboStatus } from "../lib/turboModeConfig";
+import { useTasks } from "../contexts/TasksContext";
 
 export interface UseTurboNavigationReturn {
   currentIndex: number;
@@ -19,6 +20,7 @@ export interface UseTurboNavigationReturn {
 }
 
 export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
+  const { tasks: contextTasks } = useTasks();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [actionPerformed, setActionPerformed] = useState(false);
   const [taskStatuses, setTaskStatuses] = useState<Record<string, TaskTurboStatus>>({});
@@ -105,14 +107,15 @@ export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
     return result;
   }, [allTasks]);
 
-  // Create lookup map for live task data
+  // Create lookup map for live task data (uses full context tasks, not filtered allTasks,
+  // so tasks that move outside the active filter range still reflect updated data)
   const liveTasksMap = useMemo(() => {
     const map: Record<string, Task> = {};
-    allTasks.forEach((task) => {
+    contextTasks.forEach((task) => {
       map[task.id] = task;
     });
     return map;
-  }, [allTasks]);
+  }, [contextTasks]);
 
   // Build session tasks from snapshot, with live data overlay
   const sessionTasks = useMemo(() => {
