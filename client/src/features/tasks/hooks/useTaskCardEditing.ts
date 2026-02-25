@@ -204,8 +204,45 @@ export function useTaskCardEditing({
         latestDraftRef.current = updated;
         return updated;
       });
+
+      // Immediately persist discrete field changes to avoid data loss
+      // (title, description, assignees stay deferred to handleSave)
+      switch (field) {
+        case "dueDate":
+          onUpdate(id, { dueDate: value ? parseLocalDate(value as string) : undefined });
+          break;
+        case "priority":
+          onUpdate(id, { priority: value as TaskPriority });
+          break;
+        case "status":
+          onUpdate(id, { status: value as TaskStatus });
+          break;
+        case "taskType":
+          onUpdate(id, { taskType: value as TaskType });
+          break;
+        case "clientId":
+          // clientId and clientName are set together by the caller via two handleUpdate calls.
+          // Persist both using the latest draft which already has the paired value.
+          setEditedTask((prev) => {
+            onUpdate(id, {
+              clientId: prev.clientId || undefined,
+              clientName: prev.clientName || undefined,
+            });
+            return prev;
+          });
+          break;
+        case "clientName":
+          setEditedTask((prev) => {
+            onUpdate(id, {
+              clientId: prev.clientId || undefined,
+              clientName: prev.clientName || undefined,
+            });
+            return prev;
+          });
+          break;
+      }
     },
-    [],
+    [id, onUpdate],
   );
 
   const handleSave = useCallback(() => {

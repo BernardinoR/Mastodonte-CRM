@@ -4,15 +4,16 @@ import { TaskCard, TaskCardProps } from "./TaskCard";
 
 interface SortableTaskCardProps extends Omit<TaskCardProps, "onEditStateChange"> {
   isDragActive?: boolean;
+  _tempId?: string;
 }
 
 export const SortableTaskCard = memo(
-  function SortableTaskCard({ isDragActive = false, ...props }: SortableTaskCardProps) {
+  function SortableTaskCard({ isDragActive = false, _tempId, ...props }: SortableTaskCardProps) {
     // Track if child TaskCard is currently in edit mode
     const [isChildEditing, setIsChildEditing] = useState(false);
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-      id: props.id,
+      id: _tempId || props.id,
       disabled: isChildEditing, // Disable drag when editing
     });
 

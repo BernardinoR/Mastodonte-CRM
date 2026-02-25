@@ -187,9 +187,15 @@ export default function Tasks() {
   const taskColumnMapRef = useRef<Map<string, string>>(new Map());
   useMemo(() => {
     const newMap = new Map<string, string>();
-    todoTasks.forEach((t) => newMap.set(t.id, "To Do"));
-    inProgressTasks.forEach((t) => newMap.set(t.id, "In Progress"));
-    doneTasks.forEach((t) => newMap.set(t.id, "Done"));
+    const addToMap = (tasks: Task[], status: string) => {
+      tasks.forEach((t) => {
+        newMap.set(t.id, status);
+        if (t._tempId) newMap.set(t._tempId, status);
+      });
+    };
+    addToMap(todoTasks, "To Do");
+    addToMap(inProgressTasks, "In Progress");
+    addToMap(doneTasks, "Done");
     taskColumnMapRef.current = newMap;
   }, [todoTasks, inProgressTasks, doneTasks]);
 
@@ -267,21 +273,33 @@ export default function Tasks() {
       setTasksWithHistory((prevTasks) =>
         prevTasks.map((task) => (selectedTaskIds.has(task.id) ? { ...task, ...updates } : task)),
       );
+      // Persist each selected task to DB
+      selectedTaskIds.forEach((taskId) => {
+        updateTask(taskId, updates, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Bulk delete for selected tasks
   const handleBulkDelete = useCallback(() => {
+    const idsToDelete = Array.from(selectedTaskIds);
     setTasksWithHistory((prevTasks) => prevTasks.filter((task) => !selectedTaskIds.has(task.id)));
+    // Persist each deletion to DB (deleteTask handles its own local state,
+    // but we already did the local update above, so it will just do the Supabase delete
+    // since the task won't be found locally for the second setTasksWithHistory call)
+    idsToDelete.forEach((taskId) => {
+      deleteTask(taskId);
+    });
     clearSelection();
-  }, [selectedTaskIds, clearSelection, setTasksWithHistory]);
+  }, [selectedTaskIds, clearSelection, setTasksWithHistory, deleteTask]);
 
   // Bulk append title for selected tasks
   const handleBulkAppendTitle = useCallback(
     (textToAppend: string) => {
       // Add space only if suffix starts with alphanumeric character
       const startsWithAlphanumeric = /^[a-zA-Z0-9\u00C0-\u024F]/.test(textToAppend);
+      const updatedTitles = new Map<string, string>();
       setTasksWithHistory((prevTasks) =>
         prevTasks.map((task) => {
           if (!selectedTaskIds.has(task.id)) return task;
@@ -289,11 +307,17 @@ export default function Tasks() {
           const needsSpace =
             task.title.length > 0 && !/\s$/.test(task.title) && startsWithAlphanumeric;
           const suffix = needsSpace ? " " + textToAppend : textToAppend;
-          return { ...task, title: task.title + suffix };
+          const newTitle = task.title + suffix;
+          updatedTitles.set(task.id, newTitle);
+          return { ...task, title: newTitle };
         }),
       );
+      // Persist each updated title to DB
+      updatedTitles.forEach((newTitle, taskId) => {
+        updateTask(taskId, { title: newTitle }, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Bulk replace title for selected tasks
@@ -304,27 +328,34 @@ export default function Tasks() {
           selectedTaskIds.has(task.id) ? { ...task, title: newTitle } : task,
         ),
       );
+      // Persist each updated title to DB
+      selectedTaskIds.forEach((taskId) => {
+        updateTask(taskId, { title: newTitle }, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Bulk add assignee to selected tasks
   const handleBulkAddAssignee = useCallback(
     (assignee: string) => {
+      const updatedAssignees = new Map<string, string[]>();
       setTasksWithHistory((prevTasks) =>
-        prevTasks.map((task) =>
-          selectedTaskIds.has(task.id)
-            ? {
-                ...task,
-                assignees: task.assignees.includes(assignee)
-                  ? task.assignees
-                  : [...task.assignees, assignee],
-              }
-            : task,
-        ),
+        prevTasks.map((task) => {
+          if (!selectedTaskIds.has(task.id)) return task;
+          const newAssignees = task.assignees.includes(assignee)
+            ? task.assignees
+            : [...task.assignees, assignee];
+          updatedAssignees.set(task.id, newAssignees);
+          return { ...task, assignees: newAssignees };
+        }),
       );
+      // Persist each updated assignee list to DB
+      updatedAssignees.forEach((newAssignees, taskId) => {
+        updateTask(taskId, { assignees: newAssignees }, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Bulk set assignees (replace all assignees with new ones)
@@ -333,25 +364,32 @@ export default function Tasks() {
       setTasksWithHistory((prevTasks) =>
         prevTasks.map((task) => (selectedTaskIds.has(task.id) ? { ...task, assignees } : task)),
       );
+      // Persist each updated assignee list to DB
+      selectedTaskIds.forEach((taskId) => {
+        updateTask(taskId, { assignees }, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Bulk remove assignee from selected tasks
   const handleBulkRemoveAssignee = useCallback(
     (assignee: string) => {
+      const updatedAssignees = new Map<string, string[]>();
       setTasksWithHistory((prevTasks) =>
-        prevTasks.map((task) =>
-          selectedTaskIds.has(task.id)
-            ? {
-                ...task,
-                assignees: task.assignees.filter((a) => a !== assignee),
-              }
-            : task,
-        ),
+        prevTasks.map((task) => {
+          if (!selectedTaskIds.has(task.id)) return task;
+          const newAssignees = task.assignees.filter((a) => a !== assignee);
+          updatedAssignees.set(task.id, newAssignees);
+          return { ...task, assignees: newAssignees };
+        }),
       );
+      // Persist each updated assignee list to DB
+      updatedAssignees.forEach((newAssignees, taskId) => {
+        updateTask(taskId, { assignees: newAssignees }, { skipLocalState: true });
+      });
     },
-    [selectedTaskIds, setTasksWithHistory],
+    [selectedTaskIds, setTasksWithHistory, updateTask],
   );
 
   // Open task detail modal
@@ -459,7 +497,7 @@ export default function Tasks() {
 
     const renderTaskCard = (task: Task) => (
       <SortableTaskCard
-        key={task.id}
+        key={task._tempId || task.id}
         {...task}
         isSelected={selectedTaskIds.has(task.id)}
         selectedCount={selectedTaskIds.has(task.id) ? selectedCount : 0}

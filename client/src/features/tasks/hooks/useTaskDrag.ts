@@ -75,13 +75,18 @@ export function useTaskDrag({
 
   useMemo(() => {
     const newMap = new Map<string, Task>();
-    tasks.forEach((t) => newMap.set(t.id, t));
+    tasks.forEach((t) => {
+      newMap.set(t.id, t);
+      if (t._tempId && t._tempId !== t.id) newMap.set(t._tempId, t);
+    });
     taskByIdRef.current = newMap;
   }, [tasks]);
 
-  const todoTaskIds = useMemo(() => todoTasks.map((t) => t.id), [todoTasks]);
-  const inProgressTaskIds = useMemo(() => inProgressTasks.map((t) => t.id), [inProgressTasks]);
-  const doneTaskIds = useMemo(() => doneTasks.map((t) => t.id), [doneTasks]);
+  const getStableIds = (tasks: Task[]) => tasks.map((t) => t._tempId || t.id);
+
+  const todoTaskIds = useMemo(() => getStableIds(todoTasks), [todoTasks]);
+  const inProgressTaskIds = useMemo(() => getStableIds(inProgressTasks), [inProgressTasks]);
+  const doneTaskIds = useMemo(() => getStableIds(doneTasks), [doneTasks]);
 
   useEffect(() => {
     return () => {
@@ -157,13 +162,11 @@ export function useTaskDrag({
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
       const draggedId = event.active.id as string;
-      setActiveTaskId(draggedId);
-
       const activeTask = taskByIdRef.current.get(draggedId);
       if (activeTask) {
-        const movingIds = selectedTaskIds.has(draggedId)
-          ? Array.from(selectedTaskIds)
-          : [draggedId];
+        setActiveTaskId(activeTask.id);
+        const realId = activeTask.id;
+        const movingIds = selectedTaskIds.has(realId) ? Array.from(selectedTaskIds) : [realId];
 
         movingIdSetRef.current = new Set(movingIds);
 
@@ -220,7 +223,7 @@ export function useTaskDrag({
 
       if (!activeTask) return;
 
-      const movingIds = projectionRef.current?.movingIds || [activeId];
+      const movingIds = projectionRef.current?.movingIds || [activeTask?.id || activeId];
       const isSameColumn = activeTask.status === targetStatus;
 
       const cache = columnCacheRef.current;
@@ -327,11 +330,16 @@ export function useTaskDrag({
         return;
       }
 
-      const activeId = active.id as string;
-      const overId = over.id as string;
+      const rawActiveId = active.id as string;
+      const rawOverId = over.id as string;
 
-      const activeTask = tasks.find((t) => t.id === activeId);
+      const activeTask = taskByIdRef.current.get(rawActiveId);
       if (!activeTask) return;
+      const activeId = activeTask.id;
+      const isOverColumn = ["To Do", "In Progress", "Done"].includes(rawOverId);
+      const overId = isOverColumn
+        ? rawOverId
+        : (taskByIdRef.current.get(rawOverId)?.id ?? rawOverId);
 
       const { targetStatus } = projection;
 

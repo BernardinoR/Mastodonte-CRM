@@ -509,12 +509,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // Ignorar tasks temporárias (ainda não criadas na API)
-      if (taskId.startsWith("temp-")) return;
-
-      // Acumular updates
+      // Acumular updates (inclusive para tasks temporárias)
       const currentUpdates = pendingUpdates.current.get(taskId) || {};
       pendingUpdates.current.set(taskId, { ...currentUpdates, ...updates });
+
+      // Não flush tasks temporárias (serão flushed após sync)
+      if (taskId.startsWith("temp-")) return;
 
       // Cancelar timer anterior se existir
       const existingTimer = debounceTimers.current.get(taskId);
@@ -663,35 +663,44 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
         // Pegar histórico pendente (adicionado localmente enquanto task era temp)
         let pendingHistory: TaskHistoryEvent[] = [];
+        // Pegar edições pendentes feitas durante estado temp
+        const pendingEdits = pendingUpdates.current.get(tempId);
+
         setTasks((prev) => {
           const tempTask = prev.find((t) => t.id === tempId);
           if (tempTask?.history) {
             pendingHistory = tempTask.history.filter((h) => h.id.startsWith("temp-"));
           }
-          if (fullRow) {
-            const mapped = mapDbRowToTask(fullRow as DbTask);
-            return prev.map((t) =>
-              t.id === tempId
-                ? {
-                    ...mapped,
-                    _tempId: tempId,
-                    history: sortHistoryDesc([...(mapped.history || []), ...pendingHistory]),
-                  }
-                : t,
-            );
-          }
+          const mapped = fullRow ? mapDbRowToTask(fullRow as DbTask) : null;
           return prev.map((t) =>
             t.id === tempId
               ? {
-                  ...t,
-                  id: realTaskId,
+                  ...t, // Keep local state (order, priority, dueDate, status, title etc.)
+                  ...(pendingEdits || {}), // Apply pending edits
+                  id: realTaskId, // Update to real ID
                   _tempId: tempId,
-                  history: sortHistoryDesc([...apiHistory, ...pendingHistory]),
-                  syncStatus: undefined,
+                  syncStatus: undefined, // Mark as synced
+                  // Only bring DB-enrichment fields from mapped (fields not present on optimistic task):
+                  ...(mapped
+                    ? {
+                        clientEmail: mapped.clientEmail,
+                        clientPhone: mapped.clientPhone,
+                        meeting: mapped.meeting,
+                        assignees: mapped.assignees,
+                      }
+                    : {}),
+                  history: sortHistoryDesc([...(mapped?.history || apiHistory), ...pendingHistory]),
                 }
               : t,
           );
         });
+
+        // Flush edições pendentes para API com ID real
+        if (pendingEdits) {
+          pendingUpdates.current.delete(tempId);
+          pendingUpdates.current.set(realTaskId, pendingEdits);
+          flushUpdate(realTaskId);
+        }
 
         pendingCreateData.current.delete(tempId);
 
