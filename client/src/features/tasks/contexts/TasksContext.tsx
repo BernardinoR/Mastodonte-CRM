@@ -314,53 +314,91 @@ export function TasksProvider({ children }: { children: ReactNode }) {
   const handleRealtimeRef = useRef(handleRealtimeTaskChange);
   handleRealtimeRef.current = handleRealtimeTaskChange;
 
-  // Real-time subscription for cross-user sync
+  // Real-time subscription for cross-user sync (with reconnection logic)
+  const reconnectAttemptsRef = useRef(0);
+
   useEffect(() => {
-    const channel = supabase
-      .channel("tasks-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, (payload) => {
-        console.debug("[Realtime] Event received on tasks table:", payload.eventType);
-        const taskId =
-          (payload.new as Record<string, unknown>)?.id ||
-          (payload.old as Record<string, unknown>)?.id;
-        if (taskId) handleRealtimeRef.current?.(taskId as string, payload.eventType);
-      })
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "task_assignees" },
-        (payload) => {
-          console.debug("[Realtime] Event received on task_assignees table:", payload.eventType);
+    let unmounted = false;
+    let reconnectTimer: ReturnType<typeof setTimeout>;
+    let activeChannel: ReturnType<typeof supabase.channel> | null = null;
+    const MAX_BACKOFF = 30_000;
+
+    function createChannel() {
+      const channel = supabase
+        .channel(`tasks-realtime-${Date.now()}`)
+        .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, (payload) => {
+          console.debug("[Realtime] Event received on tasks table:", payload.eventType);
           const taskId =
-            (payload.new as Record<string, unknown>)?.task_id ||
-            (payload.old as Record<string, unknown>)?.task_id;
-          if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "task_history" },
-        (payload) => {
-          console.debug("[Realtime] Event received on task_history table:", payload.eventType);
-          const taskId =
-            (payload.new as Record<string, unknown>)?.task_id ||
-            (payload.old as Record<string, unknown>)?.task_id;
-          if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
-        },
-      )
-      .subscribe((status, err) => {
-        if (status === "SUBSCRIBED") {
-          console.log("[Realtime] Connected to tasks channel");
-        } else if (status === "CHANNEL_ERROR") {
-          console.error("[Realtime] Channel error:", err?.message);
-        } else if (status === "TIMED_OUT") {
-          console.warn("[Realtime] Subscription timed out, retrying...");
-        } else if (status === "CLOSED") {
-          console.warn("[Realtime] Channel closed");
-        }
-      });
+            (payload.new as Record<string, unknown>)?.id ||
+            (payload.old as Record<string, unknown>)?.id;
+          if (taskId) handleRealtimeRef.current?.(taskId as string, payload.eventType);
+        })
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "task_assignees" },
+          (payload) => {
+            console.debug("[Realtime] Event received on task_assignees table:", payload.eventType);
+            const taskId =
+              (payload.new as Record<string, unknown>)?.task_id ||
+              (payload.old as Record<string, unknown>)?.task_id;
+            if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "task_history" },
+          (payload) => {
+            console.debug("[Realtime] Event received on task_history table:", payload.eventType);
+            const taskId =
+              (payload.new as Record<string, unknown>)?.task_id ||
+              (payload.old as Record<string, unknown>)?.task_id;
+            if (taskId) handleRealtimeRef.current?.(taskId as string, "UPDATE");
+          },
+        )
+        .subscribe((status, err) => {
+          if (status === "SUBSCRIBED") {
+            console.log("[Realtime] Connected to tasks channel");
+            reconnectAttemptsRef.current = 0;
+          } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+            const label =
+              status === "CHANNEL_ERROR"
+                ? "Channel error"
+                : status === "TIMED_OUT"
+                  ? "Subscription timed out"
+                  : "Channel closed";
+            console.warn(`[Realtime] ${label}:`, err?.message ?? "");
+
+            if (unmounted) return;
+
+            // Remove the failed channel and schedule a reconnect
+            supabase.removeChannel(channel);
+            if (activeChannel === channel) activeChannel = null;
+
+            reconnectAttemptsRef.current += 1;
+            const delay = Math.min(
+              1000 * Math.pow(2, reconnectAttemptsRef.current - 1),
+              MAX_BACKOFF,
+            );
+            console.log(
+              `[Realtime] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`,
+            );
+            reconnectTimer = setTimeout(() => {
+              if (!unmounted) {
+                activeChannel = createChannel();
+              }
+            }, delay);
+          }
+        });
+
+      return channel;
+    }
+
+    activeChannel = createChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      unmounted = true;
+      clearTimeout(reconnectTimer);
+      if (activeChannel) supabase.removeChannel(activeChannel);
       // Clear any pending realtime fetch timers
       realtimeFetchTimers.current.forEach((timer) => clearTimeout(timer));
       realtimeFetchTimers.current.clear();
