@@ -131,6 +131,7 @@ export const TaskCard = memo(function TaskCard({
     titleRef,
     clickTimeoutRef,
     handleUpdate,
+    handleSave,
     handleTitleEdit,
     updateEditingTitle,
     handleEditClick,
@@ -302,7 +303,7 @@ export const TaskCard = memo(function TaskCard({
                 }
                 handleUpdate("title", titleToSave);
               }}
-              onConfirmTitleEdit={() => onFinishEditing?.(id)}
+              onConfirmTitleEdit={handleSave}
               onTypeChange={(type) => handleUpdate("taskType", type)}
             />
 
