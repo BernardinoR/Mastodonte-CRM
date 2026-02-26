@@ -309,7 +309,13 @@ export function TaskDetailModal({
   const priorityBadgeStyle = task.priority ? MODAL_PRIORITY_BADGE_STYLES[task.priority] : null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(open) => {
+        if (!open) handleClose();
+        else onOpenChange(true);
+      }}
+    >
       <DialogContent
         hideCloseButton
         onEscapeKeyDown={(e) => e.stopPropagation()}
