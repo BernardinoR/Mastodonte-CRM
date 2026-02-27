@@ -22,6 +22,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
     totalTasks,
     sortedTasks,
     exitTurboMode,
+    suspendTurboMode,
     goToNext,
     goToPrevious,
     markActionPerformed,
@@ -430,6 +431,7 @@ export const TurboModeOverlay = memo(function TurboModeOverlay({
         onUpdateTask={handleTaskUpdate}
         isTurboModeActive={true}
         turboActionPerformed={actionPerformed}
+        onTurboNavigateAway={suspendTurboMode}
       />
 
       {/* Timer bar and arrows rendered via portal AFTER the dialog to ensure they're on top */}

@@ -7,6 +7,7 @@ export interface UsePomodoroTimerReturn {
   startTimer: () => void;
   pauseTimer: () => void;
   resetTimer: () => void;
+  restoreTimer: (seconds: number) => void;
   formatTime: (seconds: number) => string;
 }
 
@@ -21,6 +22,7 @@ export function usePomodoroTimer(
   const remainingAtStartRef = useRef<number>(POMODORO_DURATION);
   const timerIntervalRef = useRef<number | null>(null);
   const timerEndTriggeredRef = useRef<boolean>(false);
+  const skipNextResetRef = useRef<boolean>(false);
 
   // Timer countdown effect
   useEffect(() => {
@@ -54,9 +56,13 @@ export function usePomodoroTimer(
     }
   }, [isActive, remainingSeconds, onTimerEnd]);
 
-  // Reset timer when Turbo Mode starts
+  // Reset timer when Turbo Mode starts (skip if restoring)
   useEffect(() => {
     if (isActive) {
+      if (skipNextResetRef.current) {
+        skipNextResetRef.current = false;
+        return;
+      }
       setRemainingSeconds(POMODORO_DURATION);
       remainingAtStartRef.current = POMODORO_DURATION;
       setTimerRunning(false);
@@ -95,6 +101,15 @@ export function usePomodoroTimer(
     setTimerRunning(false);
   }, []);
 
+  const restoreTimer = useCallback((seconds: number) => {
+    const clamped = Math.max(0, seconds);
+    setRemainingSeconds(clamped);
+    remainingAtStartRef.current = clamped;
+    setTimerRunning(false);
+    timerEndTriggeredRef.current = clamped === 0;
+    skipNextResetRef.current = true;
+  }, []);
+
   const formatTime = useCallback((seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -107,6 +122,7 @@ export function usePomodoroTimer(
     startTimer,
     pauseTimer,
     resetTimer,
+    restoreTimer,
     formatTime,
   };
 }

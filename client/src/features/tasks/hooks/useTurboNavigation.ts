@@ -1,6 +1,10 @@
 import { useState, useCallback, useMemo, useRef } from "react";
 import type { Task } from "../types/task";
-import { PRIORITY_ORDER, type TaskTurboStatus } from "../lib/turboModeConfig";
+import {
+  PRIORITY_ORDER,
+  type TaskTurboStatus,
+  type TurboSuspendedNavigation,
+} from "../lib/turboModeConfig";
 import { useTasks } from "../contexts/TasksContext";
 
 export interface UseTurboNavigationReturn {
@@ -17,6 +21,8 @@ export interface UseTurboNavigationReturn {
   actionPerformed: boolean;
   initializeSession: (tasks: Task[]) => void;
   resetSession: () => void;
+  getSessionSnapshot: () => TurboSuspendedNavigation;
+  restoreSession: (snapshot: TurboSuspendedNavigation) => void;
 }
 
 export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
@@ -208,6 +214,46 @@ export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
     setActionPerformed(false);
   }, []);
 
+  const getSessionSnapshot = useCallback((): TurboSuspendedNavigation => {
+    return {
+      sessionTaskIds,
+      currentIndex,
+      taskStatuses,
+      actionPerformed,
+    };
+  }, [sessionTaskIds, currentIndex, taskStatuses, actionPerformed]);
+
+  const restoreSession = useCallback(
+    (snapshot: TurboSuspendedNavigation) => {
+      // Filter session task IDs against live context tasks
+      const validIds = snapshot.sessionTaskIds.filter((id) => liveTasksMap[id]);
+      if (validIds.length === 0) return;
+
+      // Rebuild snapshot from live data
+      const newSnapshot: Record<string, Task> = {};
+      validIds.forEach((id) => {
+        newSnapshot[id] = { ...liveTasksMap[id] };
+      });
+
+      setSessionTaskIds(validIds);
+      setSessionTaskSnapshot(newSnapshot);
+
+      // Clamp index to valid range
+      const clampedIndex = Math.min(snapshot.currentIndex, validIds.length - 1);
+      setCurrentIndex(Math.max(0, clampedIndex));
+
+      // Restore statuses only for valid IDs
+      const restoredStatuses: Record<string, TaskTurboStatus> = {};
+      validIds.forEach((id) => {
+        restoredStatuses[id] = snapshot.taskStatuses[id] || { visited: false, hadAction: false };
+      });
+      setTaskStatuses(restoredStatuses);
+
+      setActionPerformed(snapshot.actionPerformed);
+    },
+    [liveTasksMap],
+  );
+
   return {
     currentIndex,
     currentTask,
@@ -222,5 +268,7 @@ export function useTurboNavigation(allTasks: Task[]): UseTurboNavigationReturn {
     actionPerformed,
     initializeSession,
     resetSession,
+    getSessionSnapshot,
+    restoreSession,
   };
 }

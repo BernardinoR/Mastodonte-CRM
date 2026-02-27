@@ -3,7 +3,13 @@ import type { Task } from "../types/task";
 import { usePomodoroTimer } from "./usePomodoroTimer";
 import { useAudioNotification } from "./useAudioNotification";
 import { useTurboNavigation } from "./useTurboNavigation";
-import { type TaskTurboStatus, type TurboSessionStats } from "../lib/turboModeConfig";
+import {
+  type TaskTurboStatus,
+  type TurboSessionStats,
+  saveTurboSuspendedState,
+  loadTurboSuspendedState,
+  clearTurboSuspendedState,
+} from "../lib/turboModeConfig";
 
 export { type TaskTurboStatus, type TurboSessionStats } from "../lib/turboModeConfig";
 
@@ -27,6 +33,7 @@ export interface UseTurboModeReturn {
   completedInSession: number;
   startTurboMode: () => void;
   exitTurboMode: () => void;
+  suspendTurboMode: () => void;
   closeSummary: () => void;
   goToNext: () => void;
   goToPrevious: () => void;
@@ -56,6 +63,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
 
   const handleTimerEnd = useCallback(() => {
     playTimerEndSound();
+    clearTurboSuspendedState();
 
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
     const tasksWithHistory = Object.values(navigation.taskStatuses).filter(
@@ -110,6 +118,8 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   }, [navigation, timer]);
 
   const exitTurboMode = useCallback(() => {
+    clearTurboSuspendedState();
+
     const sessionDuration = Math.floor((Date.now() - sessionStartTimeRef.current) / 1000);
     const tasksWithHistory = Object.values(navigation.taskStatuses).filter(
       (s) => s.hadAction,
@@ -135,10 +145,50 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
   }, [navigation.taskStatuses, navigation.totalTasks, tasksMovedToDone]);
 
   const closeSummary = useCallback(() => {
+    clearTurboSuspendedState();
     setShowSummary(false);
     setSessionStats(null);
     navigation.resetSession();
   }, [navigation]);
+
+  const suspendTurboMode = useCallback(() => {
+    timer.pauseTimer();
+
+    const suspended = {
+      navigation: navigation.getSessionSnapshot(),
+      timerRemainingSeconds: timer.remainingSeconds,
+      timerWasRunning: timer.timerRunning,
+      sessionStartTime: sessionStartTimeRef.current,
+      completedInSession,
+      tasksMovedToDone,
+      suspendedAt: Date.now(),
+    };
+    saveTurboSuspendedState(suspended);
+
+    // Deactivate without showing summary
+    setIsActive(false);
+  }, [timer, navigation, completedInSession, tasksMovedToDone]);
+
+  // Auto-resume suspended turbo session on mount
+  useEffect(() => {
+    const saved = loadTurboSuspendedState();
+    if (!saved) return;
+    clearTurboSuspendedState();
+
+    navigation.restoreSession(saved.navigation);
+    timer.restoreTimer(saved.timerRemainingSeconds);
+
+    setCompletedInSession(saved.completedInSession);
+    setTasksMovedToDone(saved.tasksMovedToDone);
+    sessionStartTimeRef.current = saved.sessionStartTime;
+
+    setIsActive(true);
+
+    if (saved.timerWasRunning) {
+      setTimeout(() => timer.startTimer(), 0);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const goToNext = useCallback(() => {
     if (navigation.actionPerformed) {
@@ -187,6 +237,7 @@ export function useTurboMode(tasks: Task[]): UseTurboModeReturn {
     completedInSession,
     startTurboMode,
     exitTurboMode,
+    suspendTurboMode,
     closeSummary,
     goToNext,
     goToPrevious,

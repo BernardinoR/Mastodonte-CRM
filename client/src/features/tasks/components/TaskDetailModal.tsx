@@ -45,6 +45,7 @@ interface TaskDetailModalProps {
   onUpdateTask: (taskId: string, updates: Partial<Task>) => void;
   isTurboModeActive?: boolean;
   turboActionPerformed?: boolean;
+  onTurboNavigateAway?: () => void;
 }
 
 function isTaskOverdue(dueDate: string | Date): boolean {
@@ -82,6 +83,7 @@ export function TaskDetailModal({
   onUpdateTask,
   isTurboModeActive = false,
   turboActionPerformed = false,
+  onTurboNavigateAway,
 }: TaskDetailModalProps) {
   const [, navigate] = useLocation();
   const { getFullClientData } = useClients();
@@ -170,15 +172,37 @@ export function TaskDetailModal({
     onOpenChange(false);
   }, [task, description, onUpdateTask, onOpenChange]);
 
+  const navigateAway = useCallback(
+    (path: string) => {
+      // Save unsaved description
+      if (task && description !== (task.description || "")) {
+        onUpdateTask(task.id, { description });
+      }
+      if (isTurboModeActive && onTurboNavigateAway) {
+        onTurboNavigateAway();
+      } else {
+        onOpenChange(false);
+      }
+      navigate(path);
+    },
+    [
+      task,
+      description,
+      onUpdateTask,
+      isTurboModeActive,
+      onTurboNavigateAway,
+      onOpenChange,
+      navigate,
+    ],
+  );
+
   const handleClientClick = useCallback(() => {
     if (task?.clientId) {
-      handleClose();
-      navigate(`/clients/${task.clientId}`);
+      navigateAway(`/clients/${task.clientId}`);
     } else if (task?.clientName) {
-      handleClose();
-      navigate(`/clients/${encodeURIComponent(task.clientName)}`);
+      navigateAway(`/clients/${encodeURIComponent(task.clientName)}`);
     }
-  }, [task, navigate, handleClose]);
+  }, [task, navigateAway]);
 
   const handleDateChange = useCallback(
     (date: Date | undefined) => {
@@ -627,8 +651,7 @@ export function TaskDetailModal({
                   meeting={task.meeting}
                   clientMeetings={clientMeetings}
                   onNavigate={(meetingId) => {
-                    handleClose();
-                    navigate(`/clients/${task.clientId}?meetingId=${meetingId}`);
+                    navigateAway(`/clients/${task.clientId}?meetingId=${meetingId}`);
                   }}
                   onLink={handleLinkMeeting}
                   onUnlink={handleUnlinkMeeting}
