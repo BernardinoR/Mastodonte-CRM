@@ -16,6 +16,7 @@ interface TaskContactButtonsProps {
   clientName?: string;
   clientId?: string;
   whatsappGroups?: WhatsAppGroup[];
+  onSchedulingSent?: () => void;
 }
 
 export function TaskContactButtons({
@@ -24,6 +25,7 @@ export function TaskContactButtons({
   clientName,
   clientId,
   whatsappGroups = [],
+  onSchedulingSent,
 }: TaskContactButtonsProps) {
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
   const { data: currentUserData } = useCurrentUser();
@@ -64,6 +66,8 @@ export function TaskContactButtons({
     const message = buildSchedulingMessage(clientName, calendarLink);
     const url = buildWhatsAppSchedulingUrl(clientPhone, message);
     window.open(url, "_blank");
+
+    onSchedulingSent?.();
   };
 
   return (

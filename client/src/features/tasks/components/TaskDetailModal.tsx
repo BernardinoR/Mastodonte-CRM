@@ -635,6 +635,13 @@ export function TaskDetailModal({
               clientName={linkedClient?.name || task.clientName}
               clientId={task.clientId}
               whatsappGroups={whatsappGroups}
+              onSchedulingSent={() =>
+                addTaskHistory(
+                  task.id,
+                  "whatsapp",
+                  "Link de agendamento enviado para o cliente via WhatsApp",
+                )
+              }
             />
 
             {/* 6. Description */}
