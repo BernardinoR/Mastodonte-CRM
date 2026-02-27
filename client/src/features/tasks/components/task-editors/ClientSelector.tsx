@@ -37,17 +37,15 @@ export function ClientSelector({ selectedClient, onSelect }: ClientSelectorProps
           <div className="px-3 py-1.5 text-xs text-gray-500">Cliente selecionado</div>
           <div className="px-3 py-1">
             <div
-              className="flex cursor-pointer items-center gap-2 rounded-md bg-[#2a2a2a] px-2 py-1.5"
+              className="group flex cursor-pointer items-center gap-2 rounded-md bg-[#2a2a2a] px-2 py-1.5"
               onClick={(e) => {
                 e.stopPropagation();
-                const client = clients.find((c) => c.name === selectedClient);
-                if (client) {
-                  onSelect(client.id, client.name);
-                }
+                onSelect("_none", "");
               }}
             >
               <Check className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-foreground">{selectedClient}</span>
+              <span className="flex-1 text-sm text-foreground">{selectedClient}</span>
+              <X className="h-3 w-3 text-gray-500 opacity-0 transition-opacity group-hover:opacity-100" />
             </div>
           </div>
         </div>
