@@ -396,6 +396,67 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     fetchClients();
   }, [fetchClients, activeRole]);
 
+  // Realtime subscription for meetings table
+  useEffect(() => {
+    const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
+    const channel = supabase
+      .channel("meetings-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, (payload) => {
+        const row = (payload.new ?? payload.old) as Record<string, unknown> | undefined;
+        const clientId = row?.client_id as string | undefined;
+        if (!clientId) return;
+
+        const existing = debounceTimers.get(clientId);
+        if (existing) clearTimeout(existing);
+
+        debounceTimers.set(
+          clientId,
+          setTimeout(async () => {
+            debounceTimers.delete(clientId);
+            const { data } = await supabase
+              .from("meetings")
+              .select(
+                "id, title, type, status, date, start_time, end_time, creator:users!creator_id(name)",
+              )
+              .eq("client_id", clientId);
+            if (!data) return;
+
+            const meetings: ClientMeeting[] = data.map((m: any) => ({
+              id: String(m.id),
+              name: m.title || "",
+              type: m.type || "Prospecção",
+              status: m.status || "Agendada",
+              date: new Date(m.date),
+              assignees: m.creator?.name ? [m.creator.name] : [],
+            }));
+
+            const hasScheduled = meetings.some(
+              (m) => m.type === "Mensal" && m.status === "Agendada",
+            );
+
+            setExtendedData((prev) => ({
+              ...prev,
+              [clientId]: { ...prev[clientId], meetings },
+            }));
+
+            setClients((prev) =>
+              prev.map((c) =>
+                c.id === clientId ? { ...c, hasScheduledMeeting: hasScheduled } : c,
+              ),
+            );
+            setDataVersion((v) => v + 1);
+          }, 500),
+        );
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      debounceTimers.forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
+
   const refetchClients = useCallback(async () => {
     await fetchClients();
   }, [fetchClients]);
