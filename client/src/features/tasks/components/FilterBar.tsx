@@ -23,9 +23,12 @@ import {
   CalendarRange,
   Rocket,
   Layers,
+  Users,
+  UserX,
 } from "lucide-react";
 import { addDays, addWeeks, startOfDay } from "date-fns";
 import { cn } from "@/shared/lib/utils";
+import { useUsers } from "@features/users";
 import {
   STATUS_OPTIONS,
   PRIORITY_OPTIONS,
@@ -91,6 +94,8 @@ interface FilterBarProps {
   showPriority?: boolean;
   selectedTaskTypes?: TaskType[];
   onSelectedTaskTypesChange?: (types: TaskType[]) => void;
+  selectedAssignees?: string[];
+  onSelectedAssigneesChange?: (assignees: string[]) => void;
 }
 
 const SORT_FIELD_LABELS: Record<SortField, string> = {
@@ -329,6 +334,8 @@ export function FilterBar({
   onActivePresetChange = () => {},
   selectedTaskTypes = [],
   onSelectedTaskTypesChange = () => {},
+  selectedAssignees = [],
+  onSelectedAssigneesChange = () => {},
 }: FilterBarProps) {
   const [filterBarExpanded, setFilterBarExpanded] = useState(false);
   const [addSortPopoverOpen, setAddSortPopoverOpen] = useState(false);
@@ -338,7 +345,11 @@ export function FilterBar({
   const [addFilterPopoverKey, setAddFilterPopoverKey] = useState(0);
   const [presetsPopoverOpen, setPresetsPopoverOpen] = useState(false);
   const [taskTypePopoverOpen, setTaskTypePopoverOpen] = useState(false);
+  const [assigneePopoverOpen, setAssigneePopoverOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Get team users for assignee filter
+  const { teamUsers, currentUser } = useUsers();
 
   // Calculate task counts for each preset - fallback to empty array if tasks undefined
   const presetCounts = useMemo(() => {
@@ -518,7 +529,8 @@ export function FilterBar({
     onReset();
     onActivePresetChange(null);
     onSelectedTaskTypesChange([]);
-  }, [onReset, onActivePresetChange, onSelectedTaskTypesChange]);
+    onSelectedAssigneesChange([]);
+  }, [onReset, onActivePresetChange, onSelectedTaskTypesChange, onSelectedAssigneesChange]);
 
   return (
     <div className="mb-4 flex flex-col gap-2">
@@ -658,6 +670,97 @@ export function FilterBar({
           </PopoverContent>
         </Popover>
 
+        {/* Assignee Quick Filter */}
+        <Popover open={assigneePopoverOpen} onOpenChange={setAssigneePopoverOpen}>
+          <PopoverTrigger asChild>
+            <button
+              className={cn(
+                "flex h-8 w-8 items-center justify-center rounded-full transition-colors",
+                selectedAssignees.length > 0
+                  ? "bg-teal-500/20 text-teal-400"
+                  : "text-gray-500 hover:bg-[#1a1a1a] hover:text-gray-300",
+              )}
+              title="Responsável"
+              data-testid="button-assignee-filter"
+            >
+              <Users className="h-4 w-4" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-56 border border-[#3a3a3a] bg-[#1a1a1a] p-2"
+            side="bottom"
+            align="start"
+            sideOffset={8}
+            collisionPadding={16}
+            avoidCollisions
+          >
+            <div className="flex flex-col gap-1">
+              <div className="px-2 py-1.5 text-xs font-medium uppercase tracking-wider text-gray-500">
+                Responsável
+              </div>
+              {teamUsers.map((user) => {
+                const isActive = selectedAssignees.includes(user.name);
+                return (
+                  <button
+                    key={user.id}
+                    onClick={() => {
+                      if (isActive) {
+                        onSelectedAssigneesChange(selectedAssignees.filter((a) => a !== user.name));
+                      } else {
+                        onSelectedAssigneesChange([...selectedAssignees, user.name]);
+                      }
+                    }}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
+                      isActive ? "border border-teal-500/30 bg-teal-500/10" : "hover:bg-[#2a2a2a]",
+                    )}
+                    data-testid={`assignee-filter-${user.name}`}
+                  >
+                    <div
+                      className={cn(
+                        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-medium text-white",
+                        user.avatarColor,
+                      )}
+                    >
+                      {user.initials}
+                    </div>
+                    <span className="flex-1 truncate text-sm text-gray-200">
+                      {user.name}
+                      {user.isCurrentUser && (
+                        <span className="ml-1 text-xs text-gray-500">(você)</span>
+                      )}
+                    </span>
+                  </button>
+                );
+              })}
+              {teamUsers.length > 0 && <div className="my-1 h-px bg-[#333]" />}
+              {/* Unassigned option */}
+              <button
+                onClick={() => {
+                  const key = "__unassigned__";
+                  if (selectedAssignees.includes(key)) {
+                    onSelectedAssigneesChange(selectedAssignees.filter((a) => a !== key));
+                  } else {
+                    onSelectedAssigneesChange([...selectedAssignees, key]);
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-3 rounded-md px-2 py-2 text-left transition-colors",
+                  selectedAssignees.includes("__unassigned__")
+                    ? "border border-teal-500/30 bg-teal-500/10"
+                    : "hover:bg-[#2a2a2a]",
+                )}
+                data-testid="assignee-filter-unassigned"
+              >
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#333] text-gray-400">
+                  <UserX className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-sm text-gray-200">Sem responsável</span>
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
         {/* Presets Popover */}
         <Popover open={presetsPopoverOpen} onOpenChange={setPresetsPopoverOpen}>
           <PopoverTrigger asChild>
@@ -780,7 +883,10 @@ export function FilterBar({
         </button>
 
         {/* Clear Filters */}
-        {(hasActiveFilters || activePreset || selectedTaskTypes.length > 0) && (
+        {(hasActiveFilters ||
+          activePreset ||
+          selectedTaskTypes.length > 0 ||
+          selectedAssignees.length > 0) && (
           <button
             onClick={handleResetWithPreset}
             className="text-xs text-gray-500 transition-colors hover:text-gray-300"

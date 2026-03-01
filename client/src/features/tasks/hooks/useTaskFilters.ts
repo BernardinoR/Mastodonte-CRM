@@ -65,6 +65,7 @@ export function useTaskFilters(
   tasks: Task[],
   initialFilters?: TypedActiveFilter[],
   selectedTaskTypes: TaskType[] = [],
+  selectedAssignees: string[] = [],
 ): UseTaskFiltersReturn {
   // Inicializar viewMode baseado na URL para evitar flash ao navegar
   const initialViewMode =
@@ -198,6 +199,22 @@ export function useTaskFilters(
         if (!selectedTaskTypes.includes(type as TaskType)) return false;
       }
 
+      // Quick assignee filter
+      if (selectedAssignees.length > 0) {
+        const includeUnassigned = selectedAssignees.includes("__unassigned__");
+        const nameFilters = selectedAssignees.filter((a) => a !== "__unassigned__");
+
+        if (task.assignees.length === 0) {
+          if (!includeUnassigned) return false;
+        } else if (nameFilters.length > 0) {
+          const hasMatch = task.assignees.some((a) => nameFilters.includes(a));
+          if (!hasMatch && !includeUnassigned) return false;
+        } else {
+          // Only __unassigned__ is selected, and this task has assignees
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -234,7 +251,7 @@ export function useTaskFilters(
     }
 
     return result;
-  }, [tasks, sorts, activeFilters, selectedTaskTypes]);
+  }, [tasks, sorts, activeFilters, selectedTaskTypes, selectedAssignees]);
 
   const defaultTaskSort = (a: Task, b: Task) => {
     const aPriority = PRIORITY_ORDER[a.priority || "Normal"] ?? 3;

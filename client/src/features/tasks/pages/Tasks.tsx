@@ -26,6 +26,7 @@ import type { Task, TaskType, TaskStatus, TaskPriority, TypedActiveFilter } from
 import { createTypedFilter } from "../types/task";
 import { createNewTask } from "@/shared/lib/mock-data";
 import { useTasks } from "../contexts/TasksContext";
+import { useUsers } from "@features/users";
 import { useTaskFilters } from "../hooks/useTaskFilters";
 import { useTaskSelection } from "../hooks/useTaskSelection";
 import { useTaskDrag } from "../hooks/useTaskDrag";
@@ -45,6 +46,7 @@ export default function Tasks() {
     return saved !== null ? saved || null : "work";
   });
   const [selectedTaskTypes, setSelectedTaskTypes] = useState<TaskType[]>([]);
+  const [selectedAssignees, setSelectedAssignees] = useState<string[]>([]);
 
   // Pagination state per column - tracks how many tasks are visible
   const [visibleCounts, setVisibleCounts] = useState<Record<TaskStatus, number>>({
@@ -63,6 +65,18 @@ export default function Tasks() {
     createTask,
     retryTaskSync,
   } = useTasks();
+
+  // Get current user for default assignee filter
+  const { currentUser } = useUsers();
+
+  // Default: select current user as assignee filter
+  const hasInitAssigneeRef = useRef(false);
+  useEffect(() => {
+    if (currentUser && !hasInitAssigneeRef.current) {
+      hasInitAssigneeRef.current = true;
+      setSelectedAssignees([currentUser.name]);
+    }
+  }, [currentUser]);
 
   // Ler parâmetros da URL
   const urlParams = useTaskUrlParams();
@@ -95,7 +109,7 @@ export default function Tasks() {
     todoTasks,
     inProgressTasks,
     doneTasks,
-  } = useTaskFilters(tasks, initialFilters, selectedTaskTypes);
+  } = useTaskFilters(tasks, initialFilters, selectedTaskTypes, selectedAssignees);
 
   // Persistir preset ativo na sessionStorage
   useEffect(() => {
@@ -620,6 +634,8 @@ export default function Tasks() {
         onActivePresetChange={setActivePresetId}
         selectedTaskTypes={selectedTaskTypes}
         onSelectedTaskTypesChange={setSelectedTaskTypes}
+        selectedAssignees={selectedAssignees}
+        onSelectedAssigneesChange={setSelectedAssignees}
       />
 
       <div className="mb-6 border-b border-[#3a3a3a]" />
