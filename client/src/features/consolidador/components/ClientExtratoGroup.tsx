@@ -4,16 +4,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import type { ClientExtratoGroup as ClientExtratoGroupType } from "../types/extrato";
 import { ExtratoRow } from "./ExtratoRow";
 
-const clientColors: Record<string, { bg: string; border: string }> = {
-  AS: { bg: "bg-violet-600", border: "border-violet-800" },
-  RM: { bg: "bg-blue-600", border: "border-blue-800" },
-  JP: { bg: "bg-emerald-600", border: "border-emerald-800" },
-  MO: { bg: "bg-rose-600", border: "border-rose-800" },
-  CS: { bg: "bg-amber-600", border: "border-amber-800" },
+const clientColors: Record<string, { bg: string; text: string; border: string }> = {
+  AS: { bg: "bg-blue-900/50", text: "text-blue-300", border: "border-blue-800" },
+  RM: { bg: "bg-purple-900/50", text: "text-purple-300", border: "border-purple-800" },
+  JP: { bg: "bg-green-900/50", text: "text-green-300", border: "border-green-800" },
+  MO: { bg: "bg-rose-900/50", text: "text-rose-300", border: "border-rose-800" },
+  CS: { bg: "bg-amber-900/50", text: "text-amber-300", border: "border-amber-800" },
 };
 
 interface ClientExtratoGroupProps {
@@ -30,7 +29,8 @@ export function ClientExtratoGroup({
   onConsolidar,
 }: ClientExtratoGroupProps) {
   const colors = clientColors[group.clientInitials] || {
-    bg: "bg-gray-600",
+    bg: "bg-gray-900/50",
+    text: "text-gray-300",
     border: "border-gray-700",
   };
   const hasPending = group.pendingCount > 0;
@@ -45,11 +45,11 @@ export function ClientExtratoGroup({
         <ChevronDown
           className={`h-4 w-4 text-gray-500 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
         />
-        <Avatar className={`h-9 w-9 rounded-xl border ${colors.border}`}>
-          <AvatarFallback className={`rounded-xl text-xs font-semibold text-white ${colors.bg}`}>
-            {group.clientInitials}
-          </AvatarFallback>
-        </Avatar>
+        <div
+          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${colors.border} ${colors.bg}`}
+        >
+          <span className={`text-xs font-bold ${colors.text}`}>{group.clientInitials}</span>
+        </div>
         <span className="text-base font-bold text-white">{group.clientName}</span>
         {group.pendingCount > 0 && (
           <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs font-bold text-red-400">
