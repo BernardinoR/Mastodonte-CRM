@@ -402,6 +402,10 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   // Realtime subscription for meetings table (with visibility-change handling)
   const meetingsChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const meetingsDebounceTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  const meetingsReconnectAttemptsRef = useRef(0);
+  const meetingsReconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const meetingsUnmountedRef = useRef(false);
+  const MAX_MEETINGS_BACKOFF = 30_000;
 
   const createMeetingsChannel = useCallback(() => {
     const debounceTimers = meetingsDebounceTimers.current;
@@ -412,6 +416,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         const row = (payload.new ?? payload.old) as Record<string, unknown> | undefined;
         const clientId = row?.client_id as string | undefined;
         if (!clientId) return;
+
+        // Don't schedule fetches when tab is hidden — avoids race with onHidden cleanup
+        if (document.visibilityState === "hidden") return;
 
         const existing = debounceTimers.get(clientId);
         if (existing) clearTimeout(existing);
@@ -455,31 +462,77 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
           }, 500),
         );
       })
-      .subscribe();
+      .subscribe((status, err) => {
+        if (status === "SUBSCRIBED") {
+          console.log("[Realtime] Connected to meetings channel");
+          meetingsReconnectAttemptsRef.current = 0;
+        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          const label =
+            status === "CHANNEL_ERROR"
+              ? "Channel error"
+              : status === "TIMED_OUT"
+                ? "Subscription timed out"
+                : "Channel closed";
+          console.warn(`[Realtime] Meetings ${label}:`, err?.message ?? "");
+
+          // Don't reconnect if unmounted or tab is hidden (visibility handler will recreate)
+          if (meetingsUnmountedRef.current || document.visibilityState === "hidden") return;
+
+          // Remove the failed channel and schedule a reconnect
+          safeRemoveChannel(channel);
+          if (meetingsChannelRef.current === channel) meetingsChannelRef.current = null;
+
+          meetingsReconnectAttemptsRef.current += 1;
+          const delay = Math.min(
+            1000 * Math.pow(2, meetingsReconnectAttemptsRef.current - 1),
+            MAX_MEETINGS_BACKOFF,
+          );
+          console.log(
+            `[Realtime] Meetings reconnecting in ${delay}ms (attempt ${meetingsReconnectAttemptsRef.current})`,
+          );
+          meetingsReconnectTimerRef.current = setTimeout(() => {
+            if (!meetingsUnmountedRef.current && document.visibilityState !== "hidden") {
+              createMeetingsChannel();
+            }
+          }, delay);
+        }
+      });
 
     meetingsChannelRef.current = channel;
     return channel;
   }, []);
 
   useEffect(() => {
+    meetingsUnmountedRef.current = false;
     createMeetingsChannel();
 
     return () => {
+      meetingsUnmountedRef.current = true;
+      if (meetingsReconnectTimerRef.current) {
+        clearTimeout(meetingsReconnectTimerRef.current);
+        meetingsReconnectTimerRef.current = null;
+      }
       safeRemoveChannel(meetingsChannelRef.current);
       meetingsChannelRef.current = null;
       meetingsDebounceTimers.current.forEach((timer) => clearTimeout(timer));
+      meetingsDebounceTimers.current.clear();
     };
   }, [createMeetingsChannel]);
 
   // Tear down channel when tab is hidden, recreate + refetch when visible
   useVisibilityChange({
     onHidden: () => {
+      if (meetingsReconnectTimerRef.current) {
+        clearTimeout(meetingsReconnectTimerRef.current);
+        meetingsReconnectTimerRef.current = null;
+      }
       meetingsDebounceTimers.current.forEach((timer) => clearTimeout(timer));
       meetingsDebounceTimers.current.clear();
       safeRemoveChannel(meetingsChannelRef.current);
       meetingsChannelRef.current = null;
     },
     onVisible: () => {
+      meetingsReconnectAttemptsRef.current = 0;
       if (!meetingsChannelRef.current) {
         createMeetingsChannel();
       }

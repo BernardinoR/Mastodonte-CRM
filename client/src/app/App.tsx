@@ -138,7 +138,7 @@ export default function App() {
         msg.includes("unsubscribe") ||
         msg.includes("_trigger") ||
         msg.includes("WebSocket") ||
-        msg.includes("channel") ||
+        msg.includes("RealtimeChannel") ||
         msg.includes("heartbeat")
       ) {
         e.preventDefault();
