@@ -369,7 +369,8 @@ export function TasksProvider({ children }: { children: ReactNode }) {
                 : "Channel closed";
           console.warn(`[Realtime] ${label}:`, err?.message ?? "");
 
-          if (unmountedRef.current) return;
+          // Don't reconnect if unmounted or tab is hidden (visibility handler will recreate)
+          if (unmountedRef.current || document.visibilityState === "hidden") return;
 
           // Remove the failed channel and schedule a reconnect
           safeRemoveChannel(channel);
@@ -381,7 +382,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             `[Realtime] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`,
           );
           reconnectTimerRef.current = setTimeout(() => {
-            if (!unmountedRef.current) {
+            if (!unmountedRef.current && document.visibilityState !== "hidden") {
               tasksChannelRef.current = createTasksChannel();
             }
           }, delay);
@@ -415,6 +416,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
       tasksChannelRef.current = null;
     },
     onVisible: () => {
+      reconnectAttemptsRef.current = 0;
       if (!tasksChannelRef.current) {
         createTasksChannel();
       }
