@@ -10,9 +10,9 @@ export function ExtratoStatusBadge({ status }: ExtratoStatusBadgeProps) {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium ${style.bg} ${style.text} ${style.border}`}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${style.bg} ${style.text} ${style.border}`}
     >
-      <span className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+      <span className={`h-2 w-2 rounded-full ${style.dot}`} />
       {status}
     </span>
   );

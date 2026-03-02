@@ -1,5 +1,5 @@
 import { AlertTriangle, Mail, CheckCircle } from "lucide-react";
-import type { ExtratoStatusSummary } from "../types/extrato";
+import type { ExtratoStatus, ExtratoStatusSummary } from "../types/extrato";
 import { MonthSelector } from "./MonthSelector";
 
 interface ConsolidadorHeaderProps {
@@ -8,6 +8,8 @@ interface ConsolidadorHeaderProps {
   onMonthChange: (date: Date) => void;
   historicalCount: number;
   onOpenHistorical: () => void;
+  activeStatusFilter: ExtratoStatus | null;
+  onStatusFilterChange: (status: ExtratoStatus | null) => void;
 }
 
 export function ConsolidadorHeader({
@@ -16,7 +18,13 @@ export function ConsolidadorHeader({
   onMonthChange,
   historicalCount,
   onOpenHistorical,
+  activeStatusFilter,
+  onStatusFilterChange,
 }: ConsolidadorHeaderProps) {
+  const handleBadgeClick = (status: ExtratoStatus) => {
+    onStatusFilterChange(activeStatusFilter === status ? null : status);
+  };
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
@@ -37,18 +45,33 @@ export function ConsolidadorHeader({
         )}
       </div>
       <div className="flex items-center gap-3">
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 pl-3 pr-4 text-xs font-medium text-orange-400">
-          <AlertTriangle className="h-3.5 w-3.5" />
+        <button
+          onClick={() => handleBadgeClick("Pendente")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 pl-3 pr-4 text-sm font-medium text-orange-400 transition-all hover:bg-orange-500/20 ${
+            activeStatusFilter === "Pendente" ? "ring-2 ring-orange-500/40" : ""
+          }`}
+        >
+          <AlertTriangle className="h-4 w-4" />
           {summary.pendentes} Pendentes
-        </span>
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 pl-3 pr-4 text-xs font-medium text-blue-400">
-          <Mail className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => handleBadgeClick("Solicitado")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 pl-3 pr-4 text-sm font-medium text-blue-400 transition-all hover:bg-blue-500/20 ${
+            activeStatusFilter === "Solicitado" ? "ring-2 ring-blue-500/40" : ""
+          }`}
+        >
+          <Mail className="h-4 w-4" />
           {summary.solicitados} Solicitados
-        </span>
-        <span className="inline-flex h-8 items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 pl-3 pr-4 text-xs font-medium text-green-400">
-          <CheckCircle className="h-3.5 w-3.5" />
+        </button>
+        <button
+          onClick={() => handleBadgeClick("Recebido")}
+          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 pl-3 pr-4 text-sm font-medium text-green-400 transition-all hover:bg-green-500/20 ${
+            activeStatusFilter === "Recebido" ? "ring-2 ring-green-500/40" : ""
+          }`}
+        >
+          <CheckCircle className="h-4 w-4" />
           {summary.recebidos} Recebidos
-        </span>
+        </button>
         <div className="h-6 w-px bg-border" />
         <MonthSelector value={selectedMonth} onChange={onMonthChange} />
       </div>

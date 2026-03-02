@@ -131,6 +131,8 @@ export default function Consolidador() {
         onMonthChange={setSelectedMonth}
         historicalCount={historicalPendencies.length}
         onOpenHistorical={() => setHistoricalOpen(true)}
+        activeStatusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
       />
 
       <ConsolidadorFilters
@@ -143,9 +145,14 @@ export default function Consolidador() {
       />
 
       {actionGroups.length > 0 && (
-        <div className="flex flex-col gap-1">
-          <div className="sticky top-0 z-10 -mx-2 bg-background/95 px-2 py-2 backdrop-blur-sm">
-            <h2 className="text-base font-semibold text-white">Ação Necessária</h2>
+        <div className="flex flex-col gap-2">
+          <div className="sticky top-0 z-10 -mx-2 bg-background/95 px-2 py-3 backdrop-blur-sm">
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-bold text-white">Ação Necessária</h2>
+              <span className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
+                {actionGroups.reduce((sum, g) => sum + g.extratos.length, 0)}
+              </span>
+            </div>
           </div>
           {actionGroups.map((group) => (
             <ClientExtratoGroup
@@ -166,7 +173,7 @@ export default function Consolidador() {
       )}
 
       {consolidatedGroups.length > 0 && (
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-2">
           <div className="border-t border-border pt-4">
             <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>
               <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-white/5">

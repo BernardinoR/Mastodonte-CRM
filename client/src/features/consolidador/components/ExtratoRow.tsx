@@ -13,10 +13,10 @@ export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
   const style = statusStyles[extrato.status];
 
   return (
-    <div className="flex items-center gap-4 rounded px-4 py-2 hover:bg-white/5">
-      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${style.dot} ${style.glow}`} />
-      <span className="min-w-[140px] text-sm font-medium text-white">{extrato.institution}</span>
-      <span className="min-w-[100px] text-xs text-gray-500">{extrato.accountType}</span>
+    <div className="flex items-center gap-4 rounded-lg px-5 py-3 hover:bg-white/5">
+      <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${style.dot} ${style.glow}`} />
+      <span className="min-w-[140px] text-base font-medium text-white">{extrato.institution}</span>
+      <span className="min-w-[100px] text-sm text-gray-500">{extrato.accountType}</span>
       <span className="min-w-[120px]">
         <CollectionMethodBadge method={extrato.collectionMethod} />
       </span>
