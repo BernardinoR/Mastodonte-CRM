@@ -1,4 +1,12 @@
-import { LayoutDashboard, Users, CheckSquare, LogOut, Shield, Check } from "lucide-react";
+import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  FileBarChart,
+  LogOut,
+  Shield,
+  Check,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser, useAuth } from "@clerk/clerk-react";
 import { useMutation } from "@tanstack/react-query";
@@ -44,6 +52,12 @@ const menuItems = [
     title: "Tarefas",
     url: "/tasks",
     icon: CheckSquare,
+    adminOnly: false,
+  },
+  {
+    title: "Consolidador",
+    url: "/consolidador",
+    icon: FileBarChart,
     adminOnly: false,
   },
 ];
