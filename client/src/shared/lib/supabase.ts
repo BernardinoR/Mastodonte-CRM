@@ -10,6 +10,22 @@ export function setAccessTokenProvider(fn: (() => Promise<string | null>) | null
   accessTokenFn = fn;
 }
 
+export async function refreshRealtimeToken(): Promise<string | null> {
+  if (accessTokenFn) {
+    try {
+      const token = await accessTokenFn();
+      if (token) {
+        await supabase.realtime.setAuth(token);
+      }
+      return token;
+    } catch (err) {
+      console.warn("[Supabase] Failed to refresh realtime token:", err);
+      return null;
+    }
+  }
+  return null;
+}
+
 export const supabase: SupabaseClient = createClient(supabaseUrl || "", supabaseAnonKey || "", {
   accessToken: async () => {
     if (accessTokenFn) {

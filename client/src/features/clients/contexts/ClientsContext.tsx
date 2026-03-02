@@ -25,7 +25,7 @@ import type {
   MeetingClientContext,
 } from "@features/meetings";
 import { useUsers, useCurrentUser } from "@features/users";
-import { supabase } from "@/shared/lib/supabase";
+import { supabase, refreshRealtimeToken } from "@/shared/lib/supabase";
 import { safeRemoveChannel } from "@/shared/lib/safeRemoveChannel";
 import { useVisibilityChange } from "@/shared/hooks";
 import { type ClientExtendedData } from "@/shared/mocks/clientsMock";
@@ -500,8 +500,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
           console.log(
             `[Realtime] Meetings reconnecting in ${delay}ms (attempt ${meetingsReconnectAttemptsRef.current})`,
           );
-          meetingsReconnectTimerRef.current = setTimeout(() => {
+          meetingsReconnectTimerRef.current = setTimeout(async () => {
             if (!meetingsUnmountedRef.current && document.visibilityState !== "hidden") {
+              await refreshRealtimeToken();
               createMeetingsChannel();
             }
           }, delay);

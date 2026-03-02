@@ -11,7 +11,7 @@ import {
 import type { Task, TaskStatus, TaskPriority, TaskType, TaskHistoryEvent } from "../types/task";
 import { useClients } from "@features/clients";
 import { useUsers, useCurrentUser } from "@features/users";
-import { supabase } from "@/shared/lib/supabase";
+import { supabase, refreshRealtimeToken } from "@/shared/lib/supabase";
 import { safeRemoveChannel } from "@/shared/lib/safeRemoveChannel";
 import { useVisibilityChange } from "@/shared/hooks";
 import { parseLocalDate, formatLocalDate } from "@/shared/lib/date-utils";
@@ -391,8 +391,9 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           console.log(
             `[Realtime] Reconnecting in ${delay}ms (attempt ${reconnectAttemptsRef.current})`,
           );
-          reconnectTimerRef.current = setTimeout(() => {
+          reconnectTimerRef.current = setTimeout(async () => {
             if (!unmountedRef.current && document.visibilityState !== "hidden") {
+              await refreshRealtimeToken();
               tasksChannelRef.current = createTasksChannel();
             }
           }, delay);
