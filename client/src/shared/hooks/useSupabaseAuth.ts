@@ -77,5 +77,33 @@ export function useSupabaseAuth() {
     };
   }, [isSignedIn]);
 
+  // Periodically refresh the Realtime WebSocket auth token.
+  // Clerk tokens expire in ~60s; we refresh every 50s to stay ahead.
+  useEffect(() => {
+    if (!isReady || !isSignedIn) return;
+
+    let cancelled = false;
+
+    async function refreshRealtimeAuth() {
+      try {
+        const token = await getTokenRef.current();
+        if (token && !cancelled) {
+          await supabase.realtime.setAuth(token);
+        }
+      } catch (err) {
+        console.warn("[Supabase Auth] Realtime token refresh error:", err);
+      }
+    }
+
+    // Send a fresh token immediately and then every 50s
+    refreshRealtimeAuth();
+    const interval = setInterval(refreshRealtimeAuth, 50_000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [isReady, isSignedIn]);
+
   return { supabase, isReady };
 }

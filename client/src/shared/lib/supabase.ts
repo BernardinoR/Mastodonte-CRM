@@ -21,4 +21,7 @@ export const supabase: SupabaseClient = createClient(supabaseUrl || "", supabase
     persistSession: false,
     autoRefreshToken: false,
   },
+  realtime: {
+    heartbeatIntervalMs: 15_000,
+  },
 });

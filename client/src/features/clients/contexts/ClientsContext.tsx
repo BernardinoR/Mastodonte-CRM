@@ -409,6 +409,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
 
   const createMeetingsChannel = useCallback(() => {
     const debounceTimers = meetingsDebounceTimers.current;
+    let handled = false;
 
     const channel = supabase
       .channel(`meetings-realtime-${Date.now()}`)
@@ -466,7 +467,12 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         if (status === "SUBSCRIBED") {
           console.log("[Realtime] Connected to meetings channel");
           meetingsReconnectAttemptsRef.current = 0;
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          handled = false;
+        } else if (
+          (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") &&
+          !handled
+        ) {
+          handled = true;
           const label =
             status === "CHANNEL_ERROR"
               ? "Channel error"
@@ -478,9 +484,13 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
           // Don't reconnect if unmounted or tab is hidden (visibility handler will recreate)
           if (meetingsUnmountedRef.current || document.visibilityState === "hidden") return;
 
-          // Remove the failed channel and schedule a reconnect
-          safeRemoveChannel(channel);
+          // Null the ref — do NOT call safeRemoveChannel here to avoid recursive callbacks
           if (meetingsChannelRef.current === channel) meetingsChannelRef.current = null;
+
+          // Clear any previous reconnect timer before scheduling a new one
+          if (meetingsReconnectTimerRef.current) {
+            clearTimeout(meetingsReconnectTimerRef.current);
+          }
 
           meetingsReconnectAttemptsRef.current += 1;
           const delay = Math.min(

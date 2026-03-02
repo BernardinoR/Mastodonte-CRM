@@ -324,6 +324,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
 
   const createTasksChannel = useCallback(() => {
     const MAX_BACKOFF = 30_000;
+    let handled = false;
 
     const channel = supabase
       .channel(`tasks-realtime-${Date.now()}`)
@@ -360,7 +361,12 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         if (status === "SUBSCRIBED") {
           console.log("[Realtime] Connected to tasks channel");
           reconnectAttemptsRef.current = 0;
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
+          handled = false;
+        } else if (
+          (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") &&
+          !handled
+        ) {
+          handled = true;
           const label =
             status === "CHANNEL_ERROR"
               ? "Channel error"
@@ -372,9 +378,13 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           // Don't reconnect if unmounted or tab is hidden (visibility handler will recreate)
           if (unmountedRef.current || document.visibilityState === "hidden") return;
 
-          // Remove the failed channel and schedule a reconnect
-          safeRemoveChannel(channel);
+          // Null the ref — do NOT call safeRemoveChannel here to avoid recursive callbacks
           if (tasksChannelRef.current === channel) tasksChannelRef.current = null;
+
+          // Clear any previous reconnect timer before scheduling a new one
+          if (reconnectTimerRef.current) {
+            clearTimeout(reconnectTimerRef.current);
+          }
 
           reconnectAttemptsRef.current += 1;
           const delay = Math.min(1000 * Math.pow(2, reconnectAttemptsRef.current - 1), MAX_BACKOFF);
