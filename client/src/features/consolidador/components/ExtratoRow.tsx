@@ -10,20 +10,21 @@ interface ExtratoRowProps {
 }
 
 export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
-  const dotColor = statusStyles[extrato.status].dot;
+  const style = statusStyles[extrato.status];
 
   return (
     <div className="flex items-center gap-4 rounded px-4 py-2 hover:bg-white/5">
-      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${dotColor}`} />
+      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${style.dot} ${style.glow}`} />
       <span className="min-w-[140px] text-sm font-medium text-white">{extrato.institution}</span>
-      <span className="min-w-[70px] text-xs text-gray-500">{extrato.accountType}</span>
-      <CollectionMethodBadge method={extrato.collectionMethod} />
-      <ExtratoStatusBadge status={extrato.status} />
+      <span className="min-w-[100px] text-xs text-gray-500">{extrato.accountType}</span>
+      <span className="min-w-[120px]">
+        <CollectionMethodBadge method={extrato.collectionMethod} />
+      </span>
+      <span className="flex-1">
+        <ExtratoStatusBadge status={extrato.status} />
+      </span>
       <div className="ml-auto">
-        <ExtratoActionButtons
-          showConsolidar={extrato.status === "Recebido"}
-          onConsolidar={() => onConsolidar?.(extrato.id)}
-        />
+        <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato.id)} />
       </div>
     </div>
   );

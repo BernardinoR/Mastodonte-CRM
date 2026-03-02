@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -121,33 +121,32 @@ export default function Consolidador() {
     setConsolidatedIds((prev) => new Set(prev).add(extratoId));
   }, []);
 
+  const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
+
   return (
-    <div className="p-6">
-      <div className="mx-auto flex max-w-5xl flex-col gap-6">
-        <ConsolidadorHeader
-          summary={summary}
-          selectedMonth={selectedMonth}
-          onMonthChange={setSelectedMonth}
-          historicalCount={historicalPendencies.length}
-          onOpenHistorical={() => setHistoricalOpen(true)}
-        />
+    <div className="flex flex-col gap-6 px-8 pb-32 pt-6">
+      <ConsolidadorHeader
+        summary={summary}
+        selectedMonth={selectedMonth}
+        onMonthChange={setSelectedMonth}
+        historicalCount={historicalPendencies.length}
+        onOpenHistorical={() => setHistoricalOpen(true)}
+      />
 
-        <ConsolidadorFilters
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          statusFilter={statusFilter}
-          onStatusFilterChange={setStatusFilter}
-          typeFilter={typeFilter}
-          onTypeFilterChange={setTypeFilter}
-        />
+      <ConsolidadorFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        typeFilter={typeFilter}
+        onTypeFilterChange={setTypeFilter}
+      />
 
+      {actionGroups.length > 0 && (
         <div className="flex flex-col gap-1">
-          {actionGroups.length === 0 && consolidatedGroups.length === 0 && (
-            <div className="py-12 text-center text-sm text-gray-500">
-              Nenhum extrato encontrado para os filtros selecionados.
-            </div>
-          )}
-
+          <div className="sticky top-0 z-10 -mx-2 bg-background/95 px-2 py-2 backdrop-blur-sm">
+            <h2 className="text-base font-semibold text-white">Ação Necessária</h2>
+          </div>
           {actionGroups.map((group) => (
             <ClientExtratoGroup
               key={group.clientId}
@@ -158,37 +157,50 @@ export default function Consolidador() {
             />
           ))}
         </div>
+      )}
 
-        {consolidatedGroups.length > 0 && (
-          <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>
-            <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-white/5">
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${consolidadosOpen ? "" : "-rotate-90"}`}
-              />
-              Consolidados ({consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0)})
-            </CollapsibleTrigger>
-            <CollapsibleContent>
-              <div className="flex flex-col gap-1">
-                {consolidatedGroups.map((group) => (
-                  <ClientExtratoGroup
-                    key={group.clientId}
-                    group={group}
-                    isExpanded={expandedClients.has(group.clientId)}
-                    onToggle={() => toggleClient(group.clientId)}
-                    onConsolidar={handleConsolidar}
-                  />
-                ))}
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
-        )}
+      {actionGroups.length === 0 && consolidatedGroups.length === 0 && (
+        <div className="py-12 text-center text-sm text-gray-500">
+          Nenhum extrato encontrado para os filtros selecionados.
+        </div>
+      )}
 
-        <HistoricalPendenciesModal
-          open={historicalOpen}
-          onOpenChange={setHistoricalOpen}
-          pendencies={historicalPendencies}
-        />
-      </div>
+      {consolidatedGroups.length > 0 && (
+        <div className="flex flex-col gap-1">
+          <div className="border-t border-border pt-4">
+            <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>
+              <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-white/5">
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${consolidadosOpen ? "rotate-90" : ""}`}
+                />
+                <span>Consolidados</span>
+                <span className="inline-flex items-center rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                  {consolidatedCount}
+                </span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="flex flex-col gap-1">
+                  {consolidatedGroups.map((group) => (
+                    <ClientExtratoGroup
+                      key={group.clientId}
+                      group={group}
+                      isExpanded={expandedClients.has(group.clientId)}
+                      onToggle={() => toggleClient(group.clientId)}
+                      onConsolidar={handleConsolidar}
+                    />
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </div>
+      )}
+
+      <HistoricalPendenciesModal
+        open={historicalOpen}
+        onOpenChange={setHistoricalOpen}
+        pendencies={historicalPendencies}
+      />
     </div>
   );
 }

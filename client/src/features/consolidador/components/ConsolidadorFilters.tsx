@@ -1,4 +1,4 @@
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, Layers, X } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
 import { Button } from "@/shared/components/ui/button";
 import type { ExtratoStatus, ExtratoAccountType } from "../types/extrato";
@@ -30,45 +30,32 @@ export function ConsolidadorFilters({
       <div className="relative max-w-md flex-1">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
         <Input
-          placeholder="Buscar cliente ou instituição..."
+          placeholder="Buscar por cliente, gerente ou instituição..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-9 border-gray-700 bg-gray-900/50 pl-9 text-sm"
+          className="h-10 rounded-lg border-gray-700 bg-gray-900/50 pl-9 text-sm"
         />
       </div>
       <div className="flex items-center gap-2">
-        <div className="relative">
-          <Button
-            variant="outline"
-            size="sm"
-            className={`h-9 gap-2 border-dashed border-gray-600 text-sm ${
-              statusFilter ? "border-solid border-blue-500/50 bg-blue-500/10 text-blue-400" : ""
-            }`}
-            onClick={() => {
-              if (statusFilter) {
-                const currentIndex = statuses.indexOf(statusFilter);
-                const nextIndex = (currentIndex + 1) % statuses.length;
-                onStatusFilterChange(nextIndex === 0 ? null : statuses[nextIndex]);
-              } else {
-                onStatusFilterChange(statuses[0]);
-              }
-            }}
-          >
-            <Filter className="h-3.5 w-3.5" />
-            {statusFilter ? statusFilter : "Status"}
-          </Button>
-          {statusFilter && (
-            <div className="absolute -right-1 -top-1 flex gap-0.5">
-              {statuses.map((s) => (
-                <button
-                  key={s}
-                  onClick={() => onStatusFilterChange(s === statusFilter ? null : s)}
-                  className={`hidden ${s === statusFilter ? "" : ""}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          className={`h-9 gap-2 border-dashed border-gray-600 text-sm ${
+            statusFilter ? "border-solid border-blue-500/50 bg-blue-500/10 text-blue-400" : ""
+          }`}
+          onClick={() => {
+            if (statusFilter) {
+              const currentIndex = statuses.indexOf(statusFilter);
+              const nextIndex = (currentIndex + 1) % statuses.length;
+              onStatusFilterChange(nextIndex === 0 ? null : statuses[nextIndex]);
+            } else {
+              onStatusFilterChange(statuses[0]);
+            }
+          }}
+        >
+          <Filter className="h-3.5 w-3.5" />
+          {statusFilter ? statusFilter : "Status"}
+        </Button>
         <Button
           variant="outline"
           size="sm"
@@ -85,7 +72,7 @@ export function ConsolidadorFilters({
             }
           }}
         >
-          <Filter className="h-3.5 w-3.5" />
+          <Layers className="h-3.5 w-3.5" />
           {typeFilter ? typeFilter : "Tipo"}
         </Button>
       </div>
@@ -96,10 +83,12 @@ export function ConsolidadorFilters({
             onStatusFilterChange(null);
             onTypeFilterChange(null);
           }}
-          className="flex items-center gap-1 text-xs text-gray-400 hover:text-white"
+          className="ml-2 text-sm font-medium text-gray-400 hover:text-white"
         >
-          <X className="h-3 w-3" />
-          Limpar filtros
+          <span className="flex items-center gap-1">
+            <X className="h-3 w-3" />
+            Limpar filtros
+          </span>
         </button>
       )}
     </div>
