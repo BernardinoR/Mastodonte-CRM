@@ -5,6 +5,7 @@ import {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
   type ReactNode,
 } from "react";
 import type {
@@ -25,6 +26,8 @@ import type {
 } from "@features/meetings";
 import { useUsers, useCurrentUser } from "@features/users";
 import { supabase } from "@/shared/lib/supabase";
+import { safeRemoveChannel } from "@/shared/lib/safeRemoveChannel";
+import { useVisibilityChange } from "@/shared/hooks";
 import { type ClientExtendedData } from "@/shared/mocks/clientsMock";
 import type { ClientImportRow } from "../lib/clientImportExport";
 
@@ -396,12 +399,15 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     fetchClients();
   }, [fetchClients, activeRole]);
 
-  // Realtime subscription for meetings table
-  useEffect(() => {
-    const debounceTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  // Realtime subscription for meetings table (with visibility-change handling)
+  const meetingsChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const meetingsDebounceTimers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+
+  const createMeetingsChannel = useCallback(() => {
+    const debounceTimers = meetingsDebounceTimers.current;
 
     const channel = supabase
-      .channel("meetings-realtime")
+      .channel(`meetings-realtime-${Date.now()}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, (payload) => {
         const row = (payload.new ?? payload.old) as Record<string, unknown> | undefined;
         const clientId = row?.client_id as string | undefined;
@@ -451,11 +457,35 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       })
       .subscribe();
 
-    return () => {
-      supabase.removeChannel(channel);
-      debounceTimers.forEach((timer) => clearTimeout(timer));
-    };
+    meetingsChannelRef.current = channel;
+    return channel;
   }, []);
+
+  useEffect(() => {
+    createMeetingsChannel();
+
+    return () => {
+      safeRemoveChannel(meetingsChannelRef.current);
+      meetingsChannelRef.current = null;
+      meetingsDebounceTimers.current.forEach((timer) => clearTimeout(timer));
+    };
+  }, [createMeetingsChannel]);
+
+  // Tear down channel when tab is hidden, recreate + refetch when visible
+  useVisibilityChange({
+    onHidden: () => {
+      meetingsDebounceTimers.current.forEach((timer) => clearTimeout(timer));
+      meetingsDebounceTimers.current.clear();
+      safeRemoveChannel(meetingsChannelRef.current);
+      meetingsChannelRef.current = null;
+    },
+    onVisible: () => {
+      if (!meetingsChannelRef.current) {
+        createMeetingsChannel();
+      }
+      fetchClients();
+    },
+  });
 
   const refetchClients = useCallback(async () => {
     await fetchClients();

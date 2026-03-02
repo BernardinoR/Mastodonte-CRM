@@ -11,3 +11,4 @@ export { usePaginatedList } from "./usePaginatedList";
 export { usePopoverState } from "./usePopoverState";
 export { useSearchFilter } from "./useSearchFilter";
 export { useVirtualizedList } from "./useVirtualizedList";
+export { useVisibilityChange } from "./useVisibilityChange";

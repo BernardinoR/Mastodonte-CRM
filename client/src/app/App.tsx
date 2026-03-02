@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Switch, Route, Redirect } from "wouter";
 import { queryClient } from "@/shared/lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -126,6 +127,27 @@ const DEV_BYPASS_AUTH = false;
 
 export default function App() {
   const { isLoaded } = useAuth();
+
+  // Safety net: suppress unhandled promise rejections from Supabase Realtime
+  // internals that can escape our try-catch wrappers during tab visibility changes.
+  useEffect(() => {
+    function handleUnhandledRejection(e: PromiseRejectionEvent) {
+      const msg = String(e.reason?.message || e.reason || "");
+      if (
+        msg.includes("removeChannel") ||
+        msg.includes("unsubscribe") ||
+        msg.includes("_trigger") ||
+        msg.includes("WebSocket") ||
+        msg.includes("channel") ||
+        msg.includes("heartbeat")
+      ) {
+        e.preventDefault();
+      }
+    }
+
+    window.addEventListener("unhandledrejection", handleUnhandledRejection);
+    return () => window.removeEventListener("unhandledrejection", handleUnhandledRejection);
+  }, []);
 
   // Skip auth loading check in dev bypass mode
   if (!DEV_BYPASS_AUTH && !isLoaded) {
