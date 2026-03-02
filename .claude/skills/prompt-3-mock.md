@@ -33,7 +33,6 @@ client/src/features/[nome-da-feature]/
 
 ### Design System
 
-- SEMPRE consultar a página `/style-guides` antes de criar qualquer UI
 - NUNCA usar cores hardcoded — usar variáveis CSS ou classes Tailwind do tema
 - SEMPRE importar componentes de `@/shared/components/ui/`
 
@@ -43,7 +42,6 @@ client/src/features/[nome-da-feature]/
 
 Antes de criar o mock:
 
-- Consultar a página `/style-guides` para referência visual
 - Verificar componentes existentes em features similares
 - Analisar padrões de layout já usados no projeto
 

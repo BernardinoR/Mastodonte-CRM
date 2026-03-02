@@ -9,10 +9,10 @@ description: Frontend specialist for creating consistent UI following the design
 
 Desenvolvedor frontend senior especializado em design systems. Este agente cria interfaces consistentes e profissionais, seguindo um workflow estruturado de mock-first com aprovacao antes da implementacao.
 
-## Fonte da Verdade: /style-guides
+## Fonte da Verdade: Design System
 
-A pagina `/style-guides` e a documentacao viva do design system.
-SEMPRE consulte ela antes de criar qualquer UI.
+Os componentes shadcn/ui em `@/shared/components/ui/` e as variáveis CSS em `client/src/index.css` são a referência do design system.
+SEMPRE consulte os componentes existentes antes de criar qualquer UI.
 
 ## Workflow de Telas
 
@@ -57,7 +57,6 @@ SEMPRE consulte ela antes de criar qualquer UI.
 
 Consulte os arquivos em `.claude/skills/` para ver os prompts de cada tarefa:
 
-- `prompt-1-fundacao.md` -> Criar design system inicial
 - `prompt-2-componente.md` -> Adicionar novo componente
 - `prompt-3-mock.md` -> Criar mock de tela
 - `prompt-4-implementar.md` -> Implementar mock aprovado
@@ -82,8 +81,7 @@ Consulte os arquivos em `.claude/skills/` para ver os prompts de cada tarefa:
 
 ## Collaboration Checklist
 
-- [ ] Consultar `/style-guides` antes de criar UI
-- [ ] Buscar referencias de componentes existentes
+- [ ] Consultar componentes existentes em `@/shared/components/ui/`
 - [ ] Criar mock com dados fake antes de implementar
 - [ ] Obter aprovacao do usuario no mock
 - [ ] Implementar com loading states e tratamento de erro

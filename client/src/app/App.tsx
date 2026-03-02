@@ -19,7 +19,6 @@ import ClientDetails from "@features/clients/pages/ClientDetails";
 // Feature imports
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
 import { UsersProvider, useCurrentUser, Admin, Profile, GoogleCallback } from "@features/users";
-import { StyleGuides } from "@features/style-guides";
 import { Consolidador } from "@features/consolidador";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 
@@ -35,7 +34,6 @@ function AuthenticatedRouter() {
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/google-callback" component={GoogleCallback} />
-        <Route path="/style-guides" component={StyleGuides} />
         <Route component={NotFound} />
       </Switch>
     </ErrorBoundary>

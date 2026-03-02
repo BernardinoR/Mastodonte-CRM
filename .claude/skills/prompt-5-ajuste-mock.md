@@ -17,7 +17,6 @@ Ajustar um mock existente com base no feedback do usuário, mantendo os dados fa
 ### Stack de Referência
 
 - **Componentes UI:** `@/shared/components/ui/`
-- **Design System:** Consultar página `/style-guides`
 - **Path da página:** `client/src/features/[nome]/pages/[NomeDaPagina].tsx`
 - **Sub-componentes:** `client/src/features/[nome]/components/`
 
@@ -45,7 +44,7 @@ Analisar o que o usuário pediu para ajustar:
 
 Antes de fazer qualquer ajuste visual:
 
-- Verificar componentes disponíveis em `/style-guides`
+- Verificar componentes disponíveis em `@/shared/components/ui/`
 - Usar variáveis CSS do tema (nunca cores hardcoded)
 - Manter consistência com o resto do projeto
 

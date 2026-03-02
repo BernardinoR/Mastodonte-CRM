@@ -45,18 +45,7 @@ O shadcn está configurado para instalar em `client/src/shared/components/ui/`.
 
 Confirmar que o arquivo foi criado em `client/src/shared/components/ui/[nome].tsx`.
 
-### 4. Atualizar a página Style Guides
-
-**Arquivo:** `client/src/features/style-guides/pages/StyleGuides.tsx`
-
-Adicionar na seção apropriada:
-
-- **Nome** do componente
-- **Import path:** `@/shared/components/ui/[nome]`
-- **Exemplo visual** demonstrando as variantes principais
-- **Código de exemplo** mostrando uso típico
-
-### 5. Categorização
+### 4. Categorização
 
 Classificar o componente em uma das categorias:
 
@@ -66,20 +55,10 @@ Classificar o componente em uma das categorias:
 - **Data Display:** exibição de dados e informações
 - **Utilitários:** componentes auxiliares
 
-### 6. Exemplo Visual
-
-Criar um exemplo inline na página `/style-guides` que mostre:
-
-- Estado padrão
-- Variantes disponíveis (se houver: `default`, `destructive`, `outline`, `secondary`, `ghost`, `link`)
-- Tamanhos disponíveis (se houver: `sm`, `default`, `lg`, `icon`)
-- Estado disabled (quando aplicável)
-
 ## Resultado Esperado
 
 - Componente instalado em `@/shared/components/ui/[nome]`
-- Página `/style-guides` atualizada com o novo componente
-- Exemplo visual e código de uso documentados
+- Pronto para uso em qualquer feature do projeto
 
 ## Checklist de Verificação
 
@@ -87,6 +66,5 @@ Criar um exemplo inline na página `/style-guides` que mostre:
 - [ ] Componente instalado via `npx shadcn@latest add`
 - [ ] Arquivo existe em `client/src/shared/components/ui/`
 - [ ] Import path usa `@/shared/components/ui/[nome]`
-- [ ] Página `/style-guides` atualizada com exemplo visual
 - [ ] Componente categorizado corretamente
 - [ ] Nenhuma referência a Next.js ou `/components/ui/`

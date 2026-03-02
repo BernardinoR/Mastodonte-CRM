@@ -19,7 +19,7 @@ The system follows a standard client-server architecture:
 
 - **Controllers**: Handle incoming requests and orchestrate responses (`server`, `client/src/features/tasks/hooks`).
 - **Utils**: A collection of utility functions, types, and hooks for common operations across the application (`client/src/shared/...`, `client/src/features/.../lib`).
-- **Repositories**: Abstract data access logic (primarily within `client/src/shared/lib` and `client/src/features/style-guides/components`).
+- **Repositories**: Abstract data access logic (primarily within `client/src/shared/lib`).
 - **Components**: Reusable UI elements and feature-specific components (`client/src/features/.../components`, `client/src/app/pages`, `client/src/app/components`).
 
 ## Technology Stack
@@ -39,7 +39,7 @@ The system follows a standard client-server architecture:
 ├── client/             # React frontend application
 │   ├── src/            # Source code for the client
 │   │   ├── app/        # Application-level components and pages
-│   │   ├── features/   # Feature modules (tasks, clients, meetings, auth, users, style-guides)
+│   │   ├── features/   # Feature modules (tasks, clients, meetings, auth, users)
 │   │   └── shared/     # Shared components, hooks, types, and utilities
 │   ├── index.html
 │   ├── package.json
