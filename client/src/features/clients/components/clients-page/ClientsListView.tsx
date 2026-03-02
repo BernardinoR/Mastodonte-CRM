@@ -4,7 +4,8 @@ import { cn } from "@/shared/lib/utils";
 import { ContextMenu, ContextMenuTrigger } from "@/shared/components/ui/context-menu";
 import { ClientContextMenu } from "../ClientContextMenu";
 import type { EnrichedClient } from "@features/clients";
-import { formatPhone } from "@/shared/lib/formatters";
+import { formatPhone, formatPhoneCompact } from "@/shared/lib/formatters";
+import { formatAdvisorShort, formatClientSinceShort } from "../../lib/clientUtils";
 
 interface ClientsListViewProps {
   clients: EnrichedClient[];
@@ -77,8 +78,8 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
       critical: "bg-[#3d2626] text-[#e07a7a]",
     };
     return (
-      <span className={cn("rounded px-2 py-0.5 text-xs font-medium", colors[status])}>
-        {days} dias
+      <span className={cn("whitespace-nowrap rounded px-2 py-0.5 text-xs font-medium", colors[status])} title={`${days} dias`}>
+        {days}d
       </span>
     );
   };
@@ -86,7 +87,7 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
   return (
     <div className="overflow-hidden rounded-lg border border-[#3a3a3a] bg-[#1a1a1a]">
       {/* Header */}
-      <div className="grid grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] gap-3 border-b border-[#3a3a3a] bg-[#1a1a1a] px-4 py-3">
+      <div className="grid grid-cols-[2fr_0.7fr_0.6fr_1fr_1fr_1fr_0.9fr_0.8fr_0.7fr_0.5fr_120px] gap-3 border-b border-[#3a3a3a] bg-[#1a1a1a] px-4 py-3">
         <div className="flex cursor-pointer items-center gap-1 text-[11px] font-medium uppercase tracking-wide text-[#8c8c8c] hover:text-[#ededed]">
           Cliente
           <ArrowUpDown className="h-3 w-3" />
@@ -125,7 +126,7 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
           <ContextMenuTrigger asChild>
             <div
               className={cn(
-                "grid cursor-pointer grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_1fr_120px] items-center gap-3 border-b border-[#3a3a3a] px-4 py-3 transition-colors hover:bg-[#222222]",
+                "grid cursor-pointer grid-cols-[2fr_0.7fr_0.6fr_1fr_1fr_1fr_0.9fr_0.8fr_0.7fr_0.5fr_120px] items-center gap-3 border-b border-[#3a3a3a] px-4 py-3 transition-colors hover:bg-[#222222]",
                 getRowBorderClass(client),
               )}
               onClick={() => handleRowClick(client.id)}
@@ -145,7 +146,7 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
               </div>
 
               {/* AUM */}
-              <div className="text-[14px] font-semibold text-[#6ecf8e]">{client.aumFormatted}</div>
+              <div className="min-w-0 truncate text-[14px] font-semibold text-[#6ecf8e]" title={client.aumFormatted}>{client.aumFormatted}</div>
 
               {/* Status */}
               <div>
@@ -156,21 +157,21 @@ export function ClientsListView({ clients, onDeleteClient }: ClientsListViewProp
               </div>
 
               {/* Última Reunião */}
-              <div className={cn("text-[14px]", getDateColor(client))}>
+              <div className={cn("min-w-0 truncate text-[14px]", getDateColor(client))} title={client.lastMeeting ? formatMeetingDate(client.lastMeeting) : "-"}>
                 {client.lastMeeting ? formatMeetingDate(client.lastMeeting) : "-"}
               </div>
 
               {/* Consultor */}
-              <div className="text-[13px] text-[#ededed]">{client.advisor}</div>
+              <div className="min-w-0 truncate text-[13px] text-[#ededed]" title={client.advisor}>{formatAdvisorShort(client.advisor)}</div>
 
               {/* Telefone */}
-              <div className="text-[13px] text-[#ededed]">{formatPhone(client.phone)}</div>
+              <div className="min-w-0 truncate text-[13px] text-[#ededed]" title={formatPhone(client.phone)}>{formatPhoneCompact(client.phone)}</div>
 
               {/* Cidade */}
-              <div className="text-[13px] text-[#ededed]">{client.cityState}</div>
+              <div className="min-w-0 truncate text-[13px] text-[#ededed]" title={client.cityState}>{client.cityState}</div>
 
               {/* Cliente Desde */}
-              <div className="text-[13px] text-[#ededed]">{client.clientSince}</div>
+              <div className="min-w-0 truncate text-[13px] text-[#ededed]" title={client.clientSince}>{formatClientSinceShort(client.clientSinceDate)}</div>
 
               {/* Dias sem Reunião */}
               <div>{getDaysBadge(client.daysSinceLastMeeting, client.meetingDelayStatus)}</div>

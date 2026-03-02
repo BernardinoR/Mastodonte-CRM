@@ -87,6 +87,28 @@ export function formatAUM(value: number): string {
 /**
  * Formata data relativa (ex: "há 5 dias", "há 2 meses")
  */
+/**
+ * Abrevia nome do consultor: "Rafael Bernardino Silveira" → "Rafael S."
+ */
+export function formatAdvisorShort(name: string): string {
+  if (!name) return "";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length <= 1) return name;
+  const lastName = parts[parts.length - 1];
+  return `${parts[0]} ${lastName[0]}.`;
+}
+
+/**
+ * Formata data "cliente desde" de forma curta: Date → "Jun/2023"
+ */
+export function formatClientSinceShort(date: Date | string | null | undefined): string {
+  if (!date) return "-";
+  const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "-";
+  return `${months[d.getMonth()]}/${d.getFullYear()}`;
+}
+
 export function formatDaysAgo(days: number): string {
   if (days < 0) return "Sem registro";
   if (days === 0) return "Hoje";
