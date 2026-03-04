@@ -14,6 +14,7 @@ export interface Extrato {
   collectionMethod: ExtratoCollectionMethod;
   status: ExtratoStatus;
   referenceMonth: Date;
+  createdAt?: string;
   requestedAt?: string;
   receivedAt?: string;
   consolidatedAt?: string;

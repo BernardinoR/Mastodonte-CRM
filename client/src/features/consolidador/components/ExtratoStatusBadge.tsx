@@ -1,19 +1,18 @@
-import type { ExtratoStatus } from "../types/extrato";
-import { statusStyles } from "../lib/extratoStatusConfig";
+import type { Extrato } from "../types/extrato";
+import { EXTRATO_STATUS_BADGE_COLORS, getStatusElapsedText } from "../lib/extratoStatusConfig";
+import { Badge } from "@/shared/components/ui/badge";
 
 interface ExtratoStatusBadgeProps {
-  status: ExtratoStatus;
+  extrato: Extrato;
 }
 
-export function ExtratoStatusBadge({ status }: ExtratoStatusBadgeProps) {
-  const style = statusStyles[status];
+export function ExtratoStatusBadge({ extrato }: ExtratoStatusBadgeProps) {
+  const label = getStatusElapsedText(extrato);
+  const { status } = extrato;
 
   return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-sm font-medium ${style.bg} ${style.text} ${style.border}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${style.dot}`} />
-      {status}
-    </span>
+    <Badge className={`${EXTRATO_STATUS_BADGE_COLORS[status]} text-[13px] font-medium`}>
+      {label}
+    </Badge>
   );
 }

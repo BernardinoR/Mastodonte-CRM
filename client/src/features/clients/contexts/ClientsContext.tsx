@@ -120,7 +120,11 @@ function mapDbRowToClient(row: DbClient): Client {
     emails: row.emails || [],
     primaryEmailIndex: row.primary_email_index || 0,
     advisor: row.owner?.name || "",
-    lastMeeting: row.last_meeting ? new Date(row.last_meeting) : new Date(),
+    lastMeeting: row.last_meeting
+      ? new Date(row.last_meeting)
+      : row.client_since
+        ? new Date(row.client_since)
+        : new Date(),
     address: row.address || {
       street: "",
       complement: "",
@@ -654,6 +658,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
               zipCode: "",
             },
             client_since: new Date().toISOString(),
+            last_meeting: new Date().toISOString(),
             owner_id: currentUser?.id ?? null,
           })
           .select("*, owner:users!owner_id(id, name)")
@@ -1116,6 +1121,7 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
           status: row.status || "Ativo",
           patrimony: row.patrimony,
           client_since: row.clientSince || new Date().toISOString(),
+          last_meeting: row.clientSince || new Date().toISOString(),
           foundation_code: row.foundationCode || null,
           address: row.address || {
             street: "",

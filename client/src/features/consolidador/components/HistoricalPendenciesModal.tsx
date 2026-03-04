@@ -100,7 +100,7 @@ export function HistoricalPendenciesModal({
                               <p className="text-sm font-medium text-white">{item.clientName}</p>
                               <p className="text-xs text-gray-500">{item.institution}</p>
                             </div>
-                            <ExtratoStatusBadge status={item.status} />
+                            <ExtratoStatusBadge extrato={item} />
                             <button className="text-xs font-medium text-blue-400 hover:text-blue-300">
                               {item.status === "Pendente" ? "Resolver" : "Cobrar"}
                             </button>

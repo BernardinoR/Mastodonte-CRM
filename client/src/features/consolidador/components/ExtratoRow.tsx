@@ -21,7 +21,7 @@ export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
         <CollectionMethodBadge method={extrato.collectionMethod} />
       </span>
       <span className="flex-1">
-        <ExtratoStatusBadge status={extrato.status} />
+        <ExtratoStatusBadge extrato={extrato} />
       </span>
       <div className="ml-auto">
         <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato.id)} />

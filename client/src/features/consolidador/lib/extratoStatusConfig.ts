@@ -1,4 +1,6 @@
-import type { ExtratoStatus, ExtratoCollectionMethod } from "../types/extrato";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import type { ExtratoStatus, ExtratoCollectionMethod, Extrato } from "../types/extrato";
 
 export interface StatusStyle {
   bg: string;
@@ -43,3 +45,39 @@ export const collectionMethodStyles: Record<ExtratoCollectionMethod, string> = {
   Automático: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   Manual: "bg-gray-500/10 text-gray-400 border-gray-500/20",
 };
+
+export const EXTRATO_STATUS_BADGE_COLORS: Record<ExtratoStatus, string> = {
+  Pendente: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+  Solicitado: "bg-blue-500/15 text-blue-300 border-blue-500/30",
+  Recebido: "bg-green-500/15 text-green-300 border-green-500/30",
+  Consolidado: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+};
+
+export const EXTRATO_METHOD_BADGE_COLORS: Record<ExtratoCollectionMethod, string> = {
+  Automático: "bg-teal-500/10 text-teal-400 border-teal-500/20",
+  Manual: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+};
+
+export function getStatusElapsedText(extrato: Extrato): string {
+  const { status } = extrato;
+
+  let dateStr: string | undefined;
+  if (status === "Pendente") {
+    dateStr = extrato.createdAt;
+  } else if (status === "Solicitado") {
+    dateStr = extrato.requestedAt;
+  } else if (status === "Recebido") {
+    dateStr = extrato.receivedAt;
+  } else {
+    return "Consolidado";
+  }
+
+  if (!dateStr) return status;
+
+  const elapsed = formatDistanceToNow(new Date(dateStr), {
+    locale: ptBR,
+    addSuffix: true,
+  });
+
+  return `${status} ${elapsed}`;
+}

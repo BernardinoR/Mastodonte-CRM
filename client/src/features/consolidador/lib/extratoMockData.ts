@@ -29,6 +29,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Recebido",
       referenceMonth: month,
+      createdAt: "2026-02-10",
       receivedAt: "2026-02-20",
     },
     {
@@ -41,6 +42,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-25",
     },
     {
       id: "e3",
@@ -52,6 +54,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Solicitado",
       referenceMonth: month,
+      createdAt: "2026-02-10",
       requestedAt: "2026-02-15",
     },
     // Roberto Mendes
@@ -65,6 +68,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Consolidado",
       referenceMonth: month,
+      createdAt: "2026-02-05",
       consolidatedAt: "2026-02-25",
     },
     {
@@ -77,6 +81,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-26",
     },
     {
       id: "e6",
@@ -88,6 +93,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Recebido",
       referenceMonth: month,
+      createdAt: "2026-02-12",
       receivedAt: "2026-02-22",
     },
     {
@@ -100,6 +106,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Solicitado",
       referenceMonth: month,
+      createdAt: "2026-02-10",
       requestedAt: "2026-02-18",
     },
     // João Pereira
@@ -113,6 +120,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-24",
     },
     {
       id: "e9",
@@ -124,6 +132,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Recebido",
       referenceMonth: month,
+      createdAt: "2026-02-08",
       receivedAt: "2026-02-19",
     },
     {
@@ -136,6 +145,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Consolidado",
       referenceMonth: month,
+      createdAt: "2026-02-06",
       consolidatedAt: "2026-02-26",
     },
     {
@@ -148,6 +158,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Solicitado",
       referenceMonth: month,
+      createdAt: "2026-02-05",
       requestedAt: "2026-02-12",
     },
     // Maria Oliveira
@@ -161,6 +172,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-27",
     },
     {
       id: "e13",
@@ -172,6 +184,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-23",
     },
     {
       id: "e14",
@@ -183,6 +196,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Recebido",
       referenceMonth: month,
+      createdAt: "2026-02-11",
       receivedAt: "2026-02-21",
     },
     {
@@ -195,6 +209,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Consolidado",
       referenceMonth: month,
+      createdAt: "2026-02-04",
       consolidatedAt: "2026-02-24",
     },
     // Carlos Silva
@@ -208,6 +223,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Solicitado",
       referenceMonth: month,
+      createdAt: "2026-02-08",
       requestedAt: "2026-02-16",
     },
     {
@@ -220,6 +236,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-22",
     },
     {
       id: "e18",
@@ -231,6 +248,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Consolidado",
       referenceMonth: month,
+      createdAt: "2026-02-07",
       consolidatedAt: "2026-02-27",
     },
     {
@@ -243,6 +261,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Manual",
       status: "Recebido",
       referenceMonth: month,
+      createdAt: "2026-02-13",
       receivedAt: "2026-02-23",
     },
     {
@@ -255,6 +274,7 @@ function buildExtratos(month: Date): Extrato[] {
       collectionMethod: "Automático",
       status: "Pendente",
       referenceMonth: month,
+      createdAt: "2026-02-20",
     },
   ];
 }
@@ -278,6 +298,7 @@ export function getMockHistoricalPendencies(): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: jan,
+      createdAt: "2026-01-05",
     },
     {
       id: "h2",
@@ -289,6 +310,7 @@ export function getMockHistoricalPendencies(): Extrato[] {
       collectionMethod: "Manual",
       status: "Solicitado",
       referenceMonth: jan,
+      createdAt: "2026-01-03",
       requestedAt: "2026-01-10",
     },
     {
@@ -301,6 +323,7 @@ export function getMockHistoricalPendencies(): Extrato[] {
       collectionMethod: "Automático",
       status: "Pendente",
       referenceMonth: jan,
+      createdAt: "2026-01-08",
     },
     {
       id: "h4",
@@ -312,6 +335,7 @@ export function getMockHistoricalPendencies(): Extrato[] {
       collectionMethod: "Manual",
       status: "Pendente",
       referenceMonth: dec,
+      createdAt: "2025-12-10",
     },
     {
       id: "h5",
@@ -323,6 +347,7 @@ export function getMockHistoricalPendencies(): Extrato[] {
       collectionMethod: "Manual",
       status: "Solicitado",
       referenceMonth: dec,
+      createdAt: "2025-12-05",
       requestedAt: "2025-12-15",
     },
   ];
