@@ -6,7 +6,7 @@ import { ExtratoActionButtons } from "./ExtratoActionButtons";
 
 interface ExtratoRowProps {
   extrato: Extrato;
-  onConsolidar?: (id: string) => void;
+  onConsolidar?: (extrato: Extrato) => void;
 }
 
 export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
@@ -24,7 +24,7 @@ export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
         <ExtratoStatusBadge extrato={extrato} />
       </span>
       <div className="ml-auto">
-        <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato.id)} />
+        <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato)} />
       </div>
     </div>
   );

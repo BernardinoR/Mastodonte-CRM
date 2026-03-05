@@ -9,6 +9,7 @@ import { ConsolidadorHeader } from "../components/ConsolidadorHeader";
 import { ConsolidadorFilters } from "../components/ConsolidadorFilters";
 import { ClientExtratoGroup } from "../components/ClientExtratoGroup";
 import { HistoricalPendenciesModal } from "../components/HistoricalPendenciesModal";
+import { ConsolidarModal } from "../components/ConsolidarModal";
 import { getMockExtratos, getMockHistoricalPendencies } from "../lib/extratoMockData";
 import type {
   Extrato,
@@ -27,6 +28,7 @@ export default function Consolidador() {
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [consolidatedIds, setConsolidatedIds] = useState<Set<string>>(new Set());
   const [consolidadosOpen, setConsolidadosOpen] = useState(false);
+  const [consolidarExtrato, setConsolidarExtrato] = useState<Extrato | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const [visibleConsolidatedCount, setVisibleConsolidatedCount] = useState(20);
 
@@ -124,8 +126,13 @@ export default function Consolidador() {
     });
   }, []);
 
-  const handleConsolidar = useCallback((extratoId: string) => {
+  const handleConsolidar = useCallback((extrato: Extrato) => {
+    setConsolidarExtrato(extrato);
+  }, []);
+
+  const handleConfirmConsolidar = useCallback((extratoId: string) => {
     setConsolidatedIds((prev) => new Set(prev).add(extratoId));
+    setConsolidarExtrato(null);
   }, []);
 
   const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
@@ -231,6 +238,15 @@ export default function Consolidador() {
         open={historicalOpen}
         onOpenChange={setHistoricalOpen}
         pendencies={historicalPendencies}
+      />
+
+      <ConsolidarModal
+        open={!!consolidarExtrato}
+        onOpenChange={(open) => {
+          if (!open) setConsolidarExtrato(null);
+        }}
+        extrato={consolidarExtrato}
+        onConfirm={handleConfirmConsolidar}
       />
     </div>
   );

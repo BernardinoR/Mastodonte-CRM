@@ -41,7 +41,7 @@ export function HistoricalPendenciesModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg border-gray-700 bg-gray-900">
+      <DialogContent className="max-w-lg border-[#3a3a3a] bg-[#1a1a1a]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-white">
             <History className="h-5 w-5 text-orange-400" />
@@ -57,7 +57,7 @@ export function HistoricalPendenciesModal({
 
               return (
                 <div key={monthLabel}>
-                  <div className="mb-2 flex items-center gap-2 rounded border border-gray-700 bg-gray-800/50 px-3 py-1">
+                  <div className="mb-2 flex items-center gap-2 rounded border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-1">
                     <span className="text-xs font-semibold uppercase text-gray-400">
                       {monthLabel}
                     </span>
@@ -119,7 +119,7 @@ export function HistoricalPendenciesModal({
             variant="outline"
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="border-gray-600"
+            className="border-[#3a3a3a]"
           >
             Fechar
           </Button>

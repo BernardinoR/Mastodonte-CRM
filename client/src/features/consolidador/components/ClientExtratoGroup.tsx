@@ -4,7 +4,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import type { ClientExtratoGroup as ClientExtratoGroupType } from "../types/extrato";
+import type { ClientExtratoGroup as ClientExtratoGroupType, Extrato } from "../types/extrato";
 import { ExtratoRow } from "./ExtratoRow";
 
 const clientColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -24,7 +24,7 @@ interface ClientExtratoGroupProps {
   group: ClientExtratoGroupType;
   isExpanded: boolean;
   onToggle: () => void;
-  onConsolidar?: (id: string) => void;
+  onConsolidar?: (extrato: Extrato) => void;
 }
 
 export function ClientExtratoGroup({
