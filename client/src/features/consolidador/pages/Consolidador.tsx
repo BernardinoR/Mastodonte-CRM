@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   Collapsible,
@@ -27,6 +27,13 @@ export default function Consolidador() {
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [consolidatedIds, setConsolidatedIds] = useState<Set<string>>(new Set());
   const [consolidadosOpen, setConsolidadosOpen] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(20);
+  const [visibleConsolidatedCount, setVisibleConsolidatedCount] = useState(20);
+
+  useEffect(() => {
+    setVisibleCount(20);
+    setVisibleConsolidatedCount(20);
+  }, [statusFilter, typeFilter, searchTerm]);
 
   const rawExtratos = useMemo(() => getMockExtratos(selectedMonth), [selectedMonth]);
   const historicalPendencies = useMemo(() => getMockHistoricalPendencies(), []);
@@ -154,7 +161,7 @@ export default function Consolidador() {
               </span>
             </div>
           </div>
-          {actionGroups.map((group) => (
+          {actionGroups.slice(0, visibleCount).map((group) => (
             <ClientExtratoGroup
               key={group.clientId}
               group={group}
@@ -163,6 +170,14 @@ export default function Consolidador() {
               onConsolidar={handleConsolidar}
             />
           ))}
+          {actionGroups.length > visibleCount && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + 20)}
+              className="mx-auto mt-2 rounded-lg border border-border bg-white/5 px-6 py-2 text-sm font-medium text-gray-300 hover:bg-white/10"
+            >
+              Carregar mais ({actionGroups.length - visibleCount} restantes)
+            </button>
+          )}
         </div>
       )}
 
@@ -187,7 +202,7 @@ export default function Consolidador() {
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <div className="flex flex-col gap-1">
-                  {consolidatedGroups.map((group) => (
+                  {consolidatedGroups.slice(0, visibleConsolidatedCount).map((group) => (
                     <ClientExtratoGroup
                       key={group.clientId}
                       group={group}
@@ -196,6 +211,15 @@ export default function Consolidador() {
                       onConsolidar={handleConsolidar}
                     />
                   ))}
+                  {consolidatedGroups.length > visibleConsolidatedCount && (
+                    <button
+                      onClick={() => setVisibleConsolidatedCount((prev) => prev + 20)}
+                      className="mx-auto mt-2 rounded-lg border border-border bg-white/5 px-6 py-2 text-sm font-medium text-gray-300 hover:bg-white/10"
+                    >
+                      Carregar mais ({consolidatedGroups.length - visibleConsolidatedCount}{" "}
+                      restantes)
+                    </button>
+                  )}
                 </div>
               </CollapsibleContent>
             </Collapsible>

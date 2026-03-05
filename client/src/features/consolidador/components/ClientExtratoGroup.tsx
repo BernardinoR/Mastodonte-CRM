@@ -13,6 +13,11 @@ const clientColors: Record<string, { bg: string; text: string; border: string }>
   JP: { bg: "bg-green-900/50", text: "text-green-300", border: "border-green-800" },
   MO: { bg: "bg-rose-900/50", text: "text-rose-300", border: "border-rose-800" },
   CS: { bg: "bg-amber-900/50", text: "text-amber-300", border: "border-amber-800" },
+  FL: { bg: "bg-teal-900/50", text: "text-teal-300", border: "border-teal-800" },
+  PA: { bg: "bg-indigo-900/50", text: "text-indigo-300", border: "border-indigo-800" },
+  BC: { bg: "bg-pink-900/50", text: "text-pink-300", border: "border-pink-800" },
+  LF: { bg: "bg-cyan-900/50", text: "text-cyan-300", border: "border-cyan-800" },
+  DR: { bg: "bg-orange-900/50", text: "text-orange-300", border: "border-orange-800" },
 };
 
 interface ClientExtratoGroupProps {
@@ -33,15 +38,9 @@ export function ClientExtratoGroup({
     text: "text-gray-300",
     border: "border-gray-700",
   };
-  const hasPending = group.pendingCount > 0;
-
   return (
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <CollapsibleTrigger
-        className={`flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5 ${
-          !hasPending && !isExpanded ? "opacity-60 hover:opacity-100" : ""
-        }`}
-      >
+      <CollapsibleTrigger className="flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5">
         <ChevronDown
           className={`h-4 w-4 text-gray-500 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
         />
