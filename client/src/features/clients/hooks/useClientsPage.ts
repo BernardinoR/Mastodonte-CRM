@@ -43,8 +43,11 @@ export function useClientsPage() {
 
       // Conta tasks urgentes
       const clientTasks = getTasksByClient(client.id);
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
       const urgentTasksCount = clientTasks.filter(
-        (task) => task.priority === "Urgente" && task.status !== "Done",
+        (task) =>
+          task.priority === "Urgente" && task.status !== "Done" && new Date(task.dueDate) <= today,
       ).length;
 
       // Formata cidade/estado
