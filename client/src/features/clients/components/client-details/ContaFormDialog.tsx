@@ -306,7 +306,12 @@ export function ContaFormDialog({
                 </Label>
                 <Input
                   value={competencia}
-                  onChange={(e) => setCompetencia(e.target.value)}
+                  onChange={(e) => {
+                    let v = e.target.value.replace(/\D/g, "");
+                    if (v.length >= 3) v = v.slice(0, 2) + "/" + v.slice(2, 6);
+                    setCompetencia(v);
+                  }}
+                  maxLength={7}
                   placeholder="mm/aaaa"
                   className="border-[#3f3f46] bg-[#27272a]"
                 />
