@@ -7,7 +7,6 @@ export interface StatusStyle {
   text: string;
   border: string;
   dot: string;
-  glow: string;
 }
 
 export const statusStyles: Record<ExtratoStatus, StatusStyle> = {
@@ -16,28 +15,24 @@ export const statusStyles: Record<ExtratoStatus, StatusStyle> = {
     text: "text-orange-400",
     border: "border-orange-500/20",
     dot: "bg-orange-500",
-    glow: "shadow-[0_0_8px_rgba(249,115,22,0.6)]",
   },
   Solicitado: {
     bg: "bg-blue-500/10",
     text: "text-blue-400",
     border: "border-blue-500/20",
     dot: "bg-blue-500",
-    glow: "shadow-[0_0_8px_rgba(59,130,246,0.6)]",
   },
   Recebido: {
-    bg: "bg-green-500/10",
-    text: "text-green-400",
-    border: "border-green-500/20",
-    dot: "bg-green-500",
-    glow: "shadow-[0_0_8px_rgba(34,197,94,0.6)]",
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+    border: "border-emerald-500/20",
+    dot: "bg-emerald-500",
   },
   Consolidado: {
-    bg: "bg-green-600/20",
-    text: "text-green-300",
-    border: "border-green-500/30",
-    dot: "bg-green-400",
-    glow: "shadow-[0_0_8px_rgba(74,222,128,0.6)]",
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
+    border: "border-purple-500/20",
+    dot: "bg-emerald-500/40",
   },
 };
 
@@ -47,10 +42,10 @@ export const collectionMethodStyles: Record<ExtratoCollectionMethod, string> = {
 };
 
 export const EXTRATO_STATUS_BADGE_COLORS: Record<ExtratoStatus, string> = {
-  Pendente: "bg-orange-950/30 text-orange-400 border-orange-500/20",
-  Solicitado: "bg-blue-950/30 text-blue-400 border-blue-500/20",
-  Recebido: "bg-emerald-950/30 text-emerald-400 border-emerald-500/20",
-  Consolidado: "bg-purple-950/30 text-purple-400 border-purple-500/20",
+  Pendente: "bg-orange-500/10 text-orange-400",
+  Solicitado: "bg-blue-500/10 text-blue-400",
+  Recebido: "bg-emerald-500/10 text-emerald-400",
+  Consolidado: "bg-purple-500/10 text-purple-400",
 };
 
 export const EXTRATO_METHOD_BADGE_COLORS: Record<ExtratoCollectionMethod, string> = {
