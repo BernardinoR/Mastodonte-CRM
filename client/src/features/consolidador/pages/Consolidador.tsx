@@ -173,14 +173,14 @@ export default function Consolidador() {
       />
 
       {actionGroups.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="sticky top-0 z-10 -mx-2 bg-background/95 px-2 py-3 backdrop-blur-sm">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-bold text-white">Ação Necessária</h2>
-              <span className="inline-flex items-center rounded-full border border-orange-500/20 bg-orange-500/10 px-2.5 py-0.5 text-xs font-bold text-orange-400">
-                {actionGroups.reduce((sum, g) => sum + g.extratos.length, 0)}
-              </span>
-            </div>
+        <div className="flex flex-col gap-0">
+          <div className="flex items-center gap-3 py-3">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
+              Ação Necessária
+            </h2>
+            <span className="inline-flex items-center rounded-md bg-orange-500/20 px-2 py-0.5 text-[10px] font-black text-orange-400">
+              {actionGroups.reduce((sum, g) => sum + g.extratos.length, 0)}
+            </span>
           </div>
           {actionGroups.slice(0, visibleCount).map((group) => (
             <ClientExtratoGroup
@@ -210,15 +210,15 @@ export default function Consolidador() {
       )}
 
       {consolidatedGroups.length > 0 && (
-        <div className="flex flex-col gap-2">
-          <div className="border-t border-border pt-4">
+        <div className="flex flex-col gap-0 opacity-50">
+          <div className="pt-4">
             <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>
-              <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-gray-400 hover:bg-white/5">
+              <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-[0.2em] text-zinc-600 hover:bg-white/5">
                 <ChevronRight
                   className={`h-4 w-4 transition-transform ${consolidadosOpen ? "rotate-90" : ""}`}
                 />
                 <span>Consolidados</span>
-                <span className="inline-flex items-center rounded-full border border-green-500/20 bg-green-500/10 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                <span className="inline-flex items-center rounded-md bg-emerald-950/30 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
                   {consolidatedCount}
                 </span>
               </CollapsibleTrigger>

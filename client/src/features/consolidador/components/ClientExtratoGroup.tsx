@@ -41,38 +41,38 @@ export function ClientExtratoGroup({
     border: "border-gray-700",
   };
   return (
-    <Collapsible open={isExpanded} onOpenChange={onToggle}>
-      <CollapsibleTrigger className="flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5">
-        <ChevronDown
-          className={`h-4 w-4 text-gray-500 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
-        />
-        <div
-          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border ${colors.border} ${colors.bg}`}
-        >
-          <span className={`text-xs font-bold ${colors.text}`}>{group.clientInitials}</span>
-        </div>
-        <span className="text-base font-bold text-white">{group.clientName}</span>
-        {group.pendingCount > 0 && (
-          <span className="rounded-full border border-red-500/20 bg-red-500/10 px-2.5 py-1 text-xs font-bold text-red-400">
-            {group.pendingCount} PENDENTE{group.pendingCount > 1 ? "S" : ""}
+    <div className="border-b border-white/5 pb-3">
+      <Collapsible open={isExpanded} onOpenChange={onToggle}>
+        <CollapsibleTrigger className="flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5">
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform ${isExpanded ? "" : "-rotate-90"}`}
+          />
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${colors.bg}`}>
+            <span className={`text-xs font-bold ${colors.text}`}>{group.clientInitials}</span>
+          </div>
+          <span className="text-base font-bold text-white">{group.clientName}</span>
+          {group.pendingCount > 0 && (
+            <span className="rounded bg-red-950/40 px-2.5 py-1 text-[10px] font-bold uppercase text-red-500">
+              {group.pendingCount} PENDENTE{group.pendingCount > 1 ? "S" : ""}
+            </span>
+          )}
+          <span className="ml-auto text-xs text-zinc-600">
+            {group.extratos.length} extrato{group.extratos.length > 1 ? "s" : ""}
           </span>
-        )}
-        <span className="ml-auto text-sm text-gray-500">
-          {group.extratos.length} extrato{group.extratos.length > 1 ? "s" : ""}
-        </span>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <div className="ml-6 flex flex-col gap-0.5 border-l border-[#2f3542] pl-5">
-          {group.extratos.map((extrato) => (
-            <ExtratoRow
-              key={extrato.id}
-              extrato={extrato}
-              onConsolidar={onConsolidar}
-              labelField={labelField}
-            />
-          ))}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="mt-1 space-y-0 pl-12">
+            {group.extratos.map((extrato) => (
+              <ExtratoRow
+                key={extrato.id}
+                extrato={extrato}
+                onConsolidar={onConsolidar}
+                labelField={labelField}
+              />
+            ))}
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </div>
   );
 }

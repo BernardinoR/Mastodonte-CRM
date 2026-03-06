@@ -28,7 +28,7 @@ export function ConsolidadorHeader({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Extratos</h1>
+        <h1 className="mb-6 text-3xl font-bold text-white">Extratos</h1>
         {historicalCount > 0 && (
           <button
             onClick={onOpenHistorical}
@@ -47,7 +47,7 @@ export function ConsolidadorHeader({
       <div className="flex items-center gap-3">
         <button
           onClick={() => handleBadgeClick("Pendente")}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 pl-3 pr-4 text-sm font-medium text-orange-400 transition-all hover:bg-orange-500/20 ${
+          className={`inline-flex items-center gap-1.5 rounded-lg border border-orange-500/30 bg-orange-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-orange-400 transition-all hover:bg-orange-500/20 ${
             activeStatusFilter === "Pendente" ? "ring-2 ring-orange-500/40" : ""
           }`}
         >
@@ -56,7 +56,7 @@ export function ConsolidadorHeader({
         </button>
         <button
           onClick={() => handleBadgeClick("Solicitado")}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-blue-500/20 bg-blue-500/10 pl-3 pr-4 text-sm font-medium text-blue-400 transition-all hover:bg-blue-500/20 ${
+          className={`inline-flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-blue-400 transition-all hover:bg-blue-500/20 ${
             activeStatusFilter === "Solicitado" ? "ring-2 ring-blue-500/40" : ""
           }`}
         >
@@ -65,7 +65,7 @@ export function ConsolidadorHeader({
         </button>
         <button
           onClick={() => handleBadgeClick("Recebido")}
-          className={`inline-flex h-9 items-center gap-1.5 rounded-full border border-green-500/20 bg-green-500/10 pl-3 pr-4 text-sm font-medium text-green-400 transition-all hover:bg-green-500/20 ${
+          className={`inline-flex items-center gap-1.5 rounded-lg border border-green-500/30 bg-green-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-green-400 transition-all hover:bg-green-500/20 ${
             activeStatusFilter === "Recebido" ? "ring-2 ring-green-500/40" : ""
           }`}
         >

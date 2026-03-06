@@ -1,6 +1,5 @@
 import { Search, Filter, Layers, X, Users, Building2 } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
-import { Button } from "@/shared/components/ui/button";
 import type { ExtratoStatus, ExtratoAccountType } from "../types/extrato";
 
 interface ConsolidadorFiltersProps {
@@ -31,11 +30,11 @@ export function ConsolidadorFilters({
 
   return (
     <div className="flex items-center gap-3">
-      <div className="flex h-9 items-center rounded-lg border border-gray-700 bg-gray-900/50 p-0.5">
+      <div className="flex h-9 items-center rounded-xl border border-white/5 bg-[#111] p-0.5">
         <button
           onClick={() => onGroupByChange("client")}
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-            groupBy === "client" ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
+            groupBy === "client" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
           <Users className="h-3.5 w-3.5" />
@@ -46,7 +45,7 @@ export function ConsolidadorFilters({
           className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
             groupBy === "institution"
               ? "bg-white/10 text-white"
-              : "text-gray-500 hover:text-gray-300"
+              : "text-zinc-500 hover:text-zinc-300"
           }`}
         >
           <Building2 className="h-3.5 w-3.5" />
@@ -59,15 +58,15 @@ export function ConsolidadorFilters({
           placeholder="Buscar por cliente, gerente ou instituição..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="h-10 rounded-lg border-gray-700 bg-gray-900/50 pl-9 text-sm"
+          className="rounded-xl border-white/5 bg-[#111] py-2.5 pl-9 text-sm"
         />
       </div>
       <div className="flex items-center gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className={`h-9 gap-2 border-dashed border-gray-600 text-sm ${
-            statusFilter ? "border-solid border-blue-500/50 bg-blue-500/10 text-blue-400" : ""
+        <button
+          className={`inline-flex items-center gap-2 rounded-xl border bg-[#111] px-4 py-2 text-sm transition-colors ${
+            statusFilter
+              ? "border-blue-500/50 text-blue-400"
+              : "border-white/5 text-zinc-400 hover:text-white"
           }`}
           onClick={() => {
             if (statusFilter) {
@@ -81,12 +80,12 @@ export function ConsolidadorFilters({
         >
           <Filter className="h-3.5 w-3.5" />
           {statusFilter ? statusFilter : "Status"}
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className={`h-9 gap-2 border-dashed border-gray-600 text-sm ${
-            typeFilter ? "border-solid border-blue-500/50 bg-blue-500/10 text-blue-400" : ""
+        </button>
+        <button
+          className={`inline-flex items-center gap-2 rounded-xl border bg-[#111] px-4 py-2 text-sm transition-colors ${
+            typeFilter
+              ? "border-blue-500/50 text-blue-400"
+              : "border-white/5 text-zinc-400 hover:text-white"
           }`}
           onClick={() => {
             if (typeFilter) {
@@ -100,7 +99,7 @@ export function ConsolidadorFilters({
         >
           <Layers className="h-3.5 w-3.5" />
           {typeFilter ? typeFilter : "Tipo"}
-        </Button>
+        </button>
       </div>
       {hasFilters && (
         <button

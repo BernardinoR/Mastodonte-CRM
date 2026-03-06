@@ -8,7 +8,7 @@ interface CollectionMethodBadgeProps {
 
 export function CollectionMethodBadge({ method }: CollectionMethodBadgeProps) {
   return (
-    <Badge className={`${EXTRATO_METHOD_BADGE_COLORS[method]} text-[13px] font-medium`}>
+    <Badge className={`${EXTRATO_METHOD_BADGE_COLORS[method]} text-[10px] font-bold`}>
       {method}
     </Badge>
   );

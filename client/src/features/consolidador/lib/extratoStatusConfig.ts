@@ -47,15 +47,15 @@ export const collectionMethodStyles: Record<ExtratoCollectionMethod, string> = {
 };
 
 export const EXTRATO_STATUS_BADGE_COLORS: Record<ExtratoStatus, string> = {
-  Pendente: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-  Solicitado: "bg-blue-500/15 text-blue-300 border-blue-500/30",
-  Recebido: "bg-green-500/15 text-green-300 border-green-500/30",
-  Consolidado: "bg-purple-500/15 text-purple-300 border-purple-500/30",
+  Pendente: "bg-orange-950/30 text-orange-400 border-orange-500/20",
+  Solicitado: "bg-blue-950/30 text-blue-400 border-blue-500/20",
+  Recebido: "bg-emerald-950/30 text-emerald-400 border-emerald-500/20",
+  Consolidado: "bg-purple-950/30 text-purple-400 border-purple-500/20",
 };
 
 export const EXTRATO_METHOD_BADGE_COLORS: Record<ExtratoCollectionMethod, string> = {
-  Automático: "bg-teal-500/10 text-teal-400 border-teal-500/20",
-  Manual: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  Automático: "bg-emerald-950/20 text-emerald-500 border-emerald-500/20",
+  Manual: "bg-zinc-800 text-zinc-500 border-transparent",
 };
 
 export function getStatusElapsedText(extrato: Extrato): string {

@@ -12,7 +12,7 @@ export function MonthSelector({ value, onChange }: MonthSelectorProps) {
   const capitalizedLabel = label.charAt(0).toUpperCase() + label.slice(1);
 
   return (
-    <button className="inline-flex h-8 items-center gap-2 rounded-full border border-border bg-card pl-3 pr-3 text-sm text-white hover:bg-white/10">
+    <button className="inline-flex h-8 items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 pl-3 pr-3 text-sm text-zinc-400 hover:bg-white/10">
       <Calendar className="h-3.5 w-3.5 text-gray-400" />
       {capitalizedLabel}
       <ChevronDown className="h-3 w-3 opacity-50" />

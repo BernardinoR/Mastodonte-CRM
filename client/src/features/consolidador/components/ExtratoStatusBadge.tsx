@@ -11,7 +11,7 @@ export function ExtratoStatusBadge({ extrato }: ExtratoStatusBadgeProps) {
   const { status } = extrato;
 
   return (
-    <Badge className={`${EXTRATO_STATUS_BADGE_COLORS[status]} text-[13px] font-medium`}>
+    <Badge className={`${EXTRATO_STATUS_BADGE_COLORS[status]} text-[10px] font-bold`}>
       {label}
     </Badge>
   );
