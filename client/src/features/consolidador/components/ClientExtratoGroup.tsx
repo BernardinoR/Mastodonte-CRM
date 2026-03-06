@@ -41,7 +41,7 @@ export function ClientExtratoGroup({
     border: "border-gray-700",
   };
   return (
-    <div className="border-b border-white/5 pb-3">
+    <div className="border-b border-white/5">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
         <CollapsibleTrigger className="flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5">
           <ChevronDown

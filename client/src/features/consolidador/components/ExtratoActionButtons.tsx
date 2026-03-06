@@ -29,7 +29,7 @@ export function ExtratoActionButtons({
       </button>
       <button
         onClick={onConsolidar}
-        className="h-9 rounded-lg border border-white/10 px-6 py-1.5 text-xs font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
+        className="h-7 rounded-lg border border-white/10 px-4 py-0.5 text-xs font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"
       >
         Consolidar
       </button>
