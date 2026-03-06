@@ -26,9 +26,9 @@ export function ConsolidadorHeader({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between">
-        <h1 className="mb-6 text-3xl font-bold text-white">Extratos</h1>
+        <h1 className="mb-2 text-3xl font-bold text-white">Extratos</h1>
         {historicalCount > 0 && (
           <button
             onClick={onOpenHistorical}

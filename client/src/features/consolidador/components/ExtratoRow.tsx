@@ -14,7 +14,7 @@ export function ExtratoRow({ extrato, onConsolidar, labelField = "institution" }
   const style = statusStyles[extrato.status];
 
   return (
-    <div className="flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5">
+    <div className="group flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5">
       <span className={`h-2 w-2 flex-shrink-0 rounded-full ${style.dot}`} />
       <span className="w-48 text-sm font-medium text-zinc-300">
         {labelField === "client" ? extrato.clientName : extrato.institution}
@@ -22,7 +22,7 @@ export function ExtratoRow({ extrato, onConsolidar, labelField = "institution" }
       <span className="w-16 text-xs text-zinc-600">{extrato.accountType}</span>
       <CollectionMethodBadge method={extrato.collectionMethod} />
       <ExtratoStatusBadge extrato={extrato} />
-      <div className="ml-auto">
+      <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
         <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato)} />
       </div>
     </div>
