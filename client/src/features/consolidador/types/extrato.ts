@@ -2,7 +2,7 @@ export type ExtratoStatus = "Pendente" | "Solicitado" | "Recebido" | "Consolidad
 
 export type ExtratoAccountType = "Holding" | "Filho" | "Principal";
 
-export type ExtratoCollectionMethod = "Automático" | "Manual";
+export type ExtratoCollectionMethod = "Automático" | "Manual" | "Manual Cliente";
 
 export interface Extrato {
   id: string;

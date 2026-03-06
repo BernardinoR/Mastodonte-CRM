@@ -1,4 +1,4 @@
-import type { Extrato } from "../types/extrato";
+import type { Extrato, ExtratoStatus, ExtratoCollectionMethod } from "../types/extrato";
 import { statusStyles } from "../lib/extratoStatusConfig";
 import { ExtratoStatusBadge } from "./ExtratoStatusBadge";
 import { CollectionMethodBadge } from "./CollectionMethodBadge";
@@ -7,10 +7,18 @@ import { ExtratoActionButtons } from "./ExtratoActionButtons";
 interface ExtratoRowProps {
   extrato: Extrato;
   onConsolidar?: (extrato: Extrato) => void;
+  onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
+  onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   labelField?: "institution" | "client";
 }
 
-export function ExtratoRow({ extrato, onConsolidar, labelField = "institution" }: ExtratoRowProps) {
+export function ExtratoRow({
+  extrato,
+  onConsolidar,
+  onStatusChange,
+  onMethodChange,
+  labelField = "institution",
+}: ExtratoRowProps) {
   const style = statusStyles[extrato.status];
 
   return (
@@ -20,8 +28,14 @@ export function ExtratoRow({ extrato, onConsolidar, labelField = "institution" }
         {labelField === "client" ? extrato.clientName : extrato.institution}
       </span>
       <span className="w-16 text-xs text-zinc-600">{extrato.accountType}</span>
-      <CollectionMethodBadge method={extrato.collectionMethod} />
-      <ExtratoStatusBadge extrato={extrato} />
+      <CollectionMethodBadge
+        method={extrato.collectionMethod}
+        onMethodChange={(method) => onMethodChange?.(extrato.id, method)}
+      />
+      <ExtratoStatusBadge
+        extrato={extrato}
+        onStatusChange={(status) => onStatusChange?.(extrato.id, status)}
+      />
       <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
         <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato)} />
       </div>

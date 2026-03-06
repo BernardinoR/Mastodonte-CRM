@@ -39,6 +39,7 @@ export const statusStyles: Record<ExtratoStatus, StatusStyle> = {
 export const collectionMethodStyles: Record<ExtratoCollectionMethod, string> = {
   Automático: "bg-teal-500/10 text-teal-400 border-teal-500/20",
   Manual: "bg-gray-500/10 text-gray-400 border-gray-500/20",
+  "Manual Cliente": "bg-amber-500/10 text-amber-400 border-amber-500/20",
 };
 
 export const EXTRATO_STATUS_BADGE_COLORS: Record<ExtratoStatus, string> = {
@@ -51,6 +52,7 @@ export const EXTRATO_STATUS_BADGE_COLORS: Record<ExtratoStatus, string> = {
 export const EXTRATO_METHOD_BADGE_COLORS: Record<ExtratoCollectionMethod, string> = {
   Automático: "bg-emerald-950/20 text-emerald-500 border-emerald-500/20",
   Manual: "bg-zinc-800 text-zinc-500 border-transparent",
+  "Manual Cliente": "bg-amber-950/20 text-amber-500 border-amber-500/20",
 };
 
 export function getStatusElapsedText(extrato: Extrato): string {

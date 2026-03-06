@@ -15,6 +15,7 @@ import type {
   Extrato,
   ExtratoStatus,
   ExtratoAccountType,
+  ExtratoCollectionMethod,
   ClientExtratoGroup as ClientGroupType,
   ExtratoStatusSummary,
 } from "../types/extrato";
@@ -28,6 +29,10 @@ export default function Consolidador() {
   const [historicalOpen, setHistoricalOpen] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [consolidatedIds, setConsolidatedIds] = useState<Set<string>>(new Set());
+  const [statusOverrides, setStatusOverrides] = useState<Map<string, ExtratoStatus>>(new Map());
+  const [methodOverrides, setMethodOverrides] = useState<Map<string, ExtratoCollectionMethod>>(
+    new Map(),
+  );
   const [consolidadosOpen, setConsolidadosOpen] = useState(false);
   const [consolidarExtrato, setConsolidarExtrato] = useState<Extrato | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -42,10 +47,15 @@ export default function Consolidador() {
   const historicalPendencies = useMemo(() => getMockHistoricalPendencies(), []);
 
   const extratos: Extrato[] = useMemo(() => {
-    return rawExtratos.map((e) =>
-      consolidatedIds.has(e.id) ? { ...e, status: "Consolidado" as const } : e,
-    );
-  }, [rawExtratos, consolidatedIds]);
+    return rawExtratos.map((e) => {
+      let updated = consolidatedIds.has(e.id) ? { ...e, status: "Consolidado" as const } : e;
+      const statusOverride = statusOverrides.get(e.id);
+      if (statusOverride) updated = { ...updated, status: statusOverride };
+      const methodOverride = methodOverrides.get(e.id);
+      if (methodOverride) updated = { ...updated, collectionMethod: methodOverride };
+      return updated;
+    });
+  }, [rawExtratos, consolidatedIds, statusOverrides, methodOverrides]);
 
   const summary: ExtratoStatusSummary = useMemo(() => {
     return extratos.reduce(
@@ -147,6 +157,14 @@ export default function Consolidador() {
     setConsolidarExtrato(null);
   }, []);
 
+  const handleStatusChange = useCallback((extratoId: string, status: ExtratoStatus) => {
+    setStatusOverrides((prev) => new Map(prev).set(extratoId, status));
+  }, []);
+
+  const handleMethodChange = useCallback((extratoId: string, method: ExtratoCollectionMethod) => {
+    setMethodOverrides((prev) => new Map(prev).set(extratoId, method));
+  }, []);
+
   const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
 
   return (
@@ -189,6 +207,8 @@ export default function Consolidador() {
               isExpanded={expandedClients.has(group.clientId)}
               onToggle={() => toggleClient(group.clientId)}
               onConsolidar={handleConsolidar}
+              onStatusChange={handleStatusChange}
+              onMethodChange={handleMethodChange}
               labelField={groupBy === "institution" ? "client" : "institution"}
             />
           ))}

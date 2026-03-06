@@ -4,7 +4,12 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/shared/components/ui/collapsible";
-import type { ClientExtratoGroup as ClientExtratoGroupType, Extrato } from "../types/extrato";
+import type {
+  ClientExtratoGroup as ClientExtratoGroupType,
+  Extrato,
+  ExtratoStatus,
+  ExtratoCollectionMethod,
+} from "../types/extrato";
 import { ExtratoRow } from "./ExtratoRow";
 
 const clientColors: Record<string, { bg: string; text: string; border: string }> = {
@@ -25,6 +30,8 @@ interface ClientExtratoGroupProps {
   isExpanded: boolean;
   onToggle: () => void;
   onConsolidar?: (extrato: Extrato) => void;
+  onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
+  onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   labelField?: "institution" | "client";
 }
 
@@ -33,6 +40,8 @@ export function ClientExtratoGroup({
   isExpanded,
   onToggle,
   onConsolidar,
+  onStatusChange,
+  onMethodChange,
   labelField = "institution",
 }: ClientExtratoGroupProps) {
   const colors = clientColors[group.clientInitials] || {
@@ -67,6 +76,8 @@ export function ClientExtratoGroup({
                 key={extrato.id}
                 extrato={extrato}
                 onConsolidar={onConsolidar}
+                onStatusChange={onStatusChange}
+                onMethodChange={onMethodChange}
                 labelField={labelField}
               />
             ))}
