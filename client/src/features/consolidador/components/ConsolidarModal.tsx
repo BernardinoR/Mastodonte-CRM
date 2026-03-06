@@ -26,6 +26,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
   const [currency, setCurrency] = useState("BRL");
   const [dragOver, setDragOver] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [accountName, setAccountName] = useState("");
 
   if (!extrato) return null;
 
@@ -50,12 +51,14 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
     onConfirm(extrato.id);
     setFile(null);
     setCurrency("BRL");
+    setAccountName("");
   };
 
   const handleClose = (value: boolean) => {
     if (!value) {
       setFile(null);
       setCurrency("BRL");
+      setAccountName("");
     }
     onOpenChange(value);
   };
@@ -72,7 +75,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
         <div className="grid grid-cols-2 gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-gray-400">Instituicao</Label>
+            <Label className="text-xs text-[#888]">Instituicao</Label>
             <div className="flex items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2">
               <span className="flex h-6 w-6 items-center justify-center rounded-md bg-teal-600 text-[10px] font-bold text-white">
                 {institutionInitial}
@@ -82,16 +85,16 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-gray-400">Cliente</Label>
-            <div className="flex items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2">
+            <Label className="text-xs text-[#888]">Cliente</Label>
+            <div className="flex min-h-[42px] items-center gap-2 rounded-md border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2">
               <span className="text-sm text-white">{extrato.clientName}</span>
             </div>
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-gray-400">Moeda</Label>
+            <Label className="text-xs text-[#888]">Moeda</Label>
             <Select value={currency} onValueChange={setCurrency}>
-              <SelectTrigger className="border-[#3a3a3a] bg-[#0f0f0f] text-white">
+              <SelectTrigger className="h-auto min-h-[42px] border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2 text-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -103,19 +106,20 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs text-gray-400">Referencia / Competencia</Label>
-            <div className="rounded-md border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2">
+            <Label className="text-xs text-[#888]">Referencia / Competencia</Label>
+            <div className="flex min-h-[42px] items-center rounded-md border border-[#3a3a3a] bg-[#0f0f0f] px-3 py-2">
               <span className="text-sm capitalize text-white">{referenceLabel}</span>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs text-gray-400">Nome da Conta</Label>
+          <Label className="text-xs text-[#888]">Nome da Conta</Label>
           <Input
-            readOnly
-            value={extrato.accountType}
-            className="border-[#3a3a3a] bg-[#0f0f0f] text-white"
+            value={accountName}
+            onChange={(e) => setAccountName(e.target.value)}
+            placeholder="Digite o nome da conta"
+            className="border-[#3a3a3a] bg-[#0f0f0f] text-white placeholder:text-[#555]"
           />
         </div>
 
@@ -140,7 +144,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
               <span className="text-sm font-medium text-green-400">{file.name}</span>
               <button
                 onClick={() => setFile(null)}
-                className="text-xs text-gray-400 hover:text-white"
+                className="text-xs text-[#888] hover:text-white"
               >
                 Remover
               </button>
@@ -148,7 +152,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
           ) : (
             <>
               <Upload className="h-8 w-8 text-teal-400" />
-              <span className="text-sm text-gray-400">Arraste o extrato PDF aqui</span>
+              <span className="text-sm text-[#888]">Arraste o extrato PDF aqui</span>
               <label className="cursor-pointer text-xs font-medium text-teal-400 hover:text-teal-300">
                 ou clique para selecionar
                 <input type="file" accept=".pdf" className="hidden" onChange={handleFileSelect} />
