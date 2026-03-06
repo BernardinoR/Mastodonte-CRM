@@ -133,18 +133,18 @@ export function ContaFormDialog({
           </div>
         </DialogHeader>
 
-        <Tabs defaultValue="dados" className="mt-2">
+        <Tabs defaultValue="dados">
           <div className="border-b border-[#27272a] bg-[#1f1f22]">
-            <TabsList className="flex h-auto w-full gap-6 rounded-none bg-transparent p-0 px-6">
+            <TabsList className="flex h-auto w-full gap-6 rounded-none bg-transparent p-0 px-4">
               <TabsTrigger
                 value="dados"
-                className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+                className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
               >
                 Dados da Conta
               </TabsTrigger>
               <TabsTrigger
                 value="gerente"
-                className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+                className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
               >
                 Contato do Gerente
               </TabsTrigger>
