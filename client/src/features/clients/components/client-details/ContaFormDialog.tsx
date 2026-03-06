@@ -19,6 +19,14 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import { Info, Check, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
 import { getInstitutionColor, institutionColors } from "../../lib/institutionColors";
 
@@ -61,6 +69,7 @@ export function ContaFormDialog({
   const [frequencia, setFrequencia] = useState("Mensal");
   const [competencia, setCompetencia] = useState("");
   const [status, setStatus] = useState<ContaStatus>("Ativa");
+  const [canais, setCanais] = useState<string[]>(["WhatsApp", "Email"]);
 
   useEffect(() => {
     if (open) {
@@ -77,6 +86,7 @@ export function ContaFormDialog({
         setFrequencia("Mensal");
         setCompetencia("");
         setStatus("Ativa");
+        setCanais(["WhatsApp", "Email"]);
       }
     }
   }, [open, conta]);
@@ -88,7 +98,13 @@ export function ContaFormDialog({
   const color = institution ? getInstitutionColor(institution) : null;
   const initial = institution ? institution.charAt(0).toUpperCase() : "?";
 
-  const title = isEditing ? `${conta.institution} — ${conta.accountName || "Conta"}` : "Nova Conta";
+  const title = isEditing
+    ? accountName
+      ? `${institution || conta.institution} — ${accountName}`
+      : institution || conta.institution
+    : institution
+      ? `Nova Conta — ${institution}`
+      : "Nova Conta";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -151,11 +167,24 @@ export function ContaFormDialog({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Nome da Conta</Label>
+                <Label className="flex items-center gap-1 text-xs text-muted-foreground">
+                  Nome da Conta
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info size={14} className="cursor-help text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent side="top" className="max-w-[240px] text-xs">
+                        Preencha apenas quando houver duas ou mais contas na mesma instituicao e
+                        precisar diferencia-las.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </Label>
                 <Input
                   value={accountName}
                   onChange={(e) => setAccountName(e.target.value)}
-                  placeholder="Ex: Conta Principal"
+                  placeholder="Opcional"
                   className="border-[#3a3a3a] bg-[#2c2c2c]"
                 />
               </div>
@@ -194,20 +223,52 @@ export function ContaFormDialog({
 
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Canal de Solicitacao</Label>
-                <div className="flex gap-2 pt-1">
-                  <Badge
-                    variant="outline"
-                    className="border-[#3a3a3a] bg-[#2c2c2c] text-xs text-muted-foreground"
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <button
+                      type="button"
+                      className="flex h-9 w-full items-center justify-between rounded-md border border-[#3a3a3a] bg-[#2c2c2c] px-3 text-sm"
+                    >
+                      <span className={canais.length === 0 ? "text-muted-foreground" : ""}>
+                        {canais.length > 0 ? canais.join(", ") : "Selecione"}
+                      </span>
+                      <ChevronsUpDown size={14} className="text-muted-foreground" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-[200px] border-[#3a3a3a] bg-[#1a1a1a] p-1"
+                    align="start"
                   >
-                    WhatsApp
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className="border-[#3a3a3a] bg-[#2c2c2c] text-xs text-muted-foreground"
-                  >
-                    Email
-                  </Badge>
-                </div>
+                    {["WhatsApp", "Email"].map((canal) => {
+                      const selected = canais.includes(canal);
+                      return (
+                        <button
+                          key={canal}
+                          type="button"
+                          onClick={() =>
+                            setCanais((prev) =>
+                              prev.includes(canal)
+                                ? prev.filter((c) => c !== canal)
+                                : [...prev, canal],
+                            )
+                          }
+                          className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-[#2c2c2c]"
+                        >
+                          <span
+                            className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
+                              selected
+                                ? "border-emerald-500 bg-emerald-500 text-white"
+                                : "border-[#3a3a3a]"
+                            }`}
+                          >
+                            {selected && <Check size={12} />}
+                          </span>
+                          {canal}
+                        </button>
+                      );
+                    })}
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">
