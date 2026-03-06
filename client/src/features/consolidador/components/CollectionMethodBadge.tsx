@@ -9,7 +9,7 @@ interface CollectionMethodBadgeProps {
 export function CollectionMethodBadge({ method }: CollectionMethodBadgeProps) {
   return (
     <Badge
-      className={`${EXTRATO_METHOD_BADGE_COLORS[method]} rounded-lg px-3 py-1 text-[10px] font-bold`}
+      className={`${EXTRATO_METHOD_BADGE_COLORS[method]} rounded-lg px-3 py-1 text-[11px] font-bold`}
     >
       {method}
     </Badge>

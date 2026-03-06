@@ -12,7 +12,7 @@ export function ExtratoStatusBadge({ extrato }: ExtratoStatusBadgeProps) {
 
   return (
     <Badge
-      className={`${EXTRATO_STATUS_BADGE_COLORS[status]} rounded-lg border-transparent px-3 py-1 text-[10px] font-bold`}
+      className={`${EXTRATO_STATUS_BADGE_COLORS[status]} rounded-lg border-transparent px-3 py-1 text-[11px] font-bold`}
     >
       {label}
     </Badge>
