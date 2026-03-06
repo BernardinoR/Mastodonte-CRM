@@ -1,4 +1,4 @@
-export type ContaTipo = "Holding" | "Filho" | "Principal";
+export type ContaTipo = "Automático" | "Manual" | "Manual Cliente";
 export type ContaStatus = "Ativa" | "Desativada";
 
 export interface Conta {

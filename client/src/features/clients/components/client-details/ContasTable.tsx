@@ -27,9 +27,9 @@ interface ContasTableProps {
 }
 
 const tipoBadgeClass: Record<string, string> = {
-  Principal: "bg-blue-900/40 text-blue-300 border-blue-800",
-  Holding: "bg-purple-900/40 text-purple-300 border-purple-800",
-  Filho: "bg-gray-800/60 text-gray-300 border-gray-700",
+  Automático: "bg-emerald-950/20 text-emerald-500 border-emerald-500/20",
+  Manual: "bg-zinc-800 text-zinc-500 border-transparent",
+  "Manual Cliente": "bg-amber-950/20 text-amber-500 border-amber-500/20",
 };
 
 const filterOptions: StatusFilter[] = ["Ativas", "Desativadas", "Todas"];
@@ -119,7 +119,7 @@ function ContaRow({ conta }: { conta: Conta }) {
       <TableCell>
         <Badge
           variant="outline"
-          className={`text-xs ${tipoBadgeClass[conta.tipo] || tipoBadgeClass.Filho}`}
+          className={`text-xs ${tipoBadgeClass[conta.tipo] || tipoBadgeClass.Manual}`}
         >
           {conta.tipo}
         </Badge>

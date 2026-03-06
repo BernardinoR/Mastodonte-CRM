@@ -246,7 +246,7 @@ export default function ClientDetails() {
             data-testid="tab-consolidacao"
             className="rounded-none bg-transparent px-0 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
           >
-            Consolidacao
+            Consolidação
           </TabsTrigger>
         </TabsList>
 
