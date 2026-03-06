@@ -14,6 +14,11 @@ function generateHistorico(contaId: string): ContaHistoricoEntry[] {
     "Jul/25",
     "Jun/25",
     "Mai/25",
+    "Abr/25",
+    "Mar/25",
+    "Fev/25",
+    "Jan/25",
+    "Dez/24",
   ];
 
   const statuses: Array<{ status: ContaHistoricoEntry["status"]; description?: string }> = [
@@ -27,6 +32,11 @@ function generateHistorico(contaId: string): ContaHistoricoEntry[] {
     { status: "Consolidado", description: "Consolidado em 22/07/2025" },
     { status: "Consolidado", description: "Consolidado em 14/06/2025" },
     { status: "Consolidado", description: "Consolidado em 08/05/2025" },
+    { status: "Consolidado", description: "Consolidado em 15/04/2025" },
+    { status: "Consolidado", description: "Consolidado em 10/03/2025" },
+    { status: "Consolidado", description: "Consolidado em 18/02/2025" },
+    { status: "Consolidado", description: "Consolidado em 12/01/2025" },
+    { status: "Consolidado", description: "Consolidado em 20/12/2024" },
   ];
 
   return months.map((competencia, i) => ({

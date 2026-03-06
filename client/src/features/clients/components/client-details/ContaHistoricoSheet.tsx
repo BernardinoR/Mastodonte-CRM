@@ -1,4 +1,5 @@
-import { Check, AlertTriangle, Plus, Landmark, Settings } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Check, AlertTriangle, Plus, Landmark, ChevronDown } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/components/ui/sheet";
 import { Badge } from "@/shared/components/ui/badge";
 import type { Conta } from "../../types/conta";
@@ -44,10 +45,20 @@ function formatAtivoDesde(date?: string): string {
   return d.toLocaleDateString("pt-BR");
 }
 
+const PAGE_SIZE = 10;
+
 export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoricoSheetProps) {
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [conta?.id]);
+
   if (!conta) return null;
 
   const historico = getContaHistorico(conta.id);
+  const visibleHistorico = historico.slice(0, visibleCount);
+  const hasMore = historico.length > visibleCount;
   const color = getInstitutionColor(conta.institution);
 
   return (
@@ -78,7 +89,7 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
             <div className="absolute bottom-3 left-[13px] top-3 w-px bg-[#363b47]" />
 
             <div className="space-y-5">
-              {historico.map((entry) => {
+              {visibleHistorico.map((entry) => {
                 const config = statusConfig[entry.status];
                 const Icon = config.icon;
 
@@ -106,6 +117,20 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
                 );
               })}
 
+              {hasMore && (
+                <div className="relative flex items-start gap-3">
+                  <div className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#363b47] bg-[#22262e] text-muted-foreground">
+                    <ChevronDown className="h-3.5 w-3.5" />
+                  </div>
+                  <button
+                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                    className="pt-0.5 text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
+                  >
+                    Carregar mais
+                  </button>
+                </div>
+              )}
+
               {/* Last item - Conta adicionada */}
               <div className="relative flex items-start gap-3">
                 <div className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#363b47] bg-[#22262e] text-muted-foreground">
@@ -119,14 +144,6 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-[#363b47] bg-[#22262e] px-5 py-4">
-          <button className="flex w-full items-center justify-center gap-2 rounded-md border border-[#363b47] bg-transparent px-4 py-2 text-sm text-foreground transition-colors hover:bg-[#2c3038]">
-            <Settings className="h-4 w-4" />
-            Gerenciar Conexao
-          </button>
         </div>
       </SheetContent>
     </Sheet>
