@@ -20,6 +20,7 @@ import type {
 } from "../types/extrato";
 
 export default function Consolidador() {
+  const [groupBy, setGroupBy] = useState<"client" | "institution">("client");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<ExtratoStatus | null>(null);
   const [typeFilter, setTypeFilter] = useState<ExtratoAccountType | null>(null);
@@ -80,16 +81,27 @@ export default function Consolidador() {
     const groupMap = new Map<string, ClientGroupType>();
 
     for (const e of filteredExtratos) {
-      let group = groupMap.get(e.clientId);
+      const key = groupBy === "client" ? e.clientId : e.institution;
+      let group = groupMap.get(key);
       if (!group) {
-        group = {
-          clientId: e.clientId,
-          clientName: e.clientName,
-          clientInitials: e.clientInitials,
-          extratos: [],
-          pendingCount: 0,
-        };
-        groupMap.set(e.clientId, group);
+        if (groupBy === "client") {
+          group = {
+            clientId: e.clientId,
+            clientName: e.clientName,
+            clientInitials: e.clientInitials,
+            extratos: [],
+            pendingCount: 0,
+          };
+        } else {
+          group = {
+            clientId: e.institution,
+            clientName: e.institution,
+            clientInitials: e.institution.slice(0, 2).toUpperCase(),
+            extratos: [],
+            pendingCount: 0,
+          };
+        }
+        groupMap.set(key, group);
       }
       group.extratos.push(e);
       if (e.status === "Pendente" || e.status === "Solicitado") {
@@ -112,7 +124,7 @@ export default function Consolidador() {
     }
 
     return { actionGroups: action, consolidatedGroups: consolidated };
-  }, [filteredExtratos]);
+  }, [filteredExtratos, groupBy]);
 
   const toggleClient = useCallback((clientId: string) => {
     setExpandedClients((prev) => {
@@ -156,6 +168,8 @@ export default function Consolidador() {
         onStatusFilterChange={setStatusFilter}
         typeFilter={typeFilter}
         onTypeFilterChange={setTypeFilter}
+        groupBy={groupBy}
+        onGroupByChange={setGroupBy}
       />
 
       {actionGroups.length > 0 && (
@@ -175,6 +189,7 @@ export default function Consolidador() {
               isExpanded={expandedClients.has(group.clientId)}
               onToggle={() => toggleClient(group.clientId)}
               onConsolidar={handleConsolidar}
+              labelField={groupBy === "institution" ? "client" : "institution"}
             />
           ))}
           {actionGroups.length > visibleCount && (
@@ -216,6 +231,7 @@ export default function Consolidador() {
                       isExpanded={expandedClients.has(group.clientId)}
                       onToggle={() => toggleClient(group.clientId)}
                       onConsolidar={handleConsolidar}
+                      labelField={groupBy === "institution" ? "client" : "institution"}
                     />
                   ))}
                   {consolidatedGroups.length > visibleConsolidatedCount && (

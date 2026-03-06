@@ -7,15 +7,18 @@ import { ExtratoActionButtons } from "./ExtratoActionButtons";
 interface ExtratoRowProps {
   extrato: Extrato;
   onConsolidar?: (extrato: Extrato) => void;
+  labelField?: "institution" | "client";
 }
 
-export function ExtratoRow({ extrato, onConsolidar }: ExtratoRowProps) {
+export function ExtratoRow({ extrato, onConsolidar, labelField = "institution" }: ExtratoRowProps) {
   const style = statusStyles[extrato.status];
 
   return (
     <div className="flex items-center gap-4 rounded-lg px-5 py-3 hover:bg-white/5">
       <span className={`h-2.5 w-2.5 flex-shrink-0 rounded-full ${style.dot} ${style.glow}`} />
-      <span className="min-w-[140px] text-base font-medium text-white">{extrato.institution}</span>
+      <span className="min-w-[140px] text-base font-medium text-white">
+        {labelField === "client" ? extrato.clientName : extrato.institution}
+      </span>
       <span className="min-w-[100px] text-sm text-gray-500">{extrato.accountType}</span>
       <span className="min-w-[120px]">
         <CollectionMethodBadge method={extrato.collectionMethod} />

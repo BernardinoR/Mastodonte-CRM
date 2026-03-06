@@ -25,6 +25,7 @@ interface ClientExtratoGroupProps {
   isExpanded: boolean;
   onToggle: () => void;
   onConsolidar?: (extrato: Extrato) => void;
+  labelField?: "institution" | "client";
 }
 
 export function ClientExtratoGroup({
@@ -32,6 +33,7 @@ export function ClientExtratoGroup({
   isExpanded,
   onToggle,
   onConsolidar,
+  labelField = "institution",
 }: ClientExtratoGroupProps) {
   const colors = clientColors[group.clientInitials] || {
     bg: "bg-gray-900/50",
@@ -62,7 +64,12 @@ export function ClientExtratoGroup({
       <CollapsibleContent>
         <div className="ml-6 flex flex-col gap-0.5 border-l border-[#2f3542] pl-5">
           {group.extratos.map((extrato) => (
-            <ExtratoRow key={extrato.id} extrato={extrato} onConsolidar={onConsolidar} />
+            <ExtratoRow
+              key={extrato.id}
+              extrato={extrato}
+              onConsolidar={onConsolidar}
+              labelField={labelField}
+            />
           ))}
         </div>
       </CollapsibleContent>
