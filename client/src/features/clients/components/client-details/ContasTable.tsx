@@ -25,6 +25,8 @@ interface ContasTableProps {
   statusFilter: StatusFilter;
   onStatusFilterChange: (filter: StatusFilter) => void;
   onContaClick?: (conta: Conta) => void;
+  onAddConta?: () => void;
+  onEditConta?: (conta: Conta) => void;
 }
 
 const tipoBadgeClass: Record<string, string> = {
@@ -40,6 +42,8 @@ export function ContasTable({
   statusFilter,
   onStatusFilterChange,
   onContaClick,
+  onAddConta,
+  onEditConta,
 }: ContasTableProps) {
   const filteredContas = contas.filter((conta) => {
     if (statusFilter === "Todas") return true;
@@ -71,7 +75,10 @@ export function ContasTable({
               </button>
             ))}
           </div>
-          <button className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[#2eaadc] hover:bg-[#2c2c2c]">
+          <button
+            className="flex items-center gap-1 rounded-md px-2 py-1 text-xs text-[#2eaadc] hover:bg-[#2c2c2c]"
+            onClick={() => onAddConta?.()}
+          >
             <Plus className="h-3.5 w-3.5" />
             Adicionar Conta
           </button>
@@ -97,7 +104,7 @@ export function ContasTable({
             </TableRow>
           ) : (
             filteredContas.map((conta) => (
-              <ContaRow key={conta.id} conta={conta} onClick={onContaClick} />
+              <ContaRow key={conta.id} conta={conta} onClick={onContaClick} onEdit={onEditConta} />
             ))
           )}
         </TableBody>
@@ -106,7 +113,15 @@ export function ContasTable({
   );
 }
 
-function ContaRow({ conta, onClick }: { conta: Conta; onClick?: (conta: Conta) => void }) {
+function ContaRow({
+  conta,
+  onClick,
+  onEdit,
+}: {
+  conta: Conta;
+  onClick?: (conta: Conta) => void;
+  onEdit?: (conta: Conta) => void;
+}) {
   const color = getInstitutionColor(conta.institution);
   const initial = conta.institution.charAt(0).toUpperCase();
   const isDisabled = conta.status === "Desativada";
@@ -144,7 +159,15 @@ function ContaRow({ conta, onClick }: { conta: Conta; onClick?: (conta: Conta) =
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="border-[#3a3a3a] bg-[#1a1a1a]">
-            <DropdownMenuItem className="text-sm">Editar conta</DropdownMenuItem>
+            <DropdownMenuItem
+              className="text-sm"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit?.(conta);
+              }}
+            >
+              Editar conta
+            </DropdownMenuItem>
             <DropdownMenuItem className="text-sm">
               {conta.status === "Ativa" ? "Desativar" : "Reativar"}
             </DropdownMenuItem>
