@@ -24,6 +24,7 @@ interface ContasTableProps {
   contas: Conta[];
   statusFilter: StatusFilter;
   onStatusFilterChange: (filter: StatusFilter) => void;
+  onContaClick?: (conta: Conta) => void;
 }
 
 const tipoBadgeClass: Record<string, string> = {
@@ -34,7 +35,12 @@ const tipoBadgeClass: Record<string, string> = {
 
 const filterOptions: StatusFilter[] = ["Ativas", "Desativadas", "Todas"];
 
-export function ContasTable({ contas, statusFilter, onStatusFilterChange }: ContasTableProps) {
+export function ContasTable({
+  contas,
+  statusFilter,
+  onStatusFilterChange,
+  onContaClick,
+}: ContasTableProps) {
   const filteredContas = contas.filter((conta) => {
     if (statusFilter === "Todas") return true;
     if (statusFilter === "Ativas") return conta.status === "Ativa";
@@ -90,7 +96,9 @@ export function ContasTable({ contas, statusFilter, onStatusFilterChange }: Cont
               </TableCell>
             </TableRow>
           ) : (
-            filteredContas.map((conta) => <ContaRow key={conta.id} conta={conta} />)
+            filteredContas.map((conta) => (
+              <ContaRow key={conta.id} conta={conta} onClick={onContaClick} />
+            ))
           )}
         </TableBody>
       </Table>
@@ -98,13 +106,16 @@ export function ContasTable({ contas, statusFilter, onStatusFilterChange }: Cont
   );
 }
 
-function ContaRow({ conta }: { conta: Conta }) {
+function ContaRow({ conta, onClick }: { conta: Conta; onClick?: (conta: Conta) => void }) {
   const color = getInstitutionColor(conta.institution);
   const initial = conta.institution.charAt(0).toUpperCase();
   const isDisabled = conta.status === "Desativada";
 
   return (
-    <TableRow className={`border-[#3a3a3a] ${isDisabled ? "opacity-50" : ""}`}>
+    <TableRow
+      className={`border-[#3a3a3a] ${isDisabled ? "opacity-50" : ""} ${onClick ? "cursor-pointer" : ""}`}
+      onClick={() => onClick?.(conta)}
+    >
       <TableCell>
         <div className="flex items-center gap-2">
           <span
