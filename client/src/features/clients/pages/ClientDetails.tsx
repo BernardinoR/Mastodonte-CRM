@@ -233,18 +233,18 @@ export default function ClientDetails() {
       />
 
       <Tabs defaultValue={autoOpenMeetingId ? "dados-gerais" : "dados-gerais"} className="w-full">
-        <TabsList className="mb-8 mt-6 flex h-auto w-full justify-start gap-8 rounded-none border-b border-[#3a3a3a] bg-transparent p-0">
+        <TabsList className="mb-8 mt-6 flex h-auto w-full justify-start gap-0 rounded-none border-b border-[#3a3a3a] bg-transparent p-0">
           <TabsTrigger
             value="dados-gerais"
             data-testid="tab-dados-gerais"
-            className="rounded-none bg-transparent px-0 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
+            className="rounded-none bg-transparent px-6 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#2eaadc] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#2eaadc] data-[state=active]:shadow-none"
           >
-            Dados Gerais
+            Visão Geral
           </TabsTrigger>
           <TabsTrigger
             value="consolidacao"
             data-testid="tab-consolidacao"
-            className="rounded-none bg-transparent px-0 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
+            className="rounded-none bg-transparent px-6 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#2eaadc] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#2eaadc] data-[state=active]:shadow-none"
           >
             Consolidação
           </TabsTrigger>
