@@ -3,6 +3,7 @@ import { useParams, Link } from "wouter";
 import { ArrowLeft, Lock, MessageSquare } from "lucide-react";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/components/ui/tabs";
 import { toast } from "@/shared/hooks/use-toast";
 import { supabase } from "@/shared/lib/supabase";
 import { WhatsAppGroupsTable } from "@features/clients";
@@ -11,6 +12,7 @@ import {
   ClientMeetings,
   ClientTasks,
   ClientPeculiarities,
+  ClientConsolidacao,
 } from "@features/clients/components/client-details";
 import { TasksCompletedCard } from "@features/clients/components/client-details/TasksCompletedCard";
 import { MeetingsCard } from "@features/clients/components/client-details/MeetingsCard";
@@ -230,90 +232,118 @@ export default function ClientDetails() {
         onUpdateStatus={(status) => updateClientStatus(client.id, status)}
       />
 
-      <div className="mb-8">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-          {/* 1. AUM - Indisponível */}
-          <DisabledStatCard title="AUM" />
-
-          {/* 2. Reuniões */}
-          <MeetingsCard meetings={meetings} />
-
-          {/* 3. Tasks Concluídas */}
-          <TasksCompletedCard tasks={clientTasks} />
-
-          {/* 4. Indicações - Indisponível */}
-          <DisabledStatCard title="Indicações" />
-        </div>
-      </div>
-
-      <div className="mb-8 space-y-4">
-        {DISABLED_SECTIONS_TOP.map((section) => (
-          <DisabledSection key={section.id} section={section} />
-        ))}
-      </div>
-
-      <div className="mb-8 space-y-8">
-        <ClientMeetings
-          meetings={meetings}
-          onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
-          inlineProps={inlineMeetingProps}
-          clientId={clientId}
-          autoOpenMeetingId={autoOpenMeetingId}
-        />
-
-        <ClientTasks tasks={clientTasks} inlineProps={inlineTaskProps} clientName={client.name} />
-      </div>
-
-      <div className="mb-8 space-y-4">
-        {DISABLED_SECTIONS_BOTTOM.map((section) => (
-          <DisabledSection key={section.id} section={section} />
-        ))}
-      </div>
-
-      <div className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-base font-semibold text-foreground">Grupos de WhatsApp</h2>
-          </div>
-          <span
-            className="cursor-pointer text-sm text-[#2eaadc] hover:underline"
-            onClick={() => setIsAddingWhatsAppGroup(true)}
-            data-testid="button-new-whatsapp-group"
+      <Tabs defaultValue={autoOpenMeetingId ? "dados-gerais" : "dados-gerais"} className="w-full">
+        <TabsList className="mb-8 mt-6 flex h-auto w-full justify-start gap-8 rounded-none border-b border-[#3a3a3a] bg-transparent p-0">
+          <TabsTrigger
+            value="dados-gerais"
+            data-testid="tab-dados-gerais"
+            className="rounded-none bg-transparent px-0 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
           >
-            + Novo grupo
-          </span>
-        </div>
-        <Card className="overflow-hidden border-[#3a3a3a] bg-[#1a1a1a]">
-          <WhatsAppGroupsTable
-            groups={whatsappGroups}
-            clientId={client.id}
-            clientName={client.name}
-            isAddingExternal={isAddingWhatsAppGroup}
-            onCancelAddExternal={() => setIsAddingWhatsAppGroup(false)}
-            onAddGroup={async (group) => {
-              await addWhatsAppGroup(client.id, group);
-              setIsAddingWhatsAppGroup(false);
-            }}
-            onUpdateGroup={async (groupId, updates) => {
-              await updateWhatsAppGroup(client.id, groupId, updates);
-            }}
-            onDeleteGroup={async (groupId) => {
-              await deleteWhatsAppGroup(client.id, groupId);
-            }}
-          />
-        </Card>
-      </div>
+            Dados Gerais
+          </TabsTrigger>
+          <TabsTrigger
+            value="consolidacao"
+            data-testid="tab-consolidacao"
+            className="rounded-none bg-transparent px-0 pb-3 text-sm shadow-none transition-colors hover:text-white data-[state=active]:border-b-2 data-[state=active]:border-[#00a3ff] data-[state=active]:bg-transparent data-[state=active]:font-semibold data-[state=active]:text-[#00a3ff] data-[state=active]:shadow-none"
+          >
+            Consolidacao
+          </TabsTrigger>
+        </TabsList>
 
-      <div className="mb-8">
-        <ClientPeculiarities
-          peculiarities={client.peculiarities}
-          monthlyMeetingDisabled={client.monthlyMeetingDisabled}
-          onAddPeculiarity={handleAddPeculiarity}
-          onRemovePeculiarity={handleRemovePeculiarity}
-          onToggleMonthlyMeeting={handleToggleMonthlyMeeting}
-        />
-      </div>
+        <TabsContent value="dados-gerais" className="space-y-8">
+          <div>
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              {/* 1. AUM - Indisponível */}
+              <DisabledStatCard title="AUM" />
+
+              {/* 2. Reuniões */}
+              <MeetingsCard meetings={meetings} />
+
+              {/* 3. Tasks Concluídas */}
+              <TasksCompletedCard tasks={clientTasks} />
+
+              {/* 4. Indicações - Indisponível */}
+              <DisabledStatCard title="Indicações" />
+            </div>
+          </div>
+          <div className="space-y-4">
+            {DISABLED_SECTIONS_TOP.map((section) => (
+              <DisabledSection key={section.id} section={section} />
+            ))}
+          </div>
+
+          <div className="space-y-8">
+            <ClientMeetings
+              meetings={meetings}
+              onNewMeeting={inlineMeetingProps.handleStartAddMeeting}
+              inlineProps={inlineMeetingProps}
+              clientId={clientId}
+              autoOpenMeetingId={autoOpenMeetingId}
+            />
+
+            <ClientTasks
+              tasks={clientTasks}
+              inlineProps={inlineTaskProps}
+              clientName={client.name}
+            />
+          </div>
+
+          <div className="space-y-4">
+            {DISABLED_SECTIONS_BOTTOM.map((section) => (
+              <DisabledSection key={section.id} section={section} />
+            ))}
+          </div>
+
+          <div>
+            <div className="mb-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                <h2 className="text-base font-semibold text-foreground">Grupos de WhatsApp</h2>
+              </div>
+              <span
+                className="cursor-pointer text-sm text-[#2eaadc] hover:underline"
+                onClick={() => setIsAddingWhatsAppGroup(true)}
+                data-testid="button-new-whatsapp-group"
+              >
+                + Novo grupo
+              </span>
+            </div>
+            <Card className="overflow-hidden border-[#3a3a3a] bg-[#1a1a1a]">
+              <WhatsAppGroupsTable
+                groups={whatsappGroups}
+                clientId={client.id}
+                clientName={client.name}
+                isAddingExternal={isAddingWhatsAppGroup}
+                onCancelAddExternal={() => setIsAddingWhatsAppGroup(false)}
+                onAddGroup={async (group) => {
+                  await addWhatsAppGroup(client.id, group);
+                  setIsAddingWhatsAppGroup(false);
+                }}
+                onUpdateGroup={async (groupId, updates) => {
+                  await updateWhatsAppGroup(client.id, groupId, updates);
+                }}
+                onDeleteGroup={async (groupId) => {
+                  await deleteWhatsAppGroup(client.id, groupId);
+                }}
+              />
+            </Card>
+          </div>
+
+          <div>
+            <ClientPeculiarities
+              peculiarities={client.peculiarities}
+              monthlyMeetingDisabled={client.monthlyMeetingDisabled}
+              onAddPeculiarity={handleAddPeculiarity}
+              onRemovePeculiarity={handleRemovePeculiarity}
+              onToggleMonthlyMeeting={handleToggleMonthlyMeeting}
+            />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="consolidacao">
+          <ClientConsolidacao clientId={clientId} clientName={clientName} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

@@ -89,7 +89,8 @@
       "mcp__supabase__search_docs",
       "Bash(git stash:*)",
       "Bash(gh api:*)",
-      "Bash(dd:*)"
+      "Bash(dd:*)",
+      "Bash(find /home/runner/workspace/server -type f \\\\\\( -name \"*extrato*\" -o -name \"*consolidador*\" \\\\\\) 2>/dev/null | head -20)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -396,7 +396,7 @@ export function ClientHeader({
   const hasWhatsAppGroups = activeWhatsAppGroups.length > 0;
 
   return (
-    <header className="mb-6 border-b border-[#3a3a3a] pb-5">
+    <header className="mb-0 pb-0">
       <div className="flex flex-wrap items-start gap-6">
         <div
           className="flex h-20 w-20 flex-shrink-0 items-center justify-center rounded-lg bg-[#2a2a2a] text-2xl font-bold text-muted-foreground"
