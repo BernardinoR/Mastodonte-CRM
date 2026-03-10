@@ -202,6 +202,18 @@ export function ContaFormDialog({
 
                 <div className="space-y-2">
                   <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Nº da Conta
+                  </Label>
+                  <Input
+                    value={numeroConta}
+                    onChange={(e) => setNumeroConta(e.target.value)}
+                    placeholder="Ex: 12345-6"
+                    className="border-[#3f3f46] bg-[#27272a]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
                     Tipo de Acesso
                   </Label>
                   <Select value={tipo} onValueChange={(v) => setTipo(v as ContaTipo)}>
