@@ -6,6 +6,7 @@ export interface Conta {
   clientId: string;
   institution: string;
   accountName: string;
+  numeroConta?: string;
   tipo: ContaTipo;
   competencia: string;
   status: ContaStatus;

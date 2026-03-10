@@ -80,10 +80,9 @@ export function usePomodoroTimer(
   }, []);
 
   const startTimer = useCallback(() => {
-    remainingAtStartRef.current = remainingSeconds;
     timerStartTimeRef.current = Date.now();
     setTimerRunning(true);
-  }, [remainingSeconds]);
+  }, []);
 
   const pauseTimer = useCallback(() => {
     if (timerRunning) {
@@ -99,6 +98,7 @@ export function usePomodoroTimer(
     setRemainingSeconds(POMODORO_DURATION);
     remainingAtStartRef.current = POMODORO_DURATION;
     setTimerRunning(false);
+    timerEndTriggeredRef.current = false;
   }, []);
 
   const restoreTimer = useCallback((seconds: number) => {

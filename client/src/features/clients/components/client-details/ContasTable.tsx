@@ -90,6 +90,7 @@ export function ContasTable({
           <TableRow className="border-[#3a3a3a] hover:bg-transparent">
             <TableHead className="text-xs text-muted-foreground">Instituição</TableHead>
             <TableHead className="text-xs text-muted-foreground">Nome da Conta</TableHead>
+            <TableHead className="text-xs text-muted-foreground">Nº da Conta</TableHead>
             <TableHead className="text-xs text-muted-foreground">Tipo</TableHead>
             <TableHead className="text-xs text-muted-foreground">Competência</TableHead>
             <TableHead className="w-10" />
@@ -98,7 +99,7 @@ export function ContasTable({
         <TableBody>
           {filteredContas.length === 0 ? (
             <TableRow className="border-[#3a3a3a]">
-              <TableCell colSpan={5} className="py-8 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={6} className="py-8 text-center text-sm text-muted-foreground">
                 Nenhuma conta encontrada
               </TableCell>
             </TableRow>
@@ -142,6 +143,7 @@ function ContaRow({
         </div>
       </TableCell>
       <TableCell className="text-sm text-foreground">{conta.accountName}</TableCell>
+      <TableCell className="text-sm text-muted-foreground">{conta.numeroConta || "—"}</TableCell>
       <TableCell>
         <Badge
           variant="outline"

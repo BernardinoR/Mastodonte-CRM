@@ -33,6 +33,7 @@ import { getInstitutionColor, institutionColors } from "../../lib/institutionCol
 export interface ContaFormData {
   institution: string;
   accountName: string;
+  numeroConta: string;
   tipo: ContaTipo;
   competencia: string;
   status: ContaStatus;
@@ -65,6 +66,7 @@ export function ContaFormDialog({
 
   const [institution, setInstitution] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [numeroConta, setNumeroConta] = useState("");
   const [tipo, setTipo] = useState<ContaTipo>("Manual");
   const [frequencia, setFrequencia] = useState("Mensal");
   const [competencia, setCompetencia] = useState("");
@@ -76,12 +78,14 @@ export function ContaFormDialog({
       if (conta) {
         setInstitution(conta.institution);
         setAccountName(conta.accountName);
+        setNumeroConta(conta.numeroConta || "");
         setTipo(conta.tipo);
         setCompetencia(conta.competencia);
         setStatus(conta.status);
       } else {
         setInstitution("");
         setAccountName("");
+        setNumeroConta("");
         setTipo("Manual");
         setFrequencia("Mensal");
         setCompetencia("");
@@ -92,7 +96,7 @@ export function ContaFormDialog({
   }, [open, conta]);
 
   const handleSave = () => {
-    onSave({ institution, accountName, tipo, competencia, status });
+    onSave({ institution, accountName, numeroConta, tipo, competencia, status });
   };
 
   const color = institution ? getInstitutionColor(institution) : null;
