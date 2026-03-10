@@ -85,14 +85,14 @@ export function ContasTable({
         </div>
       </div>
 
-      <Table>
+      <Table className="table-fixed">
         <TableHeader>
           <TableRow className="border-[#3a3a3a] hover:bg-transparent">
-            <TableHead className="text-xs text-muted-foreground">Instituição</TableHead>
-            <TableHead className="text-xs text-muted-foreground">Nome da Conta</TableHead>
-            <TableHead className="text-xs text-muted-foreground">Nº da Conta</TableHead>
-            <TableHead className="text-xs text-muted-foreground">Tipo</TableHead>
-            <TableHead className="text-xs text-muted-foreground">Competência</TableHead>
+            <TableHead className="w-[22%] text-xs text-muted-foreground">Instituição</TableHead>
+            <TableHead className="w-[22%] text-xs text-muted-foreground">Nome da Conta</TableHead>
+            <TableHead className="w-[16%] text-xs text-muted-foreground">Nº da Conta</TableHead>
+            <TableHead className="w-[16%] text-xs text-muted-foreground">Tipo</TableHead>
+            <TableHead className="w-[16%] text-xs text-muted-foreground">Competência</TableHead>
             <TableHead className="w-10" />
           </TableRow>
         </TableHeader>
