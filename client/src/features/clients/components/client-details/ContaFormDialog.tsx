@@ -26,7 +26,7 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
-import { Info, Check, ChevronsUpDown } from "lucide-react";
+import { Info, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
 import { getInstitutionColor, institutionColors } from "../../lib/institutionColors";
 
@@ -317,18 +317,17 @@ export function ContaFormDialog({
                                   : [...prev, canal],
                               )
                             }
-                            className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-[#27272a]"
+                            className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-[#27272a]"
                           >
                             <span
-                              className={`flex h-4 w-4 items-center justify-center rounded-sm border ${
-                                selected
-                                  ? "border-emerald-500 bg-emerald-500 text-white"
-                                  : "border-[#3f3f46]"
-                              }`}
+                              className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${
+                                canal === "WhatsApp"
+                                  ? "border border-green-800/50 bg-green-900/30 text-green-400"
+                                  : "border border-blue-800/50 bg-blue-900/30 text-blue-400"
+                              } ${!selected ? "opacity-40" : ""}`}
                             >
-                              {selected && <Check size={12} />}
+                              {canal}
                             </span>
-                            {canal}
                           </button>
                         );
                       })}
