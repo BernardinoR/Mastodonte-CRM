@@ -312,14 +312,16 @@ export function ContaFormDialog({
                   </Select>
                 </div>
 
-                {tipo === "Manual" && (
-                  <div className="col-span-2 flex items-center gap-2 rounded-md border border-amber-800/50 bg-amber-900/20 px-4 py-3 text-sm text-amber-300">
-                    <Info size={16} className="shrink-0" />
-                    <span>
-                      Para contas manuais, preencha os dados do gerente na aba "Contato do Gerente".
-                    </span>
-                  </div>
-                )}
+                {tipo === "Manual" &&
+                  !(gerenteNome.trim() && (gerenteEmail.trim() || gerenteTelefone.trim())) && (
+                    <div className="col-span-2 flex items-center gap-2 rounded-md border border-amber-800/50 bg-amber-900/20 px-4 py-3 text-sm text-amber-300">
+                      <Info size={16} className="shrink-0" />
+                      <span>
+                        Para contas manuais, preencha os dados do gerente na aba "Contato do
+                        Gerente".
+                      </span>
+                    </div>
+                  )}
 
                 <div className="space-y-2">
                   <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
