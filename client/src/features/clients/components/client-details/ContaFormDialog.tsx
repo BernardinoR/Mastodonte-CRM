@@ -444,8 +444,8 @@ export function ContaFormDialog({
             >
               Cancelar
             </button>
-            <Button onClick={handleSave}>
-              {isEditing ? "Salvar Alteracoes" : "Adicionar Conta"}
+            <Button onClick={handleSave} className="bg-[#2eaadc] text-white hover:bg-[#2899c7]">
+              {isEditing ? "Salvar Alterações" : "Adicionar Conta"}
             </Button>
           </div>
         </DialogFooter>
