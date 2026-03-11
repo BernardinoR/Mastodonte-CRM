@@ -203,7 +203,10 @@ export function ContaFormDialog({
                         <TooltipTrigger asChild>
                           <Info size={14} className="cursor-help text-muted-foreground" />
                         </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-[240px] text-xs">
+                        <TooltipContent
+                          side="top"
+                          className="max-w-[240px] text-xs font-normal normal-case"
+                        >
                           Preencha apenas quando houver duas ou mais contas na mesma instituicao e
                           precisar diferencia-las.
                         </TooltipContent>
