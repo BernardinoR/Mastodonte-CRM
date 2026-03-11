@@ -507,7 +507,23 @@ export function ContaFormDialog({
 
               <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">
                 <div>
-                  <p className="text-sm font-medium">Vincular ao Grupo</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-medium">Vincular ao Grupo</p>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info size={14} className="cursor-help text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-[260px] text-xs font-normal normal-case"
+                        >
+                          Ao ativar, ao clicar no WhatsApp do cliente na consolidação, você será
+                          direcionado para o grupo e não para o gerente.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     {whatsappGroupAtivo ? "Grupo vinculado a esta conta" : "Nenhum grupo vinculado"}
                   </p>
