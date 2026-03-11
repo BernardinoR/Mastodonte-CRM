@@ -29,7 +29,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Info, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
 import type { WhatsAppGroup } from "../../types/client";
-import { getInstitutionColor, institutionColors } from "../../lib/institutionColors";
+import { getInstitutionColor } from "../../lib/institutionColors";
+import { INSTITUTIONS } from "@shared/types";
 
 export interface ContaFormData {
   institution: string;
@@ -61,7 +62,7 @@ interface ContaFormDialogProps {
   whatsappGroups?: WhatsAppGroup[];
 }
 
-const institutions = Object.keys(institutionColors);
+const institutions = [...INSTITUTIONS];
 const tipoOptions: { value: ContaTipo; label: string }[] = [
   { value: "Automático", label: "Automático" },
   { value: "Manual", label: "Manual" },

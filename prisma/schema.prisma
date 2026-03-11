@@ -81,6 +81,7 @@ model Client {
   meetings       Meeting[]
   tasks          Task[]
   whatsappGroups WhatsAppGroup[]
+  contas         Conta[]
 
   @@map("clients")
 }
@@ -98,6 +99,31 @@ model WhatsAppGroup {
   client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("whatsapp_groups")
+}
+
+model Conta {
+  id                     String   @id @default(uuid())
+  clientId               String   @map("client_id")
+  institution            String
+  accountName            String?  @map("account_name")
+  accountNumber          String?  @map("account_number")
+  type                   String   @default("Automático")
+  startDate              String   @map("start_date")
+  endDate                String?  @map("end_date")
+  status                 String   @default("Ativa")
+  activeSince            String?  @map("active_since")
+  deactivatedSince       String?  @map("deactivated_since")
+  managerName            String?  @map("manager_name")
+  managerEmail           String?  @map("manager_email")
+  managerPhone           String?  @map("manager_phone")
+  whatsappGroupId        Int?     @map("whatsapp_group_id")
+  whatsappGroupLinked    Boolean  @default(false) @map("whatsapp_group_linked")
+  createdAt              DateTime @default(now()) @map("created_at")
+  updatedAt              DateTime @updatedAt @map("updated_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("contas")
 }
 
 model Meeting {

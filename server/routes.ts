@@ -551,6 +551,158 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ============================================
+  // CONTAS (Consolidação)
+  // ============================================
+
+  // Create a new conta
+  app.post("/api/contas", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const {
+        clientId,
+        institution,
+        type,
+        startDate,
+        accountName,
+        accountNumber,
+        endDate,
+        status,
+        activeSince,
+        deactivatedSince,
+        managerName,
+        managerEmail,
+        managerPhone,
+        whatsappGroupId,
+        whatsappGroupLinked,
+      } = req.body;
+
+      if (!clientId || typeof clientId !== "string") {
+        return res.status(400).json({ error: "clientId é obrigatório" });
+      }
+      if (!institution || typeof institution !== "string") {
+        return res.status(400).json({ error: "institution é obrigatório" });
+      }
+      if (!startDate || typeof startDate !== "string") {
+        return res.status(400).json({ error: "startDate (competência) é obrigatório" });
+      }
+
+      const conta = await storage.createConta({
+        clientId,
+        institution,
+        accountName: accountName || null,
+        accountNumber: accountNumber || null,
+        type: type || "Automático",
+        startDate,
+        endDate: endDate || null,
+        status: status || "Ativa",
+        activeSince: activeSince || null,
+        deactivatedSince: deactivatedSince || null,
+        managerName: managerName || null,
+        managerEmail: managerEmail || null,
+        managerPhone: managerPhone || null,
+        whatsappGroupId: whatsappGroupId ? parseInt(whatsappGroupId, 10) : null,
+        whatsappGroupLinked: whatsappGroupLinked || false,
+      });
+
+      return res.status(201).json({ conta });
+    } catch (error) {
+      console.error("Error creating conta:", error);
+      return res.status(500).json({ error: "Falha ao criar conta" });
+    }
+  });
+
+  // List contas for a client
+  app.get("/api/clients/:clientId/contas", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { clientId } = req.params;
+      const contas = await storage.getContasByClientId(clientId);
+      return res.json({ contas });
+    } catch (error) {
+      console.error("Error fetching contas:", error);
+      return res.status(500).json({ error: "Falha ao buscar contas" });
+    }
+  });
+
+  // Get conta by ID
+  app.get("/api/contas/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const conta = await storage.getContaById(id);
+      if (!conta) {
+        return res.status(404).json({ error: "Conta não encontrada" });
+      }
+      return res.json({ conta });
+    } catch (error) {
+      console.error("Error fetching conta:", error);
+      return res.status(500).json({ error: "Falha ao buscar conta" });
+    }
+  });
+
+  // Update conta
+  app.put("/api/contas/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const {
+        institution,
+        accountName,
+        accountNumber,
+        type,
+        startDate,
+        endDate,
+        status,
+        activeSince,
+        deactivatedSince,
+        managerName,
+        managerEmail,
+        managerPhone,
+        whatsappGroupId,
+        whatsappGroupLinked,
+      } = req.body;
+
+      const updates: Record<string, any> = {};
+      if (institution !== undefined) updates.institution = institution;
+      if (accountName !== undefined) updates.accountName = accountName || null;
+      if (accountNumber !== undefined) updates.accountNumber = accountNumber || null;
+      if (type !== undefined) updates.type = type;
+      if (startDate !== undefined) updates.startDate = startDate;
+      if (endDate !== undefined) updates.endDate = endDate || null;
+      if (status !== undefined) updates.status = status;
+      if (activeSince !== undefined) updates.activeSince = activeSince || null;
+      if (deactivatedSince !== undefined) updates.deactivatedSince = deactivatedSince || null;
+      if (managerName !== undefined) updates.managerName = managerName || null;
+      if (managerEmail !== undefined) updates.managerEmail = managerEmail || null;
+      if (managerPhone !== undefined) updates.managerPhone = managerPhone || null;
+      if (whatsappGroupId !== undefined)
+        updates.whatsappGroupId = whatsappGroupId ? parseInt(whatsappGroupId, 10) : null;
+      if (whatsappGroupLinked !== undefined) updates.whatsappGroupLinked = whatsappGroupLinked;
+
+      const conta = await storage.updateConta(id, updates);
+      if (!conta) {
+        return res.status(404).json({ error: "Conta não encontrada" });
+      }
+
+      return res.json({ conta });
+    } catch (error) {
+      console.error("Error updating conta:", error);
+      return res.status(500).json({ error: "Falha ao atualizar conta" });
+    }
+  });
+
+  // Delete conta
+  app.delete("/api/contas/:id", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const deleted = await storage.deleteConta(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "Conta não encontrada" });
+      }
+      return res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting conta:", error);
+      return res.status(500).json({ error: "Falha ao deletar conta" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
