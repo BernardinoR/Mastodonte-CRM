@@ -11,7 +11,6 @@ export interface Conta {
   competencia: string;
   competenciaDesativacao?: string;
   status: ContaStatus;
-  esporadico: boolean;
   ativoDesde?: string;
   desativadoDesde?: string;
   gerenteNome?: string;
