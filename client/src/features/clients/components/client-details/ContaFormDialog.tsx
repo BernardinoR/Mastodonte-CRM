@@ -60,7 +60,7 @@ const tipoOptions: { value: ContaTipo; label: string }[] = [
   { value: "Manual", label: "Manual" },
   { value: "Manual Cliente", label: "Manual Cliente" },
 ];
-const frequenciaOptions = ["Mensal", "Quinzenal", "Semanal"];
+const frequenciaOptions = ["Mensal", "Trimestral", "Semestral"];
 
 export function ContaFormDialog({
   conta,
