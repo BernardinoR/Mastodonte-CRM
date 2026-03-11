@@ -234,8 +234,24 @@ export function ContaFormDialog({
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  <Label className="mb-2 flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-zinc-400">
                     Tipo de Acesso
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info size={14} className="cursor-help text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent
+                          side="top"
+                          className="max-w-[240px] text-xs font-normal normal-case"
+                        >
+                          <strong>Automático:</strong> Extratos que conseguimos baixar diretamente.{" "}
+                          <strong>Manual:</strong> Extratos que precisamos pedir para o gerente da
+                          conta. <strong>Manual Cliente:</strong> Extratos que precisamos pedir para
+                          o cliente.
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
                   </Label>
                   <Select value={tipo} onValueChange={(v) => setTipo(v as ContaTipo)}>
                     <SelectTrigger className="border-[#3f3f46] bg-[#27272a]">
