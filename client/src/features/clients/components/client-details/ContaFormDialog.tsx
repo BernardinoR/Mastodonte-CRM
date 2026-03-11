@@ -470,26 +470,26 @@ export function ContaFormDialog({
                     className="border-[#3f3f46] bg-[#27272a]"
                   />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
-                  Telefone
-                </Label>
-                <Input
-                  type="tel"
-                  value={gerenteTelefone}
-                  onChange={(e) => setGerenteTelefone(e.target.value)}
-                  placeholder="(11) 99999-9999"
-                  className="max-w-sm border-[#3f3f46] bg-[#27272a]"
-                />
-              </div>
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Telefone
+                  </Label>
+                  <Input
+                    type="tel"
+                    value={gerenteTelefone}
+                    onChange={(e) => setGerenteTelefone(e.target.value)}
+                    placeholder="(11) 99999-9999"
+                    className="border-[#3f3f46] bg-[#27272a]"
+                  />
+                </div>
 
-              <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">
-                <div className="flex-1 space-y-2">
-                  <p className="text-sm font-medium">Grupo de WhatsApp</p>
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Grupo de WhatsApp
+                  </Label>
                   <Select value={whatsappGroupId} onValueChange={setWhatsappGroupId}>
-                    <SelectTrigger className="max-w-sm border-[#3f3f46] bg-[#27272a]">
+                    <SelectTrigger className="border-[#3f3f46] bg-[#27272a]">
                       <SelectValue placeholder="Selecione um grupo" />
                     </SelectTrigger>
                     <SelectContent className="border-[#27272a] bg-[#18181b]">
@@ -503,16 +503,20 @@ export function ContaFormDialog({
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex flex-col items-end gap-1">
-                  <Switch
-                    checked={whatsappGroupAtivo}
-                    onCheckedChange={setWhatsappGroupAtivo}
-                    className="data-[state=checked]:bg-[#2eaadc]"
-                  />
-                  <span className="text-xs text-muted-foreground">
-                    {whatsappGroupAtivo ? "Vinculado" : "Desvinculado"}
-                  </span>
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Vincular ao Grupo</p>
+                  <p className="text-xs text-muted-foreground">
+                    {whatsappGroupAtivo ? "Grupo vinculado a esta conta" : "Nenhum grupo vinculado"}
+                  </p>
                 </div>
+                <Switch
+                  checked={whatsappGroupAtivo}
+                  onCheckedChange={setWhatsappGroupAtivo}
+                  className="data-[state=checked]:bg-[#2eaadc]"
+                />
               </div>
             </TabsContent>
           </Tabs>
