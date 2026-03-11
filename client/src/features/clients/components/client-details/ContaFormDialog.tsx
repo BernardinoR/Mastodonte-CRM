@@ -130,7 +130,7 @@ export function ContaFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden border-[#27272a] bg-[#18181b] p-0 sm:max-w-2xl">
+      <DialogContent className="flex max-h-[90vh] flex-col gap-0 overflow-hidden border-[#27272a] bg-[#18181b] p-0 sm:max-w-3xl">
         <DialogHeader className="border-b border-[#27272a] px-6 pb-3 pt-4">
           <div className="flex items-center gap-3">
             <span
@@ -175,7 +175,7 @@ export function ContaFormDialog({
               </TabsList>
             </div>
 
-            <TabsContent value="dados" className="space-y-6 px-6 pt-6">
+            <TabsContent value="dados" className="space-y-6 px-6 py-6">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
