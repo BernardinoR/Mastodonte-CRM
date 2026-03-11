@@ -38,8 +38,7 @@ createRoot(document.getElementById("root")!).render(
     publishableKey={PUBLISHABLE_KEY}
     signInUrl="/sign-in"
     signUpUrl="/sign-up"
-    afterSignInUrl="/"
-    afterSignUpUrl="/"
+    fallbackRedirectUrl="/"
   >
     <App />
   </ClerkProvider>,

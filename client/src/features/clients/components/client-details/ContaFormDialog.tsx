@@ -36,7 +36,14 @@ export interface ContaFormData {
   numeroConta: string;
   tipo: ContaTipo;
   competencia: string;
+  competenciaDesativacao: string;
   status: ContaStatus;
+}
+
+function formatCompetencia(value: string): string {
+  let v = value.replace(/\D/g, "");
+  if (v.length >= 3) v = v.slice(0, 2) + "/" + v.slice(2, 6);
+  return v;
 }
 
 interface ContaFormDialogProps {
@@ -70,6 +77,7 @@ export function ContaFormDialog({
   const [tipo, setTipo] = useState<ContaTipo>("Manual");
   const [frequencia, setFrequencia] = useState("Mensal");
   const [competencia, setCompetencia] = useState("");
+  const [competenciaDesativacao, setCompetenciaDesativacao] = useState("");
   const [status, setStatus] = useState<ContaStatus>("Ativa");
   const [canais, setCanais] = useState<string[]>(["WhatsApp", "Email"]);
 
@@ -81,6 +89,7 @@ export function ContaFormDialog({
         setNumeroConta(conta.numeroConta || "");
         setTipo(conta.tipo);
         setCompetencia(conta.competencia);
+        setCompetenciaDesativacao(conta.competenciaDesativacao || "");
         setStatus(conta.status);
       } else {
         setInstitution("");
@@ -89,6 +98,7 @@ export function ContaFormDialog({
         setTipo("Manual");
         setFrequencia("Mensal");
         setCompetencia("");
+        setCompetenciaDesativacao("");
         setStatus("Ativa");
         setCanais(["WhatsApp", "Email"]);
       }
@@ -96,7 +106,15 @@ export function ContaFormDialog({
   }, [open, conta]);
 
   const handleSave = () => {
-    onSave({ institution, accountName, numeroConta, tipo, competencia, status });
+    onSave({
+      institution,
+      accountName,
+      numeroConta,
+      tipo,
+      competencia,
+      competenciaDesativacao,
+      status,
+    });
   };
 
   const color = institution ? getInstitutionColor(institution) : null;
@@ -324,16 +342,27 @@ export function ContaFormDialog({
                   </Label>
                   <Input
                     value={competencia}
-                    onChange={(e) => {
-                      let v = e.target.value.replace(/\D/g, "");
-                      if (v.length >= 3) v = v.slice(0, 2) + "/" + v.slice(2, 6);
-                      setCompetencia(v);
-                    }}
+                    onChange={(e) => setCompetencia(formatCompetencia(e.target.value))}
                     maxLength={7}
                     placeholder="mm/aaaa"
                     className="border-[#3f3f46] bg-[#27272a]"
                   />
                 </div>
+
+                {status === "Desativada" && (
+                  <div className="space-y-2">
+                    <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                      Competência de Desativação
+                    </Label>
+                    <Input
+                      value={competenciaDesativacao}
+                      onChange={(e) => setCompetenciaDesativacao(formatCompetencia(e.target.value))}
+                      maxLength={7}
+                      placeholder="mm/aaaa"
+                      className="border-[#3f3f46] bg-[#27272a]"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">

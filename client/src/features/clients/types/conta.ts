@@ -9,6 +9,7 @@ export interface Conta {
   numeroConta?: string;
   tipo: ContaTipo;
   competencia: string;
+  competenciaDesativacao?: string;
   status: ContaStatus;
   esporadico: boolean;
   ativoDesde?: string;
