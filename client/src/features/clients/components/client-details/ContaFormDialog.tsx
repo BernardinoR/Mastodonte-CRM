@@ -149,8 +149,14 @@ export function ContaFormDialog({
               <span className="text-xs font-medium text-zinc-500">Extratos consolidados</span>
             </div>
             {isEditing && (
-              <Badge className="ml-2 rounded border border-green-800/50 bg-green-900/40 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-green-400">
-                {conta.status}
+              <Badge
+                className={`ml-2 rounded border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  status === "Ativa"
+                    ? "border-green-800/50 bg-green-900/40 text-green-400"
+                    : "border-red-800/50 bg-red-900/40 text-red-400"
+                }`}
+              >
+                {status}
               </Badge>
             )}
           </div>
