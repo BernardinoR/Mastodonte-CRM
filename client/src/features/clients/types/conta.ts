@@ -14,4 +14,9 @@ export interface Conta {
   esporadico: boolean;
   ativoDesde?: string;
   desativadoDesde?: string;
+  gerenteNome?: string;
+  gerenteEmail?: string;
+  gerenteTelefone?: string;
+  whatsappGroupId?: string;
+  whatsappGroupAtivo?: boolean;
 }

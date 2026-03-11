@@ -28,6 +28,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
 import { Info, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
+import type { WhatsAppGroup } from "../../types/client";
 import { getInstitutionColor, institutionColors } from "../../lib/institutionColors";
 
 export interface ContaFormData {
@@ -38,6 +39,11 @@ export interface ContaFormData {
   competencia: string;
   competenciaDesativacao: string;
   status: ContaStatus;
+  gerenteNome: string;
+  gerenteEmail: string;
+  gerenteTelefone: string;
+  whatsappGroupId: string;
+  whatsappGroupAtivo: boolean;
 }
 
 function formatCompetencia(value: string): string {
@@ -52,6 +58,7 @@ interface ContaFormDialogProps {
   onOpenChange: (open: boolean) => void;
   onSave: (data: ContaFormData) => void;
   onDelete?: (contaId: string) => void;
+  whatsappGroups?: WhatsAppGroup[];
 }
 
 const institutions = Object.keys(institutionColors);
@@ -68,6 +75,7 @@ export function ContaFormDialog({
   onOpenChange,
   onSave,
   onDelete,
+  whatsappGroups = [],
 }: ContaFormDialogProps) {
   const isEditing = conta !== null;
 
@@ -80,6 +88,11 @@ export function ContaFormDialog({
   const [competenciaDesativacao, setCompetenciaDesativacao] = useState("");
   const [status, setStatus] = useState<ContaStatus>("Ativa");
   const [canais, setCanais] = useState<string[]>(["WhatsApp", "Email"]);
+  const [gerenteNome, setGerenteNome] = useState("");
+  const [gerenteEmail, setGerenteEmail] = useState("");
+  const [gerenteTelefone, setGerenteTelefone] = useState("");
+  const [whatsappGroupId, setWhatsappGroupId] = useState("");
+  const [whatsappGroupAtivo, setWhatsappGroupAtivo] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -91,6 +104,11 @@ export function ContaFormDialog({
         setCompetencia(conta.competencia);
         setCompetenciaDesativacao(conta.competenciaDesativacao || "");
         setStatus(conta.status);
+        setGerenteNome(conta.gerenteNome || "");
+        setGerenteEmail(conta.gerenteEmail || "");
+        setGerenteTelefone(conta.gerenteTelefone || "");
+        setWhatsappGroupId(conta.whatsappGroupId || "");
+        setWhatsappGroupAtivo(conta.whatsappGroupAtivo || false);
       } else {
         setInstitution("");
         setAccountName("");
@@ -101,6 +119,11 @@ export function ContaFormDialog({
         setCompetenciaDesativacao("");
         setStatus("Ativa");
         setCanais(["WhatsApp", "Email"]);
+        setGerenteNome("");
+        setGerenteEmail("");
+        setGerenteTelefone("");
+        setWhatsappGroupId("");
+        setWhatsappGroupAtivo(false);
       }
     }
   }, [open, conta]);
@@ -114,6 +137,11 @@ export function ContaFormDialog({
       competencia,
       competenciaDesativacao,
       status,
+      gerenteNome,
+      gerenteEmail,
+      gerenteTelefone,
+      whatsappGroupId,
+      whatsappGroupAtivo,
     });
   };
 
@@ -416,9 +444,75 @@ export function ContaFormDialog({
               </div>
             </TabsContent>
 
-            <TabsContent value="gerente" className="px-6 pt-6">
-              <div className="flex items-center justify-center py-12 text-sm text-muted-foreground">
-                Em breve
+            <TabsContent value="gerente" className="space-y-6 px-6 py-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Nome do Gerente
+                  </Label>
+                  <Input
+                    value={gerenteNome}
+                    onChange={(e) => setGerenteNome(e.target.value)}
+                    placeholder="Nome completo"
+                    className="border-[#3f3f46] bg-[#27272a]"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Email
+                  </Label>
+                  <Input
+                    type="email"
+                    value={gerenteEmail}
+                    onChange={(e) => setGerenteEmail(e.target.value)}
+                    placeholder="email@exemplo.com"
+                    className="border-[#3f3f46] bg-[#27272a]"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                  Telefone
+                </Label>
+                <Input
+                  type="tel"
+                  value={gerenteTelefone}
+                  onChange={(e) => setGerenteTelefone(e.target.value)}
+                  placeholder="(11) 99999-9999"
+                  className="max-w-sm border-[#3f3f46] bg-[#27272a]"
+                />
+              </div>
+
+              <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">
+                <div className="flex-1 space-y-2">
+                  <p className="text-sm font-medium">Grupo de WhatsApp</p>
+                  <Select value={whatsappGroupId} onValueChange={setWhatsappGroupId}>
+                    <SelectTrigger className="max-w-sm border-[#3f3f46] bg-[#27272a]">
+                      <SelectValue placeholder="Selecione um grupo" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[#27272a] bg-[#18181b]">
+                      {whatsappGroups
+                        .filter((g) => g.status === "Ativo")
+                        .map((group) => (
+                          <SelectItem key={group.id} value={group.id}>
+                            {group.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col items-end gap-1">
+                  <Switch
+                    checked={whatsappGroupAtivo}
+                    onCheckedChange={setWhatsappGroupAtivo}
+                    className="data-[state=checked]:bg-[#2eaadc]"
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {whatsappGroupAtivo ? "Vinculado" : "Desvinculado"}
+                  </span>
+                </div>
               </div>
             </TabsContent>
           </Tabs>

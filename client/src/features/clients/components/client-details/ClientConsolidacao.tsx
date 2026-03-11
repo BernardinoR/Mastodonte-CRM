@@ -5,15 +5,17 @@ import { ContaHistoricoSheet } from "./ContaHistoricoSheet";
 import { ContaFormDialog } from "./ContaFormDialog";
 import type { ContaFormData } from "./ContaFormDialog";
 import type { Conta } from "../../types/conta";
+import type { WhatsAppGroup } from "../../types/client";
 
 interface ClientConsolidacaoProps {
   clientId: string;
   clientName: string;
+  whatsappGroups?: WhatsAppGroup[];
 }
 
 type StatusFilter = "Ativas" | "Desativadas" | "Todas";
 
-export function ClientConsolidacao({ clientId }: ClientConsolidacaoProps) {
+export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientConsolidacaoProps) {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("Ativas");
   const [selectedConta, setSelectedConta] = useState<Conta | null>(null);
   const [editingConta, setEditingConta] = useState<Conta | null>(null);
@@ -57,6 +59,7 @@ export function ClientConsolidacao({ clientId }: ClientConsolidacaoProps) {
         open={isFormDialogOpen}
         onOpenChange={setIsFormDialogOpen}
         onSave={handleSaveConta}
+        whatsappGroups={whatsappGroups}
       />
     </div>
   );

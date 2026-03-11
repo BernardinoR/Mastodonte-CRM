@@ -341,7 +341,11 @@ export default function ClientDetails() {
         </TabsContent>
 
         <TabsContent value="consolidacao">
-          <ClientConsolidacao clientId={clientId} clientName={clientName} />
+          <ClientConsolidacao
+            clientId={clientId}
+            clientName={clientName}
+            whatsappGroups={whatsappGroups}
+          />
         </TabsContent>
       </Tabs>
     </div>
