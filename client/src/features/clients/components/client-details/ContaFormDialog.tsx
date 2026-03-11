@@ -243,12 +243,22 @@ export function ContaFormDialog({
                         </TooltipTrigger>
                         <TooltipContent
                           side="top"
-                          className="max-w-[240px] text-xs font-normal normal-case"
+                          className="max-w-[260px] text-xs font-normal normal-case"
                         >
-                          <strong>Automático:</strong> Extratos que conseguimos baixar diretamente.{" "}
-                          <strong>Manual:</strong> Extratos que precisamos pedir para o gerente da
-                          conta. <strong>Manual Cliente:</strong> Extratos que precisamos pedir para
-                          o cliente.
+                          <ul className="list-disc space-y-1 pl-3">
+                            <li>
+                              <strong>Automático:</strong> Extratos que conseguimos baixar
+                              diretamente.
+                            </li>
+                            <li>
+                              <strong>Manual:</strong> Extratos que precisamos pedir para o gerente
+                              da conta.
+                            </li>
+                            <li>
+                              <strong>Manual Cliente:</strong> Extratos que precisamos pedir para o
+                              cliente.
+                            </li>
+                          </ul>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
