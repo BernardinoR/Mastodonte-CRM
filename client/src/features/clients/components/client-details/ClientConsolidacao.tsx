@@ -38,7 +38,6 @@ function mapDbConta(row: Record<string, unknown>): Conta {
 
 function mapContaToDb(clientId: string, data: ContaFormData) {
   return {
-    id: crypto.randomUUID(),
     client_id: clientId,
     institution: data.institution,
     account_name: data.accountName,
@@ -111,7 +110,7 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
       } else {
         const { data: inserted, error } = await supabase
           .from("contas")
-          .insert(dbData)
+          .insert({ id: crypto.randomUUID(), ...dbData })
           .select()
           .single();
 
