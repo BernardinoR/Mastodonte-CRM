@@ -68,11 +68,13 @@ export function WhatsAppGroupsTable({
     setDeleteConfirmOpen,
     newGroupRowRef,
     datePopoverRef,
+    tableContainerRef,
     handleStartAddGroup,
     handleCancelAddGroup,
     handleSaveGroup,
     startEditing,
     saveEditing,
+    handleEditBlur,
     handleEditKeyDown,
     isEditing,
     handleDateChange,
@@ -116,7 +118,7 @@ export function WhatsAppGroupsTable({
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div ref={tableContainerRef} className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-[#3a3a3a]">
@@ -163,7 +165,7 @@ export function WhatsAppGroupsTable({
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={handleEditKeyDown}
-                      onBlur={saveEditing}
+                      onBlur={handleEditBlur}
                       className="absolute bottom-0 left-6 right-0 top-0 border-b border-[#2eaadc] bg-transparent text-sm font-medium text-foreground focus:outline-none"
                       autoFocus
                       data-testid={`input-edit-group-name-${group.id}`}
@@ -188,7 +190,7 @@ export function WhatsAppGroupsTable({
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={handleEditKeyDown}
-                      onBlur={saveEditing}
+                      onBlur={handleEditBlur}
                       className="absolute inset-0 border-b border-[#2eaadc] bg-transparent text-sm text-foreground focus:outline-none"
                       autoFocus
                       data-testid={`input-edit-group-purpose-${group.id}`}
@@ -226,7 +228,7 @@ export function WhatsAppGroupsTable({
                       value={editValue}
                       onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={handleEditKeyDown}
-                      onBlur={saveEditing}
+                      onBlur={handleEditBlur}
                       placeholder="https://..."
                       className="absolute inset-0 border-b border-[#2eaadc] bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
                       autoFocus

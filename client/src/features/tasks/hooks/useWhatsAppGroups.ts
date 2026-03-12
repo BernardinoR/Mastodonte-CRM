@@ -47,6 +47,7 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
   const isSavingRef = useRef(false);
   const newGroupRowRef = useRef<HTMLTableRowElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
+  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const resetNewGroupForm = useCallback(() => {
     setNewGroupName("");
@@ -102,14 +103,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     commitNewGroup();
   }, [commitNewGroup]);
 
-  const startEditing = useCallback(
-    (groupId: string, field: "name" | "purpose" | "link", currentValue: string) => {
-      setEditingField({ groupId, field });
-      setEditValue(currentValue);
-    },
-    [],
-  );
-
   const cancelEditing = useCallback(() => {
     setEditingField(null);
     setEditValue("");
@@ -134,6 +127,15 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
 
     cancelEditing();
   }, [editingField, editValue, onUpdateGroup, cancelEditing]);
+
+  const startEditing = useCallback(
+    (groupId: string, field: "name" | "purpose" | "link", currentValue: string) => {
+      if (editingField) return;
+      setEditingField({ groupId, field });
+      setEditValue(currentValue);
+    },
+    [editingField],
+  );
 
   const handleEditKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -190,6 +192,22 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     }
   }, []);
 
+  const handleEditBlur = useCallback(
+    (e: React.FocusEvent) => {
+      const relatedTarget = e.relatedTarget as Node | null;
+      if (relatedTarget && tableContainerRef.current?.contains(relatedTarget)) {
+        return;
+      }
+      requestAnimationFrame(() => {
+        if (!document.hasFocus()) {
+          return;
+        }
+        saveEditing();
+      });
+    },
+    [saveEditing],
+  );
+
   const handleNewGroupRowBlur = useCallback(
     (e: React.FocusEvent) => {
       if (newStatusPopoverOpen) return;
@@ -241,6 +259,7 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
 
     newGroupRowRef,
     datePopoverRef,
+    tableContainerRef,
 
     handleStartAddGroup,
     handleCancelAddGroup,
@@ -248,6 +267,7 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     startEditing,
     cancelEditing,
     saveEditing,
+    handleEditBlur,
     handleEditKeyDown,
     isEditing,
     handleDateChange,

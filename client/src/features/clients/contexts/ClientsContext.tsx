@@ -724,6 +724,8 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
             link: group.link,
             status: group.status,
             client_id: clientId,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           })
           .select()
           .single();

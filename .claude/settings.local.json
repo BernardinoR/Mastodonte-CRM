@@ -92,7 +92,9 @@
       "Bash(dd:*)",
       "Bash(find /home/runner/workspace/server -type f \\\\\\( -name \"*extrato*\" -o -name \"*consolidador*\" \\\\\\) 2>/dev/null | head -20)",
       "Bash(git -C /home/runner/workspace diff client/src/shared/components/ui/switch.tsx | head -100)",
-      "Bash(git -C /home/runner/workspace show HEAD:client/src/shared/components/ui/switch.tsx 2>/dev/null | head -40)"
+      "Bash(git -C /home/runner/workspace show HEAD:client/src/shared/components/ui/switch.tsx 2>/dev/null | head -40)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
