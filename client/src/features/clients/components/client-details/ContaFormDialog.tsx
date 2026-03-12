@@ -26,6 +26,16 @@ import {
   TooltipTrigger,
 } from "@/shared/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/shared/components/ui/alert-dialog";
 import { Info, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
 import type { WhatsAppGroup } from "../../types/client";
@@ -94,6 +104,7 @@ export function ContaFormDialog({
   const [gerenteTelefone, setGerenteTelefone] = useState("");
   const [whatsappGroupId, setWhatsappGroupId] = useState("");
   const [whatsappGroupAtivo, setWhatsappGroupAtivo] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -550,14 +561,14 @@ export function ContaFormDialog({
           </Tabs>
         </div>
 
-        <DialogFooter className="flex items-center justify-between border-t border-[#27272a] bg-[#1f1f22] px-6 py-4">
+        <DialogFooter className="flex items-center justify-between border-t border-[#27272a] bg-[#1f1f22] px-6 py-4 sm:justify-between">
           {isEditing && onDelete ? (
             <button
               type="button"
               className="flex items-center gap-2 rounded px-2 py-1.5 text-sm font-medium text-red-400 hover:bg-red-500/10 hover:text-red-300"
-              onClick={() => onDelete(conta.id)}
+              onClick={() => setShowDeleteConfirm(true)}
             >
-              Desativar Conta
+              Excluir Conta
             </button>
           ) : (
             <div />
@@ -580,6 +591,26 @@ export function ContaFormDialog({
           </div>
         </DialogFooter>
       </DialogContent>
+
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Tem certeza?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. Isso excluirá permanentemente esta conta.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete(conta!.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }
