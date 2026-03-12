@@ -644,6 +644,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         const { data, error: insertError } = await supabase
           .from("clients")
           .insert({
+            id: crypto.randomUUID(),
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             name: clientData.name,
             initials: deriveInitials(clientData.name),
             emails: clientData.email ? [clientData.email] : [],
@@ -1114,6 +1117,9 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
       for (let i = 0; i < rows.length; i += BATCH_SIZE) {
         const batch = rows.slice(i, i + BATCH_SIZE);
         const dbRows = batch.map((row) => ({
+          id: crypto.randomUUID(),
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
           name: row.name,
           initials: deriveInitials(row.name),
           emails: row.emails,
