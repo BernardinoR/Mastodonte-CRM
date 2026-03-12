@@ -23,7 +23,7 @@ export function useInstitutions() {
           name: row.name as string,
           currency: row.currency as Institution["currency"],
           attachmentCount: row.attachment_count as number,
-          referenceFile: row.reference_file as string | null,
+          referenceFiles: (row.reference_files as string[]) ?? [],
         })),
       );
     }

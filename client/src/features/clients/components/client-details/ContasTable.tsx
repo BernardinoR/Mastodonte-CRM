@@ -1,4 +1,5 @@
-import { MoreHorizontal, Landmark, Plus } from "lucide-react";
+import { MoreHorizontal, Landmark, Plus, Download } from "lucide-react";
+import { supabase } from "@/shared/lib/supabase";
 import { Card } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
 import {
@@ -36,6 +37,11 @@ const tipoBadgeClass: Record<string, string> = {
 };
 
 const filterOptions: StatusFilter[] = ["Ativas", "Desativadas", "Todas"];
+
+async function downloadReferenceFile(path: string) {
+  const { data } = await supabase.storage.from("institution-references").createSignedUrl(path, 300);
+  if (data?.signedUrl) window.open(data.signedUrl, "_blank");
+}
 
 export function ContasTable({
   contas,
@@ -154,24 +160,64 @@ function ContaRow({
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">{conta.competencia}</TableCell>
       <TableCell>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="flex h-7 w-7 items-center justify-center rounded hover:bg-[#2c2c2c]">
-              <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="border-[#3a3a3a] bg-[#1a1a1a]">
-            <DropdownMenuItem
-              className="text-sm"
+        <div className="flex items-center justify-end gap-1">
+          {conta.institution.referenceFiles.length === 1 ? (
+            <button
+              className="flex h-7 w-7 items-center justify-center rounded hover:bg-[#2c2c2c]"
+              title="Baixar extrato de referência"
               onClick={(e) => {
                 e.stopPropagation();
-                onEdit?.(conta);
+                downloadReferenceFile(conta.institution.referenceFiles[0]);
               }}
             >
-              Editar conta
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <Download className="h-4 w-4 text-muted-foreground" />
+            </button>
+          ) : conta.institution.referenceFiles.length > 1 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded hover:bg-[#2c2c2c]"
+                  title="Baixar extrato de referência"
+                >
+                  <Download className="h-4 w-4 text-muted-foreground" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="border-[#3a3a3a] bg-[#1a1a1a]">
+                {conta.institution.referenceFiles.map((f) => (
+                  <DropdownMenuItem
+                    key={f}
+                    className="text-sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      downloadReferenceFile(f);
+                    }}
+                  >
+                    {f.split("/").pop()}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="flex h-7 w-7 items-center justify-center rounded hover:bg-[#2c2c2c]">
+                <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="border-[#3a3a3a] bg-[#1a1a1a]">
+              <DropdownMenuItem
+                className="text-sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit?.(conta);
+                }}
+              >
+                Editar conta
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </TableCell>
     </TableRow>
   );

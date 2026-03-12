@@ -26,7 +26,7 @@ function mapDbConta(row: Record<string, unknown>): Conta {
       name: inst?.name as string,
       currency: (inst?.currency as "Real" | "Dolar" | "Euro") ?? "Real",
       attachmentCount: (inst?.attachment_count as number) ?? 1,
-      referenceFile: (inst?.reference_file as string | null) ?? null,
+      referenceFiles: (inst?.reference_files as string[]) ?? [],
     },
     accountName: row.account_name as string,
     numeroConta: row.account_number as string | undefined,

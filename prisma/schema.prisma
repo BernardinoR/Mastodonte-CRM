@@ -65,7 +65,7 @@ model Institution {
   name            String  @unique
   currency        Moeda   @default(Real)
   attachmentCount Int     @default(1) @map("attachment_count")
-  referenceFile   String? @map("reference_file")
+  referenceFiles  String[] @default([]) @map("reference_files")
   contas          Conta[]
 
   @@map("institutions")

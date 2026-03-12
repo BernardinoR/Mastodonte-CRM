@@ -41,7 +41,7 @@ export interface Institution {
   name: string;
   currency: "Real" | "Dolar" | "Euro";
   attachmentCount: number;
-  referenceFile: string | null;
+  referenceFiles: string[];
 }
 
 export const CONTA_TIPOS = ["Automático", "Manual", "Manual Cliente"] as const;
