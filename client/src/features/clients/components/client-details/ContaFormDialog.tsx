@@ -88,8 +88,7 @@ export function ContaFormDialog({
   whatsappGroups = [],
 }: ContaFormDialogProps) {
   const isEditing = conta !== null;
-  const { data: institutionsData } = useInstitutions();
-  const institutions = institutionsData?.institutions ?? [];
+  const { institutions } = useInstitutions();
 
   const [institutionId, setInstitutionId] = useState<number | null>(null);
   const [accountName, setAccountName] = useState("");
@@ -232,7 +231,7 @@ export function ContaFormDialog({
                     Instituicao Financeira
                   </Label>
                   <Select
-                    value={institutionId?.toString() ?? ""}
+                    value={institutionId ? institutionId.toString() : undefined}
                     onValueChange={(v) => setInstitutionId(Number(v))}
                   >
                     <SelectTrigger className="border-[#3f3f46] bg-[#27272a]">
