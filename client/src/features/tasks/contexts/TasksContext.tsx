@@ -530,6 +530,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         // Task field updates via Supabase
         const dbUpdates = mapTaskUpdatesToDb(apiUpdates);
         if (Object.keys(dbUpdates).length > 0) {
+          dbUpdates.updated_at = new Date().toISOString();
           await supabase.from("tasks").update(dbUpdates).eq("id", taskId);
         }
 
@@ -549,12 +550,14 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             }
           }
 
-          // Delete existing + insert new (atomic via sequential calls)
+          // Delete existing + upsert new (deduplicated)
           await supabase.from("task_assignees").delete().eq("task_id", taskId);
-          if (assigneeIds.length > 0) {
-            await supabase
-              .from("task_assignees")
-              .insert(assigneeIds.map((userId) => ({ task_id: taskId, user_id: userId })));
+          const uniqueAssigneeIds = [...new Set(assigneeIds)];
+          if (uniqueAssigneeIds.length > 0) {
+            await supabase.from("task_assignees").upsert(
+              uniqueAssigneeIds.map((userId) => ({ task_id: taskId, user_id: userId })),
+              { onConflict: "task_id,user_id" },
+            );
           }
         }
       } catch (err) {
@@ -671,6 +674,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
         const { data: created, error: insertError } = await supabase
           .from("tasks")
           .insert({
+            id: crypto.randomUUID(),
             title: data.title,
             priority: data.priority || "Normal",
             status: data.status || "To Do",
@@ -680,6 +684,7 @@ export function TasksProvider({ children }: { children: ReactNode }) {
             meeting_id: data.meetingId || null,
             creator_id: currentUser.id,
             order: data.order ?? 0,
+            updated_at: new Date().toISOString(),
           })
           .select("id")
           .single();
@@ -694,11 +699,13 @@ export function TasksProvider({ children }: { children: ReactNode }) {
           recentlyFlushedRef.current.delete(realTaskId);
         }, 2000);
 
-        // Insert assignees
-        if (assigneeIds.length > 0) {
-          await supabase
-            .from("task_assignees")
-            .insert(assigneeIds.map((userId) => ({ task_id: realTaskId, user_id: userId })));
+        // Insert assignees (deduplicated + upsert to avoid conflicts)
+        const uniqueAssigneeIds = [...new Set(assigneeIds)];
+        if (uniqueAssigneeIds.length > 0) {
+          await supabase.from("task_assignees").upsert(
+            uniqueAssigneeIds.map((userId) => ({ task_id: realTaskId, user_id: userId })),
+            { onConflict: "task_id,user_id" },
+          );
         }
 
         // History is auto-created by trigger, fetch it
