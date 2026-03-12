@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback } from "react";
+
 import type { WhatsAppGroup } from "@features/clients";
 
 export type WhatsAppGroupStatus = "Ativo" | "Inativo";
@@ -47,7 +48,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
   const isSavingRef = useRef(false);
   const newGroupRowRef = useRef<HTMLTableRowElement>(null);
   const datePopoverRef = useRef<HTMLDivElement>(null);
-  const tableContainerRef = useRef<HTMLDivElement>(null);
 
   const resetNewGroupForm = useCallback(() => {
     setNewGroupName("");
@@ -192,43 +192,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     }
   }, []);
 
-  const handleEditBlur = useCallback(
-    (e: React.FocusEvent) => {
-      const relatedTarget = e.relatedTarget as Node | null;
-      if (relatedTarget && tableContainerRef.current?.contains(relatedTarget)) {
-        return;
-      }
-      requestAnimationFrame(() => {
-        if (!document.hasFocus()) {
-          return;
-        }
-        saveEditing();
-      });
-    },
-    [saveEditing],
-  );
-
-  const handleNewGroupRowBlur = useCallback(
-    (e: React.FocusEvent) => {
-      if (newStatusPopoverOpen) return;
-
-      const relatedTarget = e.relatedTarget as Node | null;
-      const isInsideRow = newGroupRowRef.current?.contains(relatedTarget);
-      const isInsidePopover = relatedTarget?.parentElement?.closest(
-        "[data-radix-popper-content-wrapper]",
-      );
-
-      if (!isInsideRow && !isInsidePopover) {
-        setTimeout(() => {
-          if (newGroupName.trim() && !isSavingRef.current) {
-            commitNewGroup();
-          }
-        }, 150);
-      }
-    },
-    [newStatusPopoverOpen, newGroupName, commitNewGroup],
-  );
-
   const handleNewStatusPopoverChange = useCallback((open: boolean) => {
     setNewStatusPopoverOpen(open);
   }, []);
@@ -259,7 +222,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
 
     newGroupRowRef,
     datePopoverRef,
-    tableContainerRef,
 
     handleStartAddGroup,
     handleCancelAddGroup,
@@ -267,7 +229,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     startEditing,
     cancelEditing,
     saveEditing,
-    handleEditBlur,
     handleEditKeyDown,
     isEditing,
     handleDateChange,
@@ -275,7 +236,6 @@ export function useWhatsAppGroups(options: UseWhatsAppGroupsOptions) {
     handleDeleteClick,
     handleConfirmDelete,
     handleInteractOutside,
-    handleNewGroupRowBlur,
     handleNewStatusPopoverChange,
   };
 }
