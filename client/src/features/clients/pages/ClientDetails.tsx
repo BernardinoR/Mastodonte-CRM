@@ -108,7 +108,7 @@ export default function ClientDetails() {
   const currentUserName = currentUserData?.user?.name || currentUserData?.user?.email || "";
   const calendarLink = currentUserData?.user?.calendarLink;
 
-  const handleScheduleWhatsApp = async () => {
+  const handleScheduleWhatsApp = async (groupLink?: string) => {
     if (!calendarLink) {
       toast({
         title: "Link de agendamento não configurado",
@@ -138,10 +138,23 @@ export default function ClientDetails() {
       console.error("Error recording scheduling sent:", err);
     }
 
-    // Open WhatsApp with pre-formatted message
     const message = buildSchedulingMessage(clientName, calendarLink);
-    const url = buildWhatsAppSchedulingUrl(clientPhone, message);
-    window.open(url, "_blank");
+
+    if (groupLink) {
+      // WhatsApp doesn't support pre-filled messages in group links,
+      // so copy the message to clipboard and open the group
+      await navigator.clipboard.writeText(message);
+      const groupCode = groupLink.replace(/^https?:\/\/chat\.whatsapp\.com\//, "");
+      window.location.href = `whatsapp://chat/?code=${groupCode}`;
+      toast({
+        title: "Mensagem copiada!",
+        description: "A mensagem de agendamento foi copiada. Cole no grupo do WhatsApp.",
+      });
+    } else {
+      // Direct chat with pre-filled message
+      const url = buildWhatsAppSchedulingUrl(clientPhone, message);
+      window.open(url, "_blank");
+    }
   };
 
   const inlineTaskProps = useInlineClientTasks({

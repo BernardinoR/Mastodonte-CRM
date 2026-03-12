@@ -297,7 +297,7 @@ interface ClientHeaderProps {
   editingState: ReturnType<typeof useClientHeaderEditing>;
   onNewMeeting: () => void;
   onNewTask: () => void;
-  onScheduleWhatsApp: () => void;
+  onScheduleWhatsApp: (groupLink?: string) => void;
   onAddEmail: (email: string) => void;
   onRemoveEmail: (index: number) => void;
   onUpdateEmail: (index: number, email: string) => void;
@@ -326,6 +326,7 @@ export function ClientHeader({
   onUpdateStatus,
 }: ClientHeaderProps) {
   const [whatsappPopoverOpen, setWhatsappPopoverOpen] = useState(false);
+  const [schedulingPopoverOpen, setSchedulingPopoverOpen] = useState(false);
   const copy = useCopyToClipboard();
 
   const hasScheduledMonthlyMeeting = useMemo(() => {
@@ -524,14 +525,59 @@ export function ClientHeader({
           </div>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            <Button
-              onClick={onScheduleWhatsApp}
-              className="bg-[#2eaadc] text-white hover:bg-[#259bc5]"
-              data-testid="button-new-meeting"
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              Agendar Reunião
-            </Button>
+            {hasWhatsAppGroups ? (
+              <Popover open={schedulingPopoverOpen} onOpenChange={setSchedulingPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    className="bg-[#2eaadc] text-white hover:bg-[#259bc5]"
+                    data-testid="button-new-meeting"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    Agendar Reunião
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 border-[#3a3a3a] bg-[#2a2a2a] p-2" align="start">
+                  <div className="flex flex-col gap-1">
+                    <button
+                      onClick={() => {
+                        onScheduleWhatsApp();
+                        setSchedulingPopoverOpen(false);
+                      }}
+                      className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                      data-testid="button-schedule-direct"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Chat direto
+                    </button>
+                    <div className="my-1 border-t border-[#3a3a3a]" />
+                    <div className="px-3 py-1 text-xs uppercase text-muted-foreground">Grupos</div>
+                    {activeWhatsAppGroups.map((group) => (
+                      <button
+                        key={group.id}
+                        onClick={() => {
+                          onScheduleWhatsApp(group.link || undefined);
+                          setSchedulingPopoverOpen(false);
+                        }}
+                        className="flex items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-foreground transition-colors hover:bg-[#333333]"
+                        data-testid={`button-schedule-group-${group.id}`}
+                      >
+                        <MessageSquare className="h-4 w-4 text-emerald-500" />
+                        {group.name}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+            ) : (
+              <Button
+                onClick={() => onScheduleWhatsApp()}
+                className="bg-[#2eaadc] text-white hover:bg-[#259bc5]"
+                data-testid="button-new-meeting"
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Agendar Reunião
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={onNewTask}
