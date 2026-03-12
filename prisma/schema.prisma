@@ -230,6 +230,23 @@ model TaskHistory {
 }
 
 // ============================================
+// TOKENS DE INTEGRAÇÃO
+// ============================================
+
+model UserToken {
+  id           Int      @id @default(autoincrement())
+  userId       String   @unique @map("user_id")
+  email        String?
+  accessToken  String   @map("access_token")
+  refreshToken String   @map("refresh_token")
+  expiresAt    BigInt   @map("expires_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @default(now()) @map("updated_at")
+
+  @@map("user_tokens")
+}
+
+// ============================================
 // TRANSCRIÇÕES (Fireflies.ai)
 // ============================================
 
