@@ -170,9 +170,6 @@ function ContaRow({
             >
               Editar conta
             </DropdownMenuItem>
-            <DropdownMenuItem className="text-sm">
-              {conta.status === "Ativa" ? "Desativar" : "Reativar"}
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </TableCell>
