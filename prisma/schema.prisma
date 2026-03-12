@@ -51,6 +51,27 @@ model User {
 }
 
 // ============================================
+// INSTITUIÇÕES FINANCEIRAS
+// ============================================
+
+enum Moeda {
+  Real
+  Dolar
+  Euro
+}
+
+model Institution {
+  id              Int     @id @default(autoincrement())
+  name            String  @unique
+  currency        Moeda   @default(Real)
+  attachmentCount Int     @default(1) @map("attachment_count")
+  referenceFile   String? @map("reference_file")
+  contas          Conta[]
+
+  @@map("institutions")
+}
+
+// ============================================
 // ENTIDADES PRINCIPAIS (CRM)
 // ============================================
 
@@ -104,7 +125,7 @@ model WhatsAppGroup {
 model Conta {
   id                     String   @id @default(uuid())
   clientId               String   @map("client_id")
-  institution            String
+  institutionId          Int      @map("institution_id")
   accountName            String?  @map("account_name")
   accountNumber          String?  @map("account_number")
   type                   String   @default("Automático")
@@ -121,7 +142,8 @@ model Conta {
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
 
-  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
 
   @@map("contas")
 }

@@ -123,8 +123,8 @@ function ContaRow({
   onClick?: (conta: Conta) => void;
   onEdit?: (conta: Conta) => void;
 }) {
-  const color = getInstitutionColor(conta.institution);
-  const initial = conta.institution.charAt(0).toUpperCase();
+  const color = getInstitutionColor(conta.institution.name);
+  const initial = conta.institution.name.charAt(0).toUpperCase();
   const isDisabled = conta.status === "Desativada";
 
   return (
@@ -139,7 +139,7 @@ function ContaRow({
           >
             {initial}
           </span>
-          <span className="text-sm text-foreground">{conta.institution}</span>
+          <span className="text-sm text-foreground">{conta.institution.name}</span>
         </div>
       </TableCell>
       <TableCell className="text-sm text-foreground">{conta.accountName}</TableCell>

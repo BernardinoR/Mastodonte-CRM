@@ -36,22 +36,13 @@ export type TaskPriority = (typeof TASK_PRIORITY)[number];
 export const MEETING_STATUS = ["Agendada", "Realizada", "Cancelada"] as const;
 export type MeetingStatus = (typeof MEETING_STATUS)[number];
 
-export const INSTITUTIONS = [
-  "Avenue",
-  "BB",
-  "Bradesco",
-  "BTG",
-  "C6",
-  "Fidelity",
-  "IB",
-  "Itaú",
-  "Santander",
-  "Smart",
-  "Toro",
-  "Warren",
-  "XP",
-] as const;
-export type Institution = (typeof INSTITUTIONS)[number];
+export interface Institution {
+  id: number;
+  name: string;
+  currency: "Real" | "Dolar" | "Euro";
+  attachmentCount: number;
+  referenceFile: string | null;
+}
 
 export const CONTA_TIPOS = ["Automático", "Manual", "Manual Cliente"] as const;
 export type ContaTipo = (typeof CONTA_TIPOS)[number];

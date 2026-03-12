@@ -59,7 +59,7 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
   const historico = getContaHistorico(conta.id);
   const visibleHistorico = historico.slice(0, visibleCount);
   const hasMore = historico.length > visibleCount;
-  const color = getInstitutionColor(conta.institution);
+  const color = getInstitutionColor(conta.institution.name);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -76,7 +76,7 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
           </span>
           <div className="flex-1">
             <SheetTitle className="text-sm font-semibold text-foreground">
-              Historico — {conta.institution}
+              Historico — {conta.institution.name}
             </SheetTitle>
             <p className="text-xs text-muted-foreground">Extratos Bancarios</p>
           </div>

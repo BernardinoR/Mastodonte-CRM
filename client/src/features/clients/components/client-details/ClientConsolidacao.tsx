@@ -16,10 +16,18 @@ interface ClientConsolidacaoProps {
 type StatusFilter = "Ativas" | "Desativadas" | "Todas";
 
 function mapDbConta(row: Record<string, unknown>): Conta {
+  const inst = row.institutions as Record<string, unknown> | null;
   return {
     id: row.id as string,
     clientId: row.client_id as string,
-    institution: row.institution as string,
+    institutionId: row.institution_id as number,
+    institution: {
+      id: inst?.id as number,
+      name: inst?.name as string,
+      currency: (inst?.currency as "Real" | "Dolar" | "Euro") ?? "Real",
+      attachmentCount: (inst?.attachment_count as number) ?? 1,
+      referenceFile: (inst?.reference_file as string | null) ?? null,
+    },
     accountName: row.account_name as string,
     numeroConta: row.account_number as string | undefined,
     tipo: row.type as Conta["tipo"],
@@ -39,7 +47,7 @@ function mapDbConta(row: Record<string, unknown>): Conta {
 function mapContaToDb(clientId: string, data: ContaFormData) {
   return {
     client_id: clientId,
-    institution: data.institution,
+    institution_id: data.institutionId,
     account_name: data.accountName,
     account_number: data.numeroConta || null,
     type: data.tipo,
@@ -66,7 +74,7 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
     async function fetchContas() {
       const { data, error } = await supabase
         .from("contas")
-        .select("*")
+        .select("*, institutions(*)")
         .eq("client_id", clientId)
         .order("created_at", { ascending: false });
 
@@ -98,7 +106,7 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
           .from("contas")
           .update(dbData)
           .eq("id", editingConta.id)
-          .select()
+          .select("*, institutions(*)")
           .single();
 
         if (error) {
@@ -111,7 +119,7 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
         const { data: inserted, error } = await supabase
           .from("contas")
           .insert({ id: crypto.randomUUID(), ...dbData })
-          .select()
+          .select("*, institutions(*)")
           .single();
 
         if (error) {

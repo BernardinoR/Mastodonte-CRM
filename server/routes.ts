@@ -552,6 +552,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // ============================================
+  // INSTITUIÇÕES
+  // ============================================
+
+  app.get("/api/institutions", clerkAuthMiddleware, async (_req, res) => {
+    try {
+      const institutions = await storage.getInstitutions();
+      return res.json({ institutions });
+    } catch (error) {
+      console.error("Error fetching institutions:", error);
+      return res.status(500).json({ error: "Falha ao buscar instituições" });
+    }
+  });
+
+  // ============================================
   // CONTAS (Consolidação)
   // ============================================
 
@@ -560,7 +574,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const {
         clientId,
-        institution,
+        institutionId,
         type,
         startDate,
         accountName,
@@ -579,8 +593,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!clientId || typeof clientId !== "string") {
         return res.status(400).json({ error: "clientId é obrigatório" });
       }
-      if (!institution || typeof institution !== "string") {
-        return res.status(400).json({ error: "institution é obrigatório" });
+      if (!institutionId || typeof institutionId !== "number") {
+        return res.status(400).json({ error: "institutionId é obrigatório" });
       }
       if (!startDate || typeof startDate !== "string") {
         return res.status(400).json({ error: "startDate (competência) é obrigatório" });
@@ -588,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const conta = await storage.createConta({
         clientId,
-        institution,
+        institutionId,
         accountName: accountName || null,
         accountNumber: accountNumber || null,
         type: type || "Automático",
@@ -643,7 +657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const {
-        institution,
+        institutionId,
         accountName,
         accountNumber,
         type,
@@ -660,7 +674,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } = req.body;
 
       const updates: Record<string, any> = {};
-      if (institution !== undefined) updates.institution = institution;
+      if (institutionId !== undefined) updates.institutionId = institutionId;
       if (accountName !== undefined) updates.accountName = accountName || null;
       if (accountNumber !== undefined) updates.accountNumber = accountNumber || null;
       if (type !== undefined) updates.type = type;

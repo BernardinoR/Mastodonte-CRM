@@ -40,10 +40,10 @@ import { Info, ChevronsUpDown } from "lucide-react";
 import type { Conta, ContaTipo, ContaStatus } from "../../types/conta";
 import type { WhatsAppGroup } from "../../types/client";
 import { getInstitutionColor } from "../../lib/institutionColors";
-import { INSTITUTIONS } from "@shared/types";
+import { useInstitutions } from "../../hooks/useInstitutions";
 
 export interface ContaFormData {
-  institution: string;
+  institutionId: number;
   accountName: string;
   numeroConta: string;
   tipo: ContaTipo;
@@ -72,7 +72,6 @@ interface ContaFormDialogProps {
   whatsappGroups?: WhatsAppGroup[];
 }
 
-const institutions = [...INSTITUTIONS];
 const tipoOptions: { value: ContaTipo; label: string }[] = [
   { value: "Automático", label: "Automático" },
   { value: "Manual", label: "Manual" },
@@ -89,8 +88,10 @@ export function ContaFormDialog({
   whatsappGroups = [],
 }: ContaFormDialogProps) {
   const isEditing = conta !== null;
+  const { data: institutionsData } = useInstitutions();
+  const institutions = institutionsData?.institutions ?? [];
 
-  const [institution, setInstitution] = useState("");
+  const [institutionId, setInstitutionId] = useState<number | null>(null);
   const [accountName, setAccountName] = useState("");
   const [numeroConta, setNumeroConta] = useState("");
   const [tipo, setTipo] = useState<ContaTipo>("Manual");
@@ -109,7 +110,7 @@ export function ContaFormDialog({
   useEffect(() => {
     if (open) {
       if (conta) {
-        setInstitution(conta.institution);
+        setInstitutionId(conta.institutionId);
         setAccountName(conta.accountName);
         setNumeroConta(conta.numeroConta || "");
         setTipo(conta.tipo);
@@ -122,7 +123,7 @@ export function ContaFormDialog({
         setWhatsappGroupId(conta.whatsappGroupId || "");
         setWhatsappGroupAtivo(conta.whatsappGroupAtivo || false);
       } else {
-        setInstitution("");
+        setInstitutionId(null);
         setAccountName("");
         setNumeroConta("");
         setTipo("Manual");
@@ -141,8 +142,9 @@ export function ContaFormDialog({
   }, [open, conta]);
 
   const handleSave = () => {
+    if (!institutionId) return;
     onSave({
-      institution,
+      institutionId,
       accountName,
       numeroConta,
       tipo,
@@ -157,15 +159,17 @@ export function ContaFormDialog({
     });
   };
 
-  const color = institution ? getInstitutionColor(institution) : null;
-  const initial = institution ? institution.charAt(0).toUpperCase() : "?";
+  const selectedInstitution = institutions.find((i) => i.id === institutionId);
+  const institutionName = selectedInstitution?.name ?? "";
+  const color = institutionName ? getInstitutionColor(institutionName) : null;
+  const initial = institutionName ? institutionName.charAt(0).toUpperCase() : "?";
 
   const title = isEditing
     ? accountName
-      ? `${institution || conta.institution} — ${accountName}`
-      : institution || conta.institution
-    : institution
-      ? `Nova Conta — ${institution}`
+      ? `${institutionName || conta.institution.name} — ${accountName}`
+      : institutionName || conta.institution.name
+    : institutionName
+      ? `Nova Conta — ${institutionName}`
       : "Nova Conta";
 
   return (
@@ -227,14 +231,17 @@ export function ContaFormDialog({
                   <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
                     Instituicao Financeira
                   </Label>
-                  <Select value={institution} onValueChange={setInstitution}>
+                  <Select
+                    value={institutionId?.toString() ?? ""}
+                    onValueChange={(v) => setInstitutionId(Number(v))}
+                  >
                     <SelectTrigger className="border-[#3f3f46] bg-[#27272a]">
                       <SelectValue placeholder="Selecione" />
                     </SelectTrigger>
                     <SelectContent className="border-[#27272a] bg-[#18181b]">
                       {institutions.map((inst) => (
-                        <SelectItem key={inst} value={inst}>
-                          {inst}
+                        <SelectItem key={inst.id} value={inst.id.toString()}>
+                          {inst.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -583,7 +590,7 @@ export function ContaFormDialog({
             </button>
             <Button
               onClick={handleSave}
-              disabled={!institution || !competencia}
+              disabled={!institutionId || !competencia}
               className="bg-[#2eaadc] text-white hover:bg-[#2899c7] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isEditing ? "Salvar Alterações" : "Adicionar Conta"}

@@ -1,10 +1,12 @@
 import { prisma } from "./db";
-import type { User, Conta } from "@prisma/client";
+import type { User, Conta, Institution } from "@prisma/client";
 import type { UserRole } from "@shared/types";
+
+export type ContaWithInstitution = Conta & { institution: Institution };
 
 export type InsertConta = {
   clientId: string;
-  institution: string;
+  institutionId: number;
   accountName?: string | null;
   accountNumber?: string | null;
   type?: string;
@@ -38,10 +40,11 @@ export interface IStorage {
   updateUser(id: number, updates: Partial<InsertUser>): Promise<User | null>;
   getAllUsers(): Promise<User[]>;
   getUsersByGroupId(groupId: number): Promise<User[]>;
-  createConta(data: InsertConta): Promise<Conta>;
-  getContasByClientId(clientId: string): Promise<Conta[]>;
-  getContaById(id: string): Promise<Conta | null>;
-  updateConta(id: string, updates: Partial<InsertConta>): Promise<Conta | null>;
+  getInstitutions(): Promise<Institution[]>;
+  createConta(data: InsertConta): Promise<ContaWithInstitution>;
+  getContasByClientId(clientId: string): Promise<ContaWithInstitution[]>;
+  getContaById(id: string): Promise<ContaWithInstitution | null>;
+  updateConta(id: string, updates: Partial<InsertConta>): Promise<ContaWithInstitution | null>;
   deleteConta(id: string): Promise<boolean>;
 }
 
@@ -82,26 +85,35 @@ export class DbStorage implements IStorage {
     return prisma.user.findMany({ where: { groupId } });
   }
 
-  async createConta(data: InsertConta): Promise<Conta> {
-    return prisma.conta.create({ data });
+  async getInstitutions(): Promise<Institution[]> {
+    return prisma.institution.findMany({ orderBy: { name: "asc" } });
   }
 
-  async getContasByClientId(clientId: string): Promise<Conta[]> {
+  async createConta(data: InsertConta): Promise<ContaWithInstitution> {
+    return prisma.conta.create({ data, include: { institution: true } });
+  }
+
+  async getContasByClientId(clientId: string): Promise<ContaWithInstitution[]> {
     return prisma.conta.findMany({
       where: { clientId },
       orderBy: { createdAt: "desc" },
+      include: { institution: true },
     });
   }
 
-  async getContaById(id: string): Promise<Conta | null> {
-    return prisma.conta.findUnique({ where: { id } });
+  async getContaById(id: string): Promise<ContaWithInstitution | null> {
+    return prisma.conta.findUnique({ where: { id }, include: { institution: true } });
   }
 
-  async updateConta(id: string, updates: Partial<InsertConta>): Promise<Conta | null> {
+  async updateConta(
+    id: string,
+    updates: Partial<InsertConta>,
+  ): Promise<ContaWithInstitution | null> {
     try {
       return await prisma.conta.update({
         where: { id },
         data: updates,
+        include: { institution: true },
       });
     } catch {
       return null;
