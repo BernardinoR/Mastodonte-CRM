@@ -22,6 +22,8 @@ import { UsersProvider, useCurrentUser, Admin, Profile, GoogleCallback } from "@
 import { Consolidador } from "@features/consolidador";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 import MockupVarredura from "@app/pages/mockups/MockupVarredura";
+import MockupVarreduraA from "@app/pages/mockups/MockupVarreduraA";
+import MockupVarreduraB from "@app/pages/mockups/MockupVarreduraB";
 
 function AuthenticatedRouter() {
   return (
@@ -160,6 +162,8 @@ export default function App() {
       <ErrorBoundary level="page">
         <Switch>
           <Route path="/mockup/varredura" component={MockupVarredura} />
+          <Route path="/mockup/varredura-a" component={MockupVarreduraA} />
+          <Route path="/mockup/varredura-b" component={MockupVarreduraB} />
         </Switch>
       </ErrorBoundary>
     );
