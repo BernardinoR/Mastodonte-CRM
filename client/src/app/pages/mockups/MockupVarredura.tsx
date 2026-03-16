@@ -4,11 +4,22 @@ import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Card } from "@/shared/components/ui/card";
 import { Switch } from "@/shared/components/ui/switch";
 import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter,
+  SidebarHeader,
+} from "@/shared/components/ui/sidebar";
+import {
   LayoutDashboard,
   Users,
   CheckSquare,
   ArrowDownUp,
-  Building2,
+  Layers,
   Search,
   Calendar,
   Bell,
@@ -18,7 +29,10 @@ import {
   ExternalLink,
   MessageSquare,
   Mail,
+  LogOut,
 } from "lucide-react";
+import { Button } from "@/shared/components/ui/button";
+import { SidebarProvider } from "@/shared/components/ui/sidebar";
 
 type InstitutionStatus = "verificado" | "pendente" | "solicitado";
 
@@ -91,7 +105,7 @@ const navItems = [
   { icon: Users, label: "Clientes", active: false },
   { icon: CheckSquare, label: "Tarefas", active: false },
   { icon: ArrowDownUp, label: "Varredura", active: true, badge: 2 },
-  { icon: Building2, label: "Consolidador", active: false },
+  { icon: Layers, label: "Consolidador", active: false },
 ];
 
 function StatusBadge({ status }: { status: InstitutionStatus }) {
@@ -108,54 +122,83 @@ function StatusBadge({ status }: { status: InstitutionStatus }) {
 
 function MockupSidebar() {
   return (
-    <div className="w-56 bg-sidebar border-r border-sidebar-border flex flex-col h-full shrink-0" data-testid="sidebar-mockup">
-      <div className="p-4 pb-6">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="w-8 h-8 rounded-md bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
-            M
-          </div>
-        </div>
-        <div className="mt-2">
-          <p className="text-xs font-bold tracking-wider text-sidebar-foreground">MASTODONTE</p>
-          <p className="text-[10px] text-muted-foreground">Financial Advisory</p>
-        </div>
-      </div>
-      <nav className="flex-1 px-2 space-y-0.5">
-        {navItems.map((item) => (
-          <div
-            key={item.label}
-            data-testid={`nav-mockup-${item.label.toLowerCase()}`}
-            className={`w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors cursor-default ${
-              item.active
-                ? "bg-sidebar-accent text-sidebar-foreground"
-                : "text-muted-foreground"
-            }`}
-          >
-            <item.icon className="w-4 h-4" />
-            <span>{item.label}</span>
-            {item.badge && (
-              <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-5 h-5 flex items-center justify-center">
-                {item.badge}
-              </span>
-            )}
-          </div>
-        ))}
-      </nav>
-      <div className="p-3 border-t border-sidebar-border">
+    <Sidebar>
+      <SidebarHeader className="border-b border-sidebar-border p-4">
         <div className="flex items-center gap-2">
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-muted text-xs font-medium">RB</AvatarFallback>
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 60 60"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="5" y="25" width="8" height="20" rx="2" fill="currentColor" />
+            <rect x="18" y="15" width="8" height="30" rx="2" fill="currentColor" />
+            <path
+              d="M31 15H39V30C39 38 47 38 47 30"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="text-lg font-bold tracking-tight">Mastodonte</span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {navItems.map((item) => (
+                <SidebarMenuItem key={item.label}>
+                  <SidebarMenuButton
+                    data-active={item.active}
+                    data-testid={`nav-mockup-${item.label.toLowerCase()}`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                    {item.badge && (
+                      <span className="ml-auto bg-primary text-primary-foreground text-[10px] font-semibold rounded-full w-5 h-5 flex items-center justify-center">
+                        {item.badge}
+                      </span>
+                    )}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <div
+          className="mb-3 flex items-center gap-3 rounded-md p-2"
+          data-testid="user-card-mockup"
+        >
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="text-sm">RB</AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
-            <p className="text-xs font-medium text-sidebar-foreground truncate">Rafael Bernardino</p>
-            <div className="flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-              <span className="text-[10px] text-primary font-semibold tracking-wide">CONSULTOR</span>
-            </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium" data-testid="text-username-mockup">
+              Rafael Bernardino
+            </p>
+            <Badge
+              variant="outline"
+              className="mt-1 h-4 px-1.5 py-0 text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30"
+            >
+              Consultor
+            </Badge>
           </div>
         </div>
-      </div>
-    </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground"
+          data-testid="button-logout-mockup"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sair
+        </Button>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
 
@@ -207,16 +250,14 @@ function ManagerGroupCard({ group }: { group: ManagerGroup }) {
               className={`flex items-center gap-3 px-4 py-3 ${idx < group.clients.length - 1 ? "border-b border-border" : ""}`}
               data-testid={`row-client-${client.initials.toLowerCase()}`}
             >
-              <Avatar className="w-8 h-8 shrink-0">
-                <AvatarFallback className="bg-primary text-primary-foreground text-[10px] font-semibold">
-                  {client.initials}
-                </AvatarFallback>
-              </Avatar>
+              <div className="w-8 h-8 shrink-0 rounded-md bg-muted flex items-center justify-center">
+                <span className="text-[10px] font-semibold text-muted-foreground">{client.initials}</span>
+              </div>
               <span className="font-medium text-sm text-foreground w-36 shrink-0">{client.name}</span>
               <StatusBadge status={client.status} />
               <span className="text-sm text-muted-foreground italic flex-1 truncate ml-2">{client.description}</span>
               <div className="flex items-center gap-2 shrink-0 ml-auto">
-                <span className="text-muted-foreground cursor-default" data-testid={`button-whatsapp-${client.initials.toLowerCase()}`}>
+                <span className="text-emerald-500 cursor-default" data-testid={`button-whatsapp-${client.initials.toLowerCase()}`}>
                   <MessageSquare className="w-4 h-4" />
                 </span>
                 <span className="text-muted-foreground cursor-default" data-testid={`button-email-${client.initials.toLowerCase()}`}>
@@ -248,72 +289,79 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 }
 
 export default function MockupVarredura() {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
   return (
-    <div className="flex h-screen bg-background antialiased" data-testid="mockup-varredura">
-      <MockupSidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <header className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0" data-testid="header-mockup">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>Mastodonte</span>
-            <span>/</span>
-            <span className="text-foreground font-medium">Varredura de Saldo</span>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-muted rounded-md px-3 py-1.5">
-              <Search className="w-4 h-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Buscar ativos...</span>
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex h-screen w-full bg-background antialiased" data-testid="mockup-varredura">
+        <MockupSidebar />
+        <div className="flex-1 flex flex-col min-w-0">
+          <header className="flex items-center justify-between px-6 py-3 border-b border-border shrink-0" data-testid="header-mockup">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>Mastodonte</span>
+              <span>/</span>
+              <span className="text-foreground font-medium">Varredura de Saldo</span>
             </div>
-            <span className="text-muted-foreground" data-testid="button-calendar-mockup">
-              <Calendar className="w-5 h-5" />
-            </span>
-            <span className="text-muted-foreground" data-testid="button-notifications-mockup">
-              <Bell className="w-5 h-5" />
-            </span>
-            <span className="text-muted-foreground" data-testid="button-settings-mockup">
-              <Settings className="w-5 h-5" />
-            </span>
-          </div>
-        </header>
-
-        <main className="flex-1 overflow-y-auto p-6 space-y-6" data-testid="main-content-mockup">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Varredura de Saldo</h1>
-              <p className="text-sm text-muted-foreground mt-1">Acompanhamento Mensal de Ativos</p>
-            </div>
-            <div className="flex flex-col items-end gap-3">
-              <div className="flex items-center gap-2 border border-border rounded-md px-3 py-1.5 text-sm text-foreground">
-                <Calendar className="w-4 h-4 text-muted-foreground" />
-                <span>13 de marco de 2026</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-muted rounded-md px-3 py-1.5">
+                <Search className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Buscar ativos...</span>
               </div>
-              <ProgressBar current={2} total={4} />
+              <span className="text-muted-foreground" data-testid="button-calendar-mockup">
+                <Calendar className="w-5 h-5" />
+              </span>
+              <span className="text-muted-foreground" data-testid="button-notifications-mockup">
+                <Bell className="w-5 h-5" />
+              </span>
+              <span className="text-muted-foreground" data-testid="button-settings-mockup">
+                <Settings className="w-5 h-5" />
+              </span>
             </div>
-          </div>
+          </header>
 
-          <section>
-            <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3" data-testid="text-section-direct">
-              Acesso Direto ({directAccessInstitutions.length})
-            </h2>
-            <div className="grid grid-cols-4 gap-3">
-              {directAccessInstitutions.map((inst) => (
-                <InstitutionCard key={inst.name} institution={inst} />
-              ))}
+          <main className="flex-1 overflow-y-auto p-6 space-y-6" data-testid="main-content-mockup">
+            <div className="flex items-start justify-between flex-wrap gap-4">
+              <div>
+                <h1 className="text-2xl font-bold text-foreground" data-testid="text-page-title">Varredura de Saldo</h1>
+                <p className="text-sm text-muted-foreground mt-1">Acompanhamento Mensal de Ativos</p>
+              </div>
+              <div className="flex flex-col items-end gap-3">
+                <div className="flex items-center gap-2 border border-border rounded-md px-3 py-1.5 text-sm text-foreground">
+                  <Calendar className="w-4 h-4 text-muted-foreground" />
+                  <span>13 de marco de 2026</span>
+                  <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                </div>
+                <ProgressBar current={2} total={4} />
+              </div>
             </div>
-          </section>
 
-          <section>
-            <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3" data-testid="text-section-manager">
-              Via Gerente ({managerGroups.length})
-            </h2>
-            <div className="space-y-3">
-              {managerGroups.map((group) => (
-                <ManagerGroupCard key={group.name} group={group} />
-              ))}
-            </div>
-          </section>
-        </main>
+            <section>
+              <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3" data-testid="text-section-direct">
+                Acesso Direto ({directAccessInstitutions.length})
+              </h2>
+              <div className="grid grid-cols-4 gap-3">
+                {directAccessInstitutions.map((inst) => (
+                  <InstitutionCard key={inst.name} institution={inst} />
+                ))}
+              </div>
+            </section>
+
+            <section>
+              <h2 className="text-xs font-semibold tracking-widest text-muted-foreground uppercase mb-3" data-testid="text-section-manager">
+                Via Gerente ({managerGroups.length})
+              </h2>
+              <div className="space-y-3">
+                {managerGroups.map((group) => (
+                  <ManagerGroupCard key={group.name} group={group} />
+                ))}
+              </div>
+            </section>
+          </main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
