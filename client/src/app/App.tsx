@@ -24,6 +24,7 @@ import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 import MockupVarredura from "@app/pages/mockups/MockupVarredura";
 import MockupVarreduraA from "@app/pages/mockups/MockupVarreduraA";
 import MockupVarreduraB from "@app/pages/mockups/MockupVarreduraB";
+import MockupDesignSystem from "@app/pages/mockups/MockupDesignSystem";
 
 function AuthenticatedRouter() {
   return (
@@ -164,6 +165,7 @@ export default function App() {
           <Route path="/mockup/varredura" component={MockupVarredura} />
           <Route path="/mockup/varredura-a" component={MockupVarreduraA} />
           <Route path="/mockup/varredura-b" component={MockupVarreduraB} />
+          <Route path="/mockup/design-system" component={MockupDesignSystem} />
         </Switch>
       </ErrorBoundary>
     );
