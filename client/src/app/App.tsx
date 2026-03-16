@@ -21,6 +21,7 @@ import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@featur
 import { UsersProvider, useCurrentUser, Admin, Profile, GoogleCallback } from "@features/users";
 import { Consolidador } from "@features/consolidador";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
+import MockupVarredura from "@app/pages/mockups/MockupVarredura";
 
 function AuthenticatedRouter() {
   return (
@@ -152,6 +153,16 @@ export default function App() {
   // Skip auth loading check in dev bypass mode
   if (!DEV_BYPASS_AUTH && !isLoaded) {
     return <LoadingScreen />;
+  }
+
+  if (window.location.pathname.startsWith("/mockup/")) {
+    return (
+      <ErrorBoundary level="page">
+        <Switch>
+          <Route path="/mockup/varredura" component={MockupVarredura} />
+        </Switch>
+      </ErrorBoundary>
+    );
   }
 
   return (
