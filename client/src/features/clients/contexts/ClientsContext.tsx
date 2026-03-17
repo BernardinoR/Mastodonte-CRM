@@ -319,7 +319,7 @@ interface ClientsContextType {
     clientId: string,
     meetingId: string,
     updates: Partial<Omit<ClientMeeting, "id">>,
-  ) => void;
+  ) => Promise<void>;
   deleteClientMeeting: (clientId: string, meetingId: string) => void;
   deleteClient: (clientId: string) => Promise<void>;
   bulkInsertClients: (rows: ClientImportRow[]) => Promise<{ inserted: number; errors: string[] }>;
@@ -1028,7 +1028,6 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
     [updateClientApi],
   );
 
-  // Meetings are still managed locally for now
   const addClientMeeting = useCallback((clientId: string, meeting: Omit<ClientMeeting, "id">) => {
     setExtendedData((prev) => {
       const clientData = prev[clientId] || { stats: [], meetings: [], whatsappGroups: [] };
@@ -1048,7 +1047,28 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateClientMeeting = useCallback(
-    (clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, "id">>) => {
+    async (clientId: string, meetingId: string, updates: Partial<Omit<ClientMeeting, "id">>) => {
+      const dbUpdates: Record<string, any> = {};
+      if (updates.name !== undefined) dbUpdates.title = updates.name;
+      if (updates.type !== undefined) dbUpdates.type = updates.type;
+      if (updates.status !== undefined) dbUpdates.status = updates.status;
+      if (updates.date !== undefined)
+        dbUpdates.date = updates.date instanceof Date ? updates.date.toISOString() : updates.date;
+
+      try {
+        const { error } = await supabase
+          .from("meetings")
+          .update(dbUpdates)
+          .eq("id", parseInt(meetingId));
+        if (error) {
+          console.error("Error updating meeting:", error);
+          return;
+        }
+      } catch (err) {
+        console.error("Error updating meeting:", err);
+        return;
+      }
+
       setExtendedData((prev) => {
         const clientData = prev[clientId];
         if (!clientData) return prev;
@@ -1064,8 +1084,16 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
         };
       });
       setDataVersion((v) => v + 1);
+
+      if (updates.status === "Realizada") {
+        const clientData = extendedData[clientId];
+        const meeting = clientData?.meetings.find((m) => m.id === meetingId);
+        if (meeting && meeting.type === "Mensal") {
+          await updateClientLastMeeting(clientId, meeting.date);
+        }
+      }
     },
-    [],
+    [extendedData, updateClientLastMeeting],
   );
 
   const deleteClientMeeting = useCallback(async (clientId: string, meetingId: string) => {
