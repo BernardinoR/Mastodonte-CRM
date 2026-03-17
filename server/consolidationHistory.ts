@@ -35,13 +35,19 @@ function generateMonthRange(startDate: string): string[] {
   if (!parsed) return [];
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
+  let lastClosedMonth = now.getMonth(); // getMonth() is 0-indexed, so without +1 gives previous month
+  let lastClosedYear = now.getFullYear();
+  if (lastClosedMonth === 0) {
+    lastClosedMonth = 12;
+    lastClosedYear--;
+  }
+
+  console.log(`[historico] lastClosedMonth=${lastClosedMonth}, lastClosedYear=${lastClosedYear}`);
 
   const months: string[] = [];
   let { month, year } = parsed;
 
-  while (year < currentYear || (year === currentYear && month <= currentMonth)) {
+  while (year < lastClosedYear || (year === lastClosedYear && month <= lastClosedMonth)) {
     const mm = String(month).padStart(2, "0");
     months.push(`${mm}/${year}`);
     month++;
@@ -50,6 +56,10 @@ function generateMonthRange(startDate: string): string[] {
       year++;
     }
   }
+
+  console.log(
+    `[historico] range: ${months.length} meses, de ${months[0]} até ${months[months.length - 1]}`,
+  );
 
   return months.reverse();
 }

@@ -5,6 +5,7 @@ import { prisma } from "./db";
 import { clerkAuthMiddleware, requireAdmin } from "./auth";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import type { UserRole } from "@shared/types";
+import { getContaHistorico } from "./consolidationHistory";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -656,7 +657,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/contas/:id/historico", clerkAuthMiddleware, async (req, res) => {
     try {
       const { id } = req.params;
-      const { getContaHistorico } = await import("./consolidationHistory");
       const historico = await getContaHistorico(id);
       res.json({ historico });
     } catch (error: any) {
