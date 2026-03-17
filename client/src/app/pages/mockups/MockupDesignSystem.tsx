@@ -65,9 +65,9 @@ function SectionWrapper({ id, children, title, subtitle }: { id: string; childre
       <div className="relative z-10 mx-auto max-w-7xl">
         <RevealSection>
           <div className="mb-12">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">{subtitle}</p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-amber-400">{subtitle}</p>
             <h2 className="text-3xl font-bold text-white md:text-4xl">{title}</h2>
-            <div className="mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-blue-500 to-blue-300" />
+            <div className="mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-amber-500 to-amber-300" />
           </div>
         </RevealSection>
         {children}
@@ -82,21 +82,21 @@ function MeshGradientBg() {
       <div
         className="absolute -left-1/4 -top-1/4 h-[60%] w-[60%] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(217,162,27,0.15) 0%, transparent 70%)",
           animation: "meshFloat1 20s ease-in-out infinite",
         }}
       />
       <div
         className="absolute -bottom-1/4 -right-1/4 h-[50%] w-[50%] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(180,130,50,0.12) 0%, transparent 70%)",
           animation: "meshFloat2 25s ease-in-out infinite",
         }}
       />
       <div
         className="absolute left-1/3 top-1/2 h-[40%] w-[40%] rounded-full"
         style={{
-          background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 60%)",
+          background: "radial-gradient(circle, rgba(217,162,27,0.08) 0%, transparent 60%)",
           animation: "meshFloat3 18s ease-in-out infinite",
         }}
       />
@@ -129,7 +129,7 @@ function HeroSection() {
         <div
           className="absolute left-1/2 top-1/2 h-[800px] w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full"
           style={{
-            background: "radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 60%)",
+            background: "radial-gradient(circle, rgba(217,162,27,0.08) 0%, transparent 60%)",
             animation: "heroGlow 6s ease-in-out infinite",
           }}
         />
@@ -159,7 +159,7 @@ function HeroSection() {
           className="absolute h-[200%] w-[200%]"
           style={{
             top: "-50%", left: "-50%",
-            background: "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 40%)",
+            background: "radial-gradient(circle at 50% 50%, rgba(217,162,27,0.04) 0%, transparent 40%)",
             animation: "heroSpotlight 12s infinite alternate ease-in-out",
           }}
         />
@@ -188,7 +188,7 @@ function HeroSection() {
             animation: mounted ? "heroFloat2 7s ease-in-out infinite 1.4s" : "none",
           }}
         >
-          <span className="text-xs font-medium text-blue-400">Primary</span>
+          <span className="text-xs font-medium text-amber-400">Primary</span>
         </div>
         <div
           className="absolute bottom-[25%] left-[12%] rounded-lg border border-white/10 bg-white/[0.04] px-3 py-1.5 backdrop-blur-sm"
@@ -200,10 +200,10 @@ function HeroSection() {
           }}
         >
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-md bg-gradient-to-br from-blue-500 to-blue-300" />
+            <div className="h-6 w-6 rounded-md bg-gradient-to-br from-amber-500 to-amber-300" />
             <div>
               <p className="text-[10px] text-white/40">Color</p>
-              <p className="font-mono text-xs text-white/60">#1370E8</p>
+              <p className="font-mono text-xs text-white/60">#D9A21B</p>
             </div>
           </div>
         </div>
@@ -264,7 +264,7 @@ function HeroSection() {
             transition: "all 1s ease 0.7s",
           }}
         >
-          <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-300">v1.0</Badge>
+          <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-300">v1.0</Badge>
           <Badge variant="outline" className="border-white/10 bg-white/5 text-white/60">Inter · Tailwind · Shadcn</Badge>
           <Badge variant="outline" className="border-white/10 bg-white/5 text-white/60">Dark + Light</Badge>
         </div>
@@ -331,7 +331,7 @@ function TypographySection() {
               key={t.label}
               className="flex flex-wrap items-baseline gap-4 rounded-lg border border-white/5 px-5 py-4 transition-colors hover:bg-white/[0.02]"
             >
-              <span className="w-10 shrink-0 font-mono text-xs text-blue-400">{t.label}</span>
+              <span className="w-10 shrink-0 font-mono text-xs text-amber-400">{t.label}</span>
               <span
                 className="flex-1 text-white"
                 style={{ fontSize: t.size.split(" / ")[0], fontWeight: Number(t.weight), lineHeight: t.lineHeight, letterSpacing: t.letterSpacing }}
@@ -357,7 +357,7 @@ function TypographySection() {
               key={t.label}
               className="flex flex-wrap items-baseline gap-4 rounded-lg border border-white/5 px-5 py-4 transition-colors hover:bg-white/[0.02]"
             >
-              <span className="w-16 shrink-0 font-mono text-xs text-blue-400">{t.label}</span>
+              <span className="w-16 shrink-0 font-mono text-xs text-amber-400">{t.label}</span>
               <span
                 className="flex-1 text-white/80"
                 style={{ fontSize: t.size.split(" / ")[0], fontWeight: Number(t.weight), lineHeight: t.lineHeight, letterSpacing: t.letterSpacing }}
@@ -416,10 +416,10 @@ function ColorSwatch({ color }: { color: ColorSwatchData }) {
 function ColorsSection() {
   const colorGroups: { group: string; colors: ColorSwatchData[] }[] = [
     {
-      group: "Primary (217° Blue)",
+      group: "Primary (40° Amber Gold)",
       colors: [
-        { name: "Primary", cssVar: "--primary", hsl: "217 85% 50%", hex: "#1370E8", rgb: "19, 112, 232" },
-        { name: "Primary Foreground", cssVar: "--primary-foreground", hsl: "217 91% 98%", hex: "#F5F8FE", rgb: "245, 248, 254" },
+        { name: "Primary", cssVar: "--primary", hsl: "40 72% 50%", hex: "#D9A21B", rgb: "217, 162, 27" },
+        { name: "Primary Foreground", cssVar: "--primary-foreground", hsl: "40 80% 97%", hex: "#FEF9F0", rgb: "254, 249, 240" },
       ],
     },
     {
@@ -430,10 +430,10 @@ function ColorsSection() {
       ],
     },
     {
-      group: "Accent",
+      group: "Accent (Warm)",
       colors: [
-        { name: "Accent", cssVar: "--accent", hsl: "217 10% 20%", hex: "#2E3239", rgb: "46, 50, 57" },
-        { name: "Accent Foreground", cssVar: "--accent-foreground", hsl: "217 12% 90%", hex: "#E1E4EA", rgb: "225, 228, 234" },
+        { name: "Accent", cssVar: "--accent", hsl: "38 10% 20%", hex: "#38342E", rgb: "56, 52, 46" },
+        { name: "Accent Foreground", cssVar: "--accent-foreground", hsl: "38 12% 90%", hex: "#EAE6DF", rgb: "234, 230, 223" },
       ],
     },
     {
@@ -463,18 +463,18 @@ function ColorsSection() {
       group: "Sidebar",
       colors: [
         { name: "Sidebar", cssVar: "--sidebar", hsl: "0 0% 8%", hex: "#141414", rgb: "20, 20, 20" },
-        { name: "Sidebar Primary", cssVar: "--sidebar-primary", hsl: "217 85% 50%", hex: "#1370E8", rgb: "19, 112, 232" },
+        { name: "Sidebar Primary", cssVar: "--sidebar-primary", hsl: "40 72% 50%", hex: "#D9A21B", rgb: "217, 162, 27" },
         { name: "Sidebar Accent", cssVar: "--sidebar-accent", hsl: "0 0% 13%", hex: "#212121", rgb: "33, 33, 33" },
       ],
     },
     {
       group: "Chart Colors",
       colors: [
-        { name: "Chart 1", cssVar: "--chart-1", hsl: "217 91% 65%", hex: "#5B9CF5", rgb: "91, 156, 245" },
-        { name: "Chart 2", cssVar: "--chart-2", hsl: "142 76% 60%", hex: "#4ADE80", rgb: "74, 222, 128" },
-        { name: "Chart 3", cssVar: "--chart-3", hsl: "271 81% 65%", hex: "#A07EF5", rgb: "160, 126, 245" },
-        { name: "Chart 4", cssVar: "--chart-4", hsl: "43 87% 65%", hex: "#EFC94C", rgb: "239, 201, 76" },
-        { name: "Chart 5", cssVar: "--chart-5", hsl: "12 76% 65%", hex: "#E87B5B", rgb: "232, 123, 91" },
+        { name: "Chart 1", cssVar: "--chart-1", hsl: "40 65% 58%", hex: "#D4AD4A", rgb: "212, 173, 74" },
+        { name: "Chart 2", cssVar: "--chart-2", hsl: "152 40% 50%", hex: "#4DA882", rgb: "77, 168, 130" },
+        { name: "Chart 3", cssVar: "--chart-3", hsl: "262 35% 58%", hex: "#8B72B8", rgb: "139, 114, 184" },
+        { name: "Chart 4", cssVar: "--chart-4", hsl: "16 45% 55%", hex: "#C57B5A", rgb: "197, 123, 90" },
+        { name: "Chart 5", cssVar: "--chart-5", hsl: "204 42% 55%", hex: "#5E9ABE", rgb: "94, 154, 190" },
       ],
     },
     {
@@ -489,11 +489,11 @@ function ColorsSection() {
   ];
 
   const gradients = [
-    { name: "Primary Gradient", css: "linear-gradient(135deg, #1370E8, #5B9CF5)", from: "#1370E8", to: "#5B9CF5" },
-    { name: "Purple Accent", css: "linear-gradient(135deg, #7C3AED, #A07EF5)", from: "#7C3AED", to: "#A07EF5" },
-    { name: "Success", css: "linear-gradient(135deg, #059669, #4ADE80)", from: "#059669", to: "#4ADE80" },
-    { name: "Warning", css: "linear-gradient(135deg, #D97706, #EFC94C)", from: "#D97706", to: "#EFC94C" },
-    { name: "Danger", css: "linear-gradient(135deg, #C52020, #F87171)", from: "#C52020", to: "#F87171" },
+    { name: "Primary Gold", css: "linear-gradient(135deg, #D9A21B, #EFC94C)", from: "#D9A21B", to: "#EFC94C" },
+    { name: "Warm Copper", css: "linear-gradient(135deg, #B87333, #D4A84B)", from: "#B87333", to: "#D4A84B" },
+    { name: "Success", css: "linear-gradient(135deg, #059669, #4DA882)", from: "#059669", to: "#4DA882" },
+    { name: "Muted Plum", css: "linear-gradient(135deg, #6B4F8A, #8B72B8)", from: "#6B4F8A", to: "#8B72B8" },
+    { name: "Danger", css: "linear-gradient(135deg, #C52020, #E87B5B)", from: "#C52020", to: "#E87B5B" },
     { name: "Dark Surface", css: "linear-gradient(135deg, #121212, #1A1A1A)", from: "#121212", to: "#1A1A1A" },
   ];
 
@@ -530,7 +530,7 @@ function ColorsSection() {
             <div key={op} className="text-center">
               <div
                 className="mb-2 h-14 w-14 rounded-md border border-white/10"
-                style={{ backgroundColor: `rgba(19, 112, 232, ${op / 100})` }}
+                style={{ backgroundColor: `rgba(217, 162, 27, ${op / 100})` }}
               />
               <span className="font-mono text-xs text-white/40">{op}%</span>
             </div>
@@ -554,14 +554,14 @@ function ColorsSection() {
                 <div key={item.role} className="rounded-md border border-white/5 p-4">
                   <p className="text-sm font-semibold text-white">{item.role}</p>
                   <p className="mt-1 text-xs text-white/50">{item.desc}</p>
-                  <p className="mt-2 font-mono text-xs text-blue-400">{item.example}</p>
+                  <p className="mt-2 font-mono text-xs text-amber-400">{item.example}</p>
                 </div>
               ))}
             </div>
             <div className="mt-6 rounded-md border border-white/5 p-4">
               <p className="text-sm font-semibold text-white">Notas de Contraste</p>
               <ul className="mt-2 space-y-1 text-xs text-white/50">
-                <li>Primary (#1370E8) sobre background (#121212): ratio 4.6:1 — passa AA para texto grande</li>
+                <li>Primary (#D9A21B) sobre background (#121212): ratio 7.2:1 — passa AA e AAA</li>
                 <li>Foreground (#EDEDED) sobre background (#121212): ratio 14.5:1 — passa AAA</li>
                 <li>Foreground (#EDEDED) sobre card (#1A1A1A): ratio 12.8:1 — passa AAA</li>
                 <li>Muted-foreground (#8C8C8C) sobre background (#121212): ratio 5.2:1 — passa AA</li>
@@ -643,7 +643,7 @@ function ComponentsSection() {
               <Badge variant="outline" data-testid="badge-outline">Outline</Badge>
               <Badge variant="outline" className="border-green-500/30 bg-green-500/10 text-green-400" data-testid="badge-success">Success</Badge>
               <Badge variant="outline" className="border-yellow-500/30 bg-yellow-500/10 text-yellow-400" data-testid="badge-warning">Warning</Badge>
-              <Badge variant="outline" className="border-blue-500/30 bg-blue-500/10 text-blue-400" data-testid="badge-info">Info</Badge>
+              <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-400" data-testid="badge-premium">Premium</Badge>
             </div>
           </CardContent>
         </Card>
@@ -812,8 +812,8 @@ function ComponentsSection() {
                 <p className="mb-3 text-xs text-white/40">Avatars</p>
                 <div className="flex gap-2">
                   {["JD", "AS", "MK", "RL", "TC"].map((initials, i) => (
-                    <Avatar key={i} data-testid={`avatar-${i}`}>
-                      <AvatarFallback className="bg-blue-500/20 text-blue-300 text-xs">
+                    <Avatar key={i} className="rounded-md" data-testid={`avatar-${i}`}>
+                      <AvatarFallback className="rounded-md bg-muted text-muted-foreground text-xs">
                         {initials}
                       </AvatarFallback>
                     </Avatar>
@@ -918,7 +918,7 @@ function IconsSection() {
                 className="group flex flex-col items-center gap-2 rounded-lg border border-white/5 p-3 text-center transition-colors hover:bg-white/[0.03]"
                 data-testid={`icon-${name}`}
               >
-                <Icon className="h-5 w-5 text-white/60 transition-colors group-hover:text-blue-400" />
+                <Icon className="h-5 w-5 text-white/60 transition-colors group-hover:text-amber-400" />
                 <span className="text-[10px] leading-tight text-white/30 group-hover:text-white/50">{name}</span>
               </div>
             ))}
@@ -950,7 +950,7 @@ function AnimationsSection() {
           <AnimationDemo name="fadeInDown" description="Entrada de cima para baixo com fade">
             <div
               key="fid-anim"
-              className="rounded-md bg-blue-500/20 px-4 py-2 text-sm text-blue-300"
+              className="rounded-md bg-amber-500/20 px-4 py-2 text-sm text-amber-400"
               style={{ animation: "dsFadeInDown 1s ease-out infinite" }}
             >
               Fade In Down
@@ -972,7 +972,7 @@ function AnimationsSection() {
         <RevealSection delay={0.1}>
           <AnimationDemo name="heartbeat" description="Pulsação suave para chamar atenção">
             <div
-              className="h-12 w-12 rounded-full bg-blue-500/30"
+              className="h-12 w-12 rounded-full bg-amber-500/30"
               style={{ animation: "dsHeartbeat 2s ease-in-out infinite" }}
             />
           </AnimationDemo>
@@ -984,7 +984,7 @@ function AnimationsSection() {
               <div
                 className="absolute h-full w-full"
                 style={{
-                  background: "radial-gradient(circle at 50% 50%, rgba(59,130,246,0.2) 0%, transparent 60%)",
+                  background: "radial-gradient(circle at 50% 50%, rgba(217,162,27,0.2) 0%, transparent 60%)",
                   animation: "dsSpotlight 4s alternate ease-in-out infinite",
                 }}
               />
@@ -996,10 +996,10 @@ function AnimationsSection() {
         <RevealSection delay={0.2}>
           <AnimationDemo name="rotateCircle" description="Rotação contínua para elementos decorativos">
             <div
-              className="h-14 w-14 rounded-full border border-blue-500/30"
+              className="h-14 w-14 rounded-full border border-amber-500/30"
               style={{ animation: "dsRotate 4s linear infinite" }}
             >
-              <div className="absolute ml-6 mt-0 h-2 w-2 rounded-full bg-blue-400" />
+              <div className="absolute ml-6 mt-0 h-2 w-2 rounded-full bg-amber-400" />
             </div>
           </AnimationDemo>
         </RevealSection>
