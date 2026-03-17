@@ -39,7 +39,7 @@ function mapDbConta(row: Record<string, unknown>): Conta {
     gerenteNome: row.manager_name as string | undefined,
     gerenteEmail: row.manager_email as string | undefined,
     gerenteTelefone: row.manager_phone as string | undefined,
-    whatsappGroupId: row.whatsapp_group_id as string | undefined,
+    whatsappGroupId: row.whatsapp_group_id != null ? String(row.whatsapp_group_id) : undefined,
     whatsappGroupAtivo: row.whatsapp_group_linked as boolean | undefined,
   };
 }
@@ -57,7 +57,7 @@ function mapContaToDb(clientId: string, data: ContaFormData) {
     manager_name: data.gerenteNome || null,
     manager_email: data.gerenteEmail || null,
     manager_phone: data.gerenteTelefone || null,
-    whatsapp_group_id: data.whatsappGroupId || null,
+    whatsapp_group_id: data.whatsappGroupId ? parseInt(data.whatsappGroupId, 10) : null,
     whatsapp_group_linked: data.whatsappGroupAtivo,
     updated_at: new Date().toISOString(),
   };
