@@ -652,6 +652,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get conta historico (consolidation history)
+  app.get("/api/contas/:id/historico", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { getContaHistorico } = await import("./consolidationHistory");
+      const historico = await getContaHistorico(id);
+      res.json({ historico });
+    } catch (error: any) {
+      console.error("Error fetching conta historico:", error);
+      res.status(error.message === "Conta not found" ? 404 : 500).json({
+        message: error.message || "Failed to fetch historico",
+      });
+    }
+  });
+
   // Update conta
   app.put("/api/contas/:id", clerkAuthMiddleware, async (req, res) => {
     try {

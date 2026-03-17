@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
-import { Check, AlertTriangle, Plus, Landmark, ChevronDown } from "lucide-react";
+import { Check, AlertTriangle, Plus, Landmark, ChevronDown, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/components/ui/sheet";
 import { Badge } from "@/shared/components/ui/badge";
 import type { Conta } from "../../types/conta";
-import type { ContaHistoricoStatus } from "../../types/contaHistorico";
-import { getContaHistorico } from "../../lib/contaHistoricoMockData";
+import type { ContaHistoricoEntry, ContaHistoricoStatus } from "../../types/contaHistorico";
 import { getInstitutionColor } from "../../lib/institutionColors";
+import { apiRequest } from "@/shared/lib/queryClient";
 
 interface ContaHistoricoSheetProps {
   conta: Conta | null;
@@ -49,14 +49,25 @@ const PAGE_SIZE = 10;
 
 export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoricoSheetProps) {
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [historico, setHistorico] = useState<ContaHistoricoEntry[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
   }, [conta?.id]);
 
+  useEffect(() => {
+    if (!conta?.id || !open) return;
+    setLoading(true);
+    apiRequest("GET", `/api/contas/${conta.id}/historico`)
+      .then((res) => res.json())
+      .then((data) => setHistorico(data.historico))
+      .catch(() => setHistorico([]))
+      .finally(() => setLoading(false));
+  }, [conta?.id, open]);
+
   if (!conta) return null;
 
-  const historico = getContaHistorico(conta.id);
   const visibleHistorico = historico.slice(0, visibleCount);
   const hasMore = historico.length > visibleCount;
   const color = getInstitutionColor(conta.institution.name);
@@ -84,66 +95,72 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4">
-          <div className="relative">
-            {/* Vertical line */}
-            <div className="absolute bottom-3 left-[13px] top-3 w-px bg-[#363b47]" />
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Vertical line */}
+              <div className="absolute bottom-3 left-[13px] top-3 w-px bg-[#363b47]" />
 
-            <div className="space-y-5">
-              {visibleHistorico.map((entry) => {
-                const config = statusConfig[entry.status];
-                const Icon = config.icon;
+              <div className="space-y-5">
+                {visibleHistorico.map((entry) => {
+                  const config = statusConfig[entry.status];
+                  const Icon = config.icon;
 
-                return (
-                  <div key={entry.id} className="relative flex items-start gap-3">
-                    <div
-                      className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${config.iconClass}`}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                    </div>
-                    <div className="flex flex-1 items-center justify-between pt-0.5">
-                      <div>
-                        <span className="text-sm font-medium text-foreground">
-                          {entry.competencia}
-                        </span>
-                        {entry.description && (
-                          <p className="text-xs text-muted-foreground">{entry.description}</p>
-                        )}
+                  return (
+                    <div key={entry.id} className="relative flex items-start gap-3">
+                      <div
+                        className={`relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border ${config.iconClass}`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
                       </div>
-                      <Badge variant="outline" className={`text-xs ${config.badgeClass}`}>
-                        {entry.status}
-                      </Badge>
+                      <div className="flex flex-1 items-center justify-between pt-0.5">
+                        <div>
+                          <span className="text-sm font-medium text-foreground">
+                            {entry.competencia}
+                          </span>
+                          {entry.description && (
+                            <p className="text-xs text-muted-foreground">{entry.description}</p>
+                          )}
+                        </div>
+                        <Badge variant="outline" className={`text-xs ${config.badgeClass}`}>
+                          {entry.status}
+                        </Badge>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
 
-              {hasMore && (
+                {hasMore && (
+                  <div className="relative flex items-start gap-3">
+                    <div className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#363b47] bg-[#22262e] text-muted-foreground">
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    </div>
+                    <button
+                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                      className="pt-0.5 text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
+                    >
+                      Carregar mais
+                    </button>
+                  </div>
+                )}
+
+                {/* Last item - Conta adicionada */}
                 <div className="relative flex items-start gap-3">
                   <div className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#363b47] bg-[#22262e] text-muted-foreground">
-                    <ChevronDown className="h-3.5 w-3.5" />
+                    <Plus className="h-3.5 w-3.5" />
                   </div>
-                  <button
-                    onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-                    className="pt-0.5 text-sm font-medium text-blue-400 transition-colors hover:text-blue-300"
-                  >
-                    Carregar mais
-                  </button>
-                </div>
-              )}
-
-              {/* Last item - Conta adicionada */}
-              <div className="relative flex items-start gap-3">
-                <div className="relative z-10 flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-[#363b47] bg-[#22262e] text-muted-foreground">
-                  <Plus className="h-3.5 w-3.5" />
-                </div>
-                <div className="pt-0.5">
-                  <span className="text-sm text-muted-foreground">
-                    Conta adicionada em {formatAtivoDesde(conta.ativoDesde)}
-                  </span>
+                  <div className="pt-0.5">
+                    <span className="text-sm text-muted-foreground">
+                      Conta adicionada em {formatAtivoDesde(conta.ativoDesde)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </SheetContent>
     </Sheet>
