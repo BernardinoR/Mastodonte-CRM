@@ -86,14 +86,27 @@ export async function getContaHistorico(contaId: string): Promise<ContaHistorico
   const monthRange = generateMonthRange(conta.startDate);
   if (monthRange.length === 0) return [];
 
-  const { data: records } = await externalSupabase
+  console.log(
+    `[historico] Querying for client="${conta.client.name}", institution="${conta.institution.name}", startDate="${conta.startDate}"`,
+  );
+
+  const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
     .select("Competencia, Data, Instituicao")
     .ilike("Nome", conta.client.name);
 
+  if (error) {
+    console.error("Supabase query error:", error);
+    throw new Error(`Failed to query consolidation data: ${error.message}`);
+  }
+
   const normalizedInst = removeAccents(conta.institution.name);
   const filtered = ((records as ConsolidadoRecord[]) || []).filter(
     (r) => removeAccents(r.Instituicao) === normalizedInst,
+  );
+
+  console.log(
+    `[historico] Found ${records?.length ?? 0} records, ${filtered.length} after institution filter`,
   );
 
   const consolidatedMap = new Map<string, string>();

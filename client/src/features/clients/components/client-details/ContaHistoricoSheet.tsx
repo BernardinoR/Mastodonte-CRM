@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Check, AlertTriangle, Plus, Landmark, ChevronDown, Loader2 } from "lucide-react";
+import { useAuth } from "@clerk/clerk-react";
 import { Sheet, SheetContent, SheetTitle } from "@/shared/components/ui/sheet";
 import { Badge } from "@/shared/components/ui/badge";
 import type { Conta } from "../../types/conta";
@@ -48,6 +49,7 @@ function formatAtivoDesde(date?: string): string {
 const PAGE_SIZE = 10;
 
 export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoricoSheetProps) {
+  const { getToken } = useAuth();
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [historico, setHistorico] = useState<ContaHistoricoEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -59,12 +61,21 @@ export function ContaHistoricoSheet({ conta, open, onOpenChange }: ContaHistoric
   useEffect(() => {
     if (!conta?.id || !open) return;
     setLoading(true);
-    apiRequest("GET", `/api/contas/${conta.id}/historico`)
-      .then((res) => res.json())
-      .then((data) => setHistorico(data.historico))
-      .catch(() => setHistorico([]))
-      .finally(() => setLoading(false));
-  }, [conta?.id, open]);
+    (async () => {
+      try {
+        const token = await getToken();
+        const res = await apiRequest("GET", `/api/contas/${conta.id}/historico`, undefined, {
+          Authorization: `Bearer ${token}`,
+        });
+        const data = await res.json();
+        setHistorico(data.historico);
+      } catch {
+        setHistorico([]);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [conta?.id, open, getToken]);
 
   if (!conta) return null;
 
