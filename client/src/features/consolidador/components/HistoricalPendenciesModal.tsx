@@ -22,10 +22,16 @@ interface MonthSummary {
   subtitle: string;
 }
 
+function parseReferenceMonth(ref: string): Date {
+  // "MM/YYYY" -> Date
+  const [mm, yyyy] = ref.split("/");
+  return new Date(parseInt(yyyy), parseInt(mm) - 1, 1);
+}
+
 function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
   const groups: Record<string, Extrato[]> = {};
   for (const p of pendencies) {
-    const key = format(p.referenceMonth, "yyyy-MM");
+    const key = p.referenceMonth; // "MM/YYYY"
     if (!groups[key]) groups[key] = [];
     groups[key].push(p);
   }
@@ -36,7 +42,8 @@ function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
       const pendentes = items.filter((i) => i.status === "Pendente").length;
       const solicitados = items.filter((i) => i.status === "Solicitado").length;
       const recebidos = items.filter((i) => i.status === "Recebido").length;
-      const label = format(items[0].referenceMonth, "MMMM yyyy", { locale: ptBR });
+      const monthDate = parseReferenceMonth(items[0].referenceMonth);
+      const label = format(monthDate, "MMMM yyyy", { locale: ptBR });
 
       let subtitle = "Tudo em dia";
       if (pendentes > 0) subtitle = "Consolidacao Pendente";

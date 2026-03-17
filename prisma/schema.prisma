@@ -142,10 +142,28 @@ model Conta {
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
 
-  client      Client      @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  institution Institution @relation(fields: [institutionId], references: [id])
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  institution     Institution     @relation(fields: [institutionId], references: [id])
+  extratoStatuses ExtratoStatus[]
 
   @@map("contas")
+}
+
+model ExtratoStatus {
+  id              String    @id @default(uuid())
+  contaId         String    @map("conta_id")
+  competencia     String    // "02/2026" - mês de referência
+  status          String    @default("Pendente") // Pendente, Solicitado, Recebido, Consolidado
+  requestedAt     DateTime? @map("requested_at")
+  receivedAt      DateTime? @map("received_at")
+  consolidatedAt  DateTime? @map("consolidated_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  conta Conta @relation(fields: [contaId], references: [id], onDelete: Cascade)
+
+  @@unique([contaId, competencia])
+  @@map("extrato_statuses")
 }
 
 model Meeting {

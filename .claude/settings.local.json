@@ -99,7 +99,8 @@
       "Bash(find /home/runner/workspace/client -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | xargs grep -l \"calendar\\\\|Calendar\" | head -20)",
       "Bash(find /home/runner/workspace -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | xargs grep -l \"oauth\\\\|OAuth\\\\|callback\\\\|Callback\\\\|redirect\" | grep -v node_modules | head -15)",
       "Bash(find /home/runner/workspace/client -type f \\\\\\( -name \"*.ts\" -o -name \"*.tsx\" \\\\\\) 2>/dev/null | xargs grep -l \"google\\\\|Google\" | head -10)",
-      "mcp__prisma-remote__list_prisma_postgres_databases"
+      "mcp__prisma-remote__list_prisma_postgres_databases",
+      "Bash(npm run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

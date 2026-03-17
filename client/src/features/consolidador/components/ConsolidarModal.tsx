@@ -30,7 +30,9 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   if (!extrato) return null;
 
-  const referenceLabel = format(extrato.referenceMonth, "MMMM yyyy", { locale: ptBR });
+  const [mm, yyyy] = extrato.referenceMonth.split("/");
+  const referenceDate = new Date(parseInt(yyyy), parseInt(mm) - 1, 1);
+  const referenceLabel = format(referenceDate, "MMMM yyyy", { locale: ptBR });
   const institutionInitial = extrato.institution.charAt(0).toUpperCase();
 
   const handleDrop = (e: React.DragEvent) => {

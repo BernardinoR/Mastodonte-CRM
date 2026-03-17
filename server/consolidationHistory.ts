@@ -12,6 +12,23 @@ interface ConsolidadoRecord {
   Competencia: string;
   Data: string;
   Instituicao: string;
+  Nome?: string;
+}
+
+interface ConsolidadorExtrato {
+  id: string;
+  contaId: string;
+  clientId: string;
+  clientName: string;
+  clientInitials: string;
+  institution: string;
+  accountType: string;
+  collectionMethod: string;
+  status: string;
+  referenceMonth: string;
+  requestedAt?: string;
+  receivedAt?: string;
+  consolidatedAt?: string;
 }
 
 function removeAccents(str: string): string {
@@ -83,6 +100,204 @@ function formatCompetencia(mmYyyy: string): string {
   const [mm, yyyy] = mmYyyy.split("/");
   const abbr = MONTH_ABBR[mm] || mm;
   return `${abbr}/${yyyy.slice(2)}`;
+}
+
+// ============================================
+// Consolidador Functions
+// ============================================
+
+export async function syncContaWithSupabase(contaId: string, competencia: string) {
+  const conta = await prisma.conta.findUnique({
+    where: { id: contaId },
+    include: { client: true, institution: true },
+  });
+  if (!conta) throw new Error("Conta not found");
+
+  const normalizedInst = removeAccents(conta.institution.name);
+
+  const { data: records, error } = await externalSupabase
+    .from("ConsolidadoPerformance")
+    .select("Competencia, Data, Instituicao")
+    .ilike("Nome", conta.client.name)
+    .eq("Competencia", competencia);
+
+  if (error) {
+    console.error("Supabase sync error:", error);
+    throw new Error(`Failed to query consolidation data: ${error.message}`);
+  }
+
+  const match = ((records as ConsolidadoRecord[]) || []).find(
+    (r) => removeAccents(r.Instituicao) === normalizedInst,
+  );
+
+  if (match) {
+    const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
+    return prisma.extratoStatus.upsert({
+      where: { contaId_competencia: { contaId, competencia } },
+      create: { contaId, competencia, status: "Consolidado", consolidatedAt },
+      update: { status: "Consolidado", consolidatedAt },
+    });
+  }
+
+  // Check if there's an existing record - only reset if it was Consolidado
+  const existing = await prisma.extratoStatus.findUnique({
+    where: { contaId_competencia: { contaId, competencia } },
+  });
+
+  if (existing && existing.status === "Consolidado") {
+    return prisma.extratoStatus.update({
+      where: { id: existing.id },
+      data: { status: "Pendente", consolidatedAt: null },
+    });
+  }
+
+  if (existing) return existing;
+
+  return prisma.extratoStatus.create({
+    data: { contaId, competencia, status: "Pendente" },
+  });
+}
+
+function isMonthInRange(month: string, startDate: string, endDate: string | null): boolean {
+  const parsed = parseMonthYear(month);
+  const parsedStart = parseMonthYear(startDate);
+  if (!parsed || !parsedStart) return false;
+
+  const monthVal = parsed.year * 12 + parsed.month;
+  const startVal = parsedStart.year * 12 + parsedStart.month;
+  if (monthVal < startVal) return false;
+
+  if (endDate) {
+    const parsedEnd = parseMonthYear(endDate);
+    if (parsedEnd) {
+      const endVal = parsedEnd.year * 12 + parsedEnd.month;
+      if (monthVal > endVal) return false;
+    }
+  }
+  return true;
+}
+
+function computeInitials(name: string): string {
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .substring(0, 2)
+    .toUpperCase();
+}
+
+export async function getConsolidadorExtratos(month: string): Promise<ConsolidadorExtrato[]> {
+  // Fetch all active contas with relations
+  const contas = await prisma.conta.findMany({
+    where: { status: "Ativa" },
+    include: { client: true, institution: true },
+  });
+
+  // Filter contas whose date range includes the selected month
+  const eligibleContas = contas.filter((c) => isMonthInRange(month, c.startDate, c.endDate));
+
+  if (eligibleContas.length === 0) return [];
+
+  const contaIds = eligibleContas.map((c) => c.id);
+
+  // Fetch existing ExtratoStatus records for this month
+  const existingStatuses = await prisma.extratoStatus.findMany({
+    where: { contaId: { in: contaIds }, competencia: month },
+  });
+
+  const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
+
+  // Find contas without ExtratoStatus - need lazy init via Supabase
+  const contasWithoutStatus = eligibleContas.filter((c) => !statusMap.has(c.id));
+
+  if (contasWithoutStatus.length > 0) {
+    // Batch query Supabase for all clients in this month
+    const { data: allRecords, error } = await externalSupabase
+      .from("ConsolidadoPerformance")
+      .select("Competencia, Data, Instituicao, Nome")
+      .eq("Competencia", month);
+
+    if (error) {
+      console.error("Supabase batch query error:", error);
+    }
+
+    const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
+
+    // Create ExtratoStatus for each conta without one
+    for (const conta of contasWithoutStatus) {
+      const normalizedClientName = removeAccents(conta.client.name);
+      const normalizedInst = removeAccents(conta.institution.name);
+
+      const match = supabaseRecords.find(
+        (r) =>
+          removeAccents(r.Nome || "") === normalizedClientName &&
+          removeAccents(r.Instituicao) === normalizedInst,
+      );
+
+      let created;
+      if (match) {
+        const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
+        created = await prisma.extratoStatus.create({
+          data: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
+        });
+      } else {
+        created = await prisma.extratoStatus.create({
+          data: { contaId: conta.id, competencia: month, status: "Pendente" },
+        });
+      }
+
+      statusMap.set(conta.id, created);
+    }
+  }
+
+  // Build extrato array
+  return eligibleContas.map((conta) => {
+    const es = statusMap.get(conta.id);
+    return {
+      id: es?.id || conta.id,
+      contaId: conta.id,
+      clientId: conta.clientId,
+      clientName: conta.client.name,
+      clientInitials: conta.client.initials || computeInitials(conta.client.name),
+      institution: conta.institution.name,
+      accountType: conta.accountName || "",
+      collectionMethod: conta.type,
+      status: es?.status || "Pendente",
+      referenceMonth: month,
+      requestedAt: es?.requestedAt?.toISOString(),
+      receivedAt: es?.receivedAt?.toISOString(),
+      consolidatedAt: es?.consolidatedAt?.toISOString(),
+    };
+  });
+}
+
+export async function getConsolidadorPendencias(
+  beforeMonth: string,
+): Promise<ConsolidadorExtrato[]> {
+  const parsed = parseMonthYear(beforeMonth);
+  if (!parsed) return [];
+
+  // Calculate 3 months before
+  const months: string[] = [];
+  let { month: m, year: y } = parsed;
+  for (let i = 0; i < 3; i++) {
+    m--;
+    if (m < 1) {
+      m = 12;
+      y--;
+    }
+    months.push(`${String(m).padStart(2, "0")}/${y}`);
+  }
+
+  const allExtratos: ConsolidadorExtrato[] = [];
+
+  for (const month of months) {
+    const extratos = await getConsolidadorExtratos(month);
+    const pending = extratos.filter((e) => e.status !== "Consolidado");
+    allExtratos.push(...pending);
+  }
+
+  return allExtratos;
 }
 
 export async function getContaHistorico(contaId: string): Promise<ContaHistoricoEntry[]> {

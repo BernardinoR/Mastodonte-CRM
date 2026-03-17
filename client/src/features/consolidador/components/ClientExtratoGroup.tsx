@@ -32,6 +32,7 @@ interface ClientExtratoGroupProps {
   onConsolidar?: (extrato: Extrato) => void;
   onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
+  onSync?: (extrato: Extrato) => Promise<void>;
   labelField?: "institution" | "client";
 }
 
@@ -42,6 +43,7 @@ export function ClientExtratoGroup({
   onConsolidar,
   onStatusChange,
   onMethodChange,
+  onSync,
   labelField = "institution",
 }: ClientExtratoGroupProps) {
   const colors = clientColors[group.clientInitials] || {
@@ -78,6 +80,7 @@ export function ClientExtratoGroup({
                 onConsolidar={onConsolidar}
                 onStatusChange={onStatusChange}
                 onMethodChange={onMethodChange}
+                onSync={onSync}
                 labelField={labelField}
               />
             ))}

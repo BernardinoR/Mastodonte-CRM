@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import {
   Collapsible,
@@ -10,26 +11,30 @@ import { ConsolidadorFilters } from "../components/ConsolidadorFilters";
 import { ClientExtratoGroup } from "../components/ClientExtratoGroup";
 import { HistoricalPendenciesModal } from "../components/HistoricalPendenciesModal";
 import { ConsolidarModal } from "../components/ConsolidarModal";
-import { getMockExtratos, getMockHistoricalPendencies } from "../lib/extratoMockData";
+import { apiRequest } from "@/shared/lib/queryClient";
 import type {
   Extrato,
   ExtratoStatus,
-  ExtratoAccountType,
   ExtratoCollectionMethod,
   ClientExtratoGroup as ClientGroupType,
   ExtratoStatusSummary,
 } from "../types/extrato";
 
+function formatMonthParam(date: Date): string {
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const yyyy = date.getFullYear();
+  return `${mm}/${yyyy}`;
+}
+
 export default function Consolidador() {
+  const { getToken } = useAuth();
   const [groupBy, setGroupBy] = useState<"client" | "institution">("client");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<ExtratoStatus | null>(null);
-  const [typeFilter, setTypeFilter] = useState<ExtratoAccountType | null>(null);
+  const [typeFilter, setTypeFilter] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => new Date(2026, 1, 1));
   const [historicalOpen, setHistoricalOpen] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
-  const [consolidatedIds, setConsolidatedIds] = useState<Set<string>>(new Set());
-  const [statusOverrides, setStatusOverrides] = useState<Map<string, ExtratoStatus>>(new Map());
   const [methodOverrides, setMethodOverrides] = useState<Map<string, ExtratoCollectionMethod>>(
     new Map(),
   );
@@ -38,27 +43,75 @@ export default function Consolidador() {
   const [visibleCount, setVisibleCount] = useState(20);
   const [visibleConsolidatedCount, setVisibleConsolidatedCount] = useState(20);
 
+  const [extratos, setExtratos] = useState<Extrato[]>([]);
+  const [historicalPendencies, setHistoricalPendencies] = useState<Extrato[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const authHeaders = useCallback(async () => {
+    const token = await getToken();
+    return { Authorization: `Bearer ${token}` };
+  }, [getToken]);
+
+  // Fetch extratos when month changes
+  const fetchExtratos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const headers = await authHeaders();
+      const month = formatMonthParam(selectedMonth);
+      const res = await apiRequest(
+        "GET",
+        `/api/consolidador/extratos?month=${encodeURIComponent(month)}`,
+        undefined,
+        headers,
+      );
+      const data = await res.json();
+      setExtratos(data.extratos || []);
+    } catch (error) {
+      console.error("Failed to fetch extratos:", error);
+      setExtratos([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedMonth, authHeaders]);
+
+  const fetchPendencias = useCallback(async () => {
+    try {
+      const headers = await authHeaders();
+      const month = formatMonthParam(selectedMonth);
+      const res = await apiRequest(
+        "GET",
+        `/api/consolidador/pendencias?beforeMonth=${encodeURIComponent(month)}`,
+        undefined,
+        headers,
+      );
+      const data = await res.json();
+      setHistoricalPendencies(data.pendencias || []);
+    } catch (error) {
+      console.error("Failed to fetch pendencias:", error);
+      setHistoricalPendencies([]);
+    }
+  }, [selectedMonth, authHeaders]);
+
+  useEffect(() => {
+    fetchExtratos();
+    fetchPendencias();
+  }, [fetchExtratos, fetchPendencias]);
+
   useEffect(() => {
     setVisibleCount(20);
     setVisibleConsolidatedCount(20);
   }, [statusFilter, typeFilter, searchTerm]);
 
-  const rawExtratos = useMemo(() => getMockExtratos(selectedMonth), [selectedMonth]);
-  const historicalPendencies = useMemo(() => getMockHistoricalPendencies(), []);
-
-  const extratos: Extrato[] = useMemo(() => {
-    return rawExtratos.map((e) => {
-      let updated = consolidatedIds.has(e.id) ? { ...e, status: "Consolidado" as const } : e;
-      const statusOverride = statusOverrides.get(e.id);
-      if (statusOverride) updated = { ...updated, status: statusOverride };
-      const methodOverride = methodOverrides.get(e.id);
-      if (methodOverride) updated = { ...updated, collectionMethod: methodOverride };
-      return updated;
+  const extratosWithOverrides: Extrato[] = useMemo(() => {
+    return extratos.map((e) => {
+      const methodOverride = methodOverrides.get(e.contaId);
+      if (methodOverride) return { ...e, collectionMethod: methodOverride };
+      return e;
     });
-  }, [rawExtratos, consolidatedIds, statusOverrides, methodOverrides]);
+  }, [extratos, methodOverrides]);
 
   const summary: ExtratoStatusSummary = useMemo(() => {
-    return extratos.reduce(
+    return extratosWithOverrides.reduce(
       (acc, e) => {
         if (e.status === "Pendente") acc.pendentes++;
         else if (e.status === "Solicitado") acc.solicitados++;
@@ -68,10 +121,10 @@ export default function Consolidador() {
       },
       { pendentes: 0, solicitados: 0, recebidos: 0, consolidados: 0 },
     );
-  }, [extratos]);
+  }, [extratosWithOverrides]);
 
   const filteredExtratos = useMemo(() => {
-    return extratos.filter((e) => {
+    return extratosWithOverrides.filter((e) => {
       if (searchTerm) {
         const term = searchTerm.toLowerCase();
         if (
@@ -85,7 +138,7 @@ export default function Consolidador() {
       if (typeFilter && e.accountType !== typeFilter) return false;
       return true;
     });
-  }, [extratos, searchTerm, statusFilter, typeFilter]);
+  }, [extratosWithOverrides, searchTerm, statusFilter, typeFilter]);
 
   const { actionGroups, consolidatedGroups } = useMemo(() => {
     const groupMap = new Map<string, ClientGroupType>();
@@ -152,18 +205,68 @@ export default function Consolidador() {
     setConsolidarExtrato(extrato);
   }, []);
 
-  const handleConfirmConsolidar = useCallback((extratoId: string) => {
-    setConsolidatedIds((prev) => new Set(prev).add(extratoId));
-    setConsolidarExtrato(null);
-  }, []);
+  const handleConfirmConsolidar = useCallback(
+    async (extratoId: string) => {
+      try {
+        const headers = await authHeaders();
+        const extrato = extratos.find((e) => e.id === extratoId);
+        if (!extrato) return;
+        await apiRequest(
+          "PATCH",
+          `/api/consolidador/extratos/${extrato.contaId}/status`,
+          { competencia: formatMonthParam(selectedMonth), status: "Consolidado" },
+          headers,
+        );
+        setConsolidarExtrato(null);
+        fetchExtratos();
+      } catch (error) {
+        console.error("Failed to consolidate:", error);
+      }
+    },
+    [extratos, selectedMonth, authHeaders, fetchExtratos],
+  );
 
-  const handleStatusChange = useCallback((extratoId: string, status: ExtratoStatus) => {
-    setStatusOverrides((prev) => new Map(prev).set(extratoId, status));
-  }, []);
+  const handleStatusChange = useCallback(
+    async (extratoId: string, status: ExtratoStatus) => {
+      try {
+        const headers = await authHeaders();
+        const extrato = extratos.find((e) => e.id === extratoId);
+        if (!extrato) return;
+        await apiRequest(
+          "PATCH",
+          `/api/consolidador/extratos/${extrato.contaId}/status`,
+          { competencia: formatMonthParam(selectedMonth), status },
+          headers,
+        );
+        fetchExtratos();
+      } catch (error) {
+        console.error("Failed to update status:", error);
+      }
+    },
+    [extratos, selectedMonth, authHeaders, fetchExtratos],
+  );
 
   const handleMethodChange = useCallback((extratoId: string, method: ExtratoCollectionMethod) => {
     setMethodOverrides((prev) => new Map(prev).set(extratoId, method));
   }, []);
+
+  const handleSync = useCallback(
+    async (extrato: Extrato) => {
+      try {
+        const headers = await authHeaders();
+        await apiRequest(
+          "POST",
+          `/api/consolidador/extratos/${extrato.contaId}/sync`,
+          { competencia: formatMonthParam(selectedMonth) },
+          headers,
+        );
+        fetchExtratos();
+      } catch (error) {
+        console.error("Failed to sync:", error);
+      }
+    },
+    [selectedMonth, authHeaders, fetchExtratos],
+  );
 
   const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
 
@@ -190,7 +293,11 @@ export default function Consolidador() {
         onGroupByChange={setGroupBy}
       />
 
-      {actionGroups.length > 0 && (
+      {loading && (
+        <div className="py-12 text-center text-sm text-gray-500">Carregando extratos...</div>
+      )}
+
+      {!loading && actionGroups.length > 0 && (
         <div className="flex flex-col gap-0">
           <div className="flex items-center gap-3 py-3">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
@@ -209,6 +316,7 @@ export default function Consolidador() {
               onConsolidar={handleConsolidar}
               onStatusChange={handleStatusChange}
               onMethodChange={handleMethodChange}
+              onSync={handleSync}
               labelField={groupBy === "institution" ? "client" : "institution"}
             />
           ))}
@@ -223,13 +331,13 @@ export default function Consolidador() {
         </div>
       )}
 
-      {actionGroups.length === 0 && consolidatedGroups.length === 0 && (
+      {!loading && actionGroups.length === 0 && consolidatedGroups.length === 0 && (
         <div className="py-12 text-center text-sm text-gray-500">
           Nenhum extrato encontrado para os filtros selecionados.
         </div>
       )}
 
-      {consolidatedGroups.length > 0 && (
+      {!loading && consolidatedGroups.length > 0 && (
         <div className="flex flex-col gap-0 opacity-50">
           <div className="pt-4">
             <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>
@@ -251,6 +359,7 @@ export default function Consolidador() {
                       isExpanded={expandedClients.has(group.clientId)}
                       onToggle={() => toggleClient(group.clientId)}
                       onConsolidar={handleConsolidar}
+                      onSync={handleSync}
                       labelField={groupBy === "institution" ? "client" : "institution"}
                     />
                   ))}

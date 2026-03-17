@@ -5,7 +5,12 @@ import { prisma } from "./db";
 import { clerkAuthMiddleware, requireAdmin } from "./auth";
 import { createClerkClient } from "@clerk/clerk-sdk-node";
 import type { UserRole } from "@shared/types";
-import { getContaHistorico } from "./consolidationHistory";
+import {
+  getContaHistorico,
+  getConsolidadorExtratos,
+  getConsolidadorPendencias,
+  syncContaWithSupabase,
+} from "./consolidationHistory";
 
 const clerkClient = createClerkClient({
   secretKey: process.env.CLERK_SECRET_KEY,
@@ -729,6 +734,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting conta:", error);
       return res.status(500).json({ error: "Falha ao deletar conta" });
+    }
+  });
+
+  // ============================================
+  // CONSOLIDADOR
+  // ============================================
+
+  // Get extratos for a given month
+  app.get("/api/consolidador/extratos", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const month = req.query.month as string;
+      if (!month || !/^\d{2}\/\d{4}$/.test(month)) {
+        return res.status(400).json({ error: "month query parameter required (MM/YYYY)" });
+      }
+      const extratos = await getConsolidadorExtratos(month);
+      return res.json({ extratos });
+    } catch (error) {
+      console.error("Error fetching consolidador extratos:", error);
+      return res.status(500).json({ error: "Failed to fetch extratos" });
+    }
+  });
+
+  // Update extrato status
+  app.patch("/api/consolidador/extratos/:contaId/status", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { contaId } = req.params;
+      const { competencia, status } = req.body;
+
+      if (!competencia || !status) {
+        return res.status(400).json({ error: "competencia and status are required" });
+      }
+
+      const validStatuses = ["Pendente", "Solicitado", "Recebido", "Consolidado"];
+      if (!validStatuses.includes(status)) {
+        return res
+          .status(400)
+          .json({ error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
+      }
+
+      const updateData: Record<string, any> = { status };
+      if (status === "Solicitado") updateData.requestedAt = new Date();
+      if (status === "Recebido") updateData.receivedAt = new Date();
+      if (status === "Consolidado") updateData.consolidatedAt = new Date();
+
+      const result = await prisma.extratoStatus.upsert({
+        where: { contaId_competencia: { contaId, competencia } },
+        create: { contaId, competencia, ...updateData },
+        update: updateData,
+      });
+
+      // If marking as Consolidado, sync with Supabase to confirm
+      if (status === "Consolidado") {
+        try {
+          await syncContaWithSupabase(contaId, competencia);
+        } catch (e) {
+          console.warn("Post-consolidation sync failed:", e);
+        }
+      }
+
+      return res.json({ extratoStatus: result });
+    } catch (error) {
+      console.error("Error updating extrato status:", error);
+      return res.status(500).json({ error: "Failed to update extrato status" });
+    }
+  });
+
+  // Re-sync individual extrato with Supabase
+  app.post("/api/consolidador/extratos/:contaId/sync", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { contaId } = req.params;
+      const { competencia } = req.body;
+
+      if (!competencia) {
+        return res.status(400).json({ error: "competencia is required" });
+      }
+
+      const result = await syncContaWithSupabase(contaId, competencia);
+      return res.json({ extratoStatus: result });
+    } catch (error: any) {
+      console.error("Error syncing extrato:", error);
+      return res.status(error.message === "Conta not found" ? 404 : 500).json({
+        error: error.message || "Failed to sync extrato",
+      });
+    }
+  });
+
+  // Get historical pendencies
+  app.get("/api/consolidador/pendencias", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const beforeMonth = req.query.beforeMonth as string;
+      if (!beforeMonth || !/^\d{2}\/\d{4}$/.test(beforeMonth)) {
+        return res.status(400).json({ error: "beforeMonth query parameter required (MM/YYYY)" });
+      }
+      const pendencias = await getConsolidadorPendencias(beforeMonth);
+      return res.json({ pendencias });
+    } catch (error) {
+      console.error("Error fetching consolidador pendencias:", error);
+      return res.status(500).json({ error: "Failed to fetch pendencias" });
     }
   });
 

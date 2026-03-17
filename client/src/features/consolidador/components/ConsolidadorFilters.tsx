@@ -1,20 +1,20 @@
 import { Search, Filter, Layers, X, Users, Building2 } from "lucide-react";
 import { Input } from "@/shared/components/ui/input";
-import type { ExtratoStatus, ExtratoAccountType } from "../types/extrato";
+import type { ExtratoStatus } from "../types/extrato";
 
 interface ConsolidadorFiltersProps {
   searchTerm: string;
   onSearchChange: (value: string) => void;
   statusFilter: ExtratoStatus | null;
   onStatusFilterChange: (value: ExtratoStatus | null) => void;
-  typeFilter: ExtratoAccountType | null;
-  onTypeFilterChange: (value: ExtratoAccountType | null) => void;
+  typeFilter: string | null;
+  onTypeFilterChange: (value: string | null) => void;
   groupBy: "client" | "institution";
   onGroupByChange: (value: "client" | "institution") => void;
 }
 
 const statuses: ExtratoStatus[] = ["Pendente", "Solicitado", "Recebido", "Consolidado"];
-const types: ExtratoAccountType[] = ["Principal", "Holding", "Filho"];
+const types: string[] = ["Principal", "Holding", "Filho"];
 
 export function ConsolidadorFilters({
   searchTerm,

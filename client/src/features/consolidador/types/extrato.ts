@@ -1,20 +1,18 @@
 export type ExtratoStatus = "Pendente" | "Solicitado" | "Recebido" | "Consolidado";
 
-export type ExtratoAccountType = "Holding" | "Filho" | "Principal";
-
 export type ExtratoCollectionMethod = "Automático" | "Manual" | "Manual Cliente";
 
 export interface Extrato {
   id: string;
+  contaId: string;
   clientId: string;
   clientName: string;
   clientInitials: string;
   institution: string;
-  accountType: ExtratoAccountType;
+  accountType: string;
   collectionMethod: ExtratoCollectionMethod;
   status: ExtratoStatus;
-  referenceMonth: Date;
-  createdAt?: string;
+  referenceMonth: string; // "MM/YYYY"
   requestedAt?: string;
   receivedAt?: string;
   consolidatedAt?: string;

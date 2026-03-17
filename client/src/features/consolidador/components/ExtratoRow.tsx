@@ -9,6 +9,7 @@ interface ExtratoRowProps {
   onConsolidar?: (extrato: Extrato) => void;
   onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
+  onSync?: (extrato: Extrato) => Promise<void>;
   labelField?: "institution" | "client";
 }
 
@@ -17,6 +18,7 @@ export function ExtratoRow({
   onConsolidar,
   onStatusChange,
   onMethodChange,
+  onSync,
   labelField = "institution",
 }: ExtratoRowProps) {
   const style = statusStyles[extrato.status];
@@ -37,7 +39,10 @@ export function ExtratoRow({
         onStatusChange={(status) => onStatusChange?.(extrato.id, status)}
       />
       <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
-        <ExtratoActionButtons onConsolidar={() => onConsolidar?.(extrato)} />
+        <ExtratoActionButtons
+          onConsolidar={() => onConsolidar?.(extrato)}
+          onSync={onSync ? () => onSync(extrato) : undefined}
+        />
       </div>
     </div>
   );
