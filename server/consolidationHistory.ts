@@ -219,6 +219,7 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
 
     if (error) {
       console.error("Supabase batch query error:", error);
+      throw new Error(`Supabase query failed for month ${month}: ${error.message}`);
     }
 
     const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
@@ -237,12 +238,16 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
       let created;
       if (match) {
         const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
-        created = await prisma.extratoStatus.create({
-          data: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
+        created = await prisma.extratoStatus.upsert({
+          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
+          create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
+          update: {},
         });
       } else {
-        created = await prisma.extratoStatus.create({
-          data: { contaId: conta.id, competencia: month, status: "Pendente" },
+        created = await prisma.extratoStatus.upsert({
+          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
+          create: { contaId: conta.id, competencia: month, status: "Pendente" },
+          update: {},
         });
       }
 

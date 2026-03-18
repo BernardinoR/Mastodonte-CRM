@@ -178,11 +178,23 @@ export default function Consolidador() {
     const consolidated: ClientGroupType[] = [];
 
     for (const g of allGroups) {
-      const allConsolidated = g.extratos.every((e) => e.status === "Consolidado");
-      if (allConsolidated) {
-        consolidated.push(g);
-      } else {
-        action.push(g);
+      const consolidatedExtratos = g.extratos.filter((e) => e.status === "Consolidado");
+      const actionExtratos = g.extratos.filter((e) => e.status !== "Consolidado");
+
+      if (actionExtratos.length > 0) {
+        action.push({
+          ...g,
+          extratos: actionExtratos,
+          pendingCount: g.pendingCount,
+        });
+      }
+
+      if (consolidatedExtratos.length > 0) {
+        consolidated.push({
+          ...g,
+          extratos: consolidatedExtratos,
+          pendingCount: 0,
+        });
       }
     }
 
