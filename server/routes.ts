@@ -10,6 +10,8 @@ import {
   getConsolidadorExtratos,
   getConsolidadorPendencias,
   syncContaWithSupabase,
+  syncAllExtratoStatuses,
+  syncContaExtratoStatuses,
 } from "./consolidationHistory";
 
 const clerkClient = createClerkClient({
@@ -624,6 +626,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         whatsappGroupLinked: whatsappGroupLinked || false,
       });
 
+      // Sync extratos em background - não bloqueia a resposta
+      syncContaExtratoStatuses(conta.id).catch((e) =>
+        console.warn("Sync de conta nova falhou:", e),
+      );
+
       return res.status(201).json({ conta });
     } catch (error) {
       console.error("Error creating conta:", error);
@@ -817,6 +824,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(error.message === "Conta not found" ? 404 : 500).json({
         error: error.message || "Failed to sync extrato",
       });
+    }
+  });
+
+  // Sync all ExtratoStatuses (manual trigger)
+  app.post("/api/consolidador/sync-cache", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const result = await syncAllExtratoStatuses();
+      return res.json(result);
+    } catch (error) {
+      console.error("Error syncing extrato statuses:", error);
+      return res.status(500).json({ error: "Failed to sync extrato statuses" });
     }
   });
 
