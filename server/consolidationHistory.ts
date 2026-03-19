@@ -13,6 +13,7 @@ interface ConsolidadoRecord {
   Data: string;
   Instituicao: string;
   Nome?: string;
+  NomeConta?: string;
 }
 
 interface ConsolidadorExtrato {
@@ -105,6 +106,20 @@ function formatCompetencia(mmYyyy: string): string {
   return `${abbr}/${yyyy.slice(2)}`;
 }
 
+function matchesAccount(
+  record: ConsolidadoRecord,
+  normalizedClientName: string,
+  normalizedInst: string,
+  accountName: string | null,
+): boolean {
+  if (removeAccents(record.Nome || "") !== normalizedClientName) return false;
+  if (removeAccents(record.Instituicao) !== normalizedInst) return false;
+  if (accountName) {
+    return removeAccents(record.NomeConta || "") === removeAccents(accountName);
+  }
+  return !record.NomeConta || record.NomeConta.trim() === "";
+}
+
 // ============================================
 // Sync Functions
 // ============================================
@@ -166,7 +181,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
     // Single Supabase query per month
     const { data: allRecords, error } = await externalSupabase
       .from("ConsolidadoPerformance")
-      .select("Competencia, Data, Instituicao, Nome")
+      .select("Competencia, Data, Instituicao, Nome, NomeConta")
       .eq("Competencia", month);
 
     if (error) {
@@ -180,10 +195,8 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
       const normalizedClientName = removeAccents(conta.client.name);
       const normalizedInst = removeAccents(conta.institution.name);
 
-      const match = supabaseRecords.find(
-        (r) =>
-          removeAccents(r.Nome || "") === normalizedClientName &&
-          removeAccents(r.Instituicao) === normalizedInst,
+      const match = supabaseRecords.find((r) =>
+        matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
       );
 
       if (match) {
@@ -232,7 +245,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   // Query Supabase for all records across missing months (no name filter in SQL — accents break ILIKE)
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
-    .select("Competencia, Data, Instituicao, Nome")
+    .select("Competencia, Data, Instituicao, Nome, NomeConta")
     .in("Competencia", monthsToSync);
 
   if (error) {
@@ -244,10 +257,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   const normalizedInst = removeAccents(conta.institution.name);
   const matchMap = new Map<string, ConsolidadoRecord>();
   for (const r of (records as ConsolidadoRecord[]) || []) {
-    if (
-      removeAccents(r.Nome || "") === normalizedClientName &&
-      removeAccents(r.Instituicao) === normalizedInst
-    ) {
+    if (matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName)) {
       matchMap.set(r.Competencia, r);
     }
   }
@@ -292,7 +302,7 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   // No name filter in SQL — accents break ILIKE; match by name in JS with removeAccents
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
-    .select("Competencia, Data, Instituicao, Nome")
+    .select("Competencia, Data, Instituicao, Nome, NomeConta")
     .eq("Competencia", competencia);
 
   if (error) {
@@ -300,10 +310,8 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
     throw new Error(`Failed to query consolidation data: ${error.message}`);
   }
 
-  const match = ((records as ConsolidadoRecord[]) || []).find(
-    (r) =>
-      removeAccents(r.Nome || "") === normalizedClientName &&
-      removeAccents(r.Instituicao) === normalizedInst,
+  const match = ((records as ConsolidadoRecord[]) || []).find((r) =>
+    matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
   );
 
   if (match) {
