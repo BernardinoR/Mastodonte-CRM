@@ -59,8 +59,6 @@ function generateMonthRange(startDate: string): string[] {
     lastClosedYear--;
   }
 
-  console.log(`[historico] lastClosedMonth=${lastClosedMonth}, lastClosedYear=${lastClosedYear}`);
-
   const months: string[] = [];
   let { month, year } = parsed;
 
@@ -73,10 +71,6 @@ function generateMonthRange(startDate: string): string[] {
       year++;
     }
   }
-
-  console.log(
-    `[historico] range: ${months.length} meses, de ${months[0]} até ${months[months.length - 1]}`,
-  );
 
   return months.reverse();
 }
@@ -370,55 +364,6 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
 
   const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
 
-  // Find contas without ExtratoStatus - need lazy init via Supabase
-  const contasWithoutStatus = eligibleContas.filter((c) => !statusMap.has(c.id));
-
-  if (contasWithoutStatus.length > 0) {
-    // Batch query Supabase for all clients in this month
-    const { data: allRecords, error } = await externalSupabase
-      .from("ConsolidadoPerformance")
-      .select("Competencia, Data, Instituicao, Nome")
-      .eq("Competencia", month);
-
-    if (error) {
-      console.error("Supabase batch query error:", error);
-      throw new Error(`Supabase query failed for month ${month}: ${error.message}`);
-    }
-
-    const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
-
-    // Create ExtratoStatus for each conta without one
-    for (const conta of contasWithoutStatus) {
-      const normalizedClientName = removeAccents(conta.client.name);
-      const normalizedInst = removeAccents(conta.institution.name);
-
-      const match = supabaseRecords.find(
-        (r) =>
-          removeAccents(r.Nome || "") === normalizedClientName &&
-          removeAccents(r.Instituicao) === normalizedInst,
-      );
-
-      let created;
-      if (match) {
-        const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
-        created = await prisma.extratoStatus.upsert({
-          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-          create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
-          update: {},
-        });
-      } else {
-        created = await prisma.extratoStatus.upsert({
-          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-          create: { contaId: conta.id, competencia: month, status: "Pendente" },
-          update: {},
-        });
-      }
-
-      statusMap.set(conta.id, created);
-    }
-  }
-
-  // Build extrato array
   return eligibleContas.map((conta) => {
     const es = statusMap.get(conta.id);
     return {

@@ -758,7 +758,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const extratos = await getConsolidadorExtratos(month);
       return res.json({ extratos });
     } catch (error) {
-      console.error("Error fetching consolidador extratos:", error);
+      console.error("Error fetching consolidador extratos:", error instanceof Error ? error.stack : error);
       return res.status(500).json({ error: "Failed to fetch extratos" });
     }
   });
@@ -848,7 +848,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pendencias = await getConsolidadorPendencias(beforeMonth);
       return res.json({ pendencias });
     } catch (error) {
-      console.error("Error fetching consolidador pendencias:", error);
+      console.error("Error fetching consolidador pendencias:", error instanceof Error ? error.stack : error);
       return res.status(500).json({ error: "Failed to fetch pendencias" });
     }
   });

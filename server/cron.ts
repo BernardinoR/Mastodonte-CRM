@@ -2,6 +2,11 @@ import cron from "node-cron";
 import { syncAllExtratoStatuses } from "./consolidationHistory";
 
 export function startCronJobs() {
+  // Sync inicial ao iniciar
+  syncAllExtratoStatuses().catch((e) =>
+    console.error("[cron] Sync inicial falhou:", e)
+  );
+
   // Sync ExtratoStatuses daily at 6:00 AM
   cron.schedule("0 6 * * *", async () => {
     console.log("[cron] Sync ExtratoStatuses...");
