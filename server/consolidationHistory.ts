@@ -38,6 +38,15 @@ function removeAccents(str: string): string {
     .toLowerCase();
 }
 
+function parseConsolidatedDate(data?: string | null): Date {
+  if (!data) return new Date();
+  const parts = data.split("/");
+  if (parts.length !== 3) return new Date();
+  const [day, month, year] = parts.map(Number);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return new Date();
+  return new Date(year, month - 1, day);
+}
+
 function parseMonthYear(str: string): { month: number; year: number } | null {
   const parts = str.split("/");
   if (parts.length !== 2) return null;
@@ -178,7 +187,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
       );
 
       if (match) {
-        const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
+        const consolidatedAt = parseConsolidatedDate(match.Data);
         await prisma.extratoStatus.upsert({
           where: { contaId_competencia: { contaId: conta.id, competencia: month } },
           create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
@@ -247,7 +256,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   for (const month of monthsToSync) {
     const match = matchMap.get(month);
     if (match) {
-      const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
+      const consolidatedAt = parseConsolidatedDate(match.Data);
       await prisma.extratoStatus.upsert({
         where: { contaId_competencia: { contaId, competencia: month } },
         create: { contaId, competencia: month, status: "Consolidado", consolidatedAt },
@@ -298,7 +307,7 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   );
 
   if (match) {
-    const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
+    const consolidatedAt = parseConsolidatedDate(match.Data);
     return prisma.extratoStatus.upsert({
       where: { contaId_competencia: { contaId, competencia } },
       create: { contaId, competencia, status: "Consolidado", consolidatedAt },
