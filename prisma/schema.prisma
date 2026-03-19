@@ -192,8 +192,23 @@ model Meeting {
   creator     User?        @relation("MeetingCreator", fields: [creatorId], references: [id])
   tasks       Task[]
   transcripts Transcript[]
+  attachments MeetingAttachment[]
 
   @@map("meetings")
+}
+
+model MeetingAttachment {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  meetingId   Int      @map("meeting_id")
+  name        String
+  type        String
+  size        Int
+  storagePath String   @map("storage_path")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@map("meeting_attachments")
 }
 
 model Task {
