@@ -11,7 +11,12 @@ export const institutionColors: Record<string, { bg: string; text: string; borde
   Smart: { bg: "bg-cyan-900/50", text: "text-cyan-300", border: "border-cyan-800" },
   Toro: { bg: "bg-amber-900/50", text: "text-amber-300", border: "border-amber-800" },
   Warren: { bg: "bg-pink-900/50", text: "text-pink-300", border: "border-pink-800" },
-  XP: { bg: "bg-yellow-950/50", text: "text-yellow-400", border: "border-yellow-900" },
+  XP: { bg: "bg-zinc-900/50", text: "text-zinc-300", border: "border-zinc-700" },
+  Sicoob: { bg: "bg-teal-900/50", text: "text-teal-300", border: "border-teal-800" },
+  Safra: { bg: "bg-indigo-900/50", text: "text-indigo-300", border: "border-indigo-800" },
+  Revolut: { bg: "bg-violet-900/50", text: "text-violet-300", border: "border-violet-800" },
+  "Mercado Bitcoin": { bg: "bg-lime-900/50", text: "text-lime-300", border: "border-lime-800" },
+  Singulare: { bg: "bg-fuchsia-900/50", text: "text-fuchsia-300", border: "border-fuchsia-800" },
 };
 
 const defaultColor = { bg: "bg-gray-900/50", text: "text-gray-300", border: "border-gray-700" };
