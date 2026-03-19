@@ -249,7 +249,7 @@ model TaskAssignee {
 }
 
 model TaskHistory {
-  id        String   @id @default(uuid())
+  id        String   @id @default(dbgenerated("gen_random_uuid()::text"))
   taskId    String   @map("task_id")
   type      String   // comment, email, call, whatsapp, status_change, assignee_change, created
   content   String

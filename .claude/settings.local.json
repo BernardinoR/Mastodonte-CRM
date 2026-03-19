@@ -103,7 +103,8 @@
       "Bash(npm run:*)",
       "Bash(for f:*)",
       "Bash(do echo:*)",
-      "Read(//home/runner/workspace/**)"
+      "Read(//home/runner/workspace/**)",
+      "Bash(while read:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
