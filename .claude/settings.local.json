@@ -104,7 +104,8 @@
       "Bash(for f:*)",
       "Bash(do echo:*)",
       "Read(//home/runner/workspace/**)",
-      "Bash(while read:*)"
+      "Bash(while read:*)",
+      "Bash(node -e \":*)"
     ]
   },
   "enableAllProjectMcpServers": true,
