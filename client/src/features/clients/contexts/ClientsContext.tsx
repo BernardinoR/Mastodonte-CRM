@@ -464,6 +464,36 @@ export function ClientsProvider({ children }: { children: ReactNode }) {
               ),
             );
             setDataVersion((v) => v + 1);
+
+            // Atualizar lastMeeting se houver reunião Mensal "Realizada" mais recente
+            const completedMonthly = meetings.filter(
+              (m) => m.type === "Mensal" && m.status === "Realizada",
+            );
+            if (completedMonthly.length > 0) {
+              const mostRecentDate = completedMonthly.reduce(
+                (latest, m) => (m.date > latest ? m.date : latest),
+                completedMonthly[0].date,
+              );
+              setClients((prev) => {
+                const client = prev.find((c) => c.id === clientId);
+                if (!client) return prev;
+                const currentLast = client.lastMeeting ? new Date(client.lastMeeting) : null;
+                if (!currentLast || mostRecentDate > currentLast) {
+                  const dbUpdates = mapUpdatesToDb({ lastMeeting: mostRecentDate.toISOString() });
+                  supabase
+                    .from("clients")
+                    .update(dbUpdates)
+                    .eq("id", clientId)
+                    .then(({ error }) => {
+                      if (error) console.error("Error updating lastMeeting from realtime:", error);
+                    });
+                  return prev.map((c) =>
+                    c.id === clientId ? { ...c, lastMeeting: mostRecentDate } : c,
+                  );
+                }
+                return prev;
+              });
+            }
           }, 500),
         );
       })

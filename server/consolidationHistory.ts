@@ -147,10 +147,12 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
     const existingStatuses = await prisma.extratoStatus.findMany({
       where: { contaId: { in: contaIds }, competencia: month },
     });
-    const existingSet = new Set(existingStatuses.map((s) => s.contaId));
-
-    const contasWithoutStatus = eligibleContas.filter((c) => !existingSet.has(c.id));
-    if (contasWithoutStatus.length === 0) continue;
+    // Pular apenas contas já consolidadas
+    const consolidatedSet = new Set(
+      existingStatuses.filter((s) => s.status === "Consolidado").map((s) => s.contaId),
+    );
+    const contasToSync = eligibleContas.filter((c) => !consolidatedSet.has(c.id));
+    if (contasToSync.length === 0) continue;
 
     // Single Supabase query per month
     const { data: allRecords, error } = await externalSupabase
@@ -165,7 +167,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
 
     const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
 
-    for (const conta of contasWithoutStatus) {
+    for (const conta of contasToSync) {
       const normalizedClientName = removeAccents(conta.client.name);
       const normalizedInst = removeAccents(conta.institution.name);
 
@@ -180,7 +182,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
         await prisma.extratoStatus.upsert({
           where: { contaId_competencia: { contaId: conta.id, competencia: month } },
           create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
-          update: {},
+          update: { status: "Consolidado", consolidatedAt },
         });
       } else {
         await prisma.extratoStatus.upsert({
@@ -211,40 +213,45 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   const existingStatuses = await prisma.extratoStatus.findMany({
     where: { contaId },
   });
-  const existingSet = new Set(existingStatuses.map((s) => s.competencia));
+  // Incluir meses sem status E meses com status não-consolidado
+  const consolidatedSet = new Set(
+    existingStatuses.filter((s) => s.status === "Consolidado").map((s) => s.competencia),
+  );
+  const monthsToSync = monthRange.filter((m) => !consolidatedSet.has(m));
+  if (monthsToSync.length === 0) return { synced: 0 };
 
-  const missingMonths = monthRange.filter((m) => !existingSet.has(m));
-  if (missingMonths.length === 0) return { synced: 0 };
-
-  // Query Supabase for this client's records across all missing months
+  // Query Supabase for all records across missing months (no name filter in SQL — accents break ILIKE)
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
     .select("Competencia, Data, Instituicao, Nome")
-    .ilike("Nome", conta.client.name)
-    .in("Competencia", missingMonths);
+    .in("Competencia", monthsToSync);
 
   if (error) {
     console.error(`[sync-conta] Supabase error for conta ${contaId}:`, error);
     throw new Error(`Failed to query consolidation data: ${error.message}`);
   }
 
+  const normalizedClientName = removeAccents(conta.client.name);
   const normalizedInst = removeAccents(conta.institution.name);
   const matchMap = new Map<string, ConsolidadoRecord>();
   for (const r of (records as ConsolidadoRecord[]) || []) {
-    if (removeAccents(r.Instituicao) === normalizedInst) {
+    if (
+      removeAccents(r.Nome || "") === normalizedClientName &&
+      removeAccents(r.Instituicao) === normalizedInst
+    ) {
       matchMap.set(r.Competencia, r);
     }
   }
 
   let synced = 0;
-  for (const month of missingMonths) {
+  for (const month of monthsToSync) {
     const match = matchMap.get(month);
     if (match) {
       const consolidatedAt = match.Data ? new Date(match.Data) : new Date();
       await prisma.extratoStatus.upsert({
         where: { contaId_competencia: { contaId, competencia: month } },
         create: { contaId, competencia: month, status: "Consolidado", consolidatedAt },
-        update: {},
+        update: { status: "Consolidado", consolidatedAt },
       });
     } else {
       await prisma.extratoStatus.upsert({
@@ -270,12 +277,13 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   });
   if (!conta) throw new Error("Conta not found");
 
+  const normalizedClientName = removeAccents(conta.client.name);
   const normalizedInst = removeAccents(conta.institution.name);
 
+  // No name filter in SQL — accents break ILIKE; match by name in JS with removeAccents
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
-    .select("Competencia, Data, Instituicao")
-    .ilike("Nome", conta.client.name)
+    .select("Competencia, Data, Instituicao, Nome")
     .eq("Competencia", competencia);
 
   if (error) {
@@ -284,7 +292,9 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   }
 
   const match = ((records as ConsolidadoRecord[]) || []).find(
-    (r) => removeAccents(r.Instituicao) === normalizedInst,
+    (r) =>
+      removeAccents(r.Nome || "") === normalizedClientName &&
+      removeAccents(r.Instituicao) === normalizedInst,
   );
 
   if (match) {
