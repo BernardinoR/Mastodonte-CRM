@@ -16,6 +16,8 @@ export interface Extrato {
   requestedAt?: string;
   receivedAt?: string;
   consolidatedAt?: string;
+  hasWhatsApp: boolean;
+  hasEmail: boolean;
 }
 
 export interface ClientExtratoGroup {

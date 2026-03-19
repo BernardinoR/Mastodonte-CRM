@@ -11,19 +11,8 @@ import type {
   ExtratoCollectionMethod,
 } from "../types/extrato";
 import { ExtratoRow } from "./ExtratoRow";
-
-const clientColors: Record<string, { bg: string; text: string; border: string }> = {
-  AS: { bg: "bg-blue-900/50", text: "text-blue-300", border: "border-blue-800" },
-  RM: { bg: "bg-purple-900/50", text: "text-purple-300", border: "border-purple-800" },
-  JP: { bg: "bg-green-900/50", text: "text-green-300", border: "border-green-800" },
-  MO: { bg: "bg-rose-900/50", text: "text-rose-300", border: "border-rose-800" },
-  CS: { bg: "bg-amber-900/50", text: "text-amber-300", border: "border-amber-800" },
-  FL: { bg: "bg-teal-900/50", text: "text-teal-300", border: "border-teal-800" },
-  PA: { bg: "bg-indigo-900/50", text: "text-indigo-300", border: "border-indigo-800" },
-  BC: { bg: "bg-pink-900/50", text: "text-pink-300", border: "border-pink-800" },
-  LF: { bg: "bg-cyan-900/50", text: "text-cyan-300", border: "border-cyan-800" },
-  DR: { bg: "bg-orange-900/50", text: "text-orange-300", border: "border-orange-800" },
-};
+import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
+import { getClientAvatarColor } from "../lib/avatarColors";
 
 interface ClientExtratoGroupProps {
   group: ClientExtratoGroupType;
@@ -34,6 +23,7 @@ interface ClientExtratoGroupProps {
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   onSync?: (extrato: Extrato) => Promise<void>;
   labelField?: "institution" | "client";
+  groupBy?: "client" | "institution";
 }
 
 export function ClientExtratoGroup({
@@ -45,12 +35,11 @@ export function ClientExtratoGroup({
   onMethodChange,
   onSync,
   labelField = "institution",
+  groupBy = "client",
 }: ClientExtratoGroupProps) {
-  const colors = clientColors[group.clientInitials] || {
-    bg: "bg-gray-900/50",
-    text: "text-gray-300",
-    border: "border-gray-700",
-  };
+  const colors = groupBy === "institution"
+    ? getInstitutionColor(group.clientName)
+    : getClientAvatarColor(group.clientName);
   return (
     <div className="border-b border-white/5">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -82,6 +71,7 @@ export function ClientExtratoGroup({
                 onMethodChange={onMethodChange}
                 onSync={onSync}
                 labelField={labelField}
+                groupBy={groupBy}
               />
             ))}
           </div>

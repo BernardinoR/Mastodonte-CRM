@@ -330,6 +330,7 @@ export default function Consolidador() {
               onMethodChange={handleMethodChange}
               onSync={handleSync}
               labelField={groupBy === "institution" ? "client" : "institution"}
+              groupBy={groupBy}
             />
           ))}
           {actionGroups.length > visibleCount && (

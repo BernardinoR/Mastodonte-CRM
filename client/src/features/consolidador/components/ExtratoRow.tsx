@@ -1,8 +1,9 @@
 import type { Extrato, ExtratoStatus, ExtratoCollectionMethod } from "../types/extrato";
-import { statusStyles } from "../lib/extratoStatusConfig";
 import { ExtratoStatusBadge } from "./ExtratoStatusBadge";
 import { CollectionMethodBadge } from "./CollectionMethodBadge";
 import { ExtratoActionButtons } from "./ExtratoActionButtons";
+import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
+import { getClientAvatarColor } from "../lib/avatarColors";
 
 interface ExtratoRowProps {
   extrato: Extrato;
@@ -11,6 +12,7 @@ interface ExtratoRowProps {
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   onSync?: (extrato: Extrato) => Promise<void>;
   labelField?: "institution" | "client";
+  groupBy?: "client" | "institution";
 }
 
 export function ExtratoRow({
@@ -20,12 +22,15 @@ export function ExtratoRow({
   onMethodChange,
   onSync,
   labelField = "institution",
+  groupBy = "client",
 }: ExtratoRowProps) {
-  const style = statusStyles[extrato.status];
+  const dotTextColor = groupBy === "client"
+    ? getInstitutionColor(extrato.institution).text
+    : getClientAvatarColor(extrato.clientName).text;
 
   return (
     <div className="group flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5">
-      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${style.dot}`} />
+      <span className={`h-2 w-2 flex-shrink-0 rounded-full bg-current ${dotTextColor}`} />
       <span className="w-48 text-sm font-medium text-zinc-300">
         {labelField === "client" ? extrato.clientName : extrato.institution}
       </span>
@@ -40,6 +45,8 @@ export function ExtratoRow({
       />
       <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
         <ExtratoActionButtons
+          hasWhatsApp={extrato.hasWhatsApp}
+          hasEmail={extrato.hasEmail}
           onConsolidar={() => onConsolidar?.(extrato)}
           onSync={onSync ? () => onSync(extrato) : undefined}
         />

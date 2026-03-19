@@ -2,6 +2,8 @@ import { useState } from "react";
 import { MessageCircle, Mail, RefreshCw } from "lucide-react";
 
 interface ExtratoActionButtonsProps {
+  hasWhatsApp?: boolean;
+  hasEmail?: boolean;
   onWhatsApp?: () => void;
   onEmail?: () => void;
   onConsolidar?: () => void;
@@ -9,6 +11,8 @@ interface ExtratoActionButtonsProps {
 }
 
 export function ExtratoActionButtons({
+  hasWhatsApp,
+  hasEmail,
   onWhatsApp,
   onEmail,
   onConsolidar,
@@ -38,20 +42,24 @@ export function ExtratoActionButtons({
           <RefreshCw className={`h-[16px] w-[16px] ${syncing ? "animate-spin" : ""}`} />
         </button>
       )}
-      <button
-        onClick={onWhatsApp}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-green-400 transition-colors hover:border-green-500/30 hover:bg-green-500/10"
-        title="WhatsApp"
-      >
-        <MessageCircle className="h-[18px] w-[18px]" />
-      </button>
-      <button
-        onClick={onEmail}
-        className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-blue-400 transition-colors hover:border-blue-500/30 hover:bg-blue-500/10"
-        title="Email"
-      >
-        <Mail className="h-[18px] w-[18px]" />
-      </button>
+      {hasWhatsApp && (
+        <button
+          onClick={onWhatsApp}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-green-400 transition-colors hover:border-green-500/30 hover:bg-green-500/10"
+          title="Refresh WhatsApp e Consolidador"
+        >
+          <MessageCircle className="h-[18px] w-[18px]" />
+        </button>
+      )}
+      {hasEmail && (
+        <button
+          onClick={onEmail}
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-blue-400 transition-colors hover:border-blue-500/30 hover:bg-blue-500/10"
+          title="Refresh Email e Consolidador"
+        >
+          <Mail className="h-[18px] w-[18px]" />
+        </button>
+      )}
       <button
         onClick={onConsolidar}
         className="h-7 rounded-lg border border-white/10 px-4 py-0.5 text-xs font-bold text-gray-300 transition-colors hover:bg-white/10 hover:text-white"

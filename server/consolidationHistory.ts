@@ -30,6 +30,8 @@ interface ConsolidadorExtrato {
   requestedAt?: string;
   receivedAt?: string;
   consolidatedAt?: string;
+  hasWhatsApp: boolean;
+  hasEmail: boolean;
 }
 
 function removeAccents(str: string): string {
@@ -407,6 +409,8 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
       requestedAt: es?.requestedAt?.toISOString(),
       receivedAt: es?.receivedAt?.toISOString(),
       consolidatedAt: es?.consolidatedAt?.toISOString(),
+      hasWhatsApp: !!conta.managerPhone || conta.whatsappGroupLinked,
+      hasEmail: !!conta.managerEmail,
     };
   });
 }
