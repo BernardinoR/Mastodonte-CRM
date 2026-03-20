@@ -18,6 +18,8 @@ export interface Extrato {
   consolidatedAt?: string;
   hasWhatsApp: boolean;
   hasEmail: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
 }
 
 export interface ClientExtratoGroup {

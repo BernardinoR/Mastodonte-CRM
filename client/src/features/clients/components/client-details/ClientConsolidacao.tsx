@@ -41,6 +41,7 @@ function mapDbConta(row: Record<string, unknown>): Conta {
     gerenteTelefone: row.manager_phone as string | undefined,
     whatsappGroupId: row.whatsapp_group_id != null ? String(row.whatsapp_group_id) : undefined,
     whatsappGroupAtivo: row.whatsapp_group_linked as boolean | undefined,
+    canais: (row.canais as string[] | undefined) ?? ["WhatsApp", "Email"],
   };
 }
 
@@ -59,6 +60,7 @@ function mapContaToDb(clientId: string, data: ContaFormData) {
     manager_phone: data.gerenteTelefone || null,
     whatsapp_group_id: data.whatsappGroupId ? parseInt(data.whatsappGroupId, 10) : null,
     whatsapp_group_linked: data.whatsappGroupAtivo,
+    canais: data.canais,
     updated_at: new Date().toISOString(),
   };
 }

@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { MessageCircle, Mail, RefreshCw } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/shared/components/ui/tooltip";
 
 interface ExtratoActionButtonsProps {
   hasWhatsApp?: boolean;
   hasEmail?: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
   onWhatsApp?: () => void;
   onEmail?: () => void;
   onConsolidar?: () => void;
@@ -13,6 +21,8 @@ interface ExtratoActionButtonsProps {
 export function ExtratoActionButtons({
   hasWhatsApp,
   hasEmail,
+  contactPhone,
+  contactEmail,
   onWhatsApp,
   onEmail,
   onConsolidar,
@@ -43,22 +53,42 @@ export function ExtratoActionButtons({
         </button>
       )}
       {hasWhatsApp && (
-        <button
-          onClick={onWhatsApp}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-green-400 transition-colors hover:border-green-500/30 hover:bg-green-500/10"
-          title="Refresh WhatsApp e Consolidador"
-        >
-          <MessageCircle className="h-[18px] w-[18px]" />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onWhatsApp}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-green-400 transition-colors hover:border-green-500/30 hover:bg-green-500/10"
+              >
+                <MessageCircle className="h-[18px] w-[18px]" />
+              </button>
+            </TooltipTrigger>
+            {contactPhone && (
+              <TooltipContent side="top" className="text-xs">
+                {contactPhone}
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       )}
       {hasEmail && (
-        <button
-          onClick={onEmail}
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-blue-400 transition-colors hover:border-blue-500/30 hover:bg-blue-500/10"
-          title="Refresh Email e Consolidador"
-        >
-          <Mail className="h-[18px] w-[18px]" />
-        </button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onEmail}
+                className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-blue-400 transition-colors hover:border-blue-500/30 hover:bg-blue-500/10"
+              >
+                <Mail className="h-[18px] w-[18px]" />
+              </button>
+            </TooltipTrigger>
+            {contactEmail && (
+              <TooltipContent side="top" className="text-xs">
+                {contactEmail}
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       )}
       <button
         onClick={onConsolidar}

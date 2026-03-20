@@ -32,6 +32,9 @@ interface ConsolidadorExtrato {
   consolidatedAt?: string;
   hasWhatsApp: boolean;
   hasEmail: boolean;
+  contactPhone?: string;
+  contactEmail?: string;
+  canais: string[];
 }
 
 function removeAccents(str: string): string {
@@ -393,8 +396,46 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
 
   const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
 
+  // Fetch WhatsApp group names for contas with linked groups
+  const whatsappGroupIds = eligibleContas
+    .filter((c) => c.whatsappGroupLinked && c.whatsappGroupId != null)
+    .map((c) => c.whatsappGroupId!);
+
+  const whatsappGroups =
+    whatsappGroupIds.length > 0
+      ? await prisma.whatsAppGroup.findMany({
+          where: { id: { in: whatsappGroupIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const whatsappGroupMap = new Map(whatsappGroups.map((g) => [g.id, g.name]));
+
   return eligibleContas.map((conta) => {
     const es = statusMap.get(conta.id);
+    const canais = conta.canais ?? ["WhatsApp", "Email"];
+
+    let hasWhatsApp = false;
+    let hasEmail = false;
+    let contactPhone: string | undefined;
+    let contactEmail: string | undefined;
+
+    if (conta.type === "Manual") {
+      hasWhatsApp =
+        canais.includes("WhatsApp") && (conta.whatsappGroupLinked || !!conta.managerPhone);
+      hasEmail = canais.includes("Email") && !!conta.managerEmail;
+      contactPhone =
+        conta.whatsappGroupLinked && conta.whatsappGroupId
+          ? (whatsappGroupMap.get(conta.whatsappGroupId) ?? conta.managerPhone ?? undefined)
+          : (conta.managerPhone ?? undefined);
+      contactEmail = conta.managerEmail ?? undefined;
+    } else if (conta.type === "Manual Cliente") {
+      hasWhatsApp = canais.includes("WhatsApp") && !!conta.client.phone;
+      hasEmail = canais.includes("Email") && (conta.client.emails?.length ?? 0) > 0;
+      contactPhone = conta.client.phone ?? undefined;
+      contactEmail = conta.client.emails?.[conta.client.primaryEmailIndex ?? 0] ?? undefined;
+    }
+    // Automático: hasWhatsApp and hasEmail remain false
+
     return {
       id: es?.id || conta.id,
       contaId: conta.id,
@@ -409,8 +450,11 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
       requestedAt: es?.requestedAt?.toISOString(),
       receivedAt: es?.receivedAt?.toISOString(),
       consolidatedAt: es?.consolidatedAt?.toISOString(),
-      hasWhatsApp: !!conta.managerPhone || conta.whatsappGroupLinked,
-      hasEmail: !!conta.managerEmail,
+      hasWhatsApp,
+      hasEmail,
+      contactPhone,
+      contactEmail,
+      canais,
     };
   });
 }

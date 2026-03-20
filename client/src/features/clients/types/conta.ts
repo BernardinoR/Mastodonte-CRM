@@ -21,4 +21,5 @@ export interface Conta {
   gerenteTelefone?: string;
   whatsappGroupId?: string;
   whatsappGroupAtivo?: boolean;
+  canais?: string[];
 }

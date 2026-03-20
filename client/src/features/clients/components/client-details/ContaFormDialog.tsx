@@ -55,6 +55,7 @@ export interface ContaFormData {
   gerenteTelefone: string;
   whatsappGroupId: string;
   whatsappGroupAtivo: boolean;
+  canais: string[];
 }
 
 function formatCompetencia(value: string): string {
@@ -121,6 +122,7 @@ export function ContaFormDialog({
         setGerenteTelefone(conta.gerenteTelefone || "");
         setWhatsappGroupId(conta.whatsappGroupId || "");
         setWhatsappGroupAtivo(conta.whatsappGroupAtivo || false);
+        setCanais(conta.canais || ["WhatsApp", "Email"]);
       } else {
         setInstitutionId(null);
         setAccountName("");
@@ -155,6 +157,7 @@ export function ContaFormDialog({
       gerenteTelefone,
       whatsappGroupId,
       whatsappGroupAtivo,
+      canais,
     });
   };
 

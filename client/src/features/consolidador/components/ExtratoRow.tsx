@@ -24,9 +24,10 @@ export function ExtratoRow({
   labelField = "institution",
   groupBy = "client",
 }: ExtratoRowProps) {
-  const dotTextColor = groupBy === "client"
-    ? getInstitutionColor(extrato.institution).text
-    : getClientAvatarColor(extrato.clientName).text;
+  const dotTextColor =
+    groupBy === "client"
+      ? getInstitutionColor(extrato.institution).text
+      : getClientAvatarColor(extrato.clientName).text;
 
   return (
     <div className="group flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5">
@@ -47,6 +48,8 @@ export function ExtratoRow({
         <ExtratoActionButtons
           hasWhatsApp={extrato.hasWhatsApp}
           hasEmail={extrato.hasEmail}
+          contactPhone={extrato.contactPhone}
+          contactEmail={extrato.contactEmail}
           onConsolidar={() => onConsolidar?.(extrato)}
           onSync={onSync ? () => onSync(extrato) : undefined}
         />

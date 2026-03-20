@@ -139,6 +139,7 @@ model Conta {
   managerPhone           String?  @map("manager_phone")
   whatsappGroupId        Int?     @map("whatsapp_group_id")
   whatsappGroupLinked    Boolean  @default(false) @map("whatsapp_group_linked")
+  canais                 String[] @default(["WhatsApp", "Email"])
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
 
