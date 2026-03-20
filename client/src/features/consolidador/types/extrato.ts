@@ -20,6 +20,10 @@ export interface Extrato {
   hasEmail: boolean;
   contactPhone?: string;
   contactEmail?: string;
+  clientEmail?: string;
+  contactName?: string;
+  whatsappIsGroup?: boolean;
+  whatsappGroupLink?: string;
 }
 
 export interface ClientExtratoGroup {

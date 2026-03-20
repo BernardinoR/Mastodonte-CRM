@@ -4,6 +4,12 @@ import { CollectionMethodBadge } from "./CollectionMethodBadge";
 import { ExtratoActionButtons } from "./ExtratoActionButtons";
 import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 import { getClientAvatarColor } from "../lib/avatarColors";
+import { useToast } from "@/shared/hooks/use-toast";
+import {
+  buildExtratoRequestMessage,
+  buildExtratoWhatsAppUrl,
+  buildExtratoEmailUrl,
+} from "../lib/extratoMessages";
 
 interface ExtratoRowProps {
   extrato: Extrato;
@@ -24,6 +30,28 @@ export function ExtratoRow({
   labelField = "institution",
   groupBy = "client",
 }: ExtratoRowProps) {
+  const { toast } = useToast();
+
+  const handleWhatsApp = () => {
+    const msg = buildExtratoRequestMessage(extrato);
+    if (extrato.whatsappIsGroup) {
+      navigator.clipboard.writeText(msg);
+      toast({ title: "Mensagem copiada!" });
+      if (extrato.whatsappGroupLink) window.open(extrato.whatsappGroupLink, "_blank");
+    } else {
+      window.open(buildExtratoWhatsAppUrl(extrato.contactPhone ?? "", msg), "_blank");
+    }
+  };
+
+  const handleEmail = () => {
+    const url = buildExtratoEmailUrl({
+      ...extrato,
+      to: extrato.contactEmail ?? "",
+      cc: extrato.collectionMethod === "Manual" ? extrato.clientEmail : undefined,
+    });
+    window.open(url);
+  };
+
   const dotTextColor =
     groupBy === "client"
       ? getInstitutionColor(extrato.institution).text
@@ -50,6 +78,8 @@ export function ExtratoRow({
           hasEmail={extrato.hasEmail}
           contactPhone={extrato.contactPhone}
           contactEmail={extrato.contactEmail}
+          onWhatsApp={handleWhatsApp}
+          onEmail={handleEmail}
           onConsolidar={() => onConsolidar?.(extrato)}
           onSync={onSync ? () => onSync(extrato) : undefined}
         />

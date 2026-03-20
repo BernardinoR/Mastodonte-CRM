@@ -34,6 +34,10 @@ interface ConsolidadorExtrato {
   hasEmail: boolean;
   contactPhone?: string;
   contactEmail?: string;
+  clientEmail?: string;
+  contactName?: string;
+  whatsappIsGroup: boolean;
+  whatsappGroupLink?: string;
   canais: string[];
 }
 
@@ -405,10 +409,11 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
     whatsappGroupIds.length > 0
       ? await prisma.whatsAppGroup.findMany({
           where: { id: { in: whatsappGroupIds } },
-          select: { id: true, name: true },
+          select: { id: true, name: true, link: true },
         })
       : [];
   const whatsappGroupMap = new Map(whatsappGroups.map((g) => [g.id, g.name]));
+  const whatsappGroupLinkMap = new Map(whatsappGroups.map((g) => [g.id, g.link]));
 
   return eligibleContas.map((conta) => {
     const es = statusMap.get(conta.id);
@@ -418,6 +423,10 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
     let hasEmail = false;
     let contactPhone: string | undefined;
     let contactEmail: string | undefined;
+    let clientEmail: string | undefined;
+    let contactName: string | undefined;
+    let whatsappIsGroup = false;
+    let whatsappGroupLink: string | undefined;
 
     if (conta.type === "Manual") {
       hasWhatsApp =
@@ -428,11 +437,20 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
           ? (whatsappGroupMap.get(conta.whatsappGroupId) ?? conta.managerPhone ?? undefined)
           : (conta.managerPhone ?? undefined);
       contactEmail = conta.managerEmail ?? undefined;
+      contactName = conta.managerName ?? undefined;
+      clientEmail = conta.client.emails?.[conta.client.primaryEmailIndex ?? 0] ?? undefined;
+      whatsappIsGroup = !!conta.whatsappGroupLinked;
+      whatsappGroupLink =
+        conta.whatsappGroupLinked && conta.whatsappGroupId
+          ? (whatsappGroupLinkMap.get(conta.whatsappGroupId) ?? undefined)
+          : undefined;
     } else if (conta.type === "Manual Cliente") {
       hasWhatsApp = canais.includes("WhatsApp") && !!conta.client.phone;
       hasEmail = canais.includes("Email") && (conta.client.emails?.length ?? 0) > 0;
       contactPhone = conta.client.phone ?? undefined;
       contactEmail = conta.client.emails?.[conta.client.primaryEmailIndex ?? 0] ?? undefined;
+      contactName = conta.client.name.split(" ")[0];
+      whatsappIsGroup = false;
     }
     // Automático: hasWhatsApp and hasEmail remain false
 
@@ -454,6 +472,10 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
       hasEmail,
       contactPhone,
       contactEmail,
+      clientEmail,
+      contactName,
+      whatsappIsGroup,
+      whatsappGroupLink,
       canais,
     };
   });
