@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/shared/components/ui/badge";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/components/ui/popover";
 
-const ALL_STATUSES: ExtratoStatus[] = ["Pendente", "Solicitado", "Recebido", "Consolidado"];
+const SELECTABLE_STATUSES: ExtratoStatus[] = ["Pendente", "Solicitado", "Recebido"];
 
 interface ExtratoStatusBadgeProps {
   extrato: Extrato;
@@ -31,7 +31,7 @@ export function ExtratoStatusBadge({ extrato, onStatusChange }: ExtratoStatusBad
       </PopoverTrigger>
       <PopoverContent className="w-44 p-1" align="start">
         <div className="flex flex-col">
-          {ALL_STATUSES.map((s) => {
+          {SELECTABLE_STATUSES.map((s) => {
             const style = statusStyles[s];
             return (
               <button

@@ -60,7 +60,7 @@ export function getStatusElapsedText(extrato: Extrato): string {
 
   let dateStr: string | undefined;
   if (status === "Pendente") {
-    dateStr = undefined;
+    dateStr = extrato.updatedAt;
   } else if (status === "Solicitado") {
     dateStr = extrato.requestedAt;
   } else if (status === "Recebido") {

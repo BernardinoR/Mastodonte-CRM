@@ -41,6 +41,9 @@ export function ExtratoRow({
     } else {
       window.open(buildExtratoWhatsAppUrl(extrato.contactPhone ?? "", msg), "_blank");
     }
+    if (extrato.status !== "Consolidado") {
+      onStatusChange?.(extrato.id, "Solicitado");
+    }
   };
 
   const handleEmail = () => {
@@ -50,6 +53,9 @@ export function ExtratoRow({
       cc: extrato.collectionMethod === "Manual" ? extrato.clientEmail : undefined,
     });
     window.open(url);
+    if (extrato.status !== "Consolidado") {
+      onStatusChange?.(extrato.id, "Solicitado");
+    }
   };
 
   const dotTextColor =

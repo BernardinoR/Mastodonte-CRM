@@ -468,6 +468,7 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
       requestedAt: es?.requestedAt?.toISOString(),
       receivedAt: es?.receivedAt?.toISOString(),
       consolidatedAt: es?.consolidatedAt?.toISOString(),
+      updatedAt: es?.updatedAt?.toISOString(),
       hasWhatsApp,
       hasEmail,
       contactPhone,

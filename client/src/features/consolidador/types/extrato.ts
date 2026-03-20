@@ -16,6 +16,7 @@ export interface Extrato {
   requestedAt?: string;
   receivedAt?: string;
   consolidatedAt?: string;
+  updatedAt?: string;
   hasWhatsApp: boolean;
   hasEmail: boolean;
   contactPhone?: string;
