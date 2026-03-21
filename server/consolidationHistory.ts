@@ -380,10 +380,27 @@ function computeInitials(name: string): string {
 }
 
 export async function getConsolidadorExtratos(month: string): Promise<ConsolidadorExtrato[]> {
-  // Fetch all active contas with relations
+  // Fetch all active contas with only necessary fields
   const contas = await prisma.conta.findMany({
     where: { status: "Ativa" },
-    include: { client: true, institution: true },
+    select: {
+      id: true,
+      clientId: true,
+      type: true,
+      startDate: true,
+      endDate: true,
+      accountName: true,
+      canais: true,
+      managerPhone: true,
+      managerEmail: true,
+      managerName: true,
+      whatsappGroupId: true,
+      whatsappGroupLinked: true,
+      client: {
+        select: { name: true, initials: true, emails: true, primaryEmailIndex: true, phone: true },
+      },
+      institution: { select: { name: true } },
+    },
   });
 
   // Filter contas whose date range includes the selected month
@@ -393,25 +410,24 @@ export async function getConsolidadorExtratos(month: string): Promise<Consolidad
 
   const contaIds = eligibleContas.map((c) => c.id);
 
-  // Fetch existing ExtratoStatus records for this month
-  const existingStatuses = await prisma.extratoStatus.findMany({
-    where: { contaId: { in: contaIds }, competencia: month },
-  });
-
-  const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
-
-  // Fetch WhatsApp group names for contas with linked groups
+  // Fetch statuses and WhatsApp groups in parallel
   const whatsappGroupIds = eligibleContas
     .filter((c) => c.whatsappGroupLinked && c.whatsappGroupId != null)
     .map((c) => c.whatsappGroupId!);
 
-  const whatsappGroups =
+  const [existingStatuses, whatsappGroups] = await Promise.all([
+    prisma.extratoStatus.findMany({
+      where: { contaId: { in: contaIds }, competencia: month },
+    }),
     whatsappGroupIds.length > 0
-      ? await prisma.whatsAppGroup.findMany({
+      ? prisma.whatsAppGroup.findMany({
           where: { id: { in: whatsappGroupIds } },
           select: { id: true, name: true, link: true },
         })
-      : [];
+      : Promise.resolve([]),
+  ]);
+
+  const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
   const whatsappGroupMap = new Map(whatsappGroups.map((g) => [g.id, g.name]));
   const whatsappGroupLinkMap = new Map(whatsappGroups.map((g) => [g.id, g.link]));
 
@@ -500,10 +516,135 @@ export async function getConsolidadorPendencias(
     months.push(`${String(m).padStart(2, "0")}/${y}`);
   }
 
-  const results = await Promise.all(months.map((month) => getConsolidadorExtratos(month)));
-  const allExtratos = results.flatMap((extratos) =>
-    extratos.filter((e) => e.status !== "Consolidado"),
-  );
+  // Fetch contas ONCE (not 3x)
+  const contas = await prisma.conta.findMany({
+    where: { status: "Ativa" },
+    select: {
+      id: true,
+      clientId: true,
+      type: true,
+      startDate: true,
+      endDate: true,
+      accountName: true,
+      canais: true,
+      managerPhone: true,
+      managerEmail: true,
+      managerName: true,
+      whatsappGroupId: true,
+      whatsappGroupLinked: true,
+      client: {
+        select: { name: true, initials: true, emails: true, primaryEmailIndex: true, phone: true },
+      },
+      institution: { select: { name: true } },
+    },
+  });
+
+  // Collect all eligible contas across all months
+  const allContaIds = new Set<string>();
+  const eligibleByMonth = new Map<string, typeof contas>();
+  for (const month of months) {
+    const eligible = contas.filter((c) => isMonthInRange(month, c.startDate, c.endDate));
+    eligibleByMonth.set(month, eligible);
+    for (const c of eligible) allContaIds.add(c.id);
+  }
+
+  if (allContaIds.size === 0) return [];
+
+  // Fetch all statuses and whatsapp groups in parallel (1 query each, not 3+3)
+  const whatsappGroupIds = contas
+    .filter((c) => allContaIds.has(c.id) && c.whatsappGroupLinked && c.whatsappGroupId != null)
+    .map((c) => c.whatsappGroupId!);
+
+  const [allStatuses, whatsappGroups] = await Promise.all([
+    prisma.extratoStatus.findMany({
+      where: {
+        contaId: { in: Array.from(allContaIds) },
+        competencia: { in: months },
+      },
+    }),
+    whatsappGroupIds.length > 0
+      ? prisma.whatsAppGroup.findMany({
+          where: { id: { in: whatsappGroupIds } },
+          select: { id: true, name: true, link: true },
+        })
+      : Promise.resolve([]),
+  ]);
+
+  // Build status map keyed by "contaId:month"
+  const statusMap = new Map(allStatuses.map((s) => [`${s.contaId}:${s.competencia}`, s]));
+  const whatsappGroupMap = new Map(whatsappGroups.map((g) => [g.id, g.name]));
+  const whatsappGroupLinkMap = new Map(whatsappGroups.map((g) => [g.id, g.link]));
+
+  // Build extratos for each month, filtering out consolidated
+  const allExtratos: ConsolidadorExtrato[] = [];
+  for (const month of months) {
+    const eligible = eligibleByMonth.get(month) || [];
+    for (const conta of eligible) {
+      const es = statusMap.get(`${conta.id}:${month}`);
+      const status = es?.status || "Pendente";
+      if (status === "Consolidado") continue;
+
+      const canais = conta.canais ?? ["WhatsApp", "Email"];
+      let hasWhatsApp = false;
+      let hasEmail = false;
+      let contactPhone: string | undefined;
+      let contactEmail: string | undefined;
+      let clientEmail: string | undefined;
+      let contactName: string | undefined;
+      let whatsappIsGroup = false;
+      let whatsappGroupLink: string | undefined;
+
+      if (conta.type === "Manual") {
+        hasWhatsApp =
+          canais.includes("WhatsApp") && (conta.whatsappGroupLinked || !!conta.managerPhone);
+        hasEmail = canais.includes("Email") && !!conta.managerEmail;
+        contactPhone =
+          conta.whatsappGroupLinked && conta.whatsappGroupId
+            ? (whatsappGroupMap.get(conta.whatsappGroupId) ?? conta.managerPhone ?? undefined)
+            : (conta.managerPhone ?? undefined);
+        contactEmail = conta.managerEmail ?? undefined;
+        contactName = conta.managerName ?? undefined;
+        clientEmail = conta.client.emails?.[conta.client.primaryEmailIndex ?? 0] ?? undefined;
+        whatsappIsGroup = !!conta.whatsappGroupLinked;
+        whatsappGroupLink =
+          conta.whatsappGroupLinked && conta.whatsappGroupId
+            ? (whatsappGroupLinkMap.get(conta.whatsappGroupId) ?? undefined)
+            : undefined;
+      } else if (conta.type === "Manual Cliente") {
+        hasWhatsApp = canais.includes("WhatsApp") && !!conta.client.phone;
+        hasEmail = canais.includes("Email") && (conta.client.emails?.length ?? 0) > 0;
+        contactPhone = conta.client.phone ?? undefined;
+        contactEmail = conta.client.emails?.[conta.client.primaryEmailIndex ?? 0] ?? undefined;
+        contactName = conta.client.name.split(" ")[0];
+        whatsappIsGroup = false;
+      }
+
+      allExtratos.push({
+        id: es?.id || conta.id,
+        contaId: conta.id,
+        clientId: conta.clientId,
+        clientName: conta.client.name,
+        clientInitials: conta.client.initials || computeInitials(conta.client.name),
+        institution: conta.institution.name,
+        accountType: conta.accountName || "",
+        collectionMethod: conta.type,
+        status,
+        referenceMonth: month,
+        requestedAt: es?.requestedAt?.toISOString(),
+        receivedAt: es?.receivedAt?.toISOString(),
+        consolidatedAt: es?.consolidatedAt?.toISOString(),
+        hasWhatsApp,
+        hasEmail,
+        contactPhone,
+        contactEmail,
+        clientEmail,
+        contactName,
+        whatsappIsGroup,
+        whatsappGroupLink,
+        canais,
+      });
+    }
+  }
 
   return allExtratos;
 }

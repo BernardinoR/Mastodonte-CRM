@@ -12,6 +12,7 @@ import { ClientExtratoGroup } from "../components/ClientExtratoGroup";
 import { HistoricalPendenciesModal } from "../components/HistoricalPendenciesModal";
 import { ConsolidarModal } from "../components/ConsolidarModal";
 import { apiRequest } from "@/shared/lib/queryClient";
+import { useToast } from "@/shared/hooks/use-toast";
 import type {
   Extrato,
   ExtratoStatus,
@@ -28,6 +29,7 @@ function formatMonthParam(date: Date): string {
 
 export default function Consolidador() {
   const { getToken } = useAuth();
+  const { toast } = useToast();
   const [groupBy, setGroupBy] = useState<"client" | "institution">("client");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<ExtratoStatus | null>(null);
@@ -217,45 +219,63 @@ export default function Consolidador() {
     setConsolidarExtrato(extrato);
   }, []);
 
-  const handleConfirmConsolidar = useCallback(
-    async (extratoId: string) => {
+  const updateExtratoStatus = useCallback(
+    async (extratoId: string, newStatus: ExtratoStatus) => {
+      const extrato = extratos.find((e) => e.id === extratoId);
+      if (!extrato) return;
+
+      const previousStatus = extrato.status;
+
+      // Optimistic timestamps (mirroring server/routes.ts L783-786)
+      const now = new Date().toISOString();
+      const timestamps: Partial<Extrato> = {};
+      if (newStatus === "Solicitado") timestamps.requestedAt = now;
+      if (newStatus === "Recebido") timestamps.receivedAt = now;
+      if (newStatus === "Consolidado") timestamps.consolidatedAt = now;
+
+      // 1. Optimistic update — instant UI (only the affected row)
+      setExtratos((prev) =>
+        prev.map((e) => (e.id === extratoId ? { ...e, status: newStatus, ...timestamps } : e)),
+      );
+
+      // 2. Sync with server
       try {
         const headers = await authHeaders();
-        const extrato = extratos.find((e) => e.id === extratoId);
-        if (!extrato) return;
         await apiRequest(
           "PATCH",
           `/api/consolidador/extratos/${extrato.contaId}/status`,
-          { competencia: formatMonthParam(selectedMonth), status: "Consolidado" },
+          { competencia: formatMonthParam(selectedMonth), status: newStatus },
           headers,
         );
-        setConsolidarExtrato(null);
-        fetchExtratos();
       } catch (error) {
-        console.error("Failed to consolidate:", error);
+        console.error("Failed to update status:", error);
+        toast({
+          title: "Erro ao atualizar status",
+          description: "A alteração foi revertida. Tente novamente.",
+          variant: "destructive",
+        });
+        // 3. Revert only the affected row (no refetch)
+        setExtratos((prev) =>
+          prev.map((e) => (e.id === extratoId ? { ...e, status: previousStatus } : e)),
+        );
       }
     },
-    [extratos, selectedMonth, authHeaders, fetchExtratos],
+    [extratos, selectedMonth, authHeaders, toast],
+  );
+
+  const handleConfirmConsolidar = useCallback(
+    async (extratoId: string) => {
+      setConsolidarExtrato(null);
+      await updateExtratoStatus(extratoId, "Consolidado");
+    },
+    [updateExtratoStatus],
   );
 
   const handleStatusChange = useCallback(
-    async (extratoId: string, status: ExtratoStatus) => {
-      try {
-        const headers = await authHeaders();
-        const extrato = extratos.find((e) => e.id === extratoId);
-        if (!extrato) return;
-        await apiRequest(
-          "PATCH",
-          `/api/consolidador/extratos/${extrato.contaId}/status`,
-          { competencia: formatMonthParam(selectedMonth), status },
-          headers,
-        );
-        fetchExtratos();
-      } catch (error) {
-        console.error("Failed to update status:", error);
-      }
+    (extratoId: string, status: ExtratoStatus) => {
+      updateExtratoStatus(extratoId, status);
     },
-    [extratos, selectedMonth, authHeaders, fetchExtratos],
+    [updateExtratoStatus],
   );
 
   const handleMethodChange = useCallback((extratoId: string, method: ExtratoCollectionMethod) => {
