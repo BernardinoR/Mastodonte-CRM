@@ -25,6 +25,7 @@ import MockupVarredura from "@app/pages/mockups/MockupVarredura";
 import MockupVarreduraA from "@app/pages/mockups/MockupVarreduraA";
 import MockupVarreduraB from "@app/pages/mockups/MockupVarreduraB";
 import MockupDesignSystem from "@app/pages/mockups/MockupDesignSystem";
+import MockupPendenciasHistoricas from "@app/pages/mockups/MockupPendenciasHistoricas";
 
 function AuthenticatedRouter() {
   return (
@@ -166,6 +167,7 @@ export default function App() {
           <Route path="/mockup/varredura-a" component={MockupVarreduraA} />
           <Route path="/mockup/varredura-b" component={MockupVarreduraB} />
           <Route path="/mockup/design-system" component={MockupDesignSystem} />
+          <Route path="/mockup/pendencias-historicas" component={MockupPendenciasHistoricas} />
         </Switch>
       </ErrorBoundary>
     );
