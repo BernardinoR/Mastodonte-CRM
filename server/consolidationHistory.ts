@@ -16,6 +16,13 @@ interface ConsolidadoRecord {
   NomeConta?: string;
 }
 
+function getDefaultExtratoData(contaType: string): { status: string; receivedAt?: Date } {
+  if (contaType === "Automático") {
+    return { status: "Recebido", receivedAt: new Date() };
+  }
+  return { status: "Pendente" };
+}
+
 function removeAccents(str: string): string {
   return str
     .normalize("NFD")
@@ -193,7 +200,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
       } else {
         await prisma.extratoStatus.upsert({
           where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-          create: { contaId: conta.id, competencia: month, status: "Pendente" },
+          create: { contaId: conta.id, competencia: month, ...getDefaultExtratoData(conta.type) },
           update: {},
         });
       }
@@ -259,7 +266,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
     } else {
       await prisma.extratoStatus.upsert({
         where: { contaId_competencia: { contaId, competencia: month } },
-        create: { contaId, competencia: month, status: "Pendente" },
+        create: { contaId, competencia: month, ...getDefaultExtratoData(conta.type) },
         update: {},
       });
     }
@@ -315,14 +322,14 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   if (existing && existing.status === "Consolidado") {
     return prisma.extratoStatus.update({
       where: { id: existing.id },
-      data: { status: "Pendente", consolidatedAt: null },
+      data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
     });
   }
 
   if (existing) return existing;
 
   return prisma.extratoStatus.create({
-    data: { contaId, competencia, status: "Pendente" },
+    data: { contaId, competencia, ...getDefaultExtratoData(conta.type) },
   });
 }
 

@@ -82,6 +82,10 @@ function isMonthInRange(month: string, startDate: string, endDate: string | null
   return true;
 }
 
+function getDefaultStatus(contaType: string): Extrato["status"] {
+  return contaType === "Automático" ? "Recebido" : "Pendente";
+}
+
 function computeInitials(name: string): string {
   return name
     .split(" ")
@@ -146,7 +150,7 @@ function mapContaToExtrato(
     institution: conta.institution.name,
     accountType: conta.account_name || "",
     collectionMethod: conta.type as Extrato["collectionMethod"],
-    status: (status?.status as Extrato["status"]) || "Pendente",
+    status: (status?.status as Extrato["status"]) || getDefaultStatus(conta.type),
     referenceMonth: month,
     requestedAt: status?.requested_at ?? undefined,
     receivedAt: status?.received_at ?? undefined,
@@ -203,7 +207,7 @@ export function buildPendencias(
     const eligible = contas.filter((c) => isMonthInRange(month, c.start_date, c.end_date));
     for (const conta of eligible) {
       const es = conta.extrato_statuses.find((s) => s.competencia === month);
-      const status = es?.status || "Pendente";
+      const status = es?.status || getDefaultStatus(conta.type);
       if (status === "Consolidado") continue;
 
       allExtratos.push(

@@ -274,7 +274,7 @@ export function PendenciasHistoricas() {
   if (activeMonth) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0d0f11] p-8">
-        <div className="flex h-[680px] w-[860px] flex-col overflow-hidden rounded-xl border border-[#3b4f54] bg-[#171b20] shadow-2xl shadow-black/40">
+        <div className="flex max-h-[90vh] w-full max-w-[860px] flex-col overflow-hidden rounded-xl border border-[#3b4f54] bg-[#171b20] shadow-2xl shadow-black/40">
           <MonthDetailView month={activeMonth} onBack={() => setSelectedMonth(null)} />
           <div className="flex items-center justify-end border-t border-white/5 px-8 py-4">
             <button
@@ -292,7 +292,7 @@ export function PendenciasHistoricas() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-[#0d0f11] p-8">
-      <div className="flex h-[680px] w-[860px] flex-col overflow-hidden rounded-xl border border-[#3b4f54] bg-[#171b20] shadow-2xl shadow-black/40" data-testid="pendencias-modal">
+      <div className="flex max-h-[90vh] w-full max-w-[860px] flex-col overflow-hidden rounded-xl border border-[#3b4f54] bg-[#171b20] shadow-2xl shadow-black/40" data-testid="pendencias-modal">
         <div className="border-b border-white/5 px-8 pb-5 pt-8">
           <h1 className="text-[28px] font-bold text-white" data-testid="text-modal-title">
             Pendencias Historicas
