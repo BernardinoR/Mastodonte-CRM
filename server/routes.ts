@@ -7,8 +7,6 @@ import { createClerkClient } from "@clerk/clerk-sdk-node";
 import type { UserRole } from "@shared/types";
 import {
   getContaHistorico,
-  getConsolidadorExtratos,
-  getConsolidadorPendencias,
   syncContaWithSupabase,
   syncAllExtratoStatuses,
   syncContaExtratoStatuses,
@@ -748,21 +746,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CONSOLIDADOR
   // ============================================
 
-  // Get extratos for a given month
-  app.get("/api/consolidador/extratos", clerkAuthMiddleware, async (req, res) => {
-    try {
-      const month = req.query.month as string;
-      if (!month || !/^\d{2}\/\d{4}$/.test(month)) {
-        return res.status(400).json({ error: "month query parameter required (MM/YYYY)" });
-      }
-      const extratos = await getConsolidadorExtratos(month);
-      return res.json({ extratos });
-    } catch (error) {
-      console.error("Error fetching consolidador extratos:", error instanceof Error ? error.stack : error);
-      return res.status(500).json({ error: "Failed to fetch extratos" });
-    }
-  });
-
   // Update extrato status
   app.patch("/api/consolidador/extratos/:contaId/status", clerkAuthMiddleware, async (req, res) => {
     try {
@@ -835,21 +818,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing extrato statuses:", error);
       return res.status(500).json({ error: "Failed to sync extrato statuses" });
-    }
-  });
-
-  // Get historical pendencies
-  app.get("/api/consolidador/pendencias", clerkAuthMiddleware, async (req, res) => {
-    try {
-      const beforeMonth = req.query.beforeMonth as string;
-      if (!beforeMonth || !/^\d{2}\/\d{4}$/.test(beforeMonth)) {
-        return res.status(400).json({ error: "beforeMonth query parameter required (MM/YYYY)" });
-      }
-      const pendencias = await getConsolidadorPendencias(beforeMonth);
-      return res.json({ pendencias });
-    } catch (error) {
-      console.error("Error fetching consolidador pendencias:", error instanceof Error ? error.stack : error);
-      return res.status(500).json({ error: "Failed to fetch pendencias" });
     }
   });
 

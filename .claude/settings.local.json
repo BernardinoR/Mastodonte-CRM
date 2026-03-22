@@ -105,7 +105,8 @@
       "Bash(do echo:*)",
       "Read(//home/runner/workspace/**)",
       "Bash(while read:*)",
-      "Bash(node -e \":*)"
+      "Bash(node -e \":*)",
+      "Bash(find /home/runner/workspace/client/src/features/tasks -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))"
     ]
   },
   "enableAllProjectMcpServers": true,

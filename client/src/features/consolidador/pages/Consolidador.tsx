@@ -12,7 +12,15 @@ import { ClientExtratoGroup } from "../components/ClientExtratoGroup";
 import { HistoricalPendenciesModal } from "../components/HistoricalPendenciesModal";
 import { ConsolidarModal } from "../components/ConsolidarModal";
 import { apiRequest } from "@/shared/lib/queryClient";
+import { supabase } from "@/shared/lib/supabase";
 import { useToast } from "@/shared/hooks/use-toast";
+import {
+  buildExtratos,
+  buildPendencias,
+  getPreviousMonths,
+  type DbConta,
+  type DbWhatsappGroup,
+} from "../utils/buildExtratos";
 import type {
   Extrato,
   ExtratoStatus,
@@ -26,6 +34,15 @@ function formatMonthParam(date: Date): string {
   const yyyy = date.getFullYear();
   return `${mm}/${yyyy}`;
 }
+
+const CONTA_SELECT = `
+  id, client_id, type, start_date, end_date, account_name, canais,
+  manager_phone, manager_email, manager_name,
+  whatsapp_group_id, whatsapp_group_linked,
+  client:clients!client_id(name, initials, emails, primary_email_index, phone),
+  institution:institutions!institution_id(name),
+  extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
+`;
 
 export default function Consolidador() {
   const { getToken } = useAuth();
@@ -54,50 +71,38 @@ export default function Consolidador() {
     return { Authorization: `Bearer ${token}` };
   }, [getToken]);
 
-  // Fetch extratos when month changes
-  const fetchExtratos = useCallback(async () => {
+  // Fetch extratos and pendencias via Supabase direct
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const headers = await authHeaders();
       const month = formatMonthParam(selectedMonth);
-      const res = await apiRequest(
-        "GET",
-        `/api/consolidador/extratos?month=${encodeURIComponent(month)}`,
-        undefined,
-        headers,
-      );
-      const data = await res.json();
-      setExtratos(data.extratos || []);
+
+      const [contasResult, whatsappResult] = await Promise.all([
+        supabase.from("contas").select(CONTA_SELECT).eq("status", "Ativa"),
+        supabase.from("whatsapp_groups").select("id, name, link").eq("status", "Ativo"),
+      ]);
+
+      if (contasResult.error) throw contasResult.error;
+
+      const contas = (contasResult.data ?? []) as unknown as DbConta[];
+      const whatsappGroups = (whatsappResult.data ?? []) as unknown as DbWhatsappGroup[];
+
+      setExtratos(buildExtratos(contas, whatsappGroups, month));
+
+      const months = getPreviousMonths(month, 3);
+      setHistoricalPendencies(buildPendencias(contas, whatsappGroups, months));
     } catch (error) {
-      console.error("Failed to fetch extratos:", error);
+      console.error("Failed to fetch consolidador data:", error);
       setExtratos([]);
+      setHistoricalPendencies([]);
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth, authHeaders]);
-
-  const fetchPendencias = useCallback(async () => {
-    try {
-      const headers = await authHeaders();
-      const month = formatMonthParam(selectedMonth);
-      const res = await apiRequest(
-        "GET",
-        `/api/consolidador/pendencias?beforeMonth=${encodeURIComponent(month)}`,
-        undefined,
-        headers,
-      );
-      const data = await res.json();
-      setHistoricalPendencies(data.pendencias || []);
-    } catch (error) {
-      console.error("Failed to fetch pendencias:", error);
-      setHistoricalPendencies([]);
-    }
-  }, [selectedMonth, authHeaders]);
+  }, [selectedMonth]);
 
   useEffect(() => {
-    fetchExtratos();
-    fetchPendencias();
-  }, [fetchExtratos, fetchPendencias]);
+    fetchData();
+  }, [fetchData]);
 
   useEffect(() => {
     setVisibleCount(20);
@@ -292,12 +297,12 @@ export default function Consolidador() {
           { competencia: formatMonthParam(selectedMonth) },
           headers,
         );
-        fetchExtratos();
+        fetchData();
       } catch (error) {
         console.error("Failed to sync:", error);
       }
     },
-    [selectedMonth, authHeaders, fetchExtratos],
+    [selectedMonth, authHeaders, fetchData],
   );
 
   const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
