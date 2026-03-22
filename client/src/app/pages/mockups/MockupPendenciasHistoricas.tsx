@@ -21,6 +21,7 @@ const MOCK_DATA: MonthData[] = [
 
 const totalAll = MOCK_DATA.reduce((sum, m) => sum + m.total, 0);
 const totalRecebidos = MOCK_DATA.reduce((sum, m) => sum + m.recebidos, 0);
+const mesesComPendencia = MOCK_DATA.filter(m => m.pendentes > 0 || m.solicitados > 0).length;
 
 function CountCell({ value, color }: { value: number; color: string }) {
   if (value === 0) return <span className="w-5 text-center text-[11px] tabular-nums text-zinc-700">-</span>;
@@ -43,7 +44,11 @@ export default function MockupPendenciasHistoricas() {
             <h1 className="text-[15px] font-semibold text-zinc-100" data-testid="text-modal-title">
               Pendencias Historicas
             </h1>
-            <p className="mt-0.5 text-[11px] text-zinc-500">{totalRecebidos} de {totalAll} extratos recebidos</p>
+            <p className="mt-0.5 text-[11px] text-zinc-500">
+              {totalRecebidos} de {totalAll} extratos recebidos
+              <span className="mx-1.5 text-zinc-700">&middot;</span>
+              <span className="text-zinc-400">{mesesComPendencia} {mesesComPendencia === 1 ? "mes" : "meses"} pendentes</span>
+            </p>
           </div>
           <div className="flex h-9 w-9 items-center justify-center rounded-md bg-orange-500/10">
             <span className="text-sm font-bold text-orange-400" data-testid="badge-total-pendentes">
