@@ -1,5 +1,3 @@
-import { formatDistanceToNow } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import type { ExtratoStatus, ExtratoCollectionMethod, Extrato } from "../types/extrato";
 
 export interface StatusStyle {
@@ -71,10 +69,8 @@ export function getStatusElapsedText(extrato: Extrato): string {
 
   if (!dateStr) return status;
 
-  const elapsed = formatDistanceToNow(new Date(dateStr), {
-    locale: ptBR,
-    addSuffix: true,
-  });
+  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+  const elapsed = days === 0 ? "hoje" : days === 1 ? "há 1 dia" : `há ${days} dias`;
 
   return `${status} ${elapsed}`;
 }
