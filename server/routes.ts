@@ -9,7 +9,6 @@ import {
   getContaHistorico,
   syncContaWithSupabase,
   syncAllExtratoStatuses,
-  syncContaExtratoStatuses,
 } from "./consolidationHistory";
 
 const clerkClient = createClerkClient({
@@ -574,67 +573,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================
   // CONTAS (Consolidação)
   // ============================================
-
-  // Create a new conta
-  app.post("/api/contas", clerkAuthMiddleware, async (req, res) => {
-    try {
-      const {
-        clientId,
-        institutionId,
-        type,
-        startDate,
-        accountName,
-        accountNumber,
-        endDate,
-        status,
-        activeSince,
-        deactivatedSince,
-        managerName,
-        managerEmail,
-        managerPhone,
-        whatsappGroupId,
-        whatsappGroupLinked,
-      } = req.body;
-
-      if (!clientId || typeof clientId !== "string") {
-        return res.status(400).json({ error: "clientId é obrigatório" });
-      }
-      if (!institutionId || typeof institutionId !== "number") {
-        return res.status(400).json({ error: "institutionId é obrigatório" });
-      }
-      if (!startDate || typeof startDate !== "string") {
-        return res.status(400).json({ error: "startDate (competência) é obrigatório" });
-      }
-
-      const conta = await storage.createConta({
-        clientId,
-        institutionId,
-        accountName: accountName || null,
-        accountNumber: accountNumber || null,
-        type: type || "Automático",
-        startDate,
-        endDate: endDate || null,
-        status: status || "Ativa",
-        activeSince: activeSince || null,
-        deactivatedSince: deactivatedSince || null,
-        managerName: managerName || null,
-        managerEmail: managerEmail || null,
-        managerPhone: managerPhone || null,
-        whatsappGroupId: whatsappGroupId ? parseInt(whatsappGroupId, 10) : null,
-        whatsappGroupLinked: whatsappGroupLinked || false,
-      });
-
-      // Sync extratos em background - não bloqueia a resposta
-      syncContaExtratoStatuses(conta.id).catch((e) =>
-        console.warn("Sync de conta nova falhou:", e),
-      );
-
-      return res.status(201).json({ conta });
-    } catch (error) {
-      console.error("Error creating conta:", error);
-      return res.status(500).json({ error: "Falha ao criar conta" });
-    }
-  });
 
   // List contas for a client
   app.get("/api/clients/:clientId/contas", clerkAuthMiddleware, async (req, res) => {
