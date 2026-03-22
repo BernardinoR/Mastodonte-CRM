@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { supabase } from "@/shared/lib/supabase";
+import { apiRequest } from "@/shared/lib/queryClient";
 import { ContasTable } from "./ContasTable";
 import { ContaHistoricoSheet } from "./ContaHistoricoSheet";
 import { ContaFormDialog } from "./ContaFormDialog";
@@ -66,6 +68,7 @@ function mapContaToDb(clientId: string, data: ContaFormData) {
 }
 
 export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientConsolidacaoProps) {
+  const { getToken } = useAuth();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("Ativas");
   const [selectedConta, setSelectedConta] = useState<Conta | null>(null);
   const [editingConta, setEditingConta] = useState<Conta | null>(null);
@@ -129,11 +132,20 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
           return;
         }
         setContas((prev) => [mapDbConta(inserted), ...prev]);
+
+        // Sync consolidation statuses for the new conta
+        const token = await getToken();
+        apiRequest(
+          "POST",
+          `/api/consolidador/contas/${inserted.id}/sync-all`,
+          undefined,
+          { Authorization: `Bearer ${token}` },
+        ).catch((e) => console.warn("Sync after conta creation failed:", e));
       }
 
       setIsFormDialogOpen(false);
     },
-    [clientId, editingConta],
+    [clientId, editingConta, getToken],
   );
 
   const handleDeleteConta = useCallback(async (contaId: string) => {

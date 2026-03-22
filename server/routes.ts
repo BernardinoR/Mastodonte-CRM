@@ -8,6 +8,7 @@ import type { UserRole } from "@shared/types";
 import {
   getContaHistorico,
   syncContaWithSupabase,
+  syncContaExtratoStatuses,
   syncAllExtratoStatuses,
 } from "./consolidationHistory";
 
@@ -744,6 +745,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error syncing extrato:", error);
       return res.status(error.message === "Conta not found" ? 404 : 500).json({
         error: error.message || "Failed to sync extrato",
+      });
+    }
+  });
+
+  // Sync all months for a single conta
+  app.post("/api/consolidador/contas/:contaId/sync-all", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const result = await syncContaExtratoStatuses(req.params.contaId);
+      return res.json(result);
+    } catch (error: any) {
+      console.error("Error syncing conta extrato statuses:", error);
+      return res.status(error.message === "Conta not found" ? 404 : 500).json({
+        error: error.message || "Failed to sync conta",
       });
     }
   });

@@ -13,8 +13,10 @@ interface ConsolidadoRecord {
   Data: string;
   Instituicao: string;
   Nome?: string;
-  NomeConta?: string;
+  nomeConta?: string;
 }
+
+const CONSOLIDADO_SELECT = "Competencia, Data, Instituicao, Nome, nomeConta" as const;
 
 function getDefaultExtratoData(contaType: string): { status: string; receivedAt?: Date } {
   if (contaType === "Automático") {
@@ -25,8 +27,10 @@ function getDefaultExtratoData(contaType: string): { status: string; receivedAt?
 
 function removeAccents(str: string): string {
   return str
+    .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\s+/g, " ")
     .toLowerCase();
 }
 
@@ -106,9 +110,30 @@ function matchesAccount(
   if (removeAccents(record.Nome || "") !== normalizedClientName) return false;
   if (removeAccents(record.Instituicao) !== normalizedInst) return false;
   if (accountName) {
-    return removeAccents(record.NomeConta || "") === removeAccents(accountName);
+    return removeAccents(record.nomeConta || "") === removeAccents(accountName);
   }
-  return !record.NomeConta || record.NomeConta.trim() === "";
+  return !record.nomeConta || record.nomeConta.trim() === "";
+}
+
+async function upsertExtratoFromMatch(
+  contaId: string,
+  contaType: string,
+  competencia: string,
+  match: ConsolidadoRecord | undefined,
+) {
+  if (match) {
+    const consolidatedAt = parseConsolidatedDate(match.Data);
+    return prisma.extratoStatus.upsert({
+      where: { contaId_competencia: { contaId, competencia } },
+      create: { contaId, competencia, status: "Consolidado", consolidatedAt },
+      update: { status: "Consolidado", consolidatedAt },
+    });
+  }
+  return prisma.extratoStatus.upsert({
+    where: { contaId_competencia: { contaId, competencia } },
+    create: { contaId, competencia, ...getDefaultExtratoData(contaType) },
+    update: {},
+  });
 }
 
 // ============================================
@@ -172,7 +197,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
     // Single Supabase query per month
     const { data: allRecords, error } = await externalSupabase
       .from("ConsolidadoPerformance")
-      .select("Competencia, Data, Instituicao, Nome, NomeConta")
+      .select(CONSOLIDADO_SELECT)
       .eq("Competencia", month);
 
     if (error) {
@@ -190,20 +215,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
         matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
       );
 
-      if (match) {
-        const consolidatedAt = parseConsolidatedDate(match.Data);
-        await prisma.extratoStatus.upsert({
-          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-          create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
-          update: { status: "Consolidado", consolidatedAt },
-        });
-      } else {
-        await prisma.extratoStatus.upsert({
-          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-          create: { contaId: conta.id, competencia: month, ...getDefaultExtratoData(conta.type) },
-          update: {},
-        });
-      }
+      await upsertExtratoFromMatch(conta.id, conta.type, month, match);
 
       totalSynced++;
     }
@@ -236,7 +248,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   // Query Supabase for all records across missing months (no name filter in SQL — accents break ILIKE)
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
-    .select("Competencia, Data, Instituicao, Nome, NomeConta")
+    .select(CONSOLIDADO_SELECT)
     .in("Competencia", monthsToSync);
 
   if (error) {
@@ -255,21 +267,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
 
   let synced = 0;
   for (const month of monthsToSync) {
-    const match = matchMap.get(month);
-    if (match) {
-      const consolidatedAt = parseConsolidatedDate(match.Data);
-      await prisma.extratoStatus.upsert({
-        where: { contaId_competencia: { contaId, competencia: month } },
-        create: { contaId, competencia: month, status: "Consolidado", consolidatedAt },
-        update: { status: "Consolidado", consolidatedAt },
-      });
-    } else {
-      await prisma.extratoStatus.upsert({
-        where: { contaId_competencia: { contaId, competencia: month } },
-        create: { contaId, competencia: month, ...getDefaultExtratoData(conta.type) },
-        update: {},
-      });
-    }
+    await upsertExtratoFromMatch(contaId, conta.type, month, matchMap.get(month));
     synced++;
   }
 
@@ -293,7 +291,7 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   // No name filter in SQL — accents break ILIKE; match by name in JS with removeAccents
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
-    .select("Competencia, Data, Instituicao, Nome, NomeConta")
+    .select(CONSOLIDADO_SELECT)
     .eq("Competencia", competencia);
 
   if (error) {
@@ -306,12 +304,7 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
   );
 
   if (match) {
-    const consolidatedAt = parseConsolidatedDate(match.Data);
-    return prisma.extratoStatus.upsert({
-      where: { contaId_competencia: { contaId, competencia } },
-      create: { contaId, competencia, status: "Consolidado", consolidatedAt },
-      update: { status: "Consolidado", consolidatedAt },
-    });
+    return upsertExtratoFromMatch(contaId, conta.type, competencia, match);
   }
 
   // Check if there's an existing record - only reset if it was Consolidado
