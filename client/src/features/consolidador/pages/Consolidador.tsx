@@ -421,10 +421,11 @@ export default function Consolidador() {
         open={historicalOpen}
         onOpenChange={setHistoricalOpen}
         pendencies={historicalPendencies}
-        onStatusChange={handleStatusChange}
-        onMethodChange={handleMethodChange}
-        onConsolidar={handleConsolidar}
-        onSync={handleSync}
+        onMonthClick={(monthKey) => {
+          const [mm, yyyy] = monthKey.split("/");
+          setSelectedMonth(new Date(parseInt(yyyy), parseInt(mm) - 1, 1));
+          setHistoricalOpen(false);
+        }}
       />
 
       <ConsolidarModal
