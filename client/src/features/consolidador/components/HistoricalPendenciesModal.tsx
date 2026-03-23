@@ -10,7 +10,7 @@ interface HistoricalPendenciesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pendencies: Extrato[];
-  onMonthClick?: (monthKey: string) => void;
+  onMonthClick: (monthKey: string) => void;
 }
 
 interface MonthSummary {
@@ -36,7 +36,11 @@ function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
   }
 
   return Object.entries(groups)
-    .sort(([a], [b]) => b.localeCompare(a))
+    .sort(([a], [b]) => {
+      const dateA = parseReferenceMonth(a);
+      const dateB = parseReferenceMonth(b);
+      return dateB.getTime() - dateA.getTime();
+    })
     .map(([key, items]) => {
       const pendentes = items.filter((i) => i.status === "Pendente").length;
       const solicitados = items.filter((i) => i.status === "Solicitado").length;
@@ -121,7 +125,7 @@ export function HistoricalPendenciesModal({
                 key={month.key}
                 className="group flex w-full items-center gap-1 border-b border-zinc-800/30 px-5 py-3 text-left transition-colors hover:bg-zinc-800/30"
                 data-testid={`month-card-${month.key}`}
-                onClick={() => onMonthClick?.(month.key)}
+                onClick={() => onMonthClick(month.key)}
               >
                 <span className="flex-1 text-[13px] capitalize text-zinc-300">
                   {monthName}
