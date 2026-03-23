@@ -235,3 +235,41 @@ export function getPreviousMonths(beforeMonth: string, count: number): string[] 
   }
   return months;
 }
+
+export function getAllPendingMonths(contas: DbConta[]): string[] {
+  if (contas.length === 0) return [];
+
+  let earliestVal = Infinity;
+  let earliestMonth = 0;
+  let earliestYear = 0;
+
+  for (const conta of contas) {
+    const parsed = parseMonthYear(conta.start_date);
+    if (!parsed) continue;
+    const val = parsed.year * 12 + parsed.month;
+    if (val < earliestVal) {
+      earliestVal = val;
+      earliestMonth = parsed.month;
+      earliestYear = parsed.year;
+    }
+  }
+
+  if (earliestVal === Infinity) return [];
+
+  const now = new Date();
+  let upperM = now.getMonth();
+  let upperY = now.getFullYear();
+  if (upperM === 0) { upperM = 12; upperY--; }
+  const upperVal = upperY * 12 + upperM + 1;
+
+  const months: string[] = [];
+  let m = earliestMonth;
+  let y = earliestYear;
+  while (y * 12 + m < upperVal) {
+    months.push(`${String(m).padStart(2, "0")}/${y}`);
+    m++;
+    if (m > 12) { m = 1; y++; }
+  }
+
+  return months;
+}

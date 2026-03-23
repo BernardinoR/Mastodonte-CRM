@@ -17,7 +17,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import {
   buildExtratos,
   buildPendencias,
-  getPreviousMonths,
+  getAllPendingMonths,
   type DbConta,
   type DbWhatsappGroup,
 } from "../utils/buildExtratos";
@@ -89,8 +89,8 @@ export default function Consolidador() {
 
       setExtratos(buildExtratos(contas, whatsappGroups, month));
 
-      const months = getPreviousMonths(month, 3);
-      setHistoricalPendencies(buildPendencias(contas, whatsappGroups, months));
+      const historicalMonths = getAllPendingMonths(contas);
+      setHistoricalPendencies(buildPendencias(contas, whatsappGroups, historicalMonths));
     } catch (error) {
       console.error("Failed to fetch consolidador data:", error);
       setExtratos([]);
