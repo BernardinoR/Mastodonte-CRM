@@ -162,7 +162,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[520px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0">
+      <DialogContent hideCloseButton className="max-w-[640px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0">
         <VisuallyHidden>
           <DialogTitle>Consolidar Extrato</DialogTitle>
         </VisuallyHidden>
