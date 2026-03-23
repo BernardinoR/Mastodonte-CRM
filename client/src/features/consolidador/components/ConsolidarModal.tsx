@@ -26,6 +26,21 @@ interface ConsolidarModalProps {
   onConfirm: (extratoId: string) => void;
 }
 
+function getSlotCount(_extrato: Extrato): number {
+  return 1;
+}
+
+function buildSlots(count: number): FileSlot[] {
+  return Array.from({ length: count }, (_, i) => ({
+    label: `Extrato ${i + 1}`,
+    file: null,
+  }));
+}
+
+function isPdf(file: File): boolean {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+}
+
 function UploadZone({
   slot,
   onDrop,
@@ -94,7 +109,8 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
 
 export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: ConsolidarModalProps) {
   const [currency, setCurrency] = useState("BRL");
-  const [slots, setSlots] = useState<FileSlot[]>([{ label: "Extrato 1", file: null }]);
+  const slotCount = extrato ? getSlotCount(extrato) : 1;
+  const [slots, setSlots] = useState<FileSlot[]>(() => buildSlots(slotCount));
 
   if (!extrato) return null;
 
@@ -109,14 +125,14 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   const handleDrop = (index: number, e: React.DragEvent) => {
     const dropped = e.dataTransfer.files[0];
-    if (dropped?.type === "application/pdf") {
+    if (dropped && isPdf(dropped)) {
       updateSlotFile(index, dropped);
     }
   };
 
   const handleSelect = (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
-    if (selected) updateSlotFile(index, selected);
+    if (selected && isPdf(selected)) updateSlotFile(index, selected);
   };
 
   const hasFiles = slots.some((s) => s.file !== null);
@@ -128,7 +144,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   const resetState = () => {
     setCurrency("BRL");
-    setSlots([{ label: "Extrato 1", file: null }]);
+    setSlots(buildSlots(slotCount));
   };
 
   const handleClose = (value: boolean) => {
