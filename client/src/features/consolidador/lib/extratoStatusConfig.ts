@@ -69,7 +69,7 @@ export function getStatusElapsedText(extrato: Extrato): string {
 
   if (!dateStr) return status;
 
-  const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24));
+  const days = Math.max(0, Math.floor((Date.now() - new Date(dateStr).getTime()) / (1000 * 60 * 60 * 24)));
   const elapsed = days === 0 ? "hoje" : days === 1 ? "há 1 dia" : `há ${days} dias`;
 
   return `${status} ${elapsed}`;
