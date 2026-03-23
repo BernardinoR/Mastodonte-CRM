@@ -421,6 +421,10 @@ export default function Consolidador() {
         open={historicalOpen}
         onOpenChange={setHistoricalOpen}
         pendencies={historicalPendencies}
+        onStatusChange={handleStatusChange}
+        onMethodChange={handleMethodChange}
+        onConsolidar={handleConsolidar}
+        onSync={handleSync}
       />
 
       <ConsolidarModal
