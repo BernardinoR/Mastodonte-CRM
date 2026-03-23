@@ -25,8 +25,8 @@ interface ConsolidarModalProps {
   onConfirm: (extratoId: string) => void;
 }
 
-function getSlotCount(_extrato: Extrato): number {
-  return 1;
+function getSlotCount(extrato: Extrato): number {
+  return extrato.attachmentCount;
 }
 
 function buildSlots(count: number): FileSlot[] {
@@ -60,7 +60,9 @@ function UploadZone({
           <FileText className="h-4 w-4 text-emerald-400" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm text-zinc-200" data-testid="text-file-name">{slot.file.name}</p>
+          <p className="truncate text-sm text-zinc-200" data-testid="text-file-name">
+            {slot.file.name}
+          </p>
           <p className="text-[11px] text-zinc-600">{(slot.file.size / 1024).toFixed(0)} KB</p>
         </div>
         <button
@@ -77,13 +79,18 @@ function UploadZone({
   return (
     <div
       className={`flex flex-col items-center justify-center gap-1.5 rounded-md border border-dashed px-4 py-5 transition-colors ${
-        dragOver
-          ? "border-orange-400/60 bg-orange-400/5"
-          : "border-zinc-700/60 bg-zinc-900/30"
+        dragOver ? "border-orange-400/60 bg-orange-400/5" : "border-zinc-700/60 bg-zinc-900/30"
       }`}
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
       onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => { e.preventDefault(); setDragOver(false); onDrop(e); }}
+      onDrop={(e) => {
+        e.preventDefault();
+        setDragOver(false);
+        onDrop(e);
+      }}
     >
       <Upload className="h-5 w-5 text-zinc-600" />
       <p className="text-xs text-zinc-500">
@@ -100,7 +107,9 @@ function UploadZone({
 function InfoField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">{label}</span>
+      <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">
+        {label}
+      </span>
       <div className="text-sm text-zinc-300">{children}</div>
     </div>
   );
@@ -162,7 +171,10 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent hideCloseButton className="max-w-[640px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0">
+      <DialogContent
+        hideCloseButton
+        className="max-w-[640px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0"
+      >
         <VisuallyHidden>
           <DialogTitle>Consolidar Extrato</DialogTitle>
         </VisuallyHidden>
@@ -176,7 +188,9 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
               <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-500/20 text-[10px] font-bold text-orange-400">
                 {institutionInitial}
               </span>
-              <span className="ml-1.5 text-sm font-medium text-zinc-300">{extrato.institution}</span>
+              <span className="ml-1.5 text-sm font-medium text-zinc-300">
+                {extrato.institution}
+              </span>
             </div>
           </div>
 
@@ -192,9 +206,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
             <InfoField label="Competencia">
               <span className="capitalize">{referenceLabel}</span>
             </InfoField>
-            <InfoField label="Nome da Conta">
-              {extrato.accountType || "\u2014"}
-            </InfoField>
+            <InfoField label="Nome da Conta">{extrato.accountType || "\u2014"}</InfoField>
             <InfoField label="Moeda">
               <Select value={currency} onValueChange={setCurrency}>
                 <SelectTrigger
@@ -245,7 +257,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
               hasFiles
                 ? "bg-orange-500/15 text-orange-400 hover:bg-orange-500/25"
-                : "bg-zinc-800/60 text-zinc-600 cursor-not-allowed"
+                : "cursor-not-allowed bg-zinc-800/60 text-zinc-600"
             }`}
             disabled={!hasFiles}
             data-testid="button-consolidar"

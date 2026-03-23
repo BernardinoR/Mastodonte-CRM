@@ -24,6 +24,7 @@ interface DbClient {
 
 interface DbInstitution {
   name: string;
+  attachment_count: number;
 }
 
 export interface DbConta {
@@ -123,8 +124,7 @@ function mapContaToExtrato(
         : (conta.manager_phone ?? undefined);
     contactEmail = conta.manager_email ?? undefined;
     contactName = conta.manager_name ?? undefined;
-    clientEmail =
-      conta.client.emails?.[conta.client.primary_email_index ?? 0] ?? undefined;
+    clientEmail = conta.client.emails?.[conta.client.primary_email_index ?? 0] ?? undefined;
     whatsappIsGroup = !!conta.whatsapp_group_linked;
     whatsappGroupLink =
       conta.whatsapp_group_linked && conta.whatsapp_group_id
@@ -134,8 +134,7 @@ function mapContaToExtrato(
     hasWhatsApp = canais.includes("WhatsApp") && !!conta.client.phone;
     hasEmail = canais.includes("Email") && (conta.client.emails?.length ?? 0) > 0;
     contactPhone = conta.client.phone ?? undefined;
-    contactEmail =
-      conta.client.emails?.[conta.client.primary_email_index ?? 0] ?? undefined;
+    contactEmail = conta.client.emails?.[conta.client.primary_email_index ?? 0] ?? undefined;
     contactName = conta.client.name.split(" ")[0];
     whatsappIsGroup = false;
   }
@@ -164,6 +163,7 @@ function mapContaToExtrato(
     contactName,
     whatsappIsGroup,
     whatsappGroupLink,
+    attachmentCount: conta.institution.attachment_count ?? 1,
   };
 }
 
@@ -210,9 +210,7 @@ export function buildPendencias(
       const status = es?.status || getDefaultStatus(conta.type);
       if (status === "Consolidado") continue;
 
-      allExtratos.push(
-        mapContaToExtrato(conta, es, month, whatsappGroupMap, whatsappGroupLinkMap),
-      );
+      allExtratos.push(mapContaToExtrato(conta, es, month, whatsappGroupMap, whatsappGroupLinkMap));
     }
   }
 
@@ -259,7 +257,10 @@ export function getAllPendingMonths(contas: DbConta[]): string[] {
   const now = new Date();
   let upperM = now.getMonth();
   let upperY = now.getFullYear();
-  if (upperM === 0) { upperM = 12; upperY--; }
+  if (upperM === 0) {
+    upperM = 12;
+    upperY--;
+  }
   const upperVal = upperY * 12 + upperM + 1;
 
   const months: string[] = [];
@@ -268,7 +269,10 @@ export function getAllPendingMonths(contas: DbConta[]): string[] {
   while (y * 12 + m < upperVal) {
     months.push(`${String(m).padStart(2, "0")}/${y}`);
     m++;
-    if (m > 12) { m = 1; y++; }
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
   }
 
   return months;
