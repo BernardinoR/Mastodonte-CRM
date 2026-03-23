@@ -102,21 +102,20 @@ export function HistoricalPendenciesModal({
           </div>
         </div>
 
-        <div className={`${COL_GRID} border-b border-zinc-800/40 px-6 py-2.5`}>
-          <span className="text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
-          <span className="flex items-center justify-center" title="Pendentes">
-            <span className="h-2 w-2 rounded-full bg-orange-500" />
-          </span>
-          <span className="flex items-center justify-center" title="Solicitados">
-            <span className="h-2 w-2 rounded-full bg-sky-500" />
-          </span>
-          <span className="flex items-center justify-center" title="Recebidos">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span />
-        </div>
-
-        <div className="overflow-y-auto" style={{ maxHeight: `${5 * 52}px` }}>
+        <div className="overflow-y-auto" style={{ maxHeight: `${5 * 52 + 36}px`, scrollbarGutter: "stable" }}>
+          <div className={`${COL_GRID} sticky top-0 z-10 border-b border-zinc-800/40 bg-[#1a1a1a] px-6 py-2.5`}>
+            <span className="text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
+            <span className="flex items-center justify-center" title="Pendentes">
+              <span className="h-2 w-2 rounded-full bg-orange-500" />
+            </span>
+            <span className="flex items-center justify-center" title="Solicitados">
+              <span className="h-2 w-2 rounded-full bg-sky-500" />
+            </span>
+            <span className="flex items-center justify-center" title="Recebidos">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span />
+          </div>
           {summaries.map((month) => {
             const [monthName, yearStr] = month.label.split(" ");
             return (
