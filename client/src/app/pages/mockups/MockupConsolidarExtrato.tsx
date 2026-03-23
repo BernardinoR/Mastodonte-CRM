@@ -4,7 +4,6 @@ import { Upload, FileText, X, ChevronDown } from "lucide-react";
 type FileSlot = {
   label: string;
   file: File | null;
-  dragOver: boolean;
 };
 
 const CURRENCIES = ["BRL", "USD", "EUR", "GBP", "CHF"] as const;
@@ -104,12 +103,12 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
-export default function MockupConsolidarExtrato() {
+function ConsolidarModal({ slotCount }: { slotCount: 1 | 2 }) {
   const [currency, setCurrency] = useState("BRL");
-  const [slots, setSlots] = useState<FileSlot[]>([
-    { label: "Extrato Investimentos", file: null, dragOver: false },
-    { label: "Extrato Previdencia", file: null, dragOver: false },
-  ]);
+  const initialSlots: FileSlot[] = slotCount === 1
+    ? [{ label: "Extrato 1", file: null }]
+    : [{ label: "Extrato 1", file: null }, { label: "Extrato 2", file: null }];
+  const [slots, setSlots] = useState<FileSlot[]>(initialSlots);
 
   const updateSlotFile = (index: number, file: File | null) => {
     setSlots((prev) => prev.map((s, i) => (i === index ? { ...s, file } : s)));
@@ -134,87 +133,99 @@ export default function MockupConsolidarExtrato() {
     clientInitials: "MO",
     referenceLabel: "Fevereiro 2026",
     accountName: "Avenue Securities LLC",
-    accountType: "Investimentos",
   };
 
   const hasFiles = slots.some((s) => s.file !== null);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#111] p-6" data-testid="mockup-consolidar-wrapper">
-      <div
-        className="flex w-full max-w-[520px] flex-col overflow-hidden rounded-lg border border-zinc-800 bg-[#1a1a1a] shadow-2xl shadow-black/60"
-        data-testid="consolidar-modal"
-      >
-        <div className="border-b border-zinc-800/60 px-6 py-5">
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-lg font-semibold text-zinc-100" data-testid="text-modal-title">
-              Consolidar Extrato
-            </h2>
-            <div className="flex h-8 items-center rounded-md bg-zinc-800/60 px-2.5">
-              <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-500/20 text-[10px] font-bold text-orange-400">
-                {mockExtrato.institutionInitial}
+    <div
+      className="flex w-full max-w-[520px] flex-col overflow-hidden rounded-lg border border-zinc-800 bg-[#1a1a1a] shadow-2xl shadow-black/60"
+      data-testid="consolidar-modal"
+    >
+      <div className="border-b border-zinc-800/60 px-6 py-5">
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-lg font-semibold text-zinc-100" data-testid="text-modal-title">
+            Consolidar Extrato
+          </h2>
+          <div className="flex h-8 items-center rounded-md bg-zinc-800/60 px-2.5">
+            <span className="flex h-5 w-5 items-center justify-center rounded bg-orange-500/20 text-[10px] font-bold text-orange-400">
+              {mockExtrato.institutionInitial}
+            </span>
+            <span className="ml-1.5 text-sm font-medium text-zinc-300">{mockExtrato.institution}</span>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3">
+          <InfoField label="Cliente">
+            <div className="flex items-center gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-zinc-800 text-[9px] font-bold text-zinc-400">
+                {mockExtrato.clientInitials}
               </span>
-              <span className="ml-1.5 text-sm font-medium text-zinc-300">{mockExtrato.institution}</span>
+              <span className="truncate">{mockExtrato.clientName}</span>
             </div>
+          </InfoField>
+          <InfoField label="Competencia">
+            <span className="capitalize">{mockExtrato.referenceLabel}</span>
+          </InfoField>
+          <InfoField label="Nome da Conta">
+            {mockExtrato.accountName}
+          </InfoField>
+          <InfoField label="Moeda">
+            <CurrencySelect value={currency} onChange={setCurrency} />
+          </InfoField>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 px-6 py-4">
+        <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">
+          Anexar Extratos ({slots.length})
+        </span>
+        {slots.map((slot, i) => (
+          <div key={i} className="flex flex-col gap-1.5">
+            <span className="text-xs text-zinc-500">{slot.label}</span>
+            <UploadZone
+              slot={slot}
+              onDrop={(e) => handleDrop(i, e)}
+              onSelect={(e) => handleSelect(i, e)}
+              onRemove={() => updateSlotFile(i, null)}
+            />
           </div>
+        ))}
+      </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-x-6 gap-y-3">
-            <InfoField label="Cliente">
-              <div className="flex items-center gap-2">
-                <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-zinc-800 text-[9px] font-bold text-zinc-400">
-                  {mockExtrato.clientInitials}
-                </span>
-                <span className="truncate">{mockExtrato.clientName}</span>
-              </div>
-            </InfoField>
-            <InfoField label="Competencia">
-              <span className="capitalize">{mockExtrato.referenceLabel}</span>
-            </InfoField>
-            <InfoField label="Conta">
-              {mockExtrato.accountName}
-            </InfoField>
-            <InfoField label="Moeda">
-              <CurrencySelect value={currency} onChange={setCurrency} />
-            </InfoField>
-          </div>
-        </div>
+      <div className="flex items-center justify-between border-t border-zinc-800/60 px-6 py-3">
+        <button
+          className="rounded-md px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
+          data-testid="button-cancel"
+        >
+          Cancelar
+        </button>
+        <button
+          className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
+            hasFiles
+              ? "bg-orange-500/15 text-orange-400 hover:bg-orange-500/25"
+              : "bg-zinc-800/60 text-zinc-600 cursor-not-allowed"
+          }`}
+          disabled={!hasFiles}
+          data-testid="button-consolidar"
+        >
+          Enviar e Consolidar
+        </button>
+      </div>
+    </div>
+  );
+}
 
-        <div className="flex flex-col gap-3 px-6 py-4">
-          <span className="text-[11px] font-medium uppercase tracking-wider text-zinc-600">
-            Anexar Extratos ({slots.length})
-          </span>
-          {slots.map((slot, i) => (
-            <div key={i} className="flex flex-col gap-1.5">
-              <span className="text-xs text-zinc-500">{slot.label}</span>
-              <UploadZone
-                slot={slot}
-                onDrop={(e) => handleDrop(i, e)}
-                onSelect={(e) => handleSelect(i, e)}
-                onRemove={() => updateSlotFile(i, null)}
-              />
-            </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between border-t border-zinc-800/60 px-6 py-3">
-          <button
-            className="rounded-md px-4 py-2 text-sm font-medium text-zinc-500 transition-colors hover:bg-zinc-800 hover:text-zinc-300"
-            data-testid="button-cancel"
-          >
-            Cancelar
-          </button>
-          <button
-            className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              hasFiles
-                ? "bg-orange-500/15 text-orange-400 hover:bg-orange-500/25"
-                : "bg-zinc-800/60 text-zinc-600 cursor-not-allowed"
-            }`}
-            disabled={!hasFiles}
-            data-testid="button-consolidar"
-          >
-            Enviar e Consolidar
-          </button>
-        </div>
+export default function MockupConsolidarExtrato() {
+  return (
+    <div className="flex min-h-screen items-center justify-center gap-10 bg-[#111] p-6" data-testid="mockup-consolidar-wrapper">
+      <div className="flex flex-col items-center gap-3">
+        <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-600">1 Anexo</span>
+        <ConsolidarModal slotCount={1} />
+      </div>
+      <div className="flex flex-col items-center gap-3">
+        <span className="text-[10px] font-medium uppercase tracking-widest text-zinc-600">2 Anexos</span>
+        <ConsolidarModal slotCount={2} />
       </div>
     </div>
   );
