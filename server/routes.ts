@@ -713,15 +713,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         update: updateData,
       });
 
-      // If marking as Consolidado, sync with Supabase to confirm
-      if (status === "Consolidado") {
-        try {
-          await syncContaWithSupabase(contaId, competencia);
-        } catch (e) {
-          console.warn("Post-consolidation sync failed:", e);
-        }
-      }
-
       return res.json({ extratoStatus: result });
     } catch (error) {
       console.error("Error updating extrato status:", error);
