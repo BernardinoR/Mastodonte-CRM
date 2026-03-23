@@ -26,6 +26,7 @@ export interface Extrato {
   whatsappIsGroup?: boolean;
   whatsappGroupLink?: string;
   attachmentCount: number;
+  institutionCurrency?: string;
 }
 
 export interface ClientExtratoGroup {

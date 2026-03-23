@@ -23,6 +23,8 @@ const CURRENCY_MAP: Record<string, string> = {
   CHF: "Franco",
 };
 
+const REVERSE_CURRENCY = Object.fromEntries(Object.entries(CURRENCY_MAP).map(([k, v]) => [v, k]));
+
 type FileSlot = {
   label: string;
   file: File | null;
@@ -125,8 +127,14 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
   );
 }
 
+function getDefaultCurrency(extrato: Extrato | null): string {
+  if (!extrato?.institutionCurrency) return "BRL";
+  return REVERSE_CURRENCY[extrato.institutionCurrency] ?? "BRL";
+}
+
 export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: ConsolidarModalProps) {
-  const [currency, setCurrency] = useState("BRL");
+  const defaultCurrency = getDefaultCurrency(extrato);
+  const [currency, setCurrency] = useState(defaultCurrency);
   const [sending, setSending] = useState(false);
   const slotCount = extrato ? getSlotCount(extrato) : 1;
   const [slots, setSlots] = useState<FileSlot[]>(() => buildSlots(slotCount));
@@ -134,7 +142,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
   useEffect(() => {
     if (extrato) {
       setSlots(buildSlots(getSlotCount(extrato)));
-      setCurrency("BRL");
+      setCurrency(getDefaultCurrency(extrato));
       setSending(false);
     }
   }, [extrato?.id]);
@@ -196,7 +204,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
   };
 
   const resetState = () => {
-    setCurrency("BRL");
+    setCurrency(defaultCurrency);
     setSlots(buildSlots(slotCount));
   };
 

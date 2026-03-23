@@ -40,7 +40,7 @@ const CONTA_SELECT = `
   manager_phone, manager_email, manager_name,
   whatsapp_group_id, whatsapp_group_linked,
   client:clients!client_id(name, initials, emails, primary_email_index, phone),
-  institution:institutions!institution_id(name, attachment_count),
+  institution:institutions!institution_id(name, attachment_count, currency),
   extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
 `;
 

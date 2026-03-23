@@ -25,6 +25,7 @@ interface DbClient {
 interface DbInstitution {
   name: string;
   attachment_count: number;
+  currency: string;
 }
 
 export interface DbConta {
@@ -164,6 +165,7 @@ function mapContaToExtrato(
     whatsappIsGroup,
     whatsappGroupLink,
     attachmentCount: conta.institution.attachment_count ?? 1,
+    institutionCurrency: conta.institution.currency,
   };
 }
 
