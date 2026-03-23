@@ -1,10 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, FileText, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Dialog, DialogContent } from "@/shared/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import { DialogTitle } from "@/shared/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -111,6 +110,13 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
   const [currency, setCurrency] = useState("BRL");
   const slotCount = extrato ? getSlotCount(extrato) : 1;
   const [slots, setSlots] = useState<FileSlot[]>(() => buildSlots(slotCount));
+
+  useEffect(() => {
+    if (extrato) {
+      setSlots(buildSlots(getSlotCount(extrato)));
+      setCurrency("BRL");
+    }
+  }, [extrato?.id]);
 
   if (!extrato) return null;
 
