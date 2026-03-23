@@ -53,13 +53,15 @@ function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
 }
 
 function CountCell({ value, color }: { value: number; color: string }) {
-  if (value === 0) return <span className="w-6 text-center text-sm tabular-nums text-zinc-700">-</span>;
+  if (value === 0) return <span className="text-center text-sm tabular-nums text-zinc-700">-</span>;
   return (
-    <span className={`flex w-6 items-center justify-center text-sm font-medium tabular-nums ${color}`}>
+    <span className={`text-center text-sm font-medium tabular-nums ${color}`}>
       {value}
     </span>
   );
 }
+
+const COL_GRID = "grid grid-cols-[1fr_2rem_2rem_2rem_1.5rem] items-center gap-x-2";
 
 export function HistoricalPendenciesModal({
   open,
@@ -75,7 +77,6 @@ export function HistoricalPendenciesModal({
     () => summaries.filter((m) => m.pendentes > 0 || m.solicitados > 0 || m.recebidos > 0).length,
     [summaries],
   );
-  const totalPendencias = totalAll - totalRecebidos;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -96,25 +97,23 @@ export function HistoricalPendenciesModal({
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-orange-500/10">
             <span className="text-base font-bold text-orange-400" data-testid="badge-total-pendentes">
-              {totalPendencias}
+              {totalAll}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 border-b border-zinc-800/40 px-6 py-2.5">
-          <span className="flex-1 text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
-          <div className="flex shrink-0 items-center gap-3">
-            <span className="flex w-6 items-center justify-center" title="Pendentes">
-              <span className="h-2 w-2 rounded-full bg-orange-500" />
-            </span>
-            <span className="flex w-6 items-center justify-center" title="Solicitados">
-              <span className="h-2 w-2 rounded-full bg-sky-500" />
-            </span>
-            <span className="flex w-6 items-center justify-center" title="Recebidos">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
-          </div>
-          <span className="ml-2 w-4 shrink-0" />
+        <div className={`${COL_GRID} border-b border-zinc-800/40 px-6 py-2.5`}>
+          <span className="text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
+          <span className="flex items-center justify-center" title="Pendentes">
+            <span className="h-2 w-2 rounded-full bg-orange-500" />
+          </span>
+          <span className="flex items-center justify-center" title="Solicitados">
+            <span className="h-2 w-2 rounded-full bg-sky-500" />
+          </span>
+          <span className="flex items-center justify-center" title="Recebidos">
+            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+          </span>
+          <span />
         </div>
 
         <div className="overflow-y-auto" style={{ maxHeight: `${5 * 52}px` }}>
@@ -123,22 +122,20 @@ export function HistoricalPendenciesModal({
             return (
               <button
                 key={month.key}
-                className="group flex w-full items-center gap-1 border-b border-zinc-800/30 px-6 py-3.5 text-left transition-colors hover:bg-zinc-800/30"
+                className={`group ${COL_GRID} w-full border-b border-zinc-800/30 px-6 py-3.5 text-left transition-colors hover:bg-zinc-800/30`}
                 data-testid={`month-card-${month.key}`}
                 onClick={() => onMonthClick(month.key)}
               >
-                <span className="flex-1 text-base capitalize text-zinc-300">
+                <span className="text-base capitalize text-zinc-300">
                   {monthName}
                   <span className="ml-1 text-zinc-600">{yearStr}</span>
                 </span>
 
-                <div className="flex shrink-0 items-center gap-3">
-                  <CountCell value={month.pendentes} color="text-orange-400" />
-                  <CountCell value={month.solicitados} color="text-sky-400" />
-                  <CountCell value={month.recebidos} color="text-emerald-400" />
-                </div>
+                <CountCell value={month.pendentes} color="text-orange-400" />
+                <CountCell value={month.solicitados} color="text-sky-400" />
+                <CountCell value={month.recebidos} color="text-emerald-400" />
 
-                <ChevronRight className="ml-2 h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" />
+                <ChevronRight className="mx-auto h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" />
               </button>
             );
           })}

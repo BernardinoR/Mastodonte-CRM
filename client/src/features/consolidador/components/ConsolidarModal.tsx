@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Upload, FileText, X } from "lucide-react";
+import { Upload, FileText, X, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/components/ui/dialog";
@@ -12,6 +12,16 @@ import {
   SelectValue,
 } from "@/shared/components/ui/select";
 import type { Extrato } from "../types/extrato";
+
+const WEBHOOK_URL = "https://webhooks.snowealth.com.br/webhook/extrato";
+
+const CURRENCY_MAP: Record<string, string> = {
+  BRL: "Real",
+  USD: "Dolar",
+  EUR: "Euro",
+  GBP: "Libra",
+  CHF: "Franco",
+};
 
 type FileSlot = {
   label: string;
@@ -117,6 +127,7 @@ function InfoField({ label, children }: { label: string; children: React.ReactNo
 
 export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: ConsolidarModalProps) {
   const [currency, setCurrency] = useState("BRL");
+  const [sending, setSending] = useState(false);
   const slotCount = extrato ? getSlotCount(extrato) : 1;
   const [slots, setSlots] = useState<FileSlot[]>(() => buildSlots(slotCount));
 
@@ -124,6 +135,7 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
     if (extrato) {
       setSlots(buildSlots(getSlotCount(extrato)));
       setCurrency("BRL");
+      setSending(false);
     }
   }, [extrato?.id]);
 
@@ -152,9 +164,35 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
 
   const hasFiles = slots.some((s) => s.file !== null);
 
-  const handleConfirm = () => {
-    onConfirm(extrato.id);
-    resetState();
+  const handleConfirm = async () => {
+    setSending(true);
+    try {
+      const formData = new FormData();
+      formData.append("cliente", extrato.clientName);
+      formData.append("instituicao", extrato.institution);
+      formData.append("moeda", CURRENCY_MAP[currency] ?? currency);
+      formData.append("competencia", extrato.referenceMonth);
+      formData.append("tipos", JSON.stringify(["Performance"]));
+      formData.append("nomeConta", extrato.accountType || "");
+
+      slots.forEach((slot, i) => {
+        if (slot.file) {
+          formData.append("data", slot.file, slot.file.name);
+          formData.append(`filename_${i}`, slot.file.name);
+          formData.append(`mimetype_${i}`, slot.file.type || "application/pdf");
+          formData.append(`size_${i}`, String(slot.file.size));
+        }
+      });
+
+      await fetch(WEBHOOK_URL, { method: "POST", body: formData });
+
+      onConfirm(extrato.id);
+      resetState();
+    } catch (error) {
+      console.error("Failed to send to webhook:", error);
+    } finally {
+      setSending(false);
+    }
   };
 
   const resetState = () => {
@@ -255,14 +293,21 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
           <button
             onClick={handleConfirm}
             className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              hasFiles
+              hasFiles && !sending
                 ? "bg-orange-500/15 text-orange-400 hover:bg-orange-500/25"
                 : "cursor-not-allowed bg-zinc-800/60 text-zinc-600"
             }`}
-            disabled={!hasFiles}
+            disabled={!hasFiles || sending}
             data-testid="button-consolidar"
           >
-            Enviar e Consolidar
+            {sending ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Enviando...
+              </span>
+            ) : (
+              "Enviar e Consolidar"
+            )}
           </button>
         </div>
       </DialogContent>
