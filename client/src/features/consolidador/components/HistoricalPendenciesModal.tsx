@@ -72,7 +72,7 @@ export function HistoricalPendenciesModal({
   const totalAll = useMemo(() => summaries.reduce((sum, m) => sum + m.total, 0), [summaries]);
   const totalRecebidos = useMemo(() => summaries.reduce((sum, m) => sum + m.recebidos, 0), [summaries]);
   const mesesComPendencia = useMemo(
-    () => summaries.filter((m) => m.pendentes > 0 || m.solicitados > 0).length,
+    () => summaries.filter((m) => m.pendentes > 0 || m.solicitados > 0 || m.recebidos > 0).length,
     [summaries],
   );
   const totalPendencias = totalAll - totalRecebidos;
@@ -103,7 +103,7 @@ export function HistoricalPendenciesModal({
 
         <div className="flex items-center gap-1 border-b border-zinc-800/40 px-6 py-2.5">
           <span className="flex-1 text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
-          <div className="flex items-center gap-3">
+          <div className="flex shrink-0 items-center gap-3">
             <span className="flex w-6 items-center justify-center" title="Pendentes">
               <span className="h-2 w-2 rounded-full bg-orange-500" />
             </span>
@@ -132,7 +132,7 @@ export function HistoricalPendenciesModal({
                   <span className="ml-1 text-zinc-600">{yearStr}</span>
                 </span>
 
-                <div className="flex items-center gap-3">
+                <div className="flex shrink-0 items-center gap-3">
                   <CountCell value={month.pendentes} color="text-orange-400" />
                   <CountCell value={month.solicitados} color="text-sky-400" />
                   <CountCell value={month.recebidos} color="text-emerald-400" />
