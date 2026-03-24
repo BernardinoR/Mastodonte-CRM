@@ -129,10 +129,19 @@ async function upsertExtratoFromMatch(
       update: { status: "Consolidado", consolidatedAt },
     });
   }
-  return prisma.extratoStatus.upsert({
+  // Sem match — reverter "Consolidado" falso, preservar outros status
+  const existing = await prisma.extratoStatus.findUnique({
     where: { contaId_competencia: { contaId, competencia } },
-    create: { contaId, competencia, ...getDefaultExtratoData(contaType) },
-    update: {},
+  });
+  if (existing && existing.status === "Consolidado") {
+    return prisma.extratoStatus.update({
+      where: { id: existing.id },
+      data: { ...getDefaultExtratoData(contaType), consolidatedAt: null },
+    });
+  }
+  if (existing) return existing;
+  return prisma.extratoStatus.create({
+    data: { contaId, competencia, ...getDefaultExtratoData(contaType) },
   });
 }
 
@@ -184,15 +193,11 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
 
     const contaIds = eligibleContas.map((c) => c.id);
 
+    // 1 query por mês — usado como mapa para evitar writes desnecessários
     const existingStatuses = await prisma.extratoStatus.findMany({
       where: { contaId: { in: contaIds }, competencia: month },
     });
-    // Pular apenas contas já consolidadas
-    const consolidatedSet = new Set(
-      existingStatuses.filter((s) => s.status === "Consolidado").map((s) => s.contaId),
-    );
-    const contasToSync = eligibleContas.filter((c) => !consolidatedSet.has(c.id));
-    if (contasToSync.length === 0) continue;
+    const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
 
     // Single Supabase query per month
     const { data: allRecords, error } = await externalSupabase
@@ -207,7 +212,7 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
 
     const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
 
-    for (const conta of contasToSync) {
+    for (const conta of eligibleContas) {
       const normalizedClientName = removeAccents(conta.client.name);
       const normalizedInst = removeAccents(conta.institution.name);
 
@@ -215,9 +220,39 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
         matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
       );
 
-      await upsertExtratoFromMatch(conta.id, conta.type, month, match);
+      const existing = statusMap.get(conta.id);
 
-      totalSynced++;
+      if (match) {
+        // Tem match no Supabase → marcar Consolidado (só se ainda não está)
+        if (existing?.status !== "Consolidado") {
+          const consolidatedAt = parseConsolidatedDate(match.Data);
+          await prisma.extratoStatus.upsert({
+            where: { contaId_competencia: { contaId: conta.id, competencia: month } },
+            create: {
+              contaId: conta.id,
+              competencia: month,
+              status: "Consolidado",
+              consolidatedAt,
+            },
+            update: { status: "Consolidado", consolidatedAt },
+          });
+          totalSynced++;
+        }
+      } else if (existing?.status === "Consolidado") {
+        // Sem match mas estava Consolidado → REVERTER para Pendente
+        await prisma.extratoStatus.update({
+          where: { id: existing.id },
+          data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
+        });
+        totalSynced++;
+      } else if (!existing) {
+        // Sem match e sem registro → criar com status padrão
+        await prisma.extratoStatus.create({
+          data: { contaId: conta.id, competencia: month, ...getDefaultExtratoData(conta.type) },
+        });
+        totalSynced++;
+      }
+      // Sem match + status manual (Solicitado/Recebido/Pendente) → não toca
     }
   }
 
@@ -235,21 +270,11 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   const monthRange = generateMonthRange(conta.startDate);
   if (monthRange.length === 0) return { synced: 0 };
 
-  const existingStatuses = await prisma.extratoStatus.findMany({
-    where: { contaId },
-  });
-  // Incluir meses sem status E meses com status não-consolidado
-  const consolidatedSet = new Set(
-    existingStatuses.filter((s) => s.status === "Consolidado").map((s) => s.competencia),
-  );
-  const monthsToSync = monthRange.filter((m) => !consolidatedSet.has(m));
-  if (monthsToSync.length === 0) return { synced: 0 };
-
-  // Query Supabase for all records across missing months (no name filter in SQL — accents break ILIKE)
+  // Query Supabase for all records (no name filter in SQL — accents break ILIKE)
   const { data: records, error } = await externalSupabase
     .from("ConsolidadoPerformance")
     .select(CONSOLIDADO_SELECT)
-    .in("Competencia", monthsToSync);
+    .in("Competencia", monthRange);
 
   if (error) {
     console.error(`[sync-conta] Supabase error for conta ${contaId}:`, error);
@@ -266,7 +291,7 @@ export async function syncContaExtratoStatuses(contaId: string): Promise<{ synce
   }
 
   let synced = 0;
-  for (const month of monthsToSync) {
+  for (const month of monthRange) {
     await upsertExtratoFromMatch(contaId, conta.type, month, matchMap.get(month));
     synced++;
   }
@@ -303,27 +328,7 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
     matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
   );
 
-  if (match) {
-    return upsertExtratoFromMatch(contaId, conta.type, competencia, match);
-  }
-
-  // Check if there's an existing record - only reset if it was Consolidado
-  const existing = await prisma.extratoStatus.findUnique({
-    where: { contaId_competencia: { contaId, competencia } },
-  });
-
-  if (existing && existing.status === "Consolidado") {
-    return prisma.extratoStatus.update({
-      where: { id: existing.id },
-      data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
-    });
-  }
-
-  if (existing) return existing;
-
-  return prisma.extratoStatus.create({
-    data: { contaId, competencia, ...getDefaultExtratoData(conta.type) },
-  });
+  return upsertExtratoFromMatch(contaId, conta.type, competencia, match);
 }
 
 function isMonthInRange(month: string, startDate: string, endDate: string | null): boolean {
