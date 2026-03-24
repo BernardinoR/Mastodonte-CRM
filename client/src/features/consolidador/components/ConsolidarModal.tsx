@@ -177,7 +177,10 @@ export function ConsolidarModal({ open, onOpenChange, extrato, onConfirm }: Cons
     try {
       const formData = new FormData();
       formData.append("cliente", extrato.clientName);
-      formData.append("instituicao", extrato.institution);
+      formData.append(
+        "instituicao",
+        extrato.institution.normalize("NFD").replace(/[\u0300-\u036f]/g, ""),
+      );
       formData.append("moeda", CURRENCY_MAP[currency] ?? currency);
       formData.append("competencia", extrato.referenceMonth);
       formData.append("tipos", JSON.stringify(["Performance"]));
