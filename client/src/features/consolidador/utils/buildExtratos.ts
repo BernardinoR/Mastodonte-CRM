@@ -236,6 +236,21 @@ export function getPreviousMonths(beforeMonth: string, count: number): string[] 
   return months;
 }
 
+export function getPendingMonthsForConta(conta: DbConta, allMonths: string[]): string[] {
+  return allMonths
+    .filter((month) => {
+      if (!isMonthInRange(month, conta.start_date, conta.end_date)) return false;
+      const es = conta.extrato_statuses.find((s) => s.competencia === month);
+      const status = es?.status || getDefaultStatus(conta.type);
+      return status !== "Consolidado";
+    })
+    .sort((a, b) => {
+      const pa = parseMonthYear(a)!;
+      const pb = parseMonthYear(b)!;
+      return pa.year * 12 + pa.month - (pb.year * 12 + pb.month);
+    });
+}
+
 export function getAllPendingMonths(contas: DbConta[]): string[] {
   if (contas.length === 0) return [];
 

@@ -22,6 +22,8 @@ interface ClientExtratoGroupProps {
   onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   onSync?: (extrato: Extrato) => Promise<void>;
+  pendingMonthsMap?: Map<string, string[]>;
+  onBatchStatusChange?: (contaId: string, months: string[], status: ExtratoStatus) => void;
   labelField?: "institution" | "client";
   groupBy?: "client" | "institution";
 }
@@ -34,12 +36,15 @@ export function ClientExtratoGroup({
   onStatusChange,
   onMethodChange,
   onSync,
+  pendingMonthsMap,
+  onBatchStatusChange,
   labelField = "institution",
   groupBy = "client",
 }: ClientExtratoGroupProps) {
-  const colors = groupBy === "institution"
-    ? getInstitutionColor(group.clientName)
-    : getClientAvatarColor(group.clientName);
+  const colors =
+    groupBy === "institution"
+      ? getInstitutionColor(group.clientName)
+      : getClientAvatarColor(group.clientName);
   return (
     <div className="border-b border-white/5">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -70,6 +75,8 @@ export function ClientExtratoGroup({
                 onStatusChange={onStatusChange}
                 onMethodChange={onMethodChange}
                 onSync={onSync}
+                pendingMonths={pendingMonthsMap?.get(extrato.contaId)}
+                onBatchStatusChange={onBatchStatusChange}
                 labelField={labelField}
                 groupBy={groupBy}
               />

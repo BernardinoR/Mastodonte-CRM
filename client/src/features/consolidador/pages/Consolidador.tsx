@@ -18,6 +18,7 @@ import {
   buildExtratos,
   buildPendencias,
   getAllPendingMonths,
+  getPendingMonthsForConta,
   type DbConta,
   type DbWhatsappGroup,
 } from "../utils/buildExtratos";
@@ -64,6 +65,7 @@ export default function Consolidador() {
 
   const [extratos, setExtratos] = useState<Extrato[]>([]);
   const [historicalPendencies, setHistoricalPendencies] = useState<Extrato[]>([]);
+  const [rawContas, setRawContas] = useState<DbConta[]>([]);
   const [loading, setLoading] = useState(false);
 
   const authHeaders = useCallback(async () => {
@@ -87,6 +89,7 @@ export default function Consolidador() {
       const contas = (contasResult.data ?? []) as unknown as DbConta[];
       const whatsappGroups = (whatsappResult.data ?? []) as unknown as DbWhatsappGroup[];
 
+      setRawContas(contas);
       setExtratos(buildExtratos(contas, whatsappGroups, month));
 
       const historicalMonths = getAllPendingMonths(contas);
@@ -219,6 +222,79 @@ export default function Consolidador() {
       return next;
     });
   }, []);
+
+  const pendingMonthsMap = useMemo(() => {
+    const allMonths = getAllPendingMonths(rawContas);
+    const map = new Map<string, string[]>();
+    for (const conta of rawContas) {
+      const pending = getPendingMonthsForConta(conta, allMonths);
+      if (pending.length > 0) map.set(conta.id, pending);
+    }
+    return map;
+  }, [rawContas]);
+
+  const handleBatchStatusChange = useCallback(
+    async (contaId: string, months: string[], newStatus: ExtratoStatus) => {
+      // Snapshot previous statuses for revert
+      const prevExtratos = extratos.filter((e) => e.contaId === contaId);
+      const prevHistorical = historicalPendencies.filter((e) => e.contaId === contaId);
+
+      const now = new Date().toISOString();
+      const timestamps: Partial<Extrato> = {};
+      if (newStatus === "Solicitado") timestamps.requestedAt = now;
+      if (newStatus === "Recebido") timestamps.receivedAt = now;
+      if (newStatus === "Consolidado") timestamps.consolidatedAt = now;
+
+      // Optimistic update for current month extratos
+      setExtratos((prev) =>
+        prev.map((e) =>
+          e.contaId === contaId && months.includes(e.referenceMonth)
+            ? { ...e, status: newStatus, ...timestamps }
+            : e,
+        ),
+      );
+
+      // Optimistic update for historical pendencies
+      setHistoricalPendencies((prev) =>
+        prev.map((e) =>
+          e.contaId === contaId && months.includes(e.referenceMonth)
+            ? { ...e, status: newStatus, ...timestamps }
+            : e,
+        ),
+      );
+
+      try {
+        const headers = await authHeaders();
+        await apiRequest(
+          "PATCH",
+          `/api/consolidador/extratos/${contaId}/status-batch`,
+          { competencias: months, status: newStatus },
+          headers,
+        );
+      } catch (error) {
+        console.error("Failed to batch update statuses:", error);
+        toast({
+          title: "Erro ao atualizar status",
+          description: "As alterações foram revertidas. Tente novamente.",
+          variant: "destructive",
+        });
+        // Revert
+        setExtratos((prev) =>
+          prev.map((e) => {
+            const orig = prevExtratos.find((o) => o.id === e.id);
+            return orig ? { ...e, status: orig.status } : e;
+          }),
+        );
+        setHistoricalPendencies((prev) =>
+          prev.map((e) => {
+            const orig = prevHistorical.find((o) => o.id === e.id);
+            return orig ? { ...e, status: orig.status } : e;
+          }),
+        );
+      }
+    },
+    [extratos, historicalPendencies, authHeaders, toast],
+  );
 
   const handleConsolidar = useCallback((extrato: Extrato) => {
     setConsolidarExtrato(extrato);
@@ -354,6 +430,8 @@ export default function Consolidador() {
               onStatusChange={handleStatusChange}
               onMethodChange={handleMethodChange}
               onSync={handleSync}
+              pendingMonthsMap={pendingMonthsMap}
+              onBatchStatusChange={handleBatchStatusChange}
               labelField={groupBy === "institution" ? "client" : "institution"}
               groupBy={groupBy}
             />

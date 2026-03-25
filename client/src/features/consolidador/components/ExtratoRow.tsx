@@ -17,6 +17,8 @@ interface ExtratoRowProps {
   onStatusChange?: (extratoId: string, status: ExtratoStatus) => void;
   onMethodChange?: (extratoId: string, method: ExtratoCollectionMethod) => void;
   onSync?: (extrato: Extrato) => Promise<void>;
+  pendingMonths?: string[];
+  onBatchStatusChange?: (contaId: string, months: string[], status: ExtratoStatus) => void;
   labelField?: "institution" | "client";
   groupBy?: "client" | "institution";
 }
@@ -27,13 +29,17 @@ export function ExtratoRow({
   onStatusChange,
   onMethodChange,
   onSync,
+  pendingMonths,
+  onBatchStatusChange,
   labelField = "institution",
   groupBy = "client",
 }: ExtratoRowProps) {
   const { toast } = useToast();
 
+  const months = pendingMonths?.length ? pendingMonths : [extrato.referenceMonth];
+
   const handleWhatsApp = () => {
-    const msg = buildExtratoRequestMessage(extrato);
+    const msg = buildExtratoRequestMessage({ ...extrato, referenceMonths: months });
     if (extrato.whatsappIsGroup) {
       navigator.clipboard.writeText(msg);
       toast({ title: "Mensagem copiada!" });
@@ -42,19 +48,28 @@ export function ExtratoRow({
       window.open(buildExtratoWhatsAppUrl(extrato.contactPhone ?? "", msg), "_blank");
     }
     if (extrato.status !== "Consolidado") {
-      onStatusChange?.(extrato.id, "Solicitado");
+      if (onBatchStatusChange && months.length > 0) {
+        onBatchStatusChange(extrato.contaId, months, "Solicitado");
+      } else {
+        onStatusChange?.(extrato.id, "Solicitado");
+      }
     }
   };
 
   const handleEmail = () => {
     const url = buildExtratoEmailUrl({
       ...extrato,
+      referenceMonths: months,
       to: extrato.contactEmail ?? "",
       cc: extrato.collectionMethod === "Manual" ? extrato.clientEmail : undefined,
     });
     window.open(url);
     if (extrato.status !== "Consolidado") {
-      onStatusChange?.(extrato.id, "Solicitado");
+      if (onBatchStatusChange && months.length > 0) {
+        onBatchStatusChange(extrato.contaId, months, "Solicitado");
+      } else {
+        onStatusChange?.(extrato.id, "Solicitado");
+      }
     }
   };
 

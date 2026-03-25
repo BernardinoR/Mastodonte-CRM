@@ -720,6 +720,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Batch update extrato statuses (multiple competencias at once)
+  app.patch(
+    "/api/consolidador/extratos/:contaId/status-batch",
+    clerkAuthMiddleware,
+    async (req, res) => {
+      try {
+        const { contaId } = req.params;
+        const { competencias, status } = req.body;
+
+        if (!Array.isArray(competencias) || competencias.length === 0 || !status) {
+          return res.status(400).json({ error: "competencias (array) and status are required" });
+        }
+
+        const validStatuses = ["Pendente", "Solicitado", "Recebido", "Consolidado"];
+        if (!validStatuses.includes(status)) {
+          return res
+            .status(400)
+            .json({ error: `Invalid status. Must be one of: ${validStatuses.join(", ")}` });
+        }
+
+        const updateData: Record<string, any> = { status };
+        if (status === "Solicitado") updateData.requestedAt = new Date();
+        if (status === "Recebido") updateData.receivedAt = new Date();
+        if (status === "Consolidado") updateData.consolidatedAt = new Date();
+
+        const results = await prisma.$transaction(
+          competencias.map((competencia: string) =>
+            prisma.extratoStatus.upsert({
+              where: { contaId_competencia: { contaId, competencia } },
+              create: { contaId, competencia, ...updateData },
+              update: updateData,
+            }),
+          ),
+        );
+
+        return res.json({ extratoStatuses: results });
+      } catch (error) {
+        console.error("Error batch updating extrato statuses:", error);
+        return res.status(500).json({ error: "Failed to batch update extrato statuses" });
+      }
+    },
+  );
+
   // Re-sync individual extrato with Supabase
   app.post("/api/consolidador/extratos/:contaId/sync", clerkAuthMiddleware, async (req, res) => {
     try {
