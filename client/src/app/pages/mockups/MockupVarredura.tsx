@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   LayoutDashboard,
   Users,
@@ -16,8 +18,7 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
-  Zap,
-  Shield,
+  CalendarDays,
 } from "lucide-react";
 import {
   Sidebar,
@@ -32,17 +33,17 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/shared/components/ui/sidebar";
+import { Popover, PopoverTrigger, PopoverContent } from "@/shared/components/ui/popover";
+import { Calendar } from "@/shared/components/ui/calendar";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 
 type InstitutionStatus = "verificado" | "pendente" | "solicitado";
 
-interface Institution {
+interface DirectInstitution {
   name: string;
   initials: string;
-  status: InstitutionStatus;
-  method: "Automático" | "Manual";
 }
 
 interface ManagerClient {
@@ -59,15 +60,15 @@ interface ManagerGroup {
   clients: ManagerClient[];
 }
 
-const directAccessInstitutions: Institution[] = [
-  { name: "XP Investimentos", initials: "XP", status: "verificado", method: "Automático" },
-  { name: "BTG Pactual", initials: "BT", status: "verificado", method: "Automático" },
-  { name: "Avenue", initials: "AV", status: "verificado", method: "Automático" },
-  { name: "Warren", initials: "WR", status: "pendente", method: "Manual" },
-  { name: "Inter", initials: "IN", status: "pendente", method: "Manual" },
-  { name: "Guide", initials: "GI", status: "solicitado", method: "Manual" },
-  { name: "Safra", initials: "SF", status: "pendente", method: "Manual" },
-  { name: "Modal", initials: "MM", status: "pendente", method: "Manual" },
+const directAccessInstitutions: DirectInstitution[] = [
+  { name: "XP Investimentos", initials: "XP" },
+  { name: "BTG Pactual", initials: "BT" },
+  { name: "Avenue", initials: "AV" },
+  { name: "Warren", initials: "WR" },
+  { name: "Inter", initials: "IN" },
+  { name: "Guide", initials: "GI" },
+  { name: "Safra", initials: "SF" },
+  { name: "Modal", initials: "MM" },
 ];
 
 const managerGroups: ManagerGroup[] = [
@@ -95,14 +96,13 @@ const managerGroups: ManagerGroup[] = [
 
 const STATUS_CONFIG: Record<
   InstitutionStatus,
-  { label: string; color: string; bg: string; border: string; borderActive: string; dot: string; gradient: string; Icon: typeof CheckCircle }
+  { label: string; color: string; bg: string; border: string; dot: string; gradient: string; Icon: typeof CheckCircle }
 > = {
   verificado: {
     label: "Verificado",
     color: "text-[#6ecf8e]",
     bg: "bg-[rgba(110,207,142,0.1)]",
     border: "border-[rgba(110,207,142,0.2)]",
-    borderActive: "border-[#6ecf8e]",
     dot: "bg-[#6ecf8e]",
     gradient: "bg-gradient-to-br from-[rgba(110,207,142,0.1)] to-[rgba(110,207,142,0.03)]",
     Icon: CheckCircle,
@@ -112,7 +112,6 @@ const STATUS_CONFIG: Record<
     color: "text-[#dcb092]",
     bg: "bg-[rgba(220,176,146,0.1)]",
     border: "border-[rgba(220,176,146,0.2)]",
-    borderActive: "border-[#dcb092]",
     dot: "bg-[#dcb092]",
     gradient: "bg-gradient-to-br from-[rgba(220,176,146,0.1)] to-[rgba(220,176,146,0.03)]",
     Icon: AlertTriangle,
@@ -122,7 +121,6 @@ const STATUS_CONFIG: Record<
     color: "text-[#6db1d4]",
     bg: "bg-[rgba(109,177,212,0.1)]",
     border: "border-[rgba(109,177,212,0.2)]",
-    borderActive: "border-[#6db1d4]",
     dot: "bg-[#6db1d4]",
     gradient: "bg-gradient-to-br from-[rgba(109,177,212,0.1)] to-[rgba(109,177,212,0.03)]",
     Icon: Clock,
@@ -187,77 +185,153 @@ function MockupSidebar() {
   );
 }
 
-function SummaryCards() {
-  const verified = directAccessInstitutions.filter((i) => i.status === "verificado").length;
-  const pending = directAccessInstitutions.filter((i) => i.status === "pendente").length +
-    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "pendente").length, 0);
-  const solicited = directAccessInstitutions.filter((i) => i.status === "solicitado").length +
-    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "solicitado").length, 0);
-  const total = directAccessInstitutions.length + managerGroups.reduce((s, g) => s + g.clientCount, 0);
+function DaySelector({ value, onChange }: { value: Date; onChange: (d: Date) => void }) {
+  const [open, setOpen] = useState(false);
 
-  const cards = [
-    { label: "Pendentes", value: pending, ...STATUS_CONFIG.pendente },
-    { label: "Solicitados", value: solicited, ...STATUS_CONFIG.solicitado },
-    { label: "Verificados", value: verified, ...STATUS_CONFIG.verificado },
-    { label: "Total Contas", value: total, color: "text-[#ededed]", bg: "bg-[rgba(237,237,237,0.05)]", border: "border-[rgba(237,237,237,0.1)]", gradient: "bg-gradient-to-br from-[rgba(237,237,237,0.06)] to-[rgba(237,237,237,0.02)]", dot: "bg-[#ededed]", Icon: Shield, borderActive: "", },
-  ];
+  const label = useMemo(() => {
+    const today = new Date();
+    const isToday = value.toDateString() === today.toDateString();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday = value.toDateString() === yesterday.toDateString();
+
+    if (isToday) return "Hoje";
+    if (isYesterday) return "Ontem";
+    return format(value, "dd MMM yyyy", { locale: ptBR });
+  }, [value]);
 
   return (
-    <div className="flex gap-3">
-      {cards.map((c) => (
-        <div
-          key={c.label}
-          className={`relative flex flex-1 flex-col gap-1.5 overflow-hidden rounded-xl border p-3 px-4 ${c.gradient} ${c.border}`}
-          data-testid={`stat-${c.label.toLowerCase()}`}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          className="inline-flex h-8 items-center gap-2 rounded-lg border border-[rgba(237,237,237,0.1)] bg-[#1a1a1a] px-3 text-sm text-[#8c8c8c] transition-colors hover:border-[rgba(237,237,237,0.2)] hover:text-[#ededed]"
+          data-testid="button-day-selector"
         >
-          <div
-            className={`absolute left-0 right-0 top-0 h-[3px] ${c.dot.replace("bg-", "bg-")}`}
-            style={{ opacity: 0.6 }}
-          />
-          <c.Icon className={`h-4 w-4 opacity-80 ${c.color}`} />
-          <span className={`text-lg font-bold ${c.color}`}>{c.value}</span>
-          <span className="text-[10px] font-medium uppercase tracking-wide text-[#8c8c8c]">{c.label}</span>
+          <CalendarDays className="h-3.5 w-3.5" />
+          {label}
+          <ChevronDown className="h-3 w-3 opacity-50" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <Calendar
+          mode="single"
+          selected={value}
+          onSelect={(d) => {
+            if (d) {
+              onChange(d);
+              setOpen(false);
+            }
+          }}
+          disabled={(d) => d > new Date()}
+          locale={ptBR}
+        />
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ProgressBar({
+  checkedDirect,
+  totalDirect,
+  solicitedManager,
+  totalManager,
+}: {
+  checkedDirect: number;
+  totalDirect: number;
+  solicitedManager: number;
+  totalManager: number;
+}) {
+  const total = totalDirect + totalManager;
+  const done = checkedDirect + solicitedManager;
+  const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+  const directPct = total > 0 ? (checkedDirect / total) * 100 : 0;
+  const managerPct = total > 0 ? (solicitedManager / total) * 100 : 0;
+
+  return (
+    <div className="flex flex-col gap-2" data-testid="progress-bar">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <span className="flex items-center gap-1.5 text-xs text-[#8c8c8c]">
+            <CheckCircle className="h-3.5 w-3.5 text-[#6ecf8e]" />
+            <span className="text-[#6ecf8e] font-semibold">{checkedDirect}</span>
+            <span>/ {totalDirect} diretos</span>
+          </span>
+          <span className="flex items-center gap-1.5 text-xs text-[#8c8c8c]">
+            <Mail className="h-3.5 w-3.5 text-[#6db1d4]" />
+            <span className="text-[#6db1d4] font-semibold">{solicitedManager}</span>
+            <span>/ {totalManager} solicitados</span>
+          </span>
         </div>
-      ))}
+        <span className="text-xs font-bold text-[#ededed]">{pct}%</span>
+      </div>
+      <div className="flex h-2 w-full overflow-hidden rounded-full bg-[#252525]">
+        <div
+          className="h-full bg-[#6ecf8e] transition-all duration-300"
+          style={{ width: `${directPct}%` }}
+        />
+        <div
+          className="h-full bg-[#6db1d4] transition-all duration-300"
+          style={{ width: `${managerPct}%` }}
+        />
+      </div>
     </div>
   );
 }
 
-function InstitutionCard({ institution }: { institution: Institution }) {
-  const sc = STATUS_CONFIG[institution.status];
-  const isAuto = institution.method === "Automático";
+function InstitutionCard({
+  institution,
+  checked,
+  onToggle,
+}: {
+  institution: DirectInstitution;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  const sc = checked ? STATUS_CONFIG.verificado : STATUS_CONFIG.pendente;
 
   return (
     <div
-      className={`group relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4 transition-all hover:translate-y-[-1px] ${sc.gradient} ${sc.border}`}
-      data-testid={`card-institution-${institution.name.toLowerCase().replace(/\s/g, "-")}`}
+      className={`group relative flex items-center gap-3 overflow-hidden rounded-xl border p-3 transition-all hover:translate-y-[-1px] ${sc.gradient} ${sc.border}`}
+      data-testid={`card-institution-${institution.initials.toLowerCase()}`}
     >
-      <div className={`absolute left-0 right-0 top-0 h-[2px] ${sc.dot}`} style={{ opacity: 0.5 }} />
+      <div className={`absolute left-0 right-0 top-0 h-[2px] ${sc.dot}`} style={{ opacity: checked ? 0.7 : 0.3 }} />
 
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2.5">
-          <div className={`flex h-8 w-8 items-center justify-center rounded-md ${sc.bg}`}>
-            <span className={`text-xs font-bold ${sc.color}`}>{institution.initials}</span>
-          </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-semibold text-[#ededed]">{institution.name}</span>
-            <span className="flex items-center gap-1 text-[10px] text-[#8c8c8c]">
-              {isAuto ? <Zap className="h-2.5 w-2.5 text-[#6ecf8e]" /> : <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />}
-              {institution.method}
-            </span>
-          </div>
+      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${sc.bg}`}>
+        <span className={`text-xs font-bold ${sc.color}`}>{institution.initials}</span>
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className={`text-sm font-semibold ${checked ? "text-[#ededed]" : "text-[#999]"}`}>{institution.name}</span>
+        <div className="flex items-center gap-1">
+          <sc.Icon className={`h-3 w-3 ${sc.color}`} />
+          <span className={`text-[10px] font-semibold ${sc.color}`}>{sc.label}</span>
         </div>
+      </div>
+
+      <div className="flex items-center gap-1.5">
         <span
           className="flex items-center gap-1 text-[10px] font-medium text-[#555] opacity-0 transition-opacity group-hover:opacity-100"
           data-testid={`link-access-${institution.initials.toLowerCase()}`}
         >
           <ExternalLink className="h-3 w-3" />
         </span>
-      </div>
-
-      <div className="flex items-center gap-2">
-        <sc.Icon className={`h-3 w-3 ${sc.color}`} />
-        <span className={`text-[11px] font-semibold ${sc.color}`}>{sc.label}</span>
+        <button
+          onClick={onToggle}
+          className="relative flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent p-0.5 transition-colors"
+          style={{
+            backgroundColor: checked ? "rgba(110,207,142,0.25)" : "#252525",
+            borderColor: checked ? "rgba(110,207,142,0.4)" : "#333",
+          }}
+          data-testid={`toggle-${institution.initials.toLowerCase()}`}
+        >
+          <span
+            className="block h-4 w-4 rounded-full transition-all duration-200"
+            style={{
+              backgroundColor: checked ? "#6ecf8e" : "#555",
+              transform: checked ? "translateX(20px)" : "translateX(0)",
+            }}
+          />
+        </button>
       </div>
     </div>
   );
@@ -350,11 +424,46 @@ function ManagerGroupCard({ group }: { group: ManagerGroup }) {
 }
 
 function VarreduraContent() {
+  const [selectedDay, setSelectedDay] = useState(new Date());
+  const [checkedInstitutions, setCheckedInstitutions] = useState<Set<string>>(
+    () => new Set(["XP", "BT", "AV"]),
+  );
+
+  const totalDirect = directAccessInstitutions.length;
+  const checkedDirect = checkedInstitutions.size;
+
+  const totalManagerClients = managerGroups.reduce((s, g) => s + g.clients.length, 0);
+  const solicitedManager = managerGroups.reduce(
+    (s, g) => s + g.clients.filter((c) => c.status === "solicitado").length,
+    0,
+  );
+
+  const toggleInstitution = (initials: string) => {
+    setCheckedInstitutions((prev) => {
+      const next = new Set(prev);
+      if (next.has(initials)) {
+        next.delete(initials);
+      } else {
+        next.add(initials);
+      }
+      return next;
+    });
+  };
+
   return (
     <div className="flex flex-col gap-6 px-8 pb-32 pt-6">
-      <h1 className="text-3xl font-bold text-[#ededed]" data-testid="text-page-title">Varredura de Saldo</h1>
+      <div className="flex items-center gap-4">
+        <h1 className="text-3xl font-bold text-[#ededed]" data-testid="text-page-title">Varredura de Saldo</h1>
+        <div className="h-6 w-px bg-[#333]" />
+        <DaySelector value={selectedDay} onChange={setSelectedDay} />
+      </div>
 
-      <SummaryCards />
+      <ProgressBar
+        checkedDirect={checkedDirect}
+        totalDirect={totalDirect}
+        solicitedManager={solicitedManager}
+        totalManager={totalManagerClients}
+      />
 
       <section>
         <div className="mb-3 flex items-center gap-3">
@@ -362,12 +471,17 @@ function VarreduraContent() {
             Acesso Direto
           </h2>
           <span className="inline-flex items-center rounded-md bg-[rgba(110,207,142,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#6ecf8e]">
-            {directAccessInstitutions.filter((i) => i.status === "verificado").length}/{directAccessInstitutions.length}
+            {checkedDirect}/{totalDirect}
           </span>
         </div>
         <div className="grid grid-cols-4 gap-3">
           {directAccessInstitutions.map((inst) => (
-            <InstitutionCard key={inst.name} institution={inst} />
+            <InstitutionCard
+              key={inst.initials}
+              institution={inst}
+              checked={checkedInstitutions.has(inst.initials)}
+              onToggle={() => toggleInstitution(inst.initials)}
+            />
           ))}
         </div>
       </section>
@@ -377,8 +491,8 @@ function VarreduraContent() {
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#666]" data-testid="text-section-manager">
             Via Gerente
           </h2>
-          <span className="inline-flex items-center rounded-md bg-[rgba(220,176,146,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#dcb092]">
-            {managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status !== "verificado").length, 0)} pendentes
+          <span className="inline-flex items-center rounded-md bg-[rgba(109,177,212,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#6db1d4]">
+            {solicitedManager}/{totalManagerClients} solicitados
           </span>
         </div>
         <div className="space-y-3">
