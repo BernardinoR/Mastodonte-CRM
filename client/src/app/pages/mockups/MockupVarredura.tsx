@@ -1,5 +1,11 @@
 import { useState } from "react";
 import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  Layers,
+  ArrowDownUp,
+  LogOut,
   ChevronDown,
   ChevronUp,
   ExternalLink,
@@ -11,7 +17,25 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/shared/components/ui/sidebar";
+import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
+import { Button } from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
 
 type InstitutionStatus = "verificado" | "pendente" | "solicitado";
 
@@ -79,6 +103,14 @@ const statusConfig: Record<InstitutionStatus, { label: string; textColor: string
   solicitado: { label: "SOLICITADO", textColor: "text-sky-400", bgColor: "bg-sky-500/10", borderColor: "border-sky-500/20", Icon: Clock },
 };
 
+const menuItems = [
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Clientes", url: "/clients", icon: Users },
+  { title: "Tarefas", url: "/tasks", icon: CheckSquare },
+  { title: "Consolidador", url: "/consolidador", icon: Layers },
+  { title: "Varredura", url: "/varredura", icon: ArrowDownUp },
+];
+
 function StatusBadge({ status }: { status: InstitutionStatus }) {
   const c = statusConfig[status];
   return (
@@ -89,6 +121,83 @@ function StatusBadge({ status }: { status: InstitutionStatus }) {
       <c.Icon className="h-3 w-3" />
       {c.label}
     </span>
+  );
+}
+
+function MockupSidebar() {
+  return (
+    <Sidebar>
+      <SidebarHeader className="border-b border-sidebar-border p-4">
+        <div className="flex items-center gap-2">
+          <svg
+            width="28"
+            height="28"
+            viewBox="0 0 60 60"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="5" y="25" width="8" height="20" rx="2" fill="currentColor" />
+            <rect x="18" y="15" width="8" height="30" rx="2" fill="currentColor" />
+            <path
+              d="M31 15H39V30C39 38 47 38 47 30"
+              stroke="currentColor"
+              strokeWidth="8"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span className="text-lg font-bold tracking-tight">Mastodonte</span>
+        </div>
+      </SidebarHeader>
+      <SidebarContent>
+        <SidebarGroup className="pt-2">
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    data-active={item.title === "Varredura"}
+                    data-testid={`nav-${item.title.toLowerCase()}`}
+                  >
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
+      <SidebarFooter className="border-t border-sidebar-border p-4">
+        <div
+          className="mb-3 flex items-center gap-3 rounded-md p-2 hover:bg-sidebar-accent"
+          data-testid="user-card-mockup"
+        >
+          <Avatar className="h-10 w-10">
+            <AvatarFallback className="text-sm">RB</AvatarFallback>
+          </Avatar>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-medium" data-testid="text-username-mockup">
+              Rafael Bernardino
+            </p>
+            <Badge
+              variant="outline"
+              className="mt-1 h-4 px-1.5 py-0 text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30"
+            >
+              Consultor
+            </Badge>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-muted-foreground"
+          data-testid="button-logout-mockup"
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sair
+        </Button>
+      </SidebarFooter>
+    </Sidebar>
   );
 }
 
@@ -231,11 +340,12 @@ function SummaryCards() {
   const verified = directAccessInstitutions.filter(i => i.status === "verificado").length;
   const pending = directAccessInstitutions.filter(i => i.status === "pendente").length;
   const managerPending = managerGroups.reduce((s, g) => s + g.pendingCount, 0);
+  const solicitados = managerGroups.reduce((s, g) => s + g.clients.filter(c => c.status === "solicitado").length, 0);
 
   const items = [
-    { label: "Pendentes", value: pending + managerPending, textColor: "text-orange-400", bgColor: "bg-orange-500/10", borderColor: "border-orange-500/20", Icon: AlertTriangle },
-    { label: "Solicitados", value: managerGroups.reduce((s, g) => s + g.clients.filter(c => c.status === "solicitado").length, 0), textColor: "text-sky-400", bgColor: "bg-sky-500/10", borderColor: "border-sky-500/20", Icon: Clock },
-    { label: "Verificados", value: verified, textColor: "text-emerald-400", bgColor: "bg-emerald-500/10", borderColor: "border-emerald-500/20", Icon: CheckCircle },
+    { label: "Pendentes", value: pending + managerPending, textColor: "text-orange-400", bgColor: "bg-orange-950/30", borderColor: "border-orange-500/30", Icon: AlertTriangle },
+    { label: "Solicitados", value: solicitados, textColor: "text-sky-400", bgColor: "bg-sky-950/30", borderColor: "border-sky-500/30", Icon: Clock },
+    { label: "Verificados", value: verified, textColor: "text-emerald-400", bgColor: "bg-emerald-950/30", borderColor: "border-emerald-500/30", Icon: CheckCircle },
   ];
 
   return (
@@ -243,10 +353,10 @@ function SummaryCards() {
       {items.map((item) => (
         <button
           key={item.label}
-          className={`inline-flex items-center gap-1.5 rounded-lg border px-3.5 py-1.5 text-[11px] font-bold uppercase transition-all hover:brightness-125 ${item.textColor} ${item.bgColor} ${item.borderColor}`}
+          className={`inline-flex items-center gap-1.5 rounded-lg border px-4 py-1.5 text-[11px] font-black uppercase transition-all hover:brightness-125 ${item.textColor} ${item.bgColor} ${item.borderColor}`}
           data-testid={`filter-${item.label.toLowerCase()}`}
         >
-          <item.Icon className="h-3.5 w-3.5" />
+          <item.Icon className="h-4 w-4" />
           {item.value} {item.label}
         </button>
       ))}
@@ -254,62 +364,95 @@ function SummaryCards() {
   );
 }
 
-export default function MockupVarredura() {
+function VarreduraContent() {
   return (
-    <div className="flex h-screen w-full bg-[#111] antialiased" data-testid="mockup-varredura">
-      <div className="flex flex-1 flex-col min-w-0">
-        <div className="flex-1 overflow-y-auto">
-          <div className="mx-auto max-w-[960px] px-8 py-8 space-y-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-bold text-zinc-100" data-testid="text-page-title">
-                  Varredura de Saldo
-                </h1>
-                <p className="mt-1 text-sm text-zinc-600">
-                  Acompanhamento mensal de ativos
-                  <span className="mx-1.5 text-zinc-700">&middot;</span>
-                  <span className="text-zinc-500">Marco 2026</span>
-                </p>
-              </div>
-              <ProgressBar current={2} total={10} />
+    <div className="mx-auto max-w-[960px] space-y-6 px-8 py-8">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white" data-testid="text-page-title">
+            Varredura de Saldo
+          </h1>
+          <p className="mt-1 text-sm text-zinc-600">
+            Acompanhamento mensal de ativos
+            <span className="mx-1.5 text-zinc-700">&middot;</span>
+            <span className="text-zinc-500">Marco 2026</span>
+          </p>
+        </div>
+        <ProgressBar current={2} total={10} />
+      </div>
+
+      <SummaryCards />
+
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
+        <input
+          type="text"
+          placeholder="Buscar instituicao ou cliente..."
+          className="h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 pl-9 pr-3 text-sm text-zinc-300 placeholder:text-zinc-700 outline-none transition-colors focus:border-zinc-700"
+          data-testid="input-search"
+        />
+      </div>
+
+      <section>
+        <h2 className="mb-3 text-[11px] font-medium uppercase tracking-widest text-zinc-600" data-testid="text-section-direct">
+          Acesso Direto ({directAccessInstitutions.length})
+        </h2>
+        <div className="grid grid-cols-4 gap-3">
+          {directAccessInstitutions.map((inst) => (
+            <InstitutionCard key={inst.name} institution={inst} />
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h2 className="mb-3 text-[11px] font-medium uppercase tracking-widest text-zinc-600" data-testid="text-section-manager">
+          Via Gerente ({managerGroups.length})
+        </h2>
+        <div className="space-y-3">
+          {managerGroups.map((group) => (
+            <ManagerGroupCard key={group.name} group={group} />
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export default function MockupVarredura() {
+  const style = {
+    "--sidebar-width": "16rem",
+    "--sidebar-width-icon": "3rem",
+  };
+
+  return (
+    <SidebarProvider style={style as React.CSSProperties}>
+      <div className="flex h-screen w-full" data-testid="mockup-varredura">
+        <MockupSidebar />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <header className="flex items-center justify-between border-b border-border p-3">
+            <div className="flex flex-wrap items-center gap-1">
+              <SidebarTrigger data-testid="button-sidebar-toggle" />
+              <Button
+                size="icon"
+                variant="ghost"
+                data-testid="button-nav-back"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button
+                size="icon"
+                variant="ghost"
+                data-testid="button-nav-forward"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
             </div>
-
-            <SummaryCards />
-
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600" />
-              <input
-                type="text"
-                placeholder="Buscar instituicao ou cliente..."
-                className="h-9 w-full rounded-md border border-zinc-800 bg-zinc-900/40 pl-9 pr-3 text-sm text-zinc-300 placeholder:text-zinc-700 outline-none transition-colors focus:border-zinc-700"
-                data-testid="input-search"
-              />
-            </div>
-
-            <section>
-              <h2 className="mb-3 text-[11px] font-medium uppercase tracking-widest text-zinc-600" data-testid="text-section-direct">
-                Acesso Direto ({directAccessInstitutions.length})
-              </h2>
-              <div className="grid grid-cols-4 gap-3">
-                {directAccessInstitutions.map((inst) => (
-                  <InstitutionCard key={inst.name} institution={inst} />
-                ))}
-              </div>
-            </section>
-
-            <section>
-              <h2 className="mb-3 text-[11px] font-medium uppercase tracking-widest text-zinc-600" data-testid="text-section-manager">
-                Via Gerente ({managerGroups.length})
-              </h2>
-              <div className="space-y-3">
-                {managerGroups.map((group) => (
-                  <ManagerGroupCard key={group.name} group={group} />
-                ))}
-              </div>
-            </section>
-          </div>
+          </header>
+          <main className="flex-1 overflow-auto">
+            <VarreduraContent />
+          </main>
         </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
