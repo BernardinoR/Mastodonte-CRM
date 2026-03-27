@@ -89,7 +89,11 @@ export function buildExtratoEmailUrl(
   const monthsStr = formatMonthList(months);
   const label = months.length > 1 ? "competências" : "competência";
   const subject = `Solicitação de Extrato - ${institution} - ${monthsStr}`;
-  const body = `${greeting},\n\nGostaria de solicitar o extrato${clientSuffix} ${instPrep}, ${label} ${monthsStr}.\n\nAtenciosamente.`;
+  const ccNote =
+    collectionMethod === "Manual"
+      ? `\n\nDeixo o cliente ${clientName} em cópia para aprovar a solicitação.`
+      : "";
+  const body = `${greeting},\n\nGostaria de solicitar o extrato${clientSuffix} ${instPrep}, ${label} ${monthsStr}.${ccNote}\n\nAtenciosamente.`;
   const ccParam = cc ? `&cc=${encodeURIComponent(cc)}` : "";
   return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}${ccParam}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
