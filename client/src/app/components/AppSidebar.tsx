@@ -1,4 +1,4 @@
-import { LayoutDashboard, Users, CheckSquare, Layers, LogOut, Shield, Check } from "lucide-react";
+import { LayoutDashboard, Users, CheckSquare, Layers, ArrowDownUp, LogOut, Shield, Check } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useClerk, useUser, useAuth } from "@clerk/clerk-react";
 import { useMutation } from "@tanstack/react-query";
@@ -50,6 +50,12 @@ const menuItems = [
     title: "Consolidador",
     url: "/consolidador",
     icon: Layers,
+    adminOnly: false,
+  },
+  {
+    title: "Varredura",
+    url: "/varredura",
+    icon: ArrowDownUp,
     adminOnly: false,
   },
 ];

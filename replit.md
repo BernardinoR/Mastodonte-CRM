@@ -136,6 +136,18 @@ Preferred communication style: Simple, everyday language.
 - Component extraction: Popovers, context menu, dialogs in separate modules
 - Memoization: Performance-optimized with memo() for re-render prevention
 
+**Feature: Varredura de Saldo** (`/varredura`)
+
+- Daily balance sweep tracking page for financial institutions
+- Located at `client/src/features/varredura/` with pages/, components/, types/, utils/
+- Two sections: **Acesso Direto** (type="Automático" contas, toggle on/off) and **Via Gerente** (type="Manual"/"Manual Cliente", grouped by institution with client rows)
+- Data: Fetches active contas from Supabase, groups by type, uses `extrato_statuses` table for persistence
+- Toggle persistence: PATCH `/api/consolidador/extratos/:contaId/status` with competência derived from selected day (MM/YYYY format)
+- Calendar day selector defaults to today, with Hoje/Ontem labels
+- Dual-segment progress bar (green=direct checked, blue=manager solicited)
+- Institution-colored avatars via shared `institutionColors.ts`
+- Sidebar entry with ArrowDownUp icon
+
 **Routing Strategy**
 
 - Frontend: Client-side routing with Wouter (/, /clients, /clients/:id, /meetings, /tasks)

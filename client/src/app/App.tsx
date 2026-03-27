@@ -20,6 +20,7 @@ import ClientDetails from "@features/clients/pages/ClientDetails";
 import { SignIn, SignUp, SSOCallback, ForgotPassword, ClerkLogin } from "@features/auth";
 import { UsersProvider, useCurrentUser, Admin, Profile, GoogleCallback } from "@features/users";
 import { Consolidador } from "@features/consolidador";
+import { Varredura } from "@features/varredura";
 import { ErrorBoundary } from "@/shared/components/ErrorBoundary";
 import MockupVarredura from "@app/pages/mockups/MockupVarredura";
 import MockupVarreduraA from "@app/pages/mockups/MockupVarreduraA";
@@ -37,6 +38,7 @@ function AuthenticatedRouter() {
         <Route path="/clients/:id" component={ClientDetails} />
         <Route path="/tasks" component={Tasks} />
         <Route path="/consolidador" component={Consolidador} />
+        <Route path="/varredura" component={Varredura} />
         <Route path="/admin" component={Admin} />
         <Route path="/profile" component={Profile} />
         <Route path="/google-callback" component={GoogleCallback} />
