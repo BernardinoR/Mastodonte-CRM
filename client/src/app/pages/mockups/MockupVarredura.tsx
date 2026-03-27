@@ -38,12 +38,14 @@ import { Calendar } from "@/shared/components/ui/calendar";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 
 type InstitutionStatus = "verificado" | "pendente" | "solicitado";
 
 interface DirectInstitution {
   name: string;
   initials: string;
+  colorKey: string;
 }
 
 interface ManagerClient {
@@ -61,14 +63,14 @@ interface ManagerGroup {
 }
 
 const directAccessInstitutions: DirectInstitution[] = [
-  { name: "XP Investimentos", initials: "XP" },
-  { name: "BTG Pactual", initials: "BT" },
-  { name: "Avenue", initials: "AV" },
-  { name: "Warren", initials: "WR" },
-  { name: "Inter", initials: "IN" },
-  { name: "Guide", initials: "GI" },
-  { name: "Safra", initials: "SF" },
-  { name: "Modal", initials: "MM" },
+  { name: "XP Investimentos", initials: "XP", colorKey: "XP" },
+  { name: "BTG Pactual", initials: "BT", colorKey: "BTG" },
+  { name: "Avenue", initials: "AV", colorKey: "Avenue" },
+  { name: "Warren", initials: "WR", colorKey: "Warren" },
+  { name: "Inter", initials: "IN", colorKey: "IB" },
+  { name: "Guide", initials: "GI", colorKey: "Smart" },
+  { name: "Safra", initials: "SF", colorKey: "Safra" },
+  { name: "Modal", initials: "MM", colorKey: "Singulare" },
 ];
 
 const managerGroups: ManagerGroup[] = [
@@ -96,7 +98,7 @@ const managerGroups: ManagerGroup[] = [
 
 const STATUS_CONFIG: Record<
   InstitutionStatus,
-  { label: string; color: string; bg: string; border: string; dot: string; gradient: string; Icon: typeof CheckCircle }
+  { label: string; color: string; bg: string; border: string; dot: string; Icon: typeof CheckCircle }
 > = {
   verificado: {
     label: "Verificado",
@@ -104,7 +106,6 @@ const STATUS_CONFIG: Record<
     bg: "bg-[rgba(110,207,142,0.1)]",
     border: "border-[rgba(110,207,142,0.2)]",
     dot: "bg-[#6ecf8e]",
-    gradient: "bg-gradient-to-br from-[rgba(110,207,142,0.1)] to-[rgba(110,207,142,0.03)]",
     Icon: CheckCircle,
   },
   pendente: {
@@ -113,7 +114,6 @@ const STATUS_CONFIG: Record<
     bg: "bg-[rgba(220,176,146,0.1)]",
     border: "border-[rgba(220,176,146,0.2)]",
     dot: "bg-[#dcb092]",
-    gradient: "bg-gradient-to-br from-[rgba(220,176,146,0.1)] to-[rgba(220,176,146,0.03)]",
     Icon: AlertTriangle,
   },
   solicitado: {
@@ -122,7 +122,6 @@ const STATUS_CONFIG: Record<
     bg: "bg-[rgba(109,177,212,0.1)]",
     border: "border-[rgba(109,177,212,0.2)]",
     dot: "bg-[#6db1d4]",
-    gradient: "bg-gradient-to-br from-[rgba(109,177,212,0.1)] to-[rgba(109,177,212,0.03)]",
     Icon: Clock,
   },
 };
@@ -287,50 +286,58 @@ function InstitutionCard({
   checked: boolean;
   onToggle: () => void;
 }) {
-  const sc = checked ? STATUS_CONFIG.verificado : STATUS_CONFIG.pendente;
+  const color = getInstitutionColor(institution.colorKey);
 
   return (
     <div
-      className={`group relative flex items-center gap-3 overflow-hidden rounded-xl border p-3 transition-all hover:translate-y-[-1px] ${sc.gradient} ${sc.border}`}
+      className="group rounded-xl border border-[#3a3a3a] bg-[#1a1a1a] p-4 transition-colors hover:bg-[#1e1e1e]"
       data-testid={`card-institution-${institution.initials.toLowerCase()}`}
     >
-      <div className={`absolute left-0 right-0 top-0 h-[2px] ${sc.dot}`} style={{ opacity: checked ? 0.7 : 0.3 }} />
-
-      <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${sc.bg}`}>
-        <span className={`text-xs font-bold ${sc.color}`}>{institution.initials}</span>
-      </div>
-
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className={`text-sm font-semibold ${checked ? "text-[#ededed]" : "text-[#999]"}`}>{institution.name}</span>
-        <div className="flex items-center gap-1">
-          <sc.Icon className={`h-3 w-3 ${sc.color}`} />
-          <span className={`text-[10px] font-semibold ${sc.color}`}>{sc.label}</span>
+      <div className="flex items-start justify-between">
+        <div className="flex items-center gap-3">
+          <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md border text-xs font-bold ${color.bg} ${color.text} ${color.border}`}>
+            {institution.initials}
+          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-sm font-semibold text-[#ededed]">{institution.name}</span>
+            {checked ? (
+              <span className="flex items-center gap-1 text-[11px] font-medium text-[#6ecf8e]">
+                <CheckCircle className="h-3 w-3" />
+                Verificado
+              </span>
+            ) : (
+              <span className="flex items-center gap-1 text-[11px] font-medium text-[#8c8c8c]">
+                <Clock className="h-3 w-3" />
+                Pendente
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-
-      <div className="flex items-center gap-1.5">
-        <span
-          className="flex items-center gap-1 text-[10px] font-medium text-[#555] opacity-0 transition-opacity group-hover:opacity-100"
-          data-testid={`link-access-${institution.initials.toLowerCase()}`}
-        >
-          <ExternalLink className="h-3 w-3" />
-        </span>
         <button
           onClick={onToggle}
-          className="relative flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border border-transparent p-0.5 transition-colors"
+          className="relative mt-0.5 flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors"
           style={{
-            backgroundColor: checked ? "rgba(110,207,142,0.25)" : "#252525",
-            borderColor: checked ? "rgba(110,207,142,0.4)" : "#333",
+            backgroundColor: checked ? "rgba(110,207,142,0.25)" : "#2c2c2c",
           }}
           data-testid={`toggle-${institution.initials.toLowerCase()}`}
         >
           <span
-            className="block h-4 w-4 rounded-full transition-all duration-200"
+            className="block h-3.5 w-3.5 rounded-full transition-all duration-200"
             style={{
               backgroundColor: checked ? "#6ecf8e" : "#555",
-              transform: checked ? "translateX(20px)" : "translateX(0)",
+              transform: checked ? "translateX(14px)" : "translateX(0)",
             }}
           />
+        </button>
+      </div>
+
+      <div className="mt-3 flex items-center justify-between border-t border-[#2a2a2a] pt-3">
+        <button
+          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#8c8c8c] transition-colors hover:bg-[#2c2c2c] hover:text-[#ededed]"
+          data-testid={`button-access-${institution.initials.toLowerCase()}`}
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          Acessar
         </button>
       </div>
     </div>
