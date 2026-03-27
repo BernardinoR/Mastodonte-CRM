@@ -7,18 +7,17 @@ import {
   ArrowDownUp,
   LogOut,
   ChevronDown,
-  ChevronRight,
-  ChevronLeft,
+  ChevronUp,
   ExternalLink,
   MessageSquare,
   Mail,
   AlertTriangle,
   CheckCircle,
   Clock,
-  Users as UsersIcon,
-  Building2,
-  Filter,
-  X,
+  ChevronLeft,
+  ChevronRight,
+  Zap,
+  Shield,
 } from "lucide-react";
 import {
   Sidebar,
@@ -33,91 +32,102 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/shared/components/ui/sidebar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/shared/components/ui/collapsible";
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
-import { Badge } from "@/shared/components/ui/badge";
 import { Button } from "@/shared/components/ui/button";
+import { Badge } from "@/shared/components/ui/badge";
 
-type VarreduraStatus = "pendente" | "solicitado" | "verificado";
+type InstitutionStatus = "verificado" | "pendente" | "solicitado";
 
-interface DirectInstitution {
+interface Institution {
   name: string;
   initials: string;
-  status: VarreduraStatus;
+  status: InstitutionStatus;
   method: "Automático" | "Manual";
 }
 
 interface ManagerClient {
   initials: string;
   name: string;
-  institution: string;
-  status: VarreduraStatus;
+  status: InstitutionStatus;
   accountType: string;
 }
 
 interface ManagerGroup {
-  managerName: string;
-  managerInitials: string;
-  institution: string;
+  name: string;
+  initials: string;
+  clientCount: number;
   clients: ManagerClient[];
 }
 
-const STATUS_STYLES: Record<VarreduraStatus, { bg: string; text: string; dot: string; border: string }> = {
-  pendente: { bg: "bg-orange-500/10", text: "text-orange-400", dot: "bg-orange-500", border: "border-orange-500/20" },
-  solicitado: { bg: "bg-blue-500/10", text: "text-blue-400", dot: "bg-blue-500", border: "border-blue-500/20" },
-  verificado: { bg: "bg-emerald-500/10", text: "text-emerald-400", dot: "bg-emerald-500", border: "border-emerald-500/20" },
-};
-
-const METHOD_STYLES: Record<string, string> = {
-  "Automático": "bg-emerald-950/20 text-emerald-500 border-emerald-500/20",
-  "Manual": "bg-zinc-800 text-zinc-500 border-transparent",
-};
-
-const directInstitutions: DirectInstitution[] = [
+const directAccessInstitutions: Institution[] = [
   { name: "XP Investimentos", initials: "XP", status: "verificado", method: "Automático" },
   { name: "BTG Pactual", initials: "BT", status: "verificado", method: "Automático" },
-  { name: "Avenue Securities", initials: "AV", status: "verificado", method: "Automático" },
+  { name: "Avenue", initials: "AV", status: "verificado", method: "Automático" },
   { name: "Warren", initials: "WR", status: "pendente", method: "Manual" },
   { name: "Inter", initials: "IN", status: "pendente", method: "Manual" },
-  { name: "Guide Investimentos", initials: "GI", status: "pendente", method: "Manual" },
-  { name: "Safra", initials: "SF", status: "solicitado", method: "Manual" },
-  { name: "Modal Mais", initials: "MM", status: "pendente", method: "Manual" },
+  { name: "Guide", initials: "GI", status: "solicitado", method: "Manual" },
+  { name: "Safra", initials: "SF", status: "pendente", method: "Manual" },
+  { name: "Modal", initials: "MM", status: "pendente", method: "Manual" },
 ];
 
 const managerGroups: ManagerGroup[] = [
   {
-    managerName: "Carlos Eduardo",
-    managerInitials: "CE",
-    institution: "Itau Personnalite",
+    name: "Itau Personnalite",
+    initials: "IP",
+    clientCount: 4,
     clients: [
-      { initials: "AS", name: "Ana Souza", institution: "Itau", status: "solicitado", accountType: "Principal" },
-      { initials: "RM", name: "Roberto Mendes", institution: "Itau", status: "pendente", accountType: "Principal" },
-      { initials: "JP", name: "Joao Pereira", institution: "Itau", status: "pendente", accountType: "Holding" },
-      { initials: "MO", name: "Maria Oliveira", institution: "Itau", status: "solicitado", accountType: "Principal" },
+      { initials: "AS", name: "Ana Souza", status: "solicitado", accountType: "Principal" },
+      { initials: "RM", name: "Roberto Mendes", status: "pendente", accountType: "Principal" },
+      { initials: "JP", name: "Joao Pereira", status: "pendente", accountType: "Holding" },
+      { initials: "MO", name: "Maria Oliveira", status: "solicitado", accountType: "Principal" },
     ],
   },
   {
-    managerName: "Patricia Lopes",
-    managerInitials: "PL",
-    institution: "Bradesco Prime",
+    name: "Bradesco Prime",
+    initials: "BP",
+    clientCount: 2,
     clients: [
-      { initials: "CF", name: "Carlos Ferreira", institution: "Bradesco", status: "pendente", accountType: "Principal" },
-      { initials: "LG", name: "Lucia Gomes", institution: "Bradesco", status: "pendente", accountType: "Principal" },
-    ],
-  },
-  {
-    managerName: "Fernando Reis",
-    managerInitials: "FR",
-    institution: "Santander Select",
-    clients: [
-      { initials: "TN", name: "Thiago Nascimento", institution: "Santander", status: "verificado", accountType: "Principal" },
+      { initials: "CF", name: "Carlos Ferreira", status: "pendente", accountType: "Principal" },
+      { initials: "LG", name: "Lucia Gomes", status: "pendente", accountType: "Principal" },
     ],
   },
 ];
+
+const STATUS_CONFIG: Record<
+  InstitutionStatus,
+  { label: string; color: string; bg: string; border: string; borderActive: string; dot: string; gradient: string; Icon: typeof CheckCircle }
+> = {
+  verificado: {
+    label: "Verificado",
+    color: "text-[#6ecf8e]",
+    bg: "bg-[rgba(110,207,142,0.1)]",
+    border: "border-[rgba(110,207,142,0.2)]",
+    borderActive: "border-[#6ecf8e]",
+    dot: "bg-[#6ecf8e]",
+    gradient: "bg-gradient-to-br from-[rgba(110,207,142,0.1)] to-[rgba(110,207,142,0.03)]",
+    Icon: CheckCircle,
+  },
+  pendente: {
+    label: "Pendente",
+    color: "text-[#dcb092]",
+    bg: "bg-[rgba(220,176,146,0.1)]",
+    border: "border-[rgba(220,176,146,0.2)]",
+    borderActive: "border-[#dcb092]",
+    dot: "bg-[#dcb092]",
+    gradient: "bg-gradient-to-br from-[rgba(220,176,146,0.1)] to-[rgba(220,176,146,0.03)]",
+    Icon: AlertTriangle,
+  },
+  solicitado: {
+    label: "Solicitado",
+    color: "text-[#6db1d4]",
+    bg: "bg-[rgba(109,177,212,0.1)]",
+    border: "border-[rgba(109,177,212,0.2)]",
+    borderActive: "border-[#6db1d4]",
+    dot: "bg-[#6db1d4]",
+    gradient: "bg-gradient-to-br from-[rgba(109,177,212,0.1)] to-[rgba(109,177,212,0.03)]",
+    Icon: Clock,
+  },
+};
 
 const menuItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
@@ -163,12 +173,12 @@ function MockupSidebar() {
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium" data-testid="text-username-mockup">Rafael Bernardino</p>
-            <Badge variant="outline" className="mt-1 h-4 px-1.5 py-0 text-[10px] bg-blue-500/20 text-blue-400 border-blue-500/30">
+            <Badge variant="outline" className="mt-1 h-4 px-1.5 py-0 text-[10px] bg-[rgba(109,177,212,0.15)] text-[#6db1d4] border-[rgba(109,177,212,0.3)]">
               Consultor
             </Badge>
           </div>
         </div>
-        <Button variant="ghost" size="sm" className="w-full justify-start text-muted-foreground" data-testid="button-logout-mockup">
+        <Button variant="ghost" size="sm" className="w-full justify-start text-[#8c8c8c]" data-testid="button-logout-mockup">
           <LogOut className="mr-2 h-4 w-4" />
           Sair
         </Button>
@@ -177,206 +187,203 @@ function MockupSidebar() {
   );
 }
 
-function StatusBadge({ status }: { status: VarreduraStatus }) {
-  const s = STATUS_STYLES[status];
-  const labels: Record<VarreduraStatus, string> = { pendente: "Pendente", solicitado: "Solicitado", verificado: "Verificado" };
-  return (
-    <Badge className={`${s.bg} ${s.text} cursor-pointer rounded-lg border-transparent px-3 py-1 text-[11px] font-bold`}>
-      {labels[status]}
-    </Badge>
-  );
-}
+function SummaryCards() {
+  const verified = directAccessInstitutions.filter((i) => i.status === "verificado").length;
+  const pending = directAccessInstitutions.filter((i) => i.status === "pendente").length +
+    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "pendente").length, 0);
+  const solicited = directAccessInstitutions.filter((i) => i.status === "solicitado").length +
+    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "solicitado").length, 0);
+  const total = directAccessInstitutions.length + managerGroups.reduce((s, g) => s + g.clientCount, 0);
 
-function MethodBadge({ method }: { method: string }) {
-  return (
-    <Badge className={`${METHOD_STYLES[method]} rounded-lg px-3 py-1 text-[11px] font-bold`}>
-      {method}
-    </Badge>
-  );
-}
+  const cards = [
+    { label: "Pendentes", value: pending, ...STATUS_CONFIG.pendente },
+    { label: "Solicitados", value: solicited, ...STATUS_CONFIG.solicitado },
+    { label: "Verificados", value: verified, ...STATUS_CONFIG.verificado },
+    { label: "Total Contas", value: total, color: "text-[#ededed]", bg: "bg-[rgba(237,237,237,0.05)]", border: "border-[rgba(237,237,237,0.1)]", gradient: "bg-gradient-to-br from-[rgba(237,237,237,0.06)] to-[rgba(237,237,237,0.02)]", dot: "bg-[#ededed]", Icon: Shield, borderActive: "", },
+  ];
 
-function DirectInstitutionRow({ inst }: { inst: DirectInstitution }) {
-  const s = STATUS_STYLES[inst.status];
   return (
-    <div className="group flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5" data-testid={`row-direct-${inst.initials.toLowerCase()}`}>
-      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${s.dot}`} />
-      <span className="w-48 text-sm font-medium text-zinc-300">{inst.name}</span>
-      <MethodBadge method={inst.method} />
-      <StatusBadge status={inst.status} />
-      <div className="ml-auto flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <button className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-300" data-testid={`button-open-${inst.initials.toLowerCase()}`}>
-          <ExternalLink className="h-3.5 w-3.5" />
-        </button>
-      </div>
+    <div className="flex gap-3">
+      {cards.map((c) => (
+        <div
+          key={c.label}
+          className={`relative flex flex-1 flex-col gap-1.5 overflow-hidden rounded-xl border p-3 px-4 ${c.gradient} ${c.border}`}
+          data-testid={`stat-${c.label.toLowerCase()}`}
+        >
+          <div
+            className={`absolute left-0 right-0 top-0 h-[3px] ${c.dot.replace("bg-", "bg-")}`}
+            style={{ opacity: 0.6 }}
+          />
+          <c.Icon className={`h-4 w-4 opacity-80 ${c.color}`} />
+          <span className={`text-lg font-bold ${c.color}`}>{c.value}</span>
+          <span className="text-[10px] font-medium uppercase tracking-wide text-[#8c8c8c]">{c.label}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
-function ManagerClientRow({ client }: { client: ManagerClient }) {
-  const s = STATUS_STYLES[client.status];
-  return (
-    <div className="group flex items-center gap-4 rounded-lg px-5 py-2 hover:bg-white/5" data-testid={`row-client-${client.initials.toLowerCase()}`}>
-      <span className={`h-2 w-2 flex-shrink-0 rounded-full ${s.dot}`} />
-      <span className="w-48 text-sm font-medium text-zinc-300">{client.name}</span>
-      <span className="w-16 text-xs text-zinc-600">{client.accountType}</span>
-      <StatusBadge status={client.status} />
-      <div className="ml-auto flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-        <button className="flex h-7 w-7 items-center justify-center rounded-md text-green-600 hover:bg-white/10 hover:text-green-400" data-testid={`button-whatsapp-${client.initials.toLowerCase()}`}>
-          <MessageSquare className="h-3.5 w-3.5" />
-        </button>
-        <button className="flex h-7 w-7 items-center justify-center rounded-md text-zinc-500 hover:bg-white/10 hover:text-zinc-300" data-testid={`button-email-${client.initials.toLowerCase()}`}>
-          <Mail className="h-3.5 w-3.5" />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function ManagerGroupSection({ group }: { group: ManagerGroup }) {
-  const [expanded, setExpanded] = useState(group.managerName === "Carlos Eduardo");
-  const pendingCount = group.clients.filter((c) => c.status === "pendente").length;
-  const colors = { bg: "bg-blue-500/10", text: "text-blue-400" };
+function InstitutionCard({ institution }: { institution: Institution }) {
+  const sc = STATUS_CONFIG[institution.status];
+  const isAuto = institution.method === "Automático";
 
   return (
-    <div className="border-b border-white/5" data-testid={`group-manager-${group.managerInitials.toLowerCase()}`}>
-      <Collapsible open={expanded} onOpenChange={setExpanded}>
-        <CollapsibleTrigger className="flex w-full items-center gap-4 rounded-lg px-4 py-3 hover:bg-white/5">
-          <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${expanded ? "" : "-rotate-90"}`} />
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded ${colors.bg}`}>
-            <span className={`text-xs font-bold ${colors.text}`}>{group.managerInitials}</span>
+    <div
+      className={`group relative flex flex-col gap-3 overflow-hidden rounded-xl border p-4 transition-all hover:translate-y-[-1px] ${sc.gradient} ${sc.border}`}
+      data-testid={`card-institution-${institution.name.toLowerCase().replace(/\s/g, "-")}`}
+    >
+      <div className={`absolute left-0 right-0 top-0 h-[2px] ${sc.dot}`} style={{ opacity: 0.5 }} />
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className={`flex h-8 w-8 items-center justify-center rounded-md ${sc.bg}`}>
+            <span className={`text-xs font-bold ${sc.color}`}>{institution.initials}</span>
           </div>
-          <span className="text-base font-bold text-white">{group.managerName}</span>
-          <span className="text-xs text-zinc-600">{group.institution}</span>
+          <div className="flex flex-col">
+            <span className="text-sm font-semibold text-[#ededed]">{institution.name}</span>
+            <span className="flex items-center gap-1 text-[10px] text-[#8c8c8c]">
+              {isAuto ? <Zap className="h-2.5 w-2.5 text-[#6ecf8e]" /> : <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />}
+              {institution.method}
+            </span>
+          </div>
+        </div>
+        <span
+          className="flex items-center gap-1 text-[10px] font-medium text-[#555] opacity-0 transition-opacity group-hover:opacity-100"
+          data-testid={`link-access-${institution.initials.toLowerCase()}`}
+        >
+          <ExternalLink className="h-3 w-3" />
+        </span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <sc.Icon className={`h-3 w-3 ${sc.color}`} />
+        <span className={`text-[11px] font-semibold ${sc.color}`}>{sc.label}</span>
+      </div>
+    </div>
+  );
+}
+
+function ManagerGroupCard({ group }: { group: ManagerGroup }) {
+  const [expanded, setExpanded] = useState(group.name === "Itau Personnalite");
+  const pendingCount = group.clients.filter((c) => c.status === "pendente").length;
+  const solicitedCount = group.clients.filter((c) => c.status === "solicitado").length;
+
+  return (
+    <div
+      className="overflow-hidden rounded-xl border border-[#3a3a3a] bg-[#1a1a1a]"
+      data-testid={`card-manager-${group.name.toLowerCase().replace(/\s/g, "-")}`}
+    >
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#222222]"
+        data-testid={`button-toggle-${group.name.toLowerCase().replace(/\s/g, "-")}`}
+      >
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(109,177,212,0.1)]">
+          <span className="text-[10px] font-bold text-[#6db1d4]">{group.initials}</span>
+        </div>
+        <div className="flex flex-1 items-center gap-3 flex-wrap">
+          <span className="text-sm font-semibold text-[#ededed]">{group.name}</span>
+          <span className="text-xs text-[#666]">{group.clientCount} clientes</span>
+        </div>
+        <div className="flex items-center gap-2">
           {pendingCount > 0 && (
-            <span className="rounded bg-red-950/40 px-2.5 py-1 text-[10px] font-bold uppercase text-red-500">
-              {pendingCount} PENDENTE{pendingCount > 1 ? "S" : ""}
+            <span className="inline-flex items-center gap-1 rounded-md bg-[rgba(220,176,146,0.1)] px-2 py-0.5 text-[10px] font-semibold text-[#dcb092]">
+              {pendingCount}
             </span>
           )}
-          <span className="ml-auto text-xs text-zinc-600">
-            {group.clients.length} cliente{group.clients.length > 1 ? "s" : ""}
-          </span>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="mt-1 space-y-0 pl-12">
-            {group.clients.map((client, idx) => (
-              <ManagerClientRow key={idx} client={client} />
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+          {solicitedCount > 0 && (
+            <span className="inline-flex items-center gap-1 rounded-md bg-[rgba(109,177,212,0.1)] px-2 py-0.5 text-[10px] font-semibold text-[#6db1d4]">
+              {solicitedCount}
+            </span>
+          )}
+        </div>
+        {expanded ? (
+          <ChevronUp className="h-4 w-4 shrink-0 text-[#555]" />
+        ) : (
+          <ChevronDown className="h-4 w-4 shrink-0 text-[#555]" />
+        )}
+      </button>
+
+      {expanded && (
+        <div className="border-t border-[#2a2a2a]">
+          {group.clients.map((client, idx) => {
+            const sc = STATUS_CONFIG[client.status];
+            return (
+              <div
+                key={idx}
+                className={`group/row flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[#1e1e1e] ${
+                  idx < group.clients.length - 1 ? "border-b border-[#252525]" : ""
+                }`}
+                data-testid={`row-client-${client.initials.toLowerCase()}`}
+              >
+                <span className={`h-2 w-2 shrink-0 rounded-full ${sc.dot}`} />
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-[#252525]">
+                  <span className="text-[9px] font-bold text-[#999]">{client.initials}</span>
+                </div>
+                <span className="w-40 shrink-0 text-sm font-medium text-[#ccc]">{client.name}</span>
+                <span className="text-xs text-[#555]">{client.accountType}</span>
+                <span className={`ml-auto inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[11px] font-semibold ${sc.bg} ${sc.color}`}>
+                  <sc.Icon className="h-3 w-3" />
+                  {sc.label}
+                </span>
+                <div className="flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover/row:opacity-100">
+                  <button
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6ecf8e]"
+                    data-testid={`button-whatsapp-${client.initials.toLowerCase()}`}
+                  >
+                    <MessageSquare className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6db1d4]"
+                    data-testid={`button-email-${client.initials.toLowerCase()}`}
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function VarreduraContent() {
-  const [activeFilter, setActiveFilter] = useState<VarreduraStatus | null>(null);
-  const [groupBy, setGroupBy] = useState<"gerente" | "instituicao">("gerente");
-
-  const pendentes = directInstitutions.filter((i) => i.status === "pendente").length +
-    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "pendente").length, 0);
-  const solicitados = directInstitutions.filter((i) => i.status === "solicitado").length +
-    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "solicitado").length, 0);
-  const verificados = directInstitutions.filter((i) => i.status === "verificado").length +
-    managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "verificado").length, 0);
-
-  const handleFilterClick = (status: VarreduraStatus) => {
-    setActiveFilter(activeFilter === status ? null : status);
-  };
-
   return (
     <div className="flex flex-col gap-6 px-8 pb-32 pt-6">
-      <div className="flex items-center justify-between">
-        <h1 className="mb-2 text-3xl font-bold text-white" data-testid="text-page-title">Varredura de Saldo</h1>
-      </div>
+      <h1 className="text-3xl font-bold text-[#ededed]" data-testid="text-page-title">Varredura de Saldo</h1>
 
-      <div className="flex items-center gap-3">
-        <button
-          onClick={() => handleFilterClick("pendente")}
-          className={`inline-flex items-center gap-1.5 rounded-lg border border-orange-500/30 bg-orange-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-orange-400 transition-all hover:bg-orange-500/20 ${activeFilter === "pendente" ? "ring-2 ring-orange-500/40" : ""}`}
-          data-testid="filter-pendentes"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          {pendentes} Pendentes
-        </button>
-        <button
-          onClick={() => handleFilterClick("solicitado")}
-          className={`inline-flex items-center gap-1.5 rounded-lg border border-blue-500/30 bg-blue-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-blue-400 transition-all hover:bg-blue-500/20 ${activeFilter === "solicitado" ? "ring-2 ring-blue-500/40" : ""}`}
-          data-testid="filter-solicitados"
-        >
-          <Mail className="h-4 w-4" />
-          {solicitados} Solicitados
-        </button>
-        <button
-          onClick={() => handleFilterClick("verificado")}
-          className={`inline-flex items-center gap-1.5 rounded-lg border border-green-500/30 bg-green-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-green-400 transition-all hover:bg-green-500/20 ${activeFilter === "verificado" ? "ring-2 ring-green-500/40" : ""}`}
-          data-testid="filter-verificados"
-        >
-          <CheckCircle className="h-4 w-4" />
-          {verificados} Verificados
-        </button>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 items-center rounded-xl border border-white/5 bg-[#111] p-0.5">
-          <button
-            onClick={() => setGroupBy("gerente")}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${groupBy === "gerente" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
-            data-testid="toggle-group-gerente"
-          >
-            <UsersIcon className="h-3.5 w-3.5" />
-            Gerente
-          </button>
-          <button
-            onClick={() => setGroupBy("instituicao")}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${groupBy === "instituicao" ? "bg-white/10 text-white" : "text-zinc-500 hover:text-zinc-300"}`}
-            data-testid="toggle-group-instituicao"
-          >
-            <Building2 className="h-3.5 w-3.5" />
-            Instituição
-          </button>
-        </div>
-        {activeFilter && (
-          <button
-            onClick={() => setActiveFilter(null)}
-            className="ml-2 flex items-center gap-1 text-sm font-medium text-gray-400 hover:text-white"
-            data-testid="button-clear-filters"
-          >
-            <X className="h-3 w-3" />
-            Limpar filtro
-          </button>
-        )}
-      </div>
+      <SummaryCards />
 
       <section>
-        <div className="flex items-center gap-3 py-3">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500" data-testid="text-section-direct">
+        <div className="mb-3 flex items-center gap-3">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#666]" data-testid="text-section-direct">
             Acesso Direto
           </h2>
-          <span className="inline-flex items-center rounded-md bg-emerald-950/30 px-2 py-0.5 text-[10px] font-bold text-emerald-500">
-            {directInstitutions.length}
+          <span className="inline-flex items-center rounded-md bg-[rgba(110,207,142,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#6ecf8e]">
+            {directAccessInstitutions.filter((i) => i.status === "verificado").length}/{directAccessInstitutions.length}
           </span>
         </div>
-        <div className="flex flex-col gap-0">
-          {directInstitutions
-            .filter((i) => !activeFilter || i.status === activeFilter)
-            .map((inst) => (
-              <DirectInstitutionRow key={inst.name} inst={inst} />
-            ))}
+        <div className="grid grid-cols-4 gap-3">
+          {directAccessInstitutions.map((inst) => (
+            <InstitutionCard key={inst.name} institution={inst} />
+          ))}
         </div>
       </section>
 
       <section>
-        <div className="flex items-center gap-3 py-3">
-          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500" data-testid="text-section-manager">
+        <div className="mb-3 flex items-center gap-3">
+          <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#666]" data-testid="text-section-manager">
             Via Gerente
           </h2>
-          <span className="inline-flex items-center rounded-md bg-orange-500/20 px-2 py-0.5 text-[10px] font-black text-orange-400">
-            {managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status === "pendente" || c.status === "solicitado").length, 0)}
+          <span className="inline-flex items-center rounded-md bg-[rgba(220,176,146,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#dcb092]">
+            {managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status !== "verificado").length, 0)} pendentes
           </span>
         </div>
-        <div className="flex flex-col gap-0">
+        <div className="space-y-3">
           {managerGroups.map((group) => (
-            <ManagerGroupSection key={group.managerName} group={group} />
+            <ManagerGroupCard key={group.name} group={group} />
           ))}
         </div>
       </section>
@@ -395,7 +402,7 @@ export default function MockupVarredura() {
       <div className="flex h-screen w-full" data-testid="mockup-varredura">
         <MockupSidebar />
         <div className="flex flex-1 flex-col overflow-hidden">
-          <header className="flex items-center justify-between border-b border-border p-3">
+          <header className="flex items-center justify-between border-b border-[#2a2a2a] p-3">
             <div className="flex flex-wrap items-center gap-1">
               <SidebarTrigger data-testid="button-sidebar-toggle" />
               <Button size="icon" variant="ghost" data-testid="button-nav-back">
@@ -406,7 +413,7 @@ export default function MockupVarredura() {
               </Button>
             </div>
           </header>
-          <main className="flex-1 overflow-auto">
+          <main className="flex-1 overflow-auto bg-[#121212]">
             <VarreduraContent />
           </main>
         </div>
