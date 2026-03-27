@@ -425,8 +425,17 @@ function ManagerGroupCard({ group }: { group: ManagerGroup }) {
 
 function VarreduraContent() {
   const [selectedDay, setSelectedDay] = useState(new Date());
-  const [checkedInstitutions, setCheckedInstitutions] = useState<Set<string>>(
-    () => new Set(["XP", "BT", "AV"]),
+  const [checksByDate, setChecksByDate] = useState<Record<string, string[]>>(
+    () => {
+      const todayKey = new Date().toDateString();
+      return { [todayKey]: ["XP", "BT", "AV"] };
+    },
+  );
+
+  const dateKey = selectedDay.toDateString();
+  const checkedInstitutions = useMemo(
+    () => new Set(checksByDate[dateKey] ?? []),
+    [checksByDate, dateKey],
   );
 
   const totalDirect = directAccessInstitutions.length;
@@ -439,14 +448,12 @@ function VarreduraContent() {
   );
 
   const toggleInstitution = (initials: string) => {
-    setCheckedInstitutions((prev) => {
-      const next = new Set(prev);
-      if (next.has(initials)) {
-        next.delete(initials);
-      } else {
-        next.add(initials);
-      }
-      return next;
+    setChecksByDate((prev) => {
+      const current = prev[dateKey] ?? [];
+      const next = current.includes(initials)
+        ? current.filter((i) => i !== initials)
+        : [...current, initials];
+      return { ...prev, [dateKey]: next };
     });
   };
 
@@ -491,8 +498,8 @@ function VarreduraContent() {
           <h2 className="text-xs font-black uppercase tracking-[0.2em] text-[#666]" data-testid="text-section-manager">
             Via Gerente
           </h2>
-          <span className="inline-flex items-center rounded-md bg-[rgba(109,177,212,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#6db1d4]">
-            {solicitedManager}/{totalManagerClients} solicitados
+          <span className="inline-flex items-center rounded-md bg-[rgba(220,176,146,0.1)] px-2 py-0.5 text-[10px] font-bold text-[#dcb092]">
+            {managerGroups.reduce((s, g) => s + g.clients.filter((c) => c.status !== "verificado").length, 0)} pendentes
           </span>
         </div>
         <div className="space-y-3">
