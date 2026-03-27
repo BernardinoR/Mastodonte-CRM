@@ -31,6 +31,9 @@ export interface VarreduraConta {
   start_date: string;
   end_date: string | null;
   account_name: string | null;
+  manager_phone: string | null;
+  manager_email: string | null;
+  manager_name: string | null;
   client: DbClient;
   institution: DbInstitution;
   extrato_statuses: DbExtratoStatus[];
@@ -121,6 +124,17 @@ export function buildManagerGroups(
 
     const status = getStatusForConta(c, competencia);
 
+    let contactPhone: string | undefined;
+    let contactEmail: string | undefined;
+
+    if (c.type === "Manual") {
+      contactPhone = c.manager_phone ?? undefined;
+      contactEmail = c.manager_email ?? undefined;
+    } else {
+      contactPhone = c.client.phone ?? undefined;
+      contactEmail = c.client.emails?.[c.client.primary_email_index ?? 0] ?? undefined;
+    }
+
     grouped.get(key)!.push({
       contaId: c.id,
       clientId: c.client_id,
@@ -128,8 +142,8 @@ export function buildManagerGroups(
       clientInitials: c.client.initials || computeInitials(c.client.name),
       accountName: c.account_name || "",
       status,
-      phone: c.client.phone ?? undefined,
-      email: c.client.emails?.[c.client.primary_email_index ?? 0] ?? undefined,
+      phone: contactPhone,
+      email: contactEmail,
     });
   }
 

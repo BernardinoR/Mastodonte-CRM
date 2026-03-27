@@ -18,6 +18,7 @@ import {
 
 const CONTA_SELECT = `
   id, client_id, type, start_date, end_date, account_name,
+  manager_phone, manager_email, manager_name,
   client:clients!client_id(name, initials, emails, primary_email_index, phone),
   institution:institutions!institution_id(name, attachment_count, currency),
   extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
