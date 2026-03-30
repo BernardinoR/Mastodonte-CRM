@@ -393,6 +393,127 @@ const POLICY = {
   exposureAreas: ["Brasil 70-80%", "EUA 10-15%", "Europa 5-10%", "Ásia < 5%"],
 };
 
+type StrategyType = "posFixado" | "inflacao" | "preFixado";
+
+interface MaturityEntry {
+  year: number;
+  posFixado: number;
+  inflacao: number;
+  preFixado: number;
+  avgRatePos: number;
+  avgRateInfl: number;
+  avgRatePre: number;
+}
+
+const MATURITY_DATA: MaturityEntry[] = [
+  { year: 2026, posFixado: 50_000, inflacao: 0, preFixado: 140_000, avgRatePos: 100.5, avgRateInfl: 0, avgRatePre: 11.5 },
+  { year: 2027, posFixado: 88_950, inflacao: 0, preFixado: 555_250, avgRatePos: 101.2, avgRateInfl: 0, avgRatePre: 12.9 },
+  { year: 2028, posFixado: 53_100, inflacao: 200_000, preFixado: 0, avgRatePos: 101.8, avgRateInfl: 5.8, avgRatePre: 0 },
+  { year: 2029, posFixado: 100_000, inflacao: 563_600, preFixado: 0, avgRatePos: 102.5, avgRateInfl: 6.1, avgRatePre: 0 },
+  { year: 2030, posFixado: 0, inflacao: 390_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.5, avgRatePre: 0 },
+  { year: 2031, posFixado: 0, inflacao: 278_600, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.1, avgRatePre: 0 },
+  { year: 2032, posFixado: 0, inflacao: 165_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.5, avgRatePre: 0 },
+  { year: 2034, posFixado: 0, inflacao: 120_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.8, avgRatePre: 0 },
+  { year: 2035, posFixado: 0, inflacao: 80_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.0, avgRatePre: 0 },
+  { year: 2037, posFixado: 0, inflacao: 55_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.2, avgRatePre: 0 },
+  { year: 2040, posFixado: 0, inflacao: 35_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.5, avgRatePre: 0 },
+];
+
+interface MacroClassPolicy {
+  name: string;
+  idealPct: number;
+  actualPct: number;
+  status: BalanceStatus;
+  pctForaIdeal: number;
+}
+
+const MACRO_CLASS_POLICY: MacroClassPolicy[] = [
+  { name: "Renda Fixa", idealPct: 54.5, actualPct: 52.8, status: "atencao", pctForaIdeal: -3.1 },
+  { name: "Multimercado", idealPct: 4.0, actualPct: 3.8, status: "ok", pctForaIdeal: -5.0 },
+  { name: "Imobiliário", idealPct: 4.5, actualPct: 4.6, status: "ok", pctForaIdeal: 1.5 },
+  { name: "Ações", idealPct: 19.5, actualPct: 18.0, status: "desbalanceado", pctForaIdeal: -7.7 },
+  { name: "Exterior", idealPct: 14.0, actualPct: 13.2, status: "atencao", pctForaIdeal: -5.7 },
+];
+
+interface SubClassRange {
+  name: string;
+  macroClass: string;
+  idealPct: number;
+  rangeMinus: number;
+  rangePlus: number;
+  minPct: number;
+  maxPct: number;
+  atualPct: number;
+}
+
+const SUB_CLASS_RANGES: SubClassRange[] = [
+  { name: "CDI - Liquidez", macroClass: "Renda Fixa", idealPct: 12.0, rangeMinus: 2.0, rangePlus: 3.0, minPct: 10.0, maxPct: 15.0, atualPct: 11.9 },
+  { name: "CDI - Títulos", macroClass: "Renda Fixa", idealPct: 8.5, rangeMinus: 1.5, rangePlus: 2.0, minPct: 7.0, maxPct: 10.5, atualPct: 8.8 },
+  { name: "CDI - Fundos", macroClass: "Renda Fixa", idealPct: 6.5, rangeMinus: 1.0, rangePlus: 1.5, minPct: 5.5, maxPct: 8.0, atualPct: 6.5 },
+  { name: "Inflação - Títulos", macroClass: "Renda Fixa", idealPct: 10.0, rangeMinus: 2.0, rangePlus: 2.0, minPct: 8.0, maxPct: 12.0, atualPct: 10.8 },
+  { name: "Inflação - Fundos", macroClass: "Renda Fixa", idealPct: 6.0, rangeMinus: 1.0, rangePlus: 1.5, minPct: 5.0, maxPct: 7.5, atualPct: 6.0 },
+  { name: "Pré-Fixado", macroClass: "Renda Fixa", idealPct: 5.5, rangeMinus: 1.5, rangePlus: 1.0, minPct: 4.0, maxPct: 6.5, atualPct: 5.2 },
+  { name: "Debêntures", macroClass: "Renda Fixa", idealPct: 3.5, rangeMinus: 0.5, rangePlus: 1.0, minPct: 3.0, maxPct: 4.5, atualPct: 3.5 },
+  { name: "CRI / CRA", macroClass: "Renda Fixa", idealPct: 2.5, rangeMinus: 0.5, rangePlus: 0.5, minPct: 2.0, maxPct: 3.0, atualPct: 2.7 },
+  { name: "Ações", macroClass: "Ações", idealPct: 8.5, rangeMinus: 2.0, rangePlus: 2.0, minPct: 6.5, maxPct: 10.5, atualPct: 7.4 },
+  { name: "Long Biased", macroClass: "Ações", idealPct: 4.5, rangeMinus: 1.0, rangePlus: 1.0, minPct: 3.5, maxPct: 5.5, atualPct: 4.6 },
+  { name: "Private Brasil", macroClass: "Ações", idealPct: 4.0, rangeMinus: 1.0, rangePlus: 1.0, minPct: 3.0, maxPct: 5.0, atualPct: 4.0 },
+  { name: "Small Caps", macroClass: "Ações", idealPct: 2.5, rangeMinus: 0.5, rangePlus: 0.5, minPct: 2.0, maxPct: 3.0, atualPct: 2.1 },
+  { name: "RF Exterior", macroClass: "Exterior", idealPct: 4.5, rangeMinus: 1.0, rangePlus: 1.0, minPct: 3.5, maxPct: 5.5, atualPct: 4.5 },
+  { name: "Multimercado Ext.", macroClass: "Exterior", idealPct: 4.0, rangeMinus: 1.0, rangePlus: 1.0, minPct: 3.0, maxPct: 5.0, atualPct: 3.8 },
+  { name: "Ações Exterior", macroClass: "Exterior", idealPct: 4.0, rangeMinus: 1.0, rangePlus: 1.5, minPct: 3.0, maxPct: 5.5, atualPct: 3.4 },
+  { name: "Hedge Cambial", macroClass: "Exterior", idealPct: 1.5, rangeMinus: 0.5, rangePlus: 0.5, minPct: 1.0, maxPct: 2.0, atualPct: 1.5 },
+  { name: "Imobiliário", macroClass: "Alternativo", idealPct: 4.5, rangeMinus: 1.0, rangePlus: 1.0, minPct: 3.5, maxPct: 5.5, atualPct: 4.6 },
+  { name: "Private Equity", macroClass: "Alternativo", idealPct: 3.5, rangeMinus: 0.5, rangePlus: 1.0, minPct: 3.0, maxPct: 4.5, atualPct: 3.5 },
+  { name: "Infraestrutura", macroClass: "Alternativo", idealPct: 2.5, rangeMinus: 0.5, rangePlus: 0.5, minPct: 2.0, maxPct: 3.0, atualPct: 2.4 },
+  { name: "Agronegócio", macroClass: "Alternativo", idealPct: 1.5, rangeMinus: 0.3, rangePlus: 0.5, minPct: 1.2, maxPct: 2.0, atualPct: 1.4 },
+];
+
+interface LiquidityBucket {
+  label: string;
+  pctPL: number;
+  value: number;
+}
+
+const LIQUIDITY_DATA: LiquidityBucket[] = [
+  { label: "D+0", pctPL: 18.5, value: 2_451_250 },
+  { label: "D+1", pctPL: 14.2, value: 1_881_500 },
+  { label: "D+30", pctPL: 12.8, value: 1_696_000 },
+  { label: "D+90", pctPL: 15.5, value: 2_053_750 },
+  { label: "D+180", pctPL: 10.3, value: 1_364_750 },
+  { label: "D+360", pctPL: 8.7, value: 1_152_750 },
+  { label: "Ilíquido", pctPL: 20.0, value: 2_650_000 },
+];
+
+const LIQUIDITY_POLICY_MIN = 30;
+
+const INST_HEX: Record<string, string> = {
+  XP: "#a1a1aa",
+  BTG: "#93c5fd",
+  "Itaú": "#fdba74",
+  Safra: "#a5b4fc",
+  Bradesco: "#fda4af",
+};
+
+interface ComplianceCheck {
+  label: string;
+  status: "ok" | "atencao" | "violado";
+  detail: string;
+}
+
+const COMPLIANCE_CHECKS: ComplianceCheck[] = [
+  { label: "Suitability", status: "ok", detail: "Moderado — portfólio compatível" },
+  { label: "Liquidez Mínima D+0/D+1", status: "ok", detail: `${(18.5 + 14.2).toFixed(1)}% > 30% mínimo` },
+  { label: "Perda Máxima", status: "ok", detail: "VaR 95% = -8.2% < -12% limite" },
+  { label: "Retorno Alvo", status: "atencao", detail: "IPCA+5.4% vs meta IPCA+6%" },
+  { label: "FGC por Instituição", status: "atencao", detail: "Itaú R$ 248.500 próximo do limite R$ 250.000" },
+  { label: "Prazo Máximo RF", status: "ok", detail: "NTN-B 2040 dentro do tolerado" },
+  { label: "Restrições de Ativos", status: "ok", detail: "Sem Cripto, COE sem capital, derivativos alav." },
+  { label: "Exposição Geográfica", status: "ok", detail: "Brasil 73%, EUA 12%, Europa 8%, Ásia 3%" },
+  { label: "Concentração por Macro Classe", status: "atencao", detail: "Ações 18.0% vs ideal 19.5% (-7.7%)" },
+  { label: "Diversificação Plataformas", status: "ok", detail: "5 instituições ativas" },
+];
+
 function formatBRL(value: number): string {
   if (Math.abs(value) >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2).replace(".", ",")}M`;
   if (Math.abs(value) >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}k`;
@@ -795,43 +916,415 @@ function MatrixTable({
   );
 }
 
-function FGCSection() {
+function FGCBarChart() {
+  const maxVal = 300_000;
+  const limitVal = 250_000;
+  const limitPct = (limitVal / maxVal) * 100;
+
   return (
     <section data-testid="fgc-section">
-      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
         <Shield className="h-4 w-4 text-[#6db1d4]" />
         FGC — Fundo Garantidor de Créditos
       </h2>
-      <div className="grid grid-cols-5 gap-3">
-        {FGC_DATA.map((fgc) => {
-          const s = FGC_STYLES[fgc.status];
-          const instC = getInstitutionColor(fgc.colorKey);
-          const pct = ((fgc.covered / fgc.limit) * 100).toFixed(0);
-          return (
-            <div key={fgc.institution} className={`rounded-md border p-3 ${s.bg} ${s.border}`} data-testid={`fgc-card-${fgc.institution}`}>
-              <div className="mb-2 flex items-center gap-2">
-                <Avatar className="h-6 w-6">
-                  <AvatarFallback className={`text-[10px] font-bold ${instC.bg} ${instC.text}`}>{fgc.institution.substring(0, 2).toUpperCase()}</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium text-[#ededed]">{fgc.institution}</span>
-                {fgc.status === "critico" && <AlertTriangle className="ml-auto h-3.5 w-3.5 text-[#e05c5c]" />}
-                {fgc.status === "alerta" && <AlertTriangle className="ml-auto h-3.5 w-3.5 text-[#dcb092]" />}
-                {fgc.status === "ok" && <CheckCircle className="ml-auto h-3.5 w-3.5 text-[#6ecf8e]" />}
-              </div>
-              <div className="mb-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[#2a2a2a]">
-                <div
-                  className={`h-full rounded-full transition-all ${fgc.status === "critico" ? "bg-[#e05c5c]" : fgc.status === "alerta" ? "bg-[#dcb092]" : "bg-[#6ecf8e]"}`}
-                  style={{ width: `${Math.min(Number(pct), 100)}%` }}
-                />
-              </div>
-              <div className="flex items-baseline justify-between gap-1">
-                <span className={`text-xs font-medium ${s.color}`}>{formatBRLFull(fgc.covered)}</span>
-                <span className="text-[10px] text-[#555]">/ {formatBRLFull(fgc.limit)}</span>
-              </div>
-              <p className={`mt-0.5 text-[10px] ${s.color}`}>{pct}% utilizado</p>
+      <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-5">
+        <div className="mb-3 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-sm bg-[#6ecf8e]" />
+            <span className="text-[11px] text-[#8c8c8c]">Dentro do limite</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-sm bg-[#e05c5c]" />
+            <span className="text-[11px] text-[#8c8c8c]">Acima do limite</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-px w-4 border-t-2 border-dashed border-[#e05c5c]" />
+            <span className="text-[11px] text-[#8c8c8c]">Limite FGC R$ 250k</span>
+          </div>
+        </div>
+
+        <div className="relative" style={{ height: "220px" }}>
+          <div className="absolute left-0 top-0 flex h-full w-12 flex-col justify-between pb-6 text-right">
+            <span className="text-[10px] text-[#555]">R$ 300k</span>
+            <span className="text-[10px] text-[#555]">R$ 200k</span>
+            <span className="text-[10px] text-[#555]">R$ 100k</span>
+            <span className="text-[10px] text-[#555]">R$ 0</span>
+          </div>
+
+          <div className="absolute bottom-6 left-14 right-0 top-0">
+            <div
+              className="absolute left-0 right-0 border-t-2 border-dashed border-[#e05c5c]/60"
+              style={{ top: `${100 - limitPct}%` }}
+            >
+              <span className="absolute -top-4 right-0 text-[10px] font-medium text-[#e05c5c]">R$ 250k</span>
             </div>
-          );
-        })}
+
+            <div className="flex h-full items-end justify-around gap-3 px-2">
+              {FGC_DATA.map((fgc) => {
+                const barPct = (fgc.covered / maxVal) * 100;
+                const overLimit = fgc.covered > limitVal;
+                const overPct = overLimit ? ((fgc.covered - limitVal) / maxVal) * 100 : 0;
+
+                return (
+                  <div key={fgc.institution} className="flex flex-1 flex-col items-center gap-1" data-testid={`fgc-bar-${fgc.institution}`}>
+                    <span className="text-[10px] font-medium text-[#ccc]">{formatBRLFull(fgc.covered)}</span>
+                    <div className="relative flex w-full max-w-[52px] flex-col items-stretch" style={{ height: `${barPct}%`, minHeight: "8px" }}>
+                      {overLimit && (
+                        <div
+                          className="w-full rounded-t-sm bg-[#e05c5c]"
+                          style={{ height: `${(overPct / barPct) * 100}%` }}
+                        />
+                      )}
+                      <div
+                        className="w-full flex-1"
+                        style={{
+                          backgroundColor: INST_HEX[fgc.colorKey] || "#6db1d4",
+                          borderRadius: overLimit ? "0 0 2px 2px" : "2px 2px 2px 2px",
+                          opacity: 0.85,
+                        }}
+                      />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="absolute bottom-0 left-14 right-0 flex justify-around gap-3 px-2">
+            {FGC_DATA.map((fgc) => (
+              <div key={fgc.institution} className="flex flex-1 flex-col items-center">
+                <span className="text-[11px] font-medium text-[#bbb]">{fgc.institution}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MaturityChart() {
+  const [activeStrategies, setActiveStrategies] = useState<Set<StrategyType>>(
+    () => new Set(["posFixado", "inflacao", "preFixado"])
+  );
+
+  const toggleStrategy = (s: StrategyType) => {
+    setActiveStrategies((prev) => {
+      const next = new Set(prev);
+      if (next.has(s)) {
+        if (next.size <= 1) return prev;
+        next.delete(s);
+      } else {
+        next.add(s);
+      }
+      return next;
+    });
+  };
+
+  const strategyLabels: Record<StrategyType, { label: string; color: string }> = {
+    posFixado: { label: "Pós Fixado", color: "#6db1d4" },
+    inflacao: { label: "Inflação", color: "#dcb092" },
+    preFixado: { label: "Pré Fixado", color: "#a5b4fc" },
+  };
+
+  const maxBarVal = useMemo(() => {
+    let max = 0;
+    MATURITY_DATA.forEach((d) => {
+      let total = 0;
+      if (activeStrategies.has("posFixado")) total += d.posFixado;
+      if (activeStrategies.has("inflacao")) total += d.inflacao;
+      if (activeStrategies.has("preFixado")) total += d.preFixado;
+      if (total > max) max = total;
+    });
+    return max || 1;
+  }, [activeStrategies]);
+
+  return (
+    <section data-testid="maturity-chart">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+        <TrendingUp className="h-4 w-4 text-[#dcb092]" />
+        Vencimentos por Estratégia
+      </h2>
+      <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-5">
+        <div className="mb-4 flex flex-wrap gap-2">
+          {(Object.entries(strategyLabels) as [StrategyType, { label: string; color: string }][]).map(([key, { label, color }]) => (
+            <button
+              key={key}
+              onClick={() => toggleStrategy(key)}
+              className={`inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-opacity ${activeStrategies.has(key) ? "opacity-100" : "opacity-30"}`}
+              style={{
+                borderColor: `${color}40`,
+                backgroundColor: `${color}15`,
+                color: color,
+              }}
+              data-testid={`maturity-toggle-${key}`}
+            >
+              <div className="h-2 w-2 rounded-full" style={{ backgroundColor: color }} />
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="relative" style={{ height: "200px" }}>
+          <div className="absolute left-0 top-0 flex h-full w-14 flex-col justify-between pb-6 text-right">
+            <span className="text-[10px] text-[#555]">{formatBRL(maxBarVal)}</span>
+            <span className="text-[10px] text-[#555]">{formatBRL(maxBarVal / 2)}</span>
+            <span className="text-[10px] text-[#555]">R$ 0</span>
+          </div>
+
+          <div className="absolute bottom-6 left-16 right-0 top-0 flex items-end gap-1">
+            {MATURITY_DATA.map((d) => {
+              const segments: { key: StrategyType; val: number; color: string }[] = [];
+              if (activeStrategies.has("posFixado") && d.posFixado > 0) segments.push({ key: "posFixado", val: d.posFixado, color: "#6db1d4" });
+              if (activeStrategies.has("inflacao") && d.inflacao > 0) segments.push({ key: "inflacao", val: d.inflacao, color: "#dcb092" });
+              if (activeStrategies.has("preFixado") && d.preFixado > 0) segments.push({ key: "preFixado", val: d.preFixado, color: "#a5b4fc" });
+              const total = segments.reduce((sum, s) => sum + s.val, 0);
+              const barPct = (total / maxBarVal) * 100;
+
+              const avgRate = segments.length > 0
+                ? segments.reduce((sum, s) => {
+                    const rate = s.key === "posFixado" ? d.avgRatePos : s.key === "inflacao" ? d.avgRateInfl : d.avgRatePre;
+                    return sum + rate * s.val;
+                  }, 0) / total
+                : 0;
+
+              return (
+                <div key={d.year} className="flex flex-1 flex-col items-center gap-0.5" data-testid={`maturity-bar-${d.year}`}>
+                  {total > 0 && (
+                    <span className="text-[9px] text-[#8c8c8c]">
+                      {avgRate > 0 ? `${avgRate.toFixed(1)}%` : ""}
+                    </span>
+                  )}
+                  <div className="flex w-full max-w-[40px] flex-col items-stretch" style={{ height: `${barPct}%`, minHeight: total > 0 ? "4px" : "0" }}>
+                    {segments.map((seg, i) => (
+                      <div
+                        key={seg.key}
+                        className="w-full"
+                        style={{
+                          height: `${(seg.val / total) * 100}%`,
+                          backgroundColor: seg.color,
+                          opacity: 0.8,
+                          borderRadius: i === 0 && segments.length === 1 ? "2px" : i === 0 ? "2px 2px 0 0" : i === segments.length - 1 ? "0 0 2px 2px" : "0",
+                        }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="absolute bottom-0 left-16 right-0 flex gap-1">
+            {MATURITY_DATA.map((d) => (
+              <div key={d.year} className="flex flex-1 justify-center">
+                <span className="text-[10px] text-[#666]">{d.year}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function MacroClassAnalysis() {
+  return (
+    <section data-testid="macro-class-analysis">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+        <Layers className="h-4 w-4 text-[#6db1d4]" />
+        Análise por Política — Macro Classes
+      </h2>
+      <div className="overflow-x-auto rounded-md border border-[#2a2a2a]">
+        <table className="w-full border-collapse text-xs">
+          <thead className="bg-[#1a1a1a]">
+            <tr className="border-b border-[#2a2a2a]">
+              <th className="min-w-[160px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
+              <th className="w-20 px-3 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal %</th>
+              <th className="w-20 px-3 py-2.5 text-right font-medium text-[#8c8c8c]">Atual %</th>
+              <th className="w-24 px-3 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
+              <th className="w-20 px-3 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
+              <th className="min-w-[180px] px-3 py-2.5 text-left font-medium text-[#8c8c8c]">Distribuição</th>
+            </tr>
+          </thead>
+          <tbody>
+            {MACRO_CLASS_POLICY.map((mc) => {
+              const barWidth = Math.min((mc.actualPct / 60) * 100, 100);
+              const idealWidth = Math.min((mc.idealPct / 60) * 100, 100);
+              return (
+                <tr key={mc.name} className="border-b border-[#1e1e1e]" data-testid={`macro-row-${mc.name}`}>
+                  <td className="px-4 py-2.5 font-medium text-[#ededed]">{mc.name}</td>
+                  <td className="px-3 py-2.5 text-right text-[#8c8c8c]">{mc.idealPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-right font-medium text-[#ededed]">{mc.actualPct.toFixed(1)}%</td>
+                  <td className="px-3 py-2.5 text-center"><StatusBadge status={mc.status} /></td>
+                  <td className="px-3 py-2.5 text-right">
+                    <span className={mc.pctForaIdeal > 0 ? "text-[#6ecf8e]" : Math.abs(mc.pctForaIdeal) > 5 ? "text-[#e05c5c]" : "text-[#dcb092]"}>
+                      {mc.pctForaIdeal > 0 ? "+" : ""}{mc.pctForaIdeal.toFixed(1)}%
+                    </span>
+                  </td>
+                  <td className="px-3 py-2.5">
+                    <div className="relative h-3 w-full rounded-sm bg-[#2a2a2a]">
+                      <div
+                        className="absolute left-0 top-0 h-full rounded-sm"
+                        style={{
+                          width: `${barWidth}%`,
+                          backgroundColor: mc.status === "ok" ? "#6ecf8e" : mc.status === "atencao" ? "#dcb092" : "#e05c5c",
+                          opacity: 0.6,
+                        }}
+                      />
+                      <div
+                        className="absolute top-0 h-full w-px bg-[#ededed]/50"
+                        style={{ left: `${idealWidth}%` }}
+                      />
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function SubClassRangesTable() {
+  const macroGroups = useMemo(() => {
+    const groups: Record<string, SubClassRange[]> = {};
+    SUB_CLASS_RANGES.forEach((sc) => {
+      if (!groups[sc.macroClass]) groups[sc.macroClass] = [];
+      groups[sc.macroClass].push(sc);
+    });
+    return groups;
+  }, []);
+
+  return (
+    <section data-testid="sub-class-ranges">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+        <Scale className="h-4 w-4 text-[#dcb092]" />
+        Análise por Política — Sub-Classificações
+      </h2>
+      <div className="overflow-x-auto rounded-md border border-[#2a2a2a]">
+        <table className="w-full border-collapse text-xs">
+          <thead className="bg-[#1a1a1a]">
+            <tr className="border-b border-[#2a2a2a]">
+              <th className="min-w-[160px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Sub-Classificação</th>
+              <th className="w-16 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
+              <th className="w-16 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Range-</th>
+              <th className="w-16 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Range+</th>
+              <th className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Mín.</th>
+              <th className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Máx.</th>
+              <th className="w-16 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
+              <th className="w-20 px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {Object.entries(macroGroups).map(([macro, subs]) => (
+              <Fragment key={macro}>
+                <tr className="border-b border-[#2a2a2a] bg-[#161616]">
+                  <td colSpan={8} className="px-4 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#666]">{macro}</td>
+                </tr>
+                {subs.map((sc) => {
+                  const inRange = sc.atualPct >= sc.minPct && sc.atualPct <= sc.maxPct;
+                  const status: BalanceStatus = inRange
+                    ? "ok"
+                    : Math.abs(sc.atualPct - sc.idealPct) > sc.rangePlus * 1.5 || Math.abs(sc.atualPct - sc.idealPct) > sc.rangeMinus * 1.5
+                      ? "desbalanceado"
+                      : "atencao";
+                  const cellBg = inRange ? "bg-[rgba(110,207,142,0.06)]" : "bg-[rgba(224,92,92,0.06)]";
+                  return (
+                    <tr key={sc.name} className="border-b border-[#1e1e1e]" data-testid={`subclass-row-${sc.name}`}>
+                      <td className="px-4 py-2 pl-6 text-[#bbb]">{sc.name}</td>
+                      <td className="px-2 py-2 text-right text-[#8c8c8c]">{sc.idealPct.toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-right text-[#666]">-{sc.rangeMinus.toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-right text-[#666]">+{sc.rangePlus.toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-right text-[#666]">{sc.minPct.toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-right text-[#666]">{sc.maxPct.toFixed(1)}%</td>
+                      <td className={`px-2 py-2 text-right font-medium ${cellBg} ${inRange ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}>{sc.atualPct.toFixed(1)}%</td>
+                      <td className="px-2 py-2 text-center"><StatusBadge status={status} /></td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  );
+}
+
+function LiquidityAnalysis() {
+  const maxPct = Math.max(...LIQUIDITY_DATA.map((d) => d.pctPL));
+  const cumulativeD0D1 = LIQUIDITY_DATA[0].pctPL + LIQUIDITY_DATA[1].pctPL;
+  const meetsPolicy = cumulativeD0D1 >= LIQUIDITY_POLICY_MIN;
+
+  return (
+    <section data-testid="liquidity-analysis">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+        <ArrowDownUp className="h-4 w-4 text-[#6db1d4]" />
+        Análise de Liquidez
+      </h2>
+      <div className="grid grid-cols-3 gap-4">
+        <div className="col-span-2 rounded-md border border-[#2a2a2a] bg-[#161616] p-5">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-xs font-medium text-[#8c8c8c]">Perfil de Liquidez — % do P.L.</span>
+            <div className="flex items-center gap-2">
+              <div className={`flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px] font-medium ${meetsPolicy ? "border-[rgba(110,207,142,0.25)] bg-[rgba(110,207,142,0.1)] text-[#6ecf8e]" : "border-[rgba(224,92,92,0.25)] bg-[rgba(224,92,92,0.1)] text-[#e05c5c]"}`}>
+                {meetsPolicy ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                D+0/D+1: {cumulativeD0D1.toFixed(1)}% {meetsPolicy ? ">" : "<"} {LIQUIDITY_POLICY_MIN}%
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            {LIQUIDITY_DATA.map((bucket) => {
+              const barWidth = (bucket.pctPL / maxPct) * 100;
+              const isShortTerm = bucket.label === "D+0" || bucket.label === "D+1";
+              return (
+                <div key={bucket.label} className="flex items-center gap-3" data-testid={`liquidity-bar-${bucket.label}`}>
+                  <span className={`w-14 text-right text-xs font-medium ${isShortTerm ? "text-[#6db1d4]" : "text-[#8c8c8c]"}`}>{bucket.label}</span>
+                  <div className="relative flex-1">
+                    <div className="h-5 w-full rounded-sm bg-[#2a2a2a]">
+                      <div
+                        className="h-full rounded-sm transition-all"
+                        style={{
+                          width: `${barWidth}%`,
+                          backgroundColor: isShortTerm ? "#6db1d4" : bucket.label === "Ilíquido" ? "#e05c5c" : "#dcb092",
+                          opacity: 0.7,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span className="w-12 text-right text-xs font-medium text-[#ededed]">{bucket.pctPL.toFixed(1)}%</span>
+                  <span className="w-20 text-right text-[11px] text-[#666]">{formatBRL(bucket.value)}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-5">
+          <span className="mb-3 block text-xs font-medium text-[#8c8c8c]">Resumo de Liquidez</span>
+          <div className="flex flex-col gap-3">
+            <div className="rounded-md border border-[#2a2a2a] bg-[#1a1a1a] p-3">
+              <span className="text-[10px] uppercase tracking-wider text-[#666]">Disponível em até D+1</span>
+              <p className="mt-1 text-lg font-bold text-[#6db1d4]">{formatBRLFull(LIQUIDITY_DATA[0].value + LIQUIDITY_DATA[1].value)}</p>
+              <p className="text-[11px] text-[#8c8c8c]">{cumulativeD0D1.toFixed(1)}% do P.L.</p>
+            </div>
+            <div className="rounded-md border border-[#2a2a2a] bg-[#1a1a1a] p-3">
+              <span className="text-[10px] uppercase tracking-wider text-[#666]">Ilíquido</span>
+              <p className="mt-1 text-lg font-bold text-[#e05c5c]">{formatBRLFull(LIQUIDITY_DATA[LIQUIDITY_DATA.length - 1].value)}</p>
+              <p className="text-[11px] text-[#8c8c8c]">{LIQUIDITY_DATA[LIQUIDITY_DATA.length - 1].pctPL.toFixed(1)}% do P.L.</p>
+            </div>
+            <div className="rounded-md border border-[#2a2a2a] bg-[#1a1a1a] p-3">
+              <span className="text-[10px] uppercase tracking-wider text-[#666]">Política Mínima</span>
+              <p className="mt-1 text-sm font-semibold text-[#ededed]">{LIQUIDITY_POLICY_MIN}% em D+0/D+1</p>
+              <div className={`mt-1 flex items-center gap-1 text-[11px] ${meetsPolicy ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}>
+                {meetsPolicy ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+                {meetsPolicy ? "Dentro da política" : "Abaixo da política"}
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -842,14 +1335,31 @@ function PolicySection() {
   const lbl = "text-xs text-[#8c8c8c]";
   const val = "text-xs text-[#ccc]";
 
+  const complianceIcon = (status: "ok" | "atencao" | "violado") => {
+    if (status === "ok") return <CheckCircle className="h-3.5 w-3.5 shrink-0 text-[#6ecf8e]" />;
+    if (status === "atencao") return <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-[#dcb092]" />;
+    return <X className="h-3.5 w-3.5 shrink-0 text-[#e05c5c]" />;
+  };
+
+  const complianceColor = (status: "ok" | "atencao" | "violado") => {
+    if (status === "ok") return "border-[rgba(110,207,142,0.15)] bg-[rgba(110,207,142,0.04)]";
+    if (status === "atencao") return "border-[rgba(220,176,146,0.15)] bg-[rgba(220,176,146,0.04)]";
+    return "border-[rgba(224,92,92,0.15)] bg-[rgba(224,92,92,0.04)]";
+  };
+
+  const okCount = COMPLIANCE_CHECKS.filter((c) => c.status === "ok").length;
+  const atencaoCount = COMPLIANCE_CHECKS.filter((c) => c.status === "atencao").length;
+  const violadoCount = COMPLIANCE_CHECKS.filter((c) => c.status === "violado").length;
+
   return (
     <section data-testid="policy-section">
-      <h2 className="mb-3 flex items-center gap-2 text-base font-semibold text-[#ededed]">
+      <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
         <Info className="h-4 w-4 text-[#6db1d4]" />
         Política de Investimentos — Foundation
       </h2>
-      <div className="grid grid-cols-2 gap-6">
+      <div className="grid grid-cols-3 gap-4">
         <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
+          <span className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-[#666]">Parâmetros</span>
           <div className={row}>
             <span className={lbl}>Suitability</span>
             <Badge className="no-default-hover-elevate no-default-active-elevate border-[rgba(109,177,212,0.25)] bg-[rgba(109,177,212,0.1)] text-[11px] text-[#6db1d4]">{POLICY.suitability}</Badge>
@@ -866,18 +1376,15 @@ function PolicySection() {
             <span className={lbl}>Retorno Alvo</span>
             <span className="text-xs text-[#6ecf8e]">{POLICY.returnTarget}</span>
           </div>
-          <div className={`${row} border-b-0`}>
+          <div className={row}>
             <span className={lbl}>Prazo Máximo</span>
             <span className={val}>{POLICY.maxTerm}</span>
           </div>
-        </div>
-
-        <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
           <div className={row}>
-            <span className={lbl}>Liquidez Mínima</span>
+            <span className={lbl}>Liquidez Mín.</span>
             <span className={val}>{POLICY.liquidityMin}</span>
           </div>
-          <div className="border-b border-[#1e1e1e] py-2">
+          <div className="py-2">
             <span className={lbl}>Plataformas</span>
             <div className="mt-1.5 flex flex-wrap gap-1">
               {POLICY.platforms.map((p) => {
@@ -886,21 +1393,105 @@ function PolicySection() {
               })}
             </div>
           </div>
-          <div className="border-b border-[#1e1e1e] py-2">
-            <span className={lbl}>Restrições de Ativos</span>
-            <div className="mt-1.5 flex flex-col gap-1">
-              {POLICY.assetRestrictions.map((r) => (
-                <div key={r} className="flex items-center gap-1.5 text-xs text-[#e05c5c]">
-                  <AlertTriangle className="h-3 w-3 shrink-0" />{r}
-                </div>
-              ))}
+        </div>
+
+        <div className="col-span-2 rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#666]">Compliance Check</span>
+            <div className="flex items-center gap-2">
+              <span className="flex items-center gap-1 text-[11px] text-[#6ecf8e]"><CheckCircle className="h-3 w-3" />{okCount}</span>
+              <span className="flex items-center gap-1 text-[11px] text-[#dcb092]"><AlertTriangle className="h-3 w-3" />{atencaoCount}</span>
+              {violadoCount > 0 && <span className="flex items-center gap-1 text-[11px] text-[#e05c5c]"><X className="h-3 w-3" />{violadoCount}</span>}
             </div>
           </div>
-          <div className="py-2">
-            <span className={lbl}>Exposição Geográfica</span>
-            <div className="mt-1.5 flex flex-col gap-0.5">
-              {POLICY.exposureAreas.map((a) => <p key={a} className={val}>{a}</p>)}
+          <div className="grid grid-cols-2 gap-2">
+            {COMPLIANCE_CHECKS.map((check) => (
+              <div
+                key={check.label}
+                className={`flex items-start gap-2 rounded-md border p-2.5 ${complianceColor(check.status)}`}
+                data-testid={`compliance-${check.label}`}
+              >
+                {complianceIcon(check.status)}
+                <div className="min-w-0 flex-1">
+                  <p className="text-xs font-medium text-[#ccc]">{check.label}</p>
+                  <p className="mt-0.5 text-[11px] text-[#888]">{check.detail}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
+        <span className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-[#666]">Ranges por Macro Classe</span>
+        <div className="flex flex-col gap-3">
+          {MACRO_CLASS_POLICY.map((mc) => {
+            const rangeMin = mc.idealPct * 0.7;
+            const rangeMax = mc.idealPct * 1.3;
+            const scale = rangeMax + 5;
+            const idealLeft = (mc.idealPct / scale) * 100;
+            const actualLeft = (mc.actualPct / scale) * 100;
+            const rangeMinLeft = (rangeMin / scale) * 100;
+            const rangeWidth = ((rangeMax - rangeMin) / scale) * 100;
+
+            return (
+              <div key={mc.name} className="flex items-center gap-3" data-testid={`policy-range-${mc.name}`}>
+                <span className="w-28 text-xs text-[#bbb]">{mc.name}</span>
+                <div className="relative h-4 flex-1 rounded-sm bg-[#2a2a2a]">
+                  <div
+                    className="absolute top-0 h-full rounded-sm bg-[rgba(110,207,142,0.12)]"
+                    style={{ left: `${rangeMinLeft}%`, width: `${rangeWidth}%` }}
+                  />
+                  <div
+                    className="absolute top-0 h-full w-px bg-[#ededed]/30"
+                    style={{ left: `${idealLeft}%` }}
+                  />
+                  <div
+                    className="absolute top-0.5 h-3 w-2 rounded-sm"
+                    style={{
+                      left: `${actualLeft}%`,
+                      transform: "translateX(-50%)",
+                      backgroundColor: mc.status === "ok" ? "#6ecf8e" : mc.status === "atencao" ? "#dcb092" : "#e05c5c",
+                    }}
+                  />
+                </div>
+                <span className="w-12 text-right text-xs font-medium text-[#ededed]">{mc.actualPct.toFixed(1)}%</span>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-3 flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <div className="h-2 w-4 rounded-sm bg-[rgba(110,207,142,0.2)]" />
+            <span className="text-[10px] text-[#666]">Range aceitável</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-3 w-px bg-[#ededed]/30" />
+            <span className="text-[10px] text-[#666]">Ideal</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="h-2.5 w-2 rounded-sm bg-[#6ecf8e]" />
+            <span className="text-[10px] text-[#666]">Posição atual</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
+        <span className="mb-3 block text-[11px] font-semibold uppercase tracking-wider text-[#666]">Restrições de Ativos</span>
+        <div className="grid grid-cols-3 gap-2">
+          {POLICY.assetRestrictions.map((r) => (
+            <div key={r} className="flex items-center gap-2 rounded-md border border-[rgba(224,92,92,0.15)] bg-[rgba(224,92,92,0.04)] p-2.5">
+              <X className="h-3.5 w-3.5 shrink-0 text-[#e05c5c]" />
+              <span className="text-xs text-[#e05c5c]">{r}</span>
             </div>
+          ))}
+        </div>
+        <div className="mt-3">
+          <span className="mb-2 block text-[11px] font-semibold uppercase tracking-wider text-[#666]">Exposição Geográfica</span>
+          <div className="flex flex-wrap gap-2">
+            {POLICY.exposureAreas.map((a) => (
+              <span key={a} className="rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-2.5 py-1 text-xs text-[#ccc]">{a}</span>
+            ))}
           </div>
         </div>
       </div>
@@ -980,7 +1571,15 @@ export default function MockupRealocador() {
 
               <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} visibleInstitutions={visibleInstitutions} />
 
-              <FGCSection />
+              <FGCBarChart />
+
+              <MaturityChart />
+
+              <MacroClassAnalysis />
+
+              <SubClassRangesTable />
+
+              <LiquidityAnalysis />
 
               <PolicySection />
             </div>
