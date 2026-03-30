@@ -413,9 +413,13 @@ const MATURITY_DATA: MaturityEntry[] = [
   { year: 2030, posFixado: 0, inflacao: 390_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.5, avgRatePre: 0 },
   { year: 2031, posFixado: 0, inflacao: 278_600, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.1, avgRatePre: 0 },
   { year: 2032, posFixado: 0, inflacao: 165_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.5, avgRatePre: 0 },
+  { year: 2033, posFixado: 0, inflacao: 0, preFixado: 0, avgRatePos: 0, avgRateInfl: 0, avgRatePre: 0 },
   { year: 2034, posFixado: 0, inflacao: 120_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 6.8, avgRatePre: 0 },
   { year: 2035, posFixado: 0, inflacao: 80_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.0, avgRatePre: 0 },
+  { year: 2036, posFixado: 0, inflacao: 0, preFixado: 0, avgRatePos: 0, avgRateInfl: 0, avgRatePre: 0 },
   { year: 2037, posFixado: 0, inflacao: 55_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.2, avgRatePre: 0 },
+  { year: 2038, posFixado: 0, inflacao: 0, preFixado: 0, avgRatePos: 0, avgRateInfl: 0, avgRatePre: 0 },
+  { year: 2039, posFixado: 0, inflacao: 0, preFixado: 0, avgRatePos: 0, avgRateInfl: 0, avgRatePre: 0 },
   { year: 2040, posFixado: 0, inflacao: 35_000, preFixado: 0, avgRatePos: 0, avgRateInfl: 7.5, avgRatePre: 0 },
 ];
 
@@ -1028,6 +1032,7 @@ function MaturityChart() {
   const [activeStrategies, setActiveStrategies] = useState<Set<StrategyType>>(
     () => new Set(["posFixado", "inflacao", "preFixado"])
   );
+  const [hoveredYear, setHoveredYear] = useState<number | null>(null);
 
   const toggleStrategy = (s: StrategyType) => {
     setActiveStrategies((prev) => {
@@ -1110,7 +1115,13 @@ function MaturityChart() {
                 : 0;
 
               return (
-                <div key={d.year} className="flex flex-1 flex-col items-center gap-0.5" data-testid={`maturity-bar-${d.year}`}>
+                <div
+                  key={d.year}
+                  className="relative flex flex-1 flex-col items-center gap-0.5"
+                  data-testid={`maturity-bar-${d.year}`}
+                  onMouseEnter={() => total > 0 && setHoveredYear(d.year)}
+                  onMouseLeave={() => setHoveredYear(null)}
+                >
                   {total > 0 && (
                     <span className="text-[9px] text-[#8c8c8c]">
                       {avgRate > 0 ? `${avgRate.toFixed(1)}%` : ""}
@@ -1130,6 +1141,26 @@ function MaturityChart() {
                       />
                     ))}
                   </div>
+                  {hoveredYear === d.year && total > 0 && (
+                    <div className="absolute bottom-full left-1/2 z-50 mb-1 -translate-x-1/2 whitespace-nowrap rounded-md border border-[#3a3a3a] bg-[#1a1a1a] px-3 py-2 shadow-lg">
+                      <p className="mb-1 text-[10px] font-semibold text-[#ededed]">{d.year}</p>
+                      {segments.map((seg) => {
+                        const rate = seg.key === "posFixado" ? d.avgRatePos : seg.key === "inflacao" ? d.avgRateInfl : d.avgRatePre;
+                        return (
+                          <div key={seg.key} className="flex items-center gap-2 text-[10px]">
+                            <div className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: seg.color }} />
+                            <span className="text-[#8c8c8c]">{strategyLabels[seg.key].label}:</span>
+                            <span className="text-[#ededed]">{formatBRL(seg.val)}</span>
+                            {rate > 0 && <span className="text-[#666]">({rate.toFixed(1)}%)</span>}
+                          </div>
+                        );
+                      })}
+                      <div className="mt-1 border-t border-[#2a2a2a] pt-1 text-[10px]">
+                        <span className="text-[#8c8c8c]">Taxa Média: </span>
+                        <span className="font-medium text-[#ededed]">{avgRate.toFixed(1)}%</span>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -1150,18 +1181,18 @@ function MaturityChart() {
 
 function MacroClassAnalysis() {
   const macroData = useMemo(() => {
-    const catMap: Record<string, { idealPct: number; catIds: string[] }> = {
-      "Renda Fixa": { idealPct: 54.5, catIds: ["rf"] },
-      "Ações": { idealPct: 19.5, catIds: ["eq-br"] },
-      "Exterior": { idealPct: 14.0, catIds: ["ext"] },
-      "Alternativo": { idealPct: 12.0, catIds: ["alt"] },
-    };
+    const getSubs = (catId: string) => CATEGORIES.find((c) => c.id === catId)?.subs ?? [];
+    const sumPctPL = (subs: { pctPL: number }[]) => subs.reduce((s, sub) => s + sub.pctPL, 0);
 
-    return Object.entries(catMap).map(([name, { idealPct, catIds }]) => {
-      const actualPct = catIds.reduce((sum, cid) => {
-        const cat = CATEGORIES.find((c) => c.id === cid);
-        return sum + (cat ? cat.subs.reduce((s, sub) => s + sub.pctPL, 0) : 0);
-      }, 0);
+    const macroMap: { name: string; idealPct: number; actualPct: number }[] = [
+      { name: "Renda Fixa", idealPct: 54.5, actualPct: sumPctPL(getSubs("rf")) },
+      { name: "Multimercado", idealPct: 4.0, actualPct: sumPctPL(getSubs("ext").filter((s) => s.id === "ext-mm")) },
+      { name: "Imobiliário", idealPct: 4.5, actualPct: sumPctPL(getSubs("alt").filter((s) => s.id === "imob")) },
+      { name: "Ações", idealPct: 19.5, actualPct: sumPctPL(getSubs("eq-br")) },
+      { name: "Exterior", idealPct: 14.0, actualPct: sumPctPL(getSubs("ext").filter((s) => s.id !== "ext-mm")) },
+    ];
+
+    return macroMap.map(({ name, idealPct, actualPct }) => {
       const diff = actualPct - idealPct;
       const pctFora = idealPct > 0 ? (diff / idealPct) * 100 : 0;
       const status: BalanceStatus = Math.abs(pctFora) <= 3 ? "ok" : Math.abs(pctFora) <= 8 ? "atencao" : "desbalanceado";
