@@ -376,7 +376,7 @@ const CATEGORIES: Category[] = [
 const FGC_DATA: FGCInfo[] = [
   { institution: "XP", colorKey: "XP", covered: 145_000, limit: 250_000, status: "ok" },
   { institution: "BTG", colorKey: "BTG", covered: 210_000, limit: 250_000, status: "alerta" },
-  { institution: "Itaú", colorKey: "Itaú", covered: 248_500, limit: 250_000, status: "critico" },
+  { institution: "Itaú", colorKey: "Itaú", covered: 268_500, limit: 250_000, status: "critico" },
   { institution: "Safra", colorKey: "Safra", covered: 92_000, limit: 250_000, status: "ok" },
   { institution: "Bradesco", colorKey: "Bradesco", covered: 55_000, limit: 250_000, status: "ok" },
 ];
@@ -435,7 +435,7 @@ const MACRO_CLASS_POLICY: MacroClassPolicy[] = [
   { name: "Renda Fixa", idealPct: 54.5, actualPct: 52.8, status: "atencao", pctForaIdeal: -3.1 },
   { name: "Multimercado", idealPct: 4.0, actualPct: 3.8, status: "ok", pctForaIdeal: -5.0 },
   { name: "Imobiliário", idealPct: 4.5, actualPct: 4.6, status: "ok", pctForaIdeal: 1.5 },
-  { name: "Ações", idealPct: 19.5, actualPct: 18.0, status: "desbalanceado", pctForaIdeal: -7.7 },
+  { name: "Ações", idealPct: 19.5, actualPct: 27.0, status: "desbalanceado", pctForaIdeal: 38.5 },
   { name: "Exterior", idealPct: 14.0, actualPct: 13.2, status: "atencao", pctForaIdeal: -5.7 },
 ];
 
@@ -1030,7 +1030,7 @@ function FGCBarChart() {
 
 function MaturityChart() {
   const [activeStrategies, setActiveStrategies] = useState<Set<StrategyType>>(
-    () => new Set(["posFixado", "inflacao", "preFixado"])
+    () => new Set<StrategyType>(["posFixado", "inflacao", "preFixado"])
   );
   const [hoveredYear, setHoveredYear] = useState<number | null>(null);
 
@@ -1184,11 +1184,14 @@ function MacroClassAnalysis() {
     const getSubs = (catId: string) => CATEGORIES.find((c) => c.id === catId)?.subs ?? [];
     const sumPctPL = (subs: { pctPL: number }[]) => subs.reduce((s, sub) => s + sub.pctPL, 0);
 
+    const altSubs = getSubs("alt");
+    const altRemainder = altSubs.filter((s) => s.id !== "imob");
+
     const macroMap: { name: string; idealPct: number; actualPct: number }[] = [
       { name: "Renda Fixa", idealPct: 54.5, actualPct: sumPctPL(getSubs("rf")) },
       { name: "Multimercado", idealPct: 4.0, actualPct: sumPctPL(getSubs("ext").filter((s) => s.id === "ext-mm")) },
-      { name: "Imobiliário", idealPct: 4.5, actualPct: sumPctPL(getSubs("alt").filter((s) => s.id === "imob")) },
-      { name: "Ações", idealPct: 19.5, actualPct: sumPctPL(getSubs("eq-br")) },
+      { name: "Imobiliário", idealPct: 4.5, actualPct: sumPctPL(altSubs.filter((s) => s.id === "imob")) },
+      { name: "Ações", idealPct: 19.5, actualPct: sumPctPL([...getSubs("eq-br"), ...altRemainder]) },
       { name: "Exterior", idealPct: 14.0, actualPct: sumPctPL(getSubs("ext").filter((s) => s.id !== "ext-mm")) },
     ];
 
