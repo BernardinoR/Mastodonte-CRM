@@ -113,7 +113,9 @@
       "Bash(awk 'NR==2' /home/runner/.claude/projects/-home-runner-workspace/b090cb75-e04c-4f41-a8ca-84bf712e47a6/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774360697541.txt)",
       "Bash(for file:*)",
       "Bash(/dev/null echo:*)",
-      "Bash(find /home/runner/workspace -type f \\\\\\(-name *.config.* -o -name .env* -o -name *.config.ts \\\\\\))"
+      "Bash(find /home/runner/workspace -type f \\\\\\(-name *.config.* -o -name .env* -o -name *.config.ts \\\\\\))",
+      "Bash(FILE=\"/home/runner/.claude/projects/-home-runner-workspace/5d781c83-b4ad-4eb9-98a4-02da2760bd32/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774896377619.txt\" jq '.[0].text' \"$FILE\")",
+      "Bash(FILE=\"/home/runner/.claude/projects/-home-runner-workspace/5d781c83-b4ad-4eb9-98a4-02da2760bd32/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774896377619.txt\" jq -r '.[0].text' \"$FILE\")"
     ]
   },
   "enableAllProjectMcpServers": true,
