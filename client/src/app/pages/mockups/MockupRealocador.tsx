@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, Fragment } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -147,6 +147,28 @@ const CATEGORIES: Category[] = [
         sugestao: 26_500,
         byInstitution: { XP: 300_000, BTG: 220_000, "Itaú": 180_000, Safra: 121_000, Bradesco: 80_000 },
       },
+      {
+        id: "debent",
+        name: "Debêntures",
+        pctPL: 3.2,
+        status: "ok",
+        pctForaIdeal: 0.8,
+        alocIdeal: 430_000,
+        alocAtual: 423_800,
+        sugestao: 6_200,
+        byInstitution: { XP: 180_000, BTG: 120_000, "Itaú": 60_000, Safra: 43_800, Bradesco: 20_000 },
+      },
+      {
+        id: "cri-cra",
+        name: "CRI / CRA",
+        pctPL: 2.1,
+        status: "atencao",
+        pctForaIdeal: 6.3,
+        alocIdeal: 265_000,
+        alocAtual: 278_250,
+        sugestao: -13_250,
+        byInstitution: { XP: 110_000, BTG: 80_000, "Itaú": 45_000, Safra: 28_250, Bradesco: 15_000 },
+      },
     ],
   },
   {
@@ -185,6 +207,17 @@ const CATEGORIES: Category[] = [
         alocAtual: 649_250,
         sugestao: 13_250,
         byInstitution: { XP: 260_000, BTG: 180_000, "Itaú": 100_000, Safra: 79_250, Bradesco: 30_000 },
+      },
+      {
+        id: "small-caps",
+        name: "Small Caps",
+        pctPL: 1.8,
+        status: "desbalanceado",
+        pctForaIdeal: 18.0,
+        alocIdeal: 265_000,
+        alocAtual: 238_500,
+        sugestao: 26_500,
+        byInstitution: { XP: 100_000, BTG: 70_000, "Itaú": 40_000, Safra: 18_500, Bradesco: 10_000 },
       },
     ],
   },
@@ -225,6 +258,17 @@ const CATEGORIES: Category[] = [
         sugestao: 26_500,
         byInstitution: { XP: 240_000, BTG: 170_000, "Itaú": 110_000, Safra: 76_000, Bradesco: 40_000 },
       },
+      {
+        id: "ext-hedge",
+        name: "Hedge Cambial",
+        pctPL: 1.5,
+        status: "ok",
+        pctForaIdeal: 0.5,
+        alocIdeal: 198_750,
+        alocAtual: 198_750,
+        sugestao: 0,
+        byInstitution: { XP: 80_000, BTG: 55_000, "Itaú": 35_000, Safra: 18_750, Bradesco: 10_000 },
+      },
     ],
   },
   {
@@ -252,6 +296,28 @@ const CATEGORIES: Category[] = [
         alocAtual: 357_750,
         sugestao: -92_750,
         byInstitution: { XP: 140_000, BTG: 100_000, "Itaú": 60_000, Safra: 37_750, Bradesco: 20_000 },
+      },
+      {
+        id: "infra",
+        name: "Infraestrutura",
+        pctPL: 1.4,
+        status: "ok",
+        pctForaIdeal: 2.1,
+        alocIdeal: 198_750,
+        alocAtual: 185_500,
+        sugestao: 13_250,
+        byInstitution: { XP: 75_000, BTG: 55_000, "Itaú": 30_000, Safra: 15_500, Bradesco: 10_000 },
+      },
+      {
+        id: "agro",
+        name: "Agronegócio",
+        pctPL: 0.9,
+        status: "atencao",
+        pctForaIdeal: 7.5,
+        alocIdeal: 132_500,
+        alocAtual: 119_250,
+        sugestao: 13_250,
+        byInstitution: { XP: 50_000, BTG: 35_000, "Itaú": 18_000, Safra: 10_250, Bradesco: 6_000 },
       },
     ],
   },
@@ -580,14 +646,14 @@ function MatrixTable({
           </tr>
           <tr className="border-b border-[#2a2a2a]">
             {INSTITUTIONS.map((inst) => (
-              <>
-                <th key={`${inst.name}-sub-at`} className="border-l border-[#2a2a2a] px-2 py-1 text-center text-[10px] font-normal text-[#666]">
+              <Fragment key={`${inst.name}-sub`}>
+                <th className="border-l border-[#2a2a2a] px-2 py-1 text-center text-[10px] font-normal text-[#666]">
                   $ Atual
                 </th>
-                <th key={`${inst.name}-sub-al`} className="px-2 py-1 text-center text-[10px] font-normal text-[#666]">
+                <th className="px-2 py-1 text-center text-[10px] font-normal text-[#666]">
                   Alocador
                 </th>
-              </>
+              </Fragment>
             ))}
           </tr>
         </thead>
@@ -602,9 +668,8 @@ function MatrixTable({
                 ? "atencao"
                 : "ok";
             return (
-              <>
+              <Fragment key={cat.id}>
                 <tr
-                  key={cat.id}
                   className="cursor-pointer border-b border-[#2a2a2a] bg-[#1a1a1a]/80 hover-elevate"
                   onClick={() => toggleCategory(cat.id)}
                   data-testid={`category-row-${cat.id}`}
@@ -637,17 +702,16 @@ function MatrixTable({
                     <SugestaoCell value={ct.sugestao} />
                   </td>
                   {INSTITUTIONS.map((inst) => (
-                    <>
+                    <Fragment key={`${cat.id}-${inst.name}`}>
                       <td
-                        key={`${cat.id}-${inst.name}-at`}
                         className="border-l border-[#2a2a2a] px-3 py-2 text-right font-medium text-[#ccc]"
                       >
                         {formatBRL(ct.byInstitution[inst.name] || 0)}
                       </td>
-                      <td key={`${cat.id}-${inst.name}-al`} className="px-2 py-2 text-center text-[#555]">
+                      <td className="px-2 py-2 text-center text-[#555]">
                         —
                       </td>
-                    </>
+                    </Fragment>
                   ))}
                 </tr>
 
@@ -684,14 +748,13 @@ function MatrixTable({
                         <SugestaoCell value={sub.sugestao} />
                       </td>
                       {INSTITUTIONS.map((inst) => (
-                        <>
+                        <Fragment key={`${sub.id}-${inst.name}`}>
                           <td
-                            key={`${sub.id}-${inst.name}-at`}
                             className="border-l border-[#2a2a2a] px-3 py-2 text-right text-[#999]"
                           >
                             {formatBRL(sub.byInstitution[inst.name] || 0)}
                           </td>
-                          <td key={`${sub.id}-${inst.name}-al`} className="px-1 py-1.5">
+                          <td className="px-1 py-1.5">
                             <input
                               type="text"
                               placeholder="—"
@@ -701,11 +764,11 @@ function MatrixTable({
                               data-testid={`input-allocator-${sub.id}-${inst.name}`}
                             />
                           </td>
-                        </>
+                        </Fragment>
                       ))}
                     </tr>
                   ))}
-              </>
+              </Fragment>
             );
           })}
         </tbody>
@@ -730,17 +793,16 @@ function MatrixTable({
               <SugestaoCell value={grandTotals.sugestao} />
             </td>
             {INSTITUTIONS.map((inst) => (
-              <>
+              <Fragment key={`total-${inst.name}`}>
                 <td
-                  key={`total-${inst.name}-at`}
                   className="border-l border-[#2a2a2a] px-3 py-3 text-right font-semibold text-[#ededed]"
                 >
                   {formatBRL(grandTotals.byInstitution[inst.name] || 0)}
                 </td>
-                <td key={`total-${inst.name}-al`} className="px-2 py-3 text-center text-[#555]">
+                <td className="px-2 py-3 text-center text-[#555]">
                   —
                 </td>
-              </>
+              </Fragment>
             ))}
           </tr>
         </tfoot>
