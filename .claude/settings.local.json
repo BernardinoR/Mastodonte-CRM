@@ -112,7 +112,8 @@
       "Read(//tmp/**)",
       "Bash(awk 'NR==2' /home/runner/.claude/projects/-home-runner-workspace/b090cb75-e04c-4f41-a8ca-84bf712e47a6/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774360697541.txt)",
       "Bash(for file:*)",
-      "Bash(/dev/null echo:*)"
+      "Bash(/dev/null echo:*)",
+      "Bash(find /home/runner/workspace -type f \\\\\\(-name *.config.* -o -name .env* -o -name *.config.ts \\\\\\))"
     ]
   },
   "enableAllProjectMcpServers": true,
