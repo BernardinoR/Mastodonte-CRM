@@ -432,11 +432,11 @@ interface MacroClassPolicy {
 }
 
 const MACRO_CLASS_POLICY: MacroClassPolicy[] = [
-  { name: "Renda Fixa", idealPct: 54.5, actualPct: 52.8, status: "atencao", pctForaIdeal: -3.1 },
-  { name: "Multimercado", idealPct: 4.0, actualPct: 3.8, status: "ok", pctForaIdeal: -5.0 },
-  { name: "Imobiliário", idealPct: 4.5, actualPct: 4.6, status: "ok", pctForaIdeal: 1.5 },
+  { name: "Renda Fixa", idealPct: 54.5, actualPct: 54.5, status: "ok", pctForaIdeal: 0 },
+  { name: "Multimercado", idealPct: 4.0, actualPct: 4.0, status: "ok", pctForaIdeal: 0 },
+  { name: "Imobiliário", idealPct: 4.5, actualPct: 4.5, status: "ok", pctForaIdeal: 0 },
   { name: "Ações", idealPct: 19.5, actualPct: 27.0, status: "desbalanceado", pctForaIdeal: 38.5 },
-  { name: "Exterior", idealPct: 14.0, actualPct: 13.2, status: "atencao", pctForaIdeal: -5.7 },
+  { name: "Exterior", idealPct: 14.0, actualPct: 10.0, status: "desbalanceado", pctForaIdeal: -28.6 },
 ];
 
 interface SubClassRange {
@@ -531,11 +531,11 @@ const COMPLIANCE_CHECKS: ComplianceCheck[] = [
   { label: "Liquidez Mínima D+0/D+1", status: "ok", detail: `${(18.5 + 14.2).toFixed(1)}% > 30% mínimo` },
   { label: "Perda Máxima", status: "ok", detail: "VaR 95% = -8.2% < -12% limite" },
   { label: "Retorno Alvo", status: "atencao", detail: "IPCA+5.4% vs meta IPCA+6%" },
-  { label: "FGC por Instituição", status: "atencao", detail: "Itaú R$ 248.500 próximo do limite R$ 250.000" },
+  { label: "FGC por Instituição", status: "violado", detail: "Itaú R$ 268.500 acima do limite R$ 250.000" },
   { label: "Prazo Máximo RF", status: "ok", detail: "NTN-B 2040 dentro do tolerado" },
   { label: "Restrições de Ativos", status: "ok", detail: "Sem Cripto, COE sem capital, derivativos alav." },
   { label: "Exposição Geográfica", status: "ok", detail: "Brasil 73%, EUA 12%, Europa 8%, Ásia 3%" },
-  { label: "Concentração por Macro Classe", status: "atencao", detail: "Ações 18.0% vs ideal 19.5% (-7.7%)" },
+  { label: "Concentração por Macro Classe", status: "violado", detail: "Ações 27.0% vs ideal 19.5% (+38.5%)" },
   { label: "Diversificação Plataformas", status: "ok", detail: "5 instituições ativas" },
 ];
 
