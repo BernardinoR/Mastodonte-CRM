@@ -115,7 +115,8 @@
       "Bash(/dev/null echo:*)",
       "Bash(find /home/runner/workspace -type f \\\\\\(-name *.config.* -o -name .env* -o -name *.config.ts \\\\\\))",
       "Bash(FILE=\"/home/runner/.claude/projects/-home-runner-workspace/5d781c83-b4ad-4eb9-98a4-02da2760bd32/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774896377619.txt\" jq '.[0].text' \"$FILE\")",
-      "Bash(FILE=\"/home/runner/.claude/projects/-home-runner-workspace/5d781c83-b4ad-4eb9-98a4-02da2760bd32/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774896377619.txt\" jq -r '.[0].text' \"$FILE\")"
+      "Bash(FILE=\"/home/runner/.claude/projects/-home-runner-workspace/5d781c83-b4ad-4eb9-98a4-02da2760bd32/tool-results/mcp-n8n-mcp-n8n_get_workflow-1774896377619.txt\" jq -r '.[0].text' \"$FILE\")",
+      "mcp__n8n-mcp__validate_node"
     ]
   },
   "enableAllProjectMcpServers": true,
