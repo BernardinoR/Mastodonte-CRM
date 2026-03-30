@@ -487,6 +487,27 @@ const LIQUIDITY_DATA: LiquidityBucket[] = [
 
 const LIQUIDITY_POLICY_MIN = 30;
 
+interface LiquidityByAssetType {
+  type: string;
+  d0: number;
+  d1: number;
+  d30: number;
+  d90: number;
+  d180: number;
+  d360: number;
+  iliquido: number;
+}
+
+const LIQUIDITY_BY_ASSET: LiquidityByAssetType[] = [
+  { type: "CDI / Pós Fixado", d0: 1_570_800, d1: 855_000, d30: 0, d90: 0, d180: 0, d360: 0, iliquido: 0 },
+  { type: "Inflação", d0: 0, d1: 791_800, d30: 0, d90: 433_600, d180: 500_000, d360: 500_000, iliquido: 0 },
+  { type: "Pré Fixado", d0: 0, d1: 0, d30: 140_000, d90: 0, d180: 320_250, d360: 235_000, iliquido: 0 },
+  { type: "Debêntures / CRI / CRA", d0: 0, d1: 0, d30: 0, d90: 180_100, d180: 232_000, d360: 200_000, iliquido: 200_000 },
+  { type: "Ações / Fundos Eq.", d0: 880_450, d1: 234_700, d30: 608_150, d90: 271_625, d180: 0, d360: 0, iliquido: 0 },
+  { type: "Exterior", d0: 0, d1: 0, d30: 601_000, d90: 502_500, d180: 312_750, d360: 0, iliquido: 0 },
+  { type: "Alternativo / PE / Infra", d0: 0, d1: 0, d30: 346_850, d90: 666_025, d180: 0, d360: 217_750, iliquido: 2_450_000 },
+];
+
 const INST_HEX: Record<string, string> = {
   XP: "#a1a1aa",
   BTG: "#93c5fd",
@@ -1128,6 +1149,26 @@ function MaturityChart() {
 }
 
 function MacroClassAnalysis() {
+  const macroData = useMemo(() => {
+    const catMap: Record<string, { idealPct: number; catIds: string[] }> = {
+      "Renda Fixa": { idealPct: 54.5, catIds: ["rf"] },
+      "Ações": { idealPct: 19.5, catIds: ["eq-br"] },
+      "Exterior": { idealPct: 14.0, catIds: ["ext"] },
+      "Alternativo": { idealPct: 12.0, catIds: ["alt"] },
+    };
+
+    return Object.entries(catMap).map(([name, { idealPct, catIds }]) => {
+      const actualPct = catIds.reduce((sum, cid) => {
+        const cat = CATEGORIES.find((c) => c.id === cid);
+        return sum + (cat ? cat.subs.reduce((s, sub) => s + sub.pctPL, 0) : 0);
+      }, 0);
+      const diff = actualPct - idealPct;
+      const pctFora = idealPct > 0 ? (diff / idealPct) * 100 : 0;
+      const status: BalanceStatus = Math.abs(pctFora) <= 3 ? "ok" : Math.abs(pctFora) <= 8 ? "atencao" : "desbalanceado";
+      return { name, idealPct, actualPct, status, pctForaIdeal: pctFora };
+    });
+  }, []);
+
   return (
     <section data-testid="macro-class-analysis">
       <h2 className="mb-4 flex items-center gap-2 text-base font-semibold text-[#ededed]">
@@ -1147,7 +1188,7 @@ function MacroClassAnalysis() {
             </tr>
           </thead>
           <tbody>
-            {MACRO_CLASS_POLICY.map((mc) => {
+            {macroData.map((mc) => {
               const barWidth = Math.min((mc.actualPct / 60) * 100, 100);
               const idealWidth = Math.min((mc.idealPct / 60) * 100, 100);
               return (
@@ -1325,6 +1366,42 @@ function LiquidityAnalysis() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-4 overflow-x-auto rounded-md border border-[#2a2a2a]">
+        <div className="px-4 py-2.5 text-xs font-medium text-[#8c8c8c] bg-[#1a1a1a] border-b border-[#2a2a2a]">Breakdown por Tipo de Ativo</div>
+        <table className="w-full border-collapse text-xs">
+          <thead className="bg-[#1a1a1a]">
+            <tr className="border-b border-[#2a2a2a]">
+              <th className="min-w-[140px] px-4 py-2 text-left font-medium text-[#8c8c8c]">Tipo de Ativo</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+0</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+1</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+30</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+90</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+180</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">D+360</th>
+              <th className="w-16 px-2 py-2 text-right font-medium text-[#8c8c8c]">Ilíquido</th>
+              <th className="w-20 px-2 py-2 text-right font-medium text-[#8c8c8c]">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {LIQUIDITY_BY_ASSET.map((assetRow) => {
+              const total = assetRow.d0 + assetRow.d1 + assetRow.d30 + assetRow.d90 + assetRow.d180 + assetRow.d360 + assetRow.iliquido;
+              const vals = [assetRow.d0, assetRow.d1, assetRow.d30, assetRow.d90, assetRow.d180, assetRow.d360, assetRow.iliquido];
+              return (
+                <tr key={assetRow.type} className="border-b border-[#1e1e1e]" data-testid={`liquidity-asset-${assetRow.type}`}>
+                  <td className="px-4 py-2 text-[#bbb]">{assetRow.type}</td>
+                  {vals.map((v, i) => (
+                    <td key={i} className={`px-2 py-2 text-right ${v > 0 ? "text-[#ccc]" : "text-[#333]"}`}>
+                      {v > 0 ? formatBRL(v) : "—"}
+                    </td>
+                  ))}
+                  <td className="px-2 py-2 text-right font-medium text-[#ededed]">{formatBRL(total)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </section>
   );
