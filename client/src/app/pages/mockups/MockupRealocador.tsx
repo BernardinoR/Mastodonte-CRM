@@ -1232,7 +1232,7 @@ function MacroClassAnalysis() {
                   <td className="px-3 py-2.5 text-right font-medium text-[#ededed]">{mc.actualPct.toFixed(1)}%</td>
                   <td className="px-3 py-2.5 text-center"><StatusBadge status={mc.status} /></td>
                   <td className="px-3 py-2.5 text-right">
-                    <span className={mc.pctForaIdeal > 0 ? "text-[#6ecf8e]" : Math.abs(mc.pctForaIdeal) > 5 ? "text-[#e05c5c]" : "text-[#dcb092]"}>
+                    <span className={Math.abs(mc.pctForaIdeal) <= 3 ? "text-[#6ecf8e]" : Math.abs(mc.pctForaIdeal) <= 8 ? "text-[#dcb092]" : "text-[#e05c5c]"}>
                       {mc.pctForaIdeal > 0 ? "+" : ""}{mc.pctForaIdeal.toFixed(1)}%
                     </span>
                   </td>
