@@ -18,6 +18,8 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Plus,
+  X,
 } from "lucide-react";
 import {
   Sidebar,
@@ -35,6 +37,11 @@ import {
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/shared/components/ui/popover";
 import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 
 type BalanceStatus = "ok" | "atencao" | "desbalanceado";
@@ -44,6 +51,16 @@ interface Institution {
   name: string;
   colorKey: string;
   initials: string;
+}
+
+interface Asset {
+  id: string;
+  name: string;
+  institution: string;
+  value: number;
+  pctSub: number;
+  maturity?: string;
+  rate?: string;
 }
 
 interface SubCategory {
@@ -56,6 +73,7 @@ interface SubCategory {
   alocAtual: number;
   sugestao: number;
   byInstitution: Record<string, number>;
+  assets: Asset[];
 }
 
 interface Category {
@@ -72,7 +90,7 @@ interface FGCInfo {
   status: FGCStatus;
 }
 
-const INSTITUTIONS: Institution[] = [
+const ALL_CLIENT_INSTITUTIONS: Institution[] = [
   { name: "XP", colorKey: "XP", initials: "XP" },
   { name: "BTG", colorKey: "BTG", initials: "BT" },
   { name: "Itaú", colorKey: "Itaú", initials: "IT" },
@@ -91,41 +109,98 @@ const CATEGORIES: Category[] = [
         id: "cdi-liq", name: "CDI - Liquidez", pctPL: 12.0, status: "ok", pctForaIdeal: 1.2,
         alocIdeal: 1_590_000, alocAtual: 1_570_800, sugestao: 19_200,
         byInstitution: { XP: 470_000, BTG: 340_000, "Itaú": 285_000, Safra: 245_800, Bradesco: 230_000 },
+        assets: [
+          { id: "a1", name: "CDB Liquidez Diária XP", institution: "XP", value: 470_000, pctSub: 29.9, rate: "100% CDI" },
+          { id: "a2", name: "CDB Liquidez BTG", institution: "BTG", value: 340_000, pctSub: 21.6, rate: "101% CDI" },
+          { id: "a3", name: "Fundo DI Itaú Soberano", institution: "Itaú", value: 285_000, pctSub: 18.1, rate: "99.5% CDI" },
+          { id: "a4", name: "CDB Liquidez Safra", institution: "Safra", value: 245_800, pctSub: 15.7, rate: "100.5% CDI" },
+          { id: "a5", name: "CDB Liquidez Bradesco", institution: "Bradesco", value: 230_000, pctSub: 14.7, rate: "99% CDI" },
+        ],
       },
       {
         id: "cdi-tit", name: "CDI - Títulos", pctPL: 8.5, status: "atencao", pctForaIdeal: 3.8,
         alocIdeal: 1_126_250, alocAtual: 1_168_950, sugestao: -42_700,
         byInstitution: { XP: 380_000, BTG: 270_000, "Itaú": 230_000, Safra: 178_950, Bradesco: 110_000 },
+        assets: [
+          { id: "a6", name: "CDB XP 2027", institution: "XP", value: 380_000, pctSub: 32.5, rate: "CDI+1.2%", maturity: "Mar/2027" },
+          { id: "a7", name: "CDB BTG 2026", institution: "BTG", value: 270_000, pctSub: 23.1, rate: "CDI+0.8%", maturity: "Set/2026" },
+          { id: "a8", name: "LCI Itaú 2026", institution: "Itaú", value: 230_000, pctSub: 19.7, rate: "94% CDI", maturity: "Jul/2026" },
+          { id: "a9", name: "CDB Safra 2027", institution: "Safra", value: 178_950, pctSub: 15.3, rate: "CDI+1.5%", maturity: "Jan/2027" },
+          { id: "a10", name: "LCA Bradesco 2026", institution: "Bradesco", value: 110_000, pctSub: 9.4, rate: "92% CDI", maturity: "Jun/2026" },
+        ],
       },
       {
         id: "cdi-fund", name: "CDI - Fundos", pctPL: 6.5, status: "ok", pctForaIdeal: 0.1,
         alocIdeal: 861_250, alocAtual: 855_000, sugestao: 6_250,
         byInstitution: { XP: 280_000, BTG: 220_000, "Itaú": 165_000, Safra: 100_000, Bradesco: 90_000 },
+        assets: [
+          { id: "a11", name: "Trend DI FIC", institution: "XP", value: 280_000, pctSub: 32.7, rate: "CDI+0.05%" },
+          { id: "a12", name: "BTG Digital Tesouro", institution: "BTG", value: 220_000, pctSub: 25.7, rate: "CDI+0.02%" },
+          { id: "a13", name: "Itaú Privilège DI", institution: "Itaú", value: 165_000, pctSub: 19.3, rate: "99.8% CDI" },
+          { id: "a14", name: "Safra Corporate DI", institution: "Safra", value: 100_000, pctSub: 11.7, rate: "100% CDI" },
+          { id: "a15", name: "Bradesco FI Ref DI", institution: "Bradesco", value: 90_000, pctSub: 10.5, rate: "99% CDI" },
+        ],
       },
       {
         id: "infl-tit", name: "Inflação - Títulos", pctPL: 10.0, status: "desbalanceado", pctForaIdeal: 8.2,
         alocIdeal: 1_325_000, alocAtual: 1_433_600, sugestao: -108_600,
         byInstitution: { XP: 450_000, BTG: 340_000, "Itaú": 280_000, Safra: 223_600, Bradesco: 140_000 },
+        assets: [
+          { id: "a16", name: "NTN-B 2030", institution: "XP", value: 250_000, pctSub: 17.4, rate: "IPCA+6.2%", maturity: "Ago/2030" },
+          { id: "a17", name: "NTN-B 2028", institution: "XP", value: 200_000, pctSub: 14.0, rate: "IPCA+5.8%", maturity: "Mai/2028" },
+          { id: "a18", name: "NTN-B 2029", institution: "BTG", value: 340_000, pctSub: 23.7, rate: "IPCA+6.0%", maturity: "Ago/2029" },
+          { id: "a19", name: "Debênture IPCA Itaú", institution: "Itaú", value: 280_000, pctSub: 19.5, rate: "IPCA+7.2%", maturity: "Dez/2029" },
+          { id: "a20", name: "CRI IPCA Safra", institution: "Safra", value: 223_600, pctSub: 15.6, rate: "IPCA+7.5%", maturity: "Mar/2031" },
+          { id: "a21", name: "NTN-B 2032", institution: "Bradesco", value: 140_000, pctSub: 9.8, rate: "IPCA+6.5%", maturity: "Ago/2032" },
+        ],
       },
       {
         id: "infl-fund", name: "Inflação - Fundos", pctPL: 6.0, status: "ok", pctForaIdeal: 0.4,
         alocIdeal: 795_000, alocAtual: 791_800, sugestao: 3_200,
         byInstitution: { XP: 250_000, BTG: 200_000, "Itaú": 160_000, Safra: 101_800, Bradesco: 80_000 },
+        assets: [
+          { id: "a22", name: "Kinea IPCA Dinâmico", institution: "XP", value: 250_000, pctSub: 31.6, rate: "IPCA+5.5%" },
+          { id: "a23", name: "SPX Seahawk IPCA", institution: "BTG", value: 200_000, pctSub: 25.3, rate: "IPCA+6.1%" },
+          { id: "a24", name: "Itaú Flexprev IMA-B", institution: "Itaú", value: 160_000, pctSub: 20.2, rate: "IMA-B" },
+          { id: "a25", name: "Safra IMA-B 5", institution: "Safra", value: 101_800, pctSub: 12.9, rate: "IMA-B 5" },
+          { id: "a26", name: "Bradesco Inflação FI", institution: "Bradesco", value: 80_000, pctSub: 10.1, rate: "IPCA+4.8%" },
+        ],
       },
       {
         id: "pre", name: "Pré-Fixado", pctPL: 5.5, status: "atencao", pctForaIdeal: 4.6,
         alocIdeal: 728_750, alocAtual: 695_250, sugestao: 33_500,
         byInstitution: { XP: 230_000, BTG: 170_000, "Itaú": 140_000, Safra: 90_250, Bradesco: 65_000 },
+        assets: [
+          { id: "a27", name: "LTN 2027", institution: "XP", value: 230_000, pctSub: 33.1, rate: "12.8% a.a.", maturity: "Jan/2027" },
+          { id: "a28", name: "CDB Pré BTG", institution: "BTG", value: 170_000, pctSub: 24.5, rate: "13.2% a.a.", maturity: "Jul/2027" },
+          { id: "a29", name: "LTN 2026", institution: "Itaú", value: 140_000, pctSub: 20.1, rate: "11.5% a.a.", maturity: "Jul/2026" },
+          { id: "a30", name: "CDB Pré Safra", institution: "Safra", value: 90_250, pctSub: 13.0, rate: "13.5% a.a.", maturity: "Dez/2027" },
+          { id: "a31", name: "CDB Pré Bradesco", institution: "Bradesco", value: 65_000, pctSub: 9.3, rate: "12.0% a.a.", maturity: "Mar/2027" },
+        ],
       },
       {
         id: "debent", name: "Debêntures", pctPL: 3.5, status: "ok", pctForaIdeal: 0.8,
         alocIdeal: 463_750, alocAtual: 460_100, sugestao: 3_650,
         byInstitution: { XP: 180_000, BTG: 130_000, "Itaú": 72_000, Safra: 53_100, Bradesco: 25_000 },
+        assets: [
+          { id: "a32", name: "Deb. Eletrobras IPCA+7.8%", institution: "XP", value: 180_000, pctSub: 39.1, rate: "IPCA+7.8%", maturity: "Jun/2030" },
+          { id: "a33", name: "Deb. Rumo CDI+2.1%", institution: "BTG", value: 130_000, pctSub: 28.3, rate: "CDI+2.1%", maturity: "Dez/2029" },
+          { id: "a34", name: "Deb. Energisa IPCA+6.5%", institution: "Itaú", value: 72_000, pctSub: 15.6, rate: "IPCA+6.5%", maturity: "Set/2031" },
+          { id: "a35", name: "Deb. CCR CDI+1.8%", institution: "Safra", value: 53_100, pctSub: 11.5, rate: "CDI+1.8%", maturity: "Mar/2028" },
+          { id: "a36", name: "Deb. Sabesp IPCA+6.0%", institution: "Bradesco", value: 25_000, pctSub: 5.4, rate: "IPCA+6.0%", maturity: "Jul/2032" },
+        ],
       },
       {
         id: "cri-cra", name: "CRI / CRA", pctPL: 2.5, status: "atencao", pctForaIdeal: 6.3,
         alocIdeal: 331_250, alocAtual: 352_000, sugestao: -20_750,
         byInstitution: { XP: 140_000, BTG: 100_000, "Itaú": 55_000, Safra: 37_000, Bradesco: 20_000 },
+        assets: [
+          { id: "a37", name: "CRI MRV IPCA+8.5%", institution: "XP", value: 140_000, pctSub: 39.8, rate: "IPCA+8.5%", maturity: "Dez/2030" },
+          { id: "a38", name: "CRA BRF CDI+2.5%", institution: "BTG", value: 100_000, pctSub: 28.4, rate: "CDI+2.5%", maturity: "Jun/2029" },
+          { id: "a39", name: "CRI Cyrela IPCA+7.8%", institution: "Itaú", value: 55_000, pctSub: 15.6, rate: "IPCA+7.8%", maturity: "Set/2031" },
+          { id: "a40", name: "CRA JBS CDI+2.0%", institution: "Safra", value: 37_000, pctSub: 10.5, rate: "CDI+2.0%", maturity: "Mar/2028" },
+          { id: "a41", name: "CRI Log CP IPCA+8.0%", institution: "Bradesco", value: 20_000, pctSub: 5.7, rate: "IPCA+8.0%", maturity: "Dez/2029" },
+        ],
       },
     ],
   },
@@ -137,21 +212,52 @@ const CATEGORIES: Category[] = [
         id: "acoes", name: "Ações", pctPL: 8.5, status: "desbalanceado", pctForaIdeal: 12.5,
         alocIdeal: 1_126_250, alocAtual: 985_500, sugestao: 140_750,
         byInstitution: { XP: 400_000, BTG: 280_000, "Itaú": 165_000, Safra: 85_500, Bradesco: 55_000 },
+        assets: [
+          { id: "a42", name: "PETR4", institution: "XP", value: 180_000, pctSub: 18.3 },
+          { id: "a43", name: "VALE3", institution: "XP", value: 120_000, pctSub: 12.2 },
+          { id: "a44", name: "ITUB4", institution: "BTG", value: 150_000, pctSub: 15.2 },
+          { id: "a45", name: "BBDC4", institution: "BTG", value: 130_000, pctSub: 13.2 },
+          { id: "a46", name: "WEGE3", institution: "Itaú", value: 165_000, pctSub: 16.7 },
+          { id: "a47", name: "RENT3", institution: "XP", value: 100_000, pctSub: 10.1 },
+          { id: "a48", name: "B3SA3", institution: "Safra", value: 85_500, pctSub: 8.7 },
+          { id: "a49", name: "SUZB3", institution: "Bradesco", value: 55_000, pctSub: 5.6 },
+        ],
       },
       {
         id: "long-biased", name: "Long Biased", pctPL: 4.5, status: "ok", pctForaIdeal: 2.0,
         alocIdeal: 596_250, alocAtual: 608_150, sugestao: -11_900,
         byInstitution: { XP: 250_000, BTG: 175_000, "Itaú": 100_000, Safra: 53_150, Bradesco: 30_000 },
+        assets: [
+          { id: "a50", name: "SPX Nimitz Feeder", institution: "XP", value: 250_000, pctSub: 41.1 },
+          { id: "a51", name: "Verde AM Long Bias", institution: "BTG", value: 175_000, pctSub: 28.8 },
+          { id: "a52", name: "Dynamo Cougar", institution: "Itaú", value: 100_000, pctSub: 16.4 },
+          { id: "a53", name: "Atmos Ações FIC", institution: "Safra", value: 53_150, pctSub: 8.7 },
+          { id: "a54", name: "Bogari Value FIC", institution: "Bradesco", value: 30_000, pctSub: 4.9 },
+        ],
       },
       {
         id: "private-br", name: "Private Brasil", pctPL: 4.0, status: "ok", pctForaIdeal: 1.0,
         alocIdeal: 530_000, alocAtual: 524_700, sugestao: 5_300,
         byInstitution: { XP: 210_000, BTG: 150_000, "Itaú": 80_000, Safra: 54_700, Bradesco: 30_000 },
+        assets: [
+          { id: "a55", name: "Vinci Partners Private", institution: "XP", value: 210_000, pctSub: 40.0 },
+          { id: "a56", name: "Pátria Infra BR IV", institution: "BTG", value: 150_000, pctSub: 28.6 },
+          { id: "a57", name: "Itaú Private Equity II", institution: "Itaú", value: 80_000, pctSub: 15.2 },
+          { id: "a58", name: "Spectra Private V", institution: "Safra", value: 54_700, pctSub: 10.4 },
+          { id: "a59", name: "Kinea Private Equity", institution: "Bradesco", value: 30_000, pctSub: 5.7 },
+        ],
       },
       {
         id: "small-caps", name: "Small Caps", pctPL: 2.5, status: "desbalanceado", pctForaIdeal: 18.0,
         alocIdeal: 331_250, alocAtual: 271_625, sugestao: 59_625,
         byInstitution: { XP: 110_000, BTG: 75_000, "Itaú": 45_000, Safra: 26_625, Bradesco: 15_000 },
+        assets: [
+          { id: "a60", name: "Trígono Flagship SC", institution: "XP", value: 110_000, pctSub: 40.5 },
+          { id: "a61", name: "HIX Capital FIA", institution: "BTG", value: 75_000, pctSub: 27.6 },
+          { id: "a62", name: "Brasil Capital SC", institution: "Itaú", value: 45_000, pctSub: 16.6 },
+          { id: "a63", name: "Organon FIA", institution: "Safra", value: 26_625, pctSub: 9.8 },
+          { id: "a64", name: "Constellation Compounders", institution: "Bradesco", value: 15_000, pctSub: 5.5 },
+        ],
       },
     ],
   },
@@ -163,21 +269,50 @@ const CATEGORIES: Category[] = [
         id: "ext-rf", name: "RF Exterior", pctPL: 4.5, status: "ok", pctForaIdeal: 0.8,
         alocIdeal: 596_250, alocAtual: 601_000, sugestao: -4_750,
         byInstitution: { XP: 240_000, BTG: 170_000, "Itaú": 90_000, Safra: 61_000, Bradesco: 40_000 },
+        assets: [
+          { id: "a65", name: "iShares US Bond (AGG)", institution: "XP", value: 240_000, pctSub: 39.9, rate: "USD Bonds" },
+          { id: "a66", name: "Pimco Income Fund", institution: "BTG", value: 170_000, pctSub: 28.3, rate: "USD Income" },
+          { id: "a67", name: "Itaú RF Global FIC", institution: "Itaú", value: 90_000, pctSub: 15.0, rate: "USD + Hedge" },
+          { id: "a68", name: "Safra Bond Global", institution: "Safra", value: 61_000, pctSub: 10.1, rate: "USD Bonds" },
+          { id: "a69", name: "Bradesco Global Fixed", institution: "Bradesco", value: 40_000, pctSub: 6.7, rate: "USD + Hedge" },
+        ],
       },
       {
         id: "ext-mm", name: "Multimercado Ext.", pctPL: 4.0, status: "atencao", pctForaIdeal: 5.2,
         alocIdeal: 530_000, alocAtual: 502_500, sugestao: 27_500,
         byInstitution: { XP: 200_000, BTG: 140_000, "Itaú": 80_000, Safra: 52_500, Bradesco: 30_000 },
+        assets: [
+          { id: "a70", name: "Bridgewater All Weather", institution: "XP", value: 200_000, pctSub: 39.8 },
+          { id: "a71", name: "AQR Risk Parity", institution: "BTG", value: 140_000, pctSub: 27.9 },
+          { id: "a72", name: "Itaú Global Macro", institution: "Itaú", value: 80_000, pctSub: 15.9 },
+          { id: "a73", name: "Safra Multi Global", institution: "Safra", value: 52_500, pctSub: 10.4 },
+          { id: "a74", name: "Bradesco Global Alloc.", institution: "Bradesco", value: 30_000, pctSub: 6.0 },
+        ],
       },
       {
         id: "ext-acoes", name: "Ações Exterior", pctPL: 4.0, status: "desbalanceado", pctForaIdeal: 15.3,
         alocIdeal: 530_000, alocAtual: 449_000, sugestao: 81_000,
         byInstitution: { XP: 180_000, BTG: 120_000, "Itaú": 75_000, Safra: 44_000, Bradesco: 30_000 },
+        assets: [
+          { id: "a75", name: "iShares S&P 500 (IVV)", institution: "XP", value: 100_000, pctSub: 22.3 },
+          { id: "a76", name: "Nasdaq 100 ETF (QQQ)", institution: "XP", value: 80_000, pctSub: 17.8 },
+          { id: "a77", name: "Morgan Stanley Global", institution: "BTG", value: 120_000, pctSub: 26.7 },
+          { id: "a78", name: "Itaú USA Equities", institution: "Itaú", value: 75_000, pctSub: 16.7 },
+          { id: "a79", name: "Safra International Eq.", institution: "Safra", value: 44_000, pctSub: 9.8 },
+          { id: "a80", name: "Bradesco Global Eq.", institution: "Bradesco", value: 30_000, pctSub: 6.7 },
+        ],
       },
       {
         id: "ext-hedge", name: "Hedge Cambial", pctPL: 1.5, status: "ok", pctForaIdeal: 0.5,
         alocIdeal: 198_750, alocAtual: 199_750, sugestao: -1_000,
         byInstitution: { XP: 80_000, BTG: 55_000, "Itaú": 35_000, Safra: 19_750, Bradesco: 10_000 },
+        assets: [
+          { id: "a81", name: "Trend Dólar FIC", institution: "XP", value: 80_000, pctSub: 40.1 },
+          { id: "a82", name: "BTG Cambial USD", institution: "BTG", value: 55_000, pctSub: 27.5 },
+          { id: "a83", name: "Itaú Cambial FIC", institution: "Itaú", value: 35_000, pctSub: 17.5 },
+          { id: "a84", name: "Safra Hedge FX", institution: "Safra", value: 19_750, pctSub: 9.9 },
+          { id: "a85", name: "Bradesco Cambial", institution: "Bradesco", value: 10_000, pctSub: 5.0 },
+        ],
       },
     ],
   },
@@ -189,21 +324,50 @@ const CATEGORIES: Category[] = [
         id: "imob", name: "Imobiliário", pctPL: 4.5, status: "ok", pctForaIdeal: 1.5,
         alocIdeal: 596_250, alocAtual: 605_300, sugestao: -9_050,
         byInstitution: { XP: 240_000, BTG: 170_000, "Itaú": 95_000, Safra: 60_300, Bradesco: 40_000 },
+        assets: [
+          { id: "a86", name: "HGLG11 - CSHG Logística", institution: "XP", value: 130_000, pctSub: 21.5 },
+          { id: "a87", name: "XPML11 - XP Malls", institution: "XP", value: 110_000, pctSub: 18.2 },
+          { id: "a88", name: "BTLG11 - BTG Log.", institution: "BTG", value: 170_000, pctSub: 28.1 },
+          { id: "a89", name: "IRDM11 - Iridium Receb.", institution: "Itaú", value: 95_000, pctSub: 15.7 },
+          { id: "a90", name: "KNCR11 - Kinea Rend.", institution: "Safra", value: 60_300, pctSub: 10.0 },
+          { id: "a91", name: "HGRE11 - CSHG Real Est.", institution: "Bradesco", value: 40_000, pctSub: 6.6 },
+        ],
       },
       {
         id: "pe", name: "Private Equity", pctPL: 3.5, status: "ok", pctForaIdeal: 0.3,
         alocIdeal: 463_750, alocAtual: 465_150, sugestao: -1_400,
         byInstitution: { XP: 185_000, BTG: 130_000, "Itaú": 75_000, Safra: 45_150, Bradesco: 30_000 },
+        assets: [
+          { id: "a92", name: "Pátria Growth Fund V", institution: "XP", value: 185_000, pctSub: 39.8 },
+          { id: "a93", name: "Vinci Capital Partners IV", institution: "BTG", value: 130_000, pctSub: 27.9 },
+          { id: "a94", name: "Itaú PE Fund III", institution: "Itaú", value: 75_000, pctSub: 16.1 },
+          { id: "a95", name: "Spectra Ventures VII", institution: "Safra", value: 45_150, pctSub: 9.7 },
+          { id: "a96", name: "EB Capital FIP", institution: "Bradesco", value: 30_000, pctSub: 6.4 },
+        ],
       },
       {
         id: "infra", name: "Infraestrutura", pctPL: 2.5, status: "ok", pctForaIdeal: 2.1,
         alocIdeal: 331_250, alocAtual: 324_300, sugestao: 6_950,
         byInstitution: { XP: 130_000, BTG: 90_000, "Itaú": 55_000, Safra: 29_300, Bradesco: 20_000 },
+        assets: [
+          { id: "a97", name: "Pátria Infra Energy III", institution: "XP", value: 130_000, pctSub: 40.1 },
+          { id: "a98", name: "BTG Infra Core Fund", institution: "BTG", value: 90_000, pctSub: 27.7 },
+          { id: "a99", name: "Itaú Infra FIP-IE", institution: "Itaú", value: 55_000, pctSub: 17.0 },
+          { id: "a100", name: "Safra Infra Debentures", institution: "Safra", value: 29_300, pctSub: 9.0 },
+          { id: "a101", name: "Bradesco FIP Infra", institution: "Bradesco", value: 20_000, pctSub: 6.2 },
+        ],
       },
       {
         id: "agro", name: "Agronegócio", pctPL: 1.5, status: "atencao", pctForaIdeal: 7.5,
         alocIdeal: 198_750, alocAtual: 183_825, sugestao: 14_925,
         byInstitution: { XP: 75_000, BTG: 50_000, "Itaú": 30_000, Safra: 18_825, Bradesco: 10_000 },
+        assets: [
+          { id: "a102", name: "Fiagro KNCA11", institution: "XP", value: 75_000, pctSub: 40.8 },
+          { id: "a103", name: "BTG Agro Strategy", institution: "BTG", value: 50_000, pctSub: 27.2 },
+          { id: "a104", name: "Itaú Fiagro Plus", institution: "Itaú", value: 30_000, pctSub: 16.3 },
+          { id: "a105", name: "Safra Agribusiness", institution: "Safra", value: 18_825, pctSub: 10.2 },
+          { id: "a106", name: "Bradesco Fiagro FIC", institution: "Bradesco", value: 10_000, pctSub: 5.4 },
+        ],
       },
     ],
   },
@@ -231,7 +395,8 @@ const POLICY = {
 
 function formatBRL(value: number): string {
   if (Math.abs(value) >= 1_000_000) return `R$ ${(value / 1_000_000).toFixed(2).replace(".", ",")}M`;
-  return `R$ ${(value / 1_000).toFixed(0)}k`;
+  if (Math.abs(value) >= 1_000) return `R$ ${(value / 1_000).toFixed(0)}k`;
+  return `R$ ${value.toFixed(0)}`;
 }
 
 function formatBRLFull(value: number): string {
@@ -338,17 +503,86 @@ function MockupSidebar() {
   );
 }
 
+function InstitutionSelector({
+  allInstitutions,
+  visible,
+  onToggle,
+}: {
+  allInstitutions: Institution[];
+  visible: Set<string>;
+  onToggle: (name: string) => void;
+}) {
+  const hidden = allInstitutions.filter((i) => !visible.has(i.name));
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5" data-testid="institution-selector">
+      {allInstitutions.filter((i) => visible.has(i.name)).map((inst) => {
+        const c = getInstitutionColor(inst.colorKey);
+        return (
+          <button
+            key={inst.name}
+            onClick={() => onToggle(inst.name)}
+            className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium transition-colors ${c.bg} ${c.text} ${c.border}`}
+            data-testid={`institution-chip-${inst.name}`}
+          >
+            <InstitutionAvatar colorKey={inst.colorKey} initials={inst.initials} />
+            {inst.name}
+            <X className="h-3 w-3 opacity-50" />
+          </button>
+        );
+      })}
+
+      {hidden.length > 0 && (
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button size="sm" variant="ghost" className="h-7 gap-1 px-2 text-xs text-[#8c8c8c]" data-testid="button-add-institution">
+              <Plus className="h-3 w-3" />Adicionar
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-48 p-2" align="start">
+            <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-[#8c8c8c]">Instituições do cliente</p>
+            {hidden.map((inst) => {
+              const c = getInstitutionColor(inst.colorKey);
+              return (
+                <button
+                  key={inst.name}
+                  onClick={() => onToggle(inst.name)}
+                  className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-[#ccc] hover-elevate"
+                  data-testid={`add-institution-${inst.name}`}
+                >
+                  <Avatar className="h-5 w-5">
+                    <AvatarFallback className={`text-[9px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
+                  </Avatar>
+                  {inst.name}
+                </button>
+              );
+            })}
+          </PopoverContent>
+        </Popover>
+      )}
+    </div>
+  );
+}
+
 function MatrixTable({
   allocatorValues,
   onAllocatorChange,
+  visibleInstitutions,
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
+  visibleInstitutions: Institution[];
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [expandedSubs, setExpandedSubs] = useState<Record<string, boolean>>({});
 
   const toggleCategory = (catId: string) => {
     setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }));
+  };
+
+  const toggleSub = (subId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setExpandedSubs((prev) => ({ ...prev, [subId]: !prev[subId] }));
   };
 
   const categoryTotals = useMemo(() => {
@@ -359,7 +593,7 @@ function MatrixTable({
           alocAtual: acc.alocAtual + sub.alocAtual,
           sugestao: acc.sugestao + sub.sugestao,
           pctPL: acc.pctPL + sub.pctPL,
-          byInstitution: INSTITUTIONS.reduce(
+          byInstitution: visibleInstitutions.reduce(
             (instAcc, inst) => ({ ...instAcc, [inst.name]: (instAcc[inst.name] || 0) + (sub.byInstitution[inst.name] || 0) }),
             acc.byInstitution
           ),
@@ -368,7 +602,7 @@ function MatrixTable({
       );
       return { catId: cat.id, ...total };
     });
-  }, []);
+  }, [visibleInstitutions]);
 
   const grandTotals = useMemo(() => {
     return categoryTotals.reduce(
@@ -377,28 +611,30 @@ function MatrixTable({
         alocAtual: acc.alocAtual + ct.alocAtual,
         sugestao: acc.sugestao + ct.sugestao,
         pctPL: acc.pctPL + ct.pctPL,
-        byInstitution: INSTITUTIONS.reduce(
+        byInstitution: visibleInstitutions.reduce(
           (instAcc, inst) => ({ ...instAcc, [inst.name]: (instAcc[inst.name] || 0) + (ct.byInstitution[inst.name] || 0) }),
           acc.byInstitution
         ),
       }),
       { alocIdeal: 0, alocAtual: 0, sugestao: 0, pctPL: 0, byInstitution: {} as Record<string, number> }
     );
-  }, [categoryTotals]);
+  }, [categoryTotals, visibleInstitutions]);
+
+  const instColCount = visibleInstitutions.length * 2;
 
   return (
     <div className="overflow-x-auto rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
-      <table className="w-full min-w-[1100px] border-collapse text-xs">
+      <table className="w-full border-collapse text-xs">
         <thead className="bg-[#1a1a1a]">
           <tr className="border-b border-[#2a2a2a]">
-            <th rowSpan={2} className="w-44 px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
+            <th rowSpan={2} className="min-w-[180px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
             <th rowSpan={2} className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% P.L.</th>
             <th rowSpan={2} className="w-20 px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
             <th rowSpan={2} className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
             <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
             <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
             <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Sugestão</th>
-            {INSTITUTIONS.map((inst) => (
+            {visibleInstitutions.map((inst) => (
               <th key={inst.name} colSpan={2} className="border-l border-[#2a2a2a] px-2 py-2 text-center">
                 <div className="flex items-center justify-center gap-1.5">
                   <InstitutionAvatar colorKey={inst.colorKey} initials={inst.initials} />
@@ -408,7 +644,7 @@ function MatrixTable({
             ))}
           </tr>
           <tr className="border-b border-[#2a2a2a]">
-            {INSTITUTIONS.map((inst) => (
+            {visibleInstitutions.map((inst) => (
               <Fragment key={`${inst.name}-sub`}>
                 <th className="border-l border-[#2a2a2a] px-2 py-1 text-center text-[10px] font-normal text-[#555]">$ Atual</th>
                 <th className="px-2 py-1 text-center text-[10px] font-normal text-[#555]">Alocador</th>
@@ -444,7 +680,7 @@ function MatrixTable({
                   <td className="px-2 py-2 text-right font-medium text-[#ededed]">{formatBRL(ct.alocIdeal)}</td>
                   <td className="px-2 py-2 text-right font-medium text-[#ededed]">{formatBRL(ct.alocAtual)}</td>
                   <td className="px-2 py-2 text-right"><SugestaoCell value={ct.sugestao} /></td>
-                  {INSTITUTIONS.map((inst) => (
+                  {visibleInstitutions.map((inst) => (
                     <Fragment key={`${cat.id}-${inst.name}`}>
                       <td className="border-l border-[#2a2a2a] px-2 py-2 text-right font-medium text-[#bbb]">{formatBRL(ct.byInstitution[inst.name] || 0)}</td>
                       <td className="px-2 py-2 text-center text-[#444]">—</td>
@@ -452,36 +688,86 @@ function MatrixTable({
                   ))}
                 </tr>
 
-                {!isCollapsed && cat.subs.map((sub) => (
-                  <tr key={sub.id} className="border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50" data-testid={`sub-row-${sub.id}`}>
-                    <td className="px-4 py-2 pl-10"><span className="text-[#bbb]">{sub.name}</span></td>
-                    <td className="px-2 py-2 text-right text-[#bbb]">{sub.pctPL.toFixed(1)}%</td>
-                    <td className="px-2 py-2 text-center"><StatusBadge status={sub.status} /></td>
-                    <td className="px-2 py-2 text-right">
-                      <span className={sub.pctForaIdeal > 10 ? "text-[#e05c5c]" : sub.pctForaIdeal > 3 ? "text-[#dcb092]" : "text-[#8c8c8c]"}>
-                        {sub.pctForaIdeal.toFixed(1)}%
-                      </span>
-                    </td>
-                    <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocIdeal)}</td>
-                    <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocAtual)}</td>
-                    <td className="px-2 py-2 text-right"><SugestaoCell value={sub.sugestao} /></td>
-                    {INSTITUTIONS.map((inst) => (
-                      <Fragment key={`${sub.id}-${inst.name}`}>
-                        <td className="border-l border-[#2a2a2a] px-2 py-2 text-right text-[#888]">{formatBRL(sub.byInstitution[inst.name] || 0)}</td>
-                        <td className="px-1 py-1.5">
-                          <input
-                            type="text"
-                            placeholder="—"
-                            value={allocatorValues[sub.id]?.[inst.name] ?? ""}
-                            onChange={(e) => onAllocatorChange(sub.id, inst.name, e.target.value)}
-                            className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-xs text-[#ededed] outline-none placeholder:text-[#333] focus:border-[#6db1d4]"
-                            data-testid={`input-allocator-${sub.id}-${inst.name}`}
-                          />
+                {!isCollapsed && cat.subs.map((sub) => {
+                  const isSubExpanded = expandedSubs[sub.id] ?? false;
+                  const filteredAssets = sub.assets.filter((a) => visibleInstitutions.some((vi) => vi.name === a.institution));
+                  return (
+                    <Fragment key={sub.id}>
+                      <tr
+                        className="cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50"
+                        onClick={(e) => toggleSub(sub.id, e)}
+                        data-testid={`sub-row-${sub.id}`}
+                      >
+                        <td className="px-4 py-2 pl-10">
+                          <div className="flex items-center gap-1.5">
+                            {isSubExpanded
+                              ? <ChevronDown className="h-3 w-3 text-[#555]" />
+                              : <ChevronRight className="h-3 w-3 text-[#555]" />}
+                            <span className="text-[#bbb]">{sub.name}</span>
+                            <span className="text-[10px] text-[#444]">({filteredAssets.length})</span>
+                          </div>
                         </td>
-                      </Fragment>
-                    ))}
-                  </tr>
-                ))}
+                        <td className="px-2 py-2 text-right text-[#bbb]">{sub.pctPL.toFixed(1)}%</td>
+                        <td className="px-2 py-2 text-center"><StatusBadge status={sub.status} /></td>
+                        <td className="px-2 py-2 text-right">
+                          <span className={sub.pctForaIdeal > 10 ? "text-[#e05c5c]" : sub.pctForaIdeal > 3 ? "text-[#dcb092]" : "text-[#8c8c8c]"}>
+                            {sub.pctForaIdeal.toFixed(1)}%
+                          </span>
+                        </td>
+                        <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocIdeal)}</td>
+                        <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocAtual)}</td>
+                        <td className="px-2 py-2 text-right"><SugestaoCell value={sub.sugestao} /></td>
+                        {visibleInstitutions.map((inst) => (
+                          <Fragment key={`${sub.id}-${inst.name}`}>
+                            <td className="border-l border-[#2a2a2a] px-2 py-2 text-right text-[#888]">{formatBRL(sub.byInstitution[inst.name] || 0)}</td>
+                            <td className="px-1 py-1.5">
+                              <input
+                                type="text"
+                                placeholder="—"
+                                value={allocatorValues[sub.id]?.[inst.name] ?? ""}
+                                onChange={(e) => { e.stopPropagation(); onAllocatorChange(sub.id, inst.name, e.target.value); }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-xs text-[#ededed] outline-none placeholder:text-[#333] focus:border-[#6db1d4]"
+                                data-testid={`input-allocator-${sub.id}-${inst.name}`}
+                              />
+                            </td>
+                          </Fragment>
+                        ))}
+                      </tr>
+
+                      {isSubExpanded && filteredAssets.map((asset) => {
+                        const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
+                        const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
+                        return (
+                          <tr key={asset.id} className="border-b border-[#1a1a1a] bg-[#131313]" data-testid={`asset-row-${asset.id}`}>
+                            <td className="py-1.5 pl-14 pr-4">
+                              <div className="flex items-center gap-2">
+                                <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
+                                <span className="text-[11px] text-[#999]">{asset.name}</span>
+                                {asset.rate && <span className="text-[10px] text-[#555]">{asset.rate}</span>}
+                                {asset.maturity && <span className="text-[10px] text-[#444]">Venc. {asset.maturity}</span>}
+                              </div>
+                            </td>
+                            <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">{asset.pctSub.toFixed(1)}%</td>
+                            <td />
+                            <td />
+                            <td />
+                            <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">{formatBRL(asset.value)}</td>
+                            <td />
+                            {visibleInstitutions.map((inst, idx) => (
+                              <Fragment key={`${asset.id}-${inst.name}`}>
+                                <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
+                                  {idx === instIndex ? formatBRL(asset.value) : ""}
+                                </td>
+                                <td />
+                              </Fragment>
+                            ))}
+                          </tr>
+                        );
+                      })}
+                    </Fragment>
+                  );
+                })}
               </Fragment>
             );
           })}
@@ -496,7 +782,7 @@ function MatrixTable({
             <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRLFull(grandTotals.alocIdeal)}</td>
             <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRLFull(grandTotals.alocAtual)}</td>
             <td className="px-2 py-2.5 text-right"><SugestaoCell value={grandTotals.sugestao} /></td>
-            {INSTITUTIONS.map((inst) => (
+            {visibleInstitutions.map((inst) => (
               <Fragment key={`total-${inst.name}`}>
                 <td className="border-l border-[#2a2a2a] px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRL(grandTotals.byInstitution[inst.name] || 0)}</td>
                 <td className="px-2 py-2.5 text-center text-[#444]">—</td>
@@ -538,7 +824,7 @@ function FGCSection() {
                   style={{ width: `${Math.min(Number(pct), 100)}%` }}
                 />
               </div>
-              <div className="flex items-baseline justify-between">
+              <div className="flex items-baseline justify-between gap-1">
                 <span className={`text-xs font-medium ${s.color}`}>{formatBRLFull(fgc.covered)}</span>
                 <span className="text-[10px] text-[#555]">/ {formatBRLFull(fgc.limit)}</span>
               </div>
@@ -552,7 +838,7 @@ function FGCSection() {
 }
 
 function PolicySection() {
-  const row = "flex items-baseline justify-between border-b border-[#1e1e1e] py-2";
+  const row = "flex items-baseline justify-between gap-2 border-b border-[#1e1e1e] py-2";
   const lbl = "text-xs text-[#8c8c8c]";
   const val = "text-xs text-[#ccc]";
 
@@ -587,7 +873,7 @@ function PolicySection() {
         </div>
 
         <div className="rounded-md border border-[#2a2a2a] bg-[#161616] p-4">
-          <div className={`${row}`}>
+          <div className={row}>
             <span className={lbl}>Liquidez Mínima</span>
             <span className={val}>{POLICY.liquidityMin}</span>
           </div>
@@ -624,12 +910,31 @@ function PolicySection() {
 
 export default function MockupRealocador() {
   const [allocatorValues, setAllocatorValues] = useState<Record<string, Record<string, string>>>({});
+  const [visibleInstNames, setVisibleInstNames] = useState<Set<string>>(() => new Set(["XP", "BTG", "Itaú"]));
+
   const handleAllocatorChange = (subId: string, inst: string, val: string) => {
     setAllocatorValues((prev) => ({ ...prev, [subId]: { ...prev[subId], [inst]: val } }));
   };
 
-  const overallStatus: BalanceStatus = "atencao";
+  const toggleInstitution = (name: string) => {
+    setVisibleInstNames((prev) => {
+      const next = new Set(prev);
+      if (next.has(name)) {
+        if (next.size <= 1) return prev;
+        next.delete(name);
+      } else {
+        next.add(name);
+      }
+      return next;
+    });
+  };
 
+  const visibleInstitutions = useMemo(
+    () => ALL_CLIENT_INSTITUTIONS.filter((i) => visibleInstNames.has(i.name)),
+    [visibleInstNames]
+  );
+
+  const overallStatus: BalanceStatus = "atencao";
   const style = { "--sidebar-width": "16rem", "--sidebar-width-icon": "3rem" };
 
   return (
@@ -668,7 +973,12 @@ export default function MockupRealocador() {
                 </div>
               </div>
 
-              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} />
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-xs font-medium text-[#8c8c8c]">Instituições:</span>
+                <InstitutionSelector allInstitutions={ALL_CLIENT_INSTITUTIONS} visible={visibleInstNames} onToggle={toggleInstitution} />
+              </div>
+
+              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} visibleInstitutions={visibleInstitutions} />
 
               <FGCSection />
 
