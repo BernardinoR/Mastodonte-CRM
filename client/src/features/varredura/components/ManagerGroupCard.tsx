@@ -9,6 +9,7 @@ import {
   Mail,
 } from "lucide-react";
 import type { ManagerGroup, VarreduraStatus } from "../types/varredura";
+import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 
 const STATUS_CONFIG: Record<
   VarreduraStatus,
@@ -45,6 +46,7 @@ export function ManagerGroupCard({
   defaultExpanded?: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const color = getInstitutionColor(group.institutionName);
   const pendingCount = group.clients.filter((c) => c.status === "pendente").length;
   const solicitedCount = group.clients.filter((c) => c.status === "solicitado").length;
 
@@ -58,10 +60,12 @@ export function ManagerGroupCard({
         className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[#222222]"
         data-testid={`button-toggle-${group.institutionName.toLowerCase().replace(/\s/g, "-")}`}
       >
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[rgba(109,177,212,0.1)]">
-          <span className="text-[10px] font-bold text-[#6db1d4]">{group.initials}</span>
+        <div
+          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border ${color.bg} ${color.border}`}
+        >
+          <span className={`text-[10px] font-bold ${color.text}`}>{group.initials}</span>
         </div>
-        <div className="flex flex-1 items-center gap-3 flex-wrap">
+        <div className="flex flex-1 flex-wrap items-center gap-3">
           <span className="text-sm font-semibold text-[#ededed]">{group.institutionName}</span>
           <span className="text-xs text-[#666]">{group.clients.length} clientes</span>
         </div>
@@ -104,13 +108,7 @@ export function ManagerGroupCard({
                   {client.clientName}
                 </span>
                 <span className="text-xs text-[#555]">{client.accountName}</span>
-                <span
-                  className={`ml-auto inline-flex items-center gap-1 rounded-md px-2.5 py-0.5 text-[11px] font-semibold ${sc.bg} ${sc.color}`}
-                >
-                  <sc.Icon className="h-3 w-3" />
-                  {sc.label}
-                </span>
-                <div className="flex shrink-0 items-center gap-1 invisible group-hover/row:visible">
+                <div className="invisible ml-auto flex shrink-0 items-center gap-1 group-hover/row:visible">
                   {client.phone && (
                     <a
                       href={`https://wa.me/${client.phone.replace(/\D/g, "")}`}
@@ -132,6 +130,12 @@ export function ManagerGroupCard({
                     </a>
                   )}
                 </div>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1 rounded-md px-2.5 py-0.5 text-[11px] font-semibold ${sc.bg} ${sc.color}`}
+                >
+                  <sc.Icon className="h-3 w-3" />
+                  {sc.label}
+                </span>
               </div>
             );
           })}

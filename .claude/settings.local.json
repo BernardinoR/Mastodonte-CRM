@@ -119,7 +119,9 @@
       "mcp__n8n-mcp__validate_node",
       "Bash(find /home/runner/workspace/client/src -type f \\\\\\(-name *.tsx -o -name *.ts -o -name *.jsx -o -name *.js \\\\\\))",
       "Bash(find /home/runner/workspace -type f \\\\\\(-name *consolidad* -o -name *consolidat* -o -name *extrato* -o -name *extract* \\\\\\))",
-      "Bash(/dev/null -exec cat {})"
+      "Bash(/dev/null -exec cat {})",
+      "Bash(find /home/runner/workspace/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "Bash(find /home/runner/workspace/client/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))"
     ]
   },
   "enableAllProjectMcpServers": true,
