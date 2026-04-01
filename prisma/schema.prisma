@@ -41,11 +41,12 @@ model User {
   group           Group?   @relation(fields: [groupId], references: [id])
 
   // Relações
-  clientsOwned      Client[]       @relation("ClientOwner")
-  tasksCreated      Task[]         @relation("TaskCreator")
+  clientsOwned      Client[]          @relation("ClientOwner")
+  tasksCreated      Task[]            @relation("TaskCreator")
   taskAssignments   TaskAssignee[]
-  taskHistoryEvents TaskHistory[]  @relation("TaskHistoryAuthor")
-  meetingsCreated   Meeting[]      @relation("MeetingCreator")
+  taskHistoryEvents TaskHistory[]     @relation("TaskHistoryAuthor")
+  meetingsCreated   Meeting[]         @relation("MeetingCreator")
+  varreduraChecks   VarreduraCheck[]
 
   @@map("users")
 }
@@ -67,6 +68,7 @@ model Institution {
   attachmentCount Int     @default(1) @map("attachment_count")
   referenceFiles  String[] @default([]) @map("reference_files")
   contas          Conta[]
+  varreduraChecks VarreduraCheck[]
 
   @@map("institutions")
 }
@@ -261,6 +263,24 @@ model TaskHistory {
   author User? @relation("TaskHistoryAuthor", fields: [authorId], references: [id])
 
   @@map("task_history")
+}
+
+// ============================================
+// VARREDURA
+// ============================================
+
+model VarreduraCheck {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @map("user_id")
+  institutionId Int      @map("institution_id")
+  date          String   // "YYYY-MM-DD"
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, institutionId, date])
+  @@map("varredura_checks")
 }
 
 // ============================================

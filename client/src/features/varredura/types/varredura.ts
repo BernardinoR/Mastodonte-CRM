@@ -2,6 +2,7 @@ export type VarreduraStatus = "verificado" | "pendente" | "solicitado";
 
 export interface DirectInstitution {
   contaId: string;
+  institutionId: number;
   institutionName: string;
   initials: string;
   checked: boolean;

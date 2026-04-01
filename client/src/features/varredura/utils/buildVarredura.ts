@@ -1,4 +1,9 @@
-import type { DirectInstitution, ManagerGroup, ManagerClient, VarreduraStatus } from "../types/varredura";
+import type {
+  DirectInstitution,
+  ManagerGroup,
+  ManagerClient,
+  VarreduraStatus,
+} from "../types/varredura";
 
 interface DbExtratoStatus {
   id: string;
@@ -19,6 +24,7 @@ interface DbClient {
 }
 
 interface DbInstitution {
+  id?: number;
   name: string;
   attachment_count: number;
   currency: string;
@@ -35,7 +41,7 @@ export interface VarreduraConta {
   manager_email: string | null;
   manager_name: string | null;
   client: DbClient;
-  institution: DbInstitution;
+  institution: DbInstitution & { id?: number };
   extrato_statuses: DbExtratoStatus[];
 }
 
@@ -79,9 +85,13 @@ function getStatusForConta(conta: VarreduraConta, competencia: string): Varredur
 export function buildDirectInstitutions(
   contas: VarreduraConta[],
   competencia: string,
+  checkedInstitutionIds?: Set<number>,
 ): DirectInstitution[] {
   const autoContas = contas.filter(
-    (c) => c.type === "Automático" && isMonthInRange(competencia, c.start_date, c.end_date),
+    (c) =>
+      c.type === "Automático" &&
+      c.institution.name !== "Smart" &&
+      isMonthInRange(competencia, c.start_date, c.end_date),
   );
 
   const grouped = new Map<string, VarreduraConta[]>();
@@ -92,25 +102,24 @@ export function buildDirectInstitutions(
   }
 
   const result: DirectInstitution[] = [];
-  for (const [name, instituionContas] of grouped) {
-    const allChecked = instituionContas.every(
-      (c) => getStatusForConta(c, competencia) === "verificado",
-    );
+  for (const [name, institutionContas] of grouped) {
+    const instId = institutionContas[0].institution.id ?? 0;
+    const checked = checkedInstitutionIds
+      ? checkedInstitutionIds.has(instId)
+      : institutionContas.every((c) => getStatusForConta(c, competencia) === "verificado");
     result.push({
-      contaId: instituionContas[0].id,
+      contaId: institutionContas[0].id,
+      institutionId: instId,
       institutionName: name,
       initials: name.substring(0, 2).toUpperCase(),
-      checked: allChecked,
+      checked,
     });
   }
 
   return result.sort((a, b) => a.institutionName.localeCompare(b.institutionName));
 }
 
-export function buildManagerGroups(
-  contas: VarreduraConta[],
-  competencia: string,
-): ManagerGroup[] {
+export function buildManagerGroups(contas: VarreduraConta[], competencia: string): ManagerGroup[] {
   const manualContas = contas.filter(
     (c) =>
       (c.type === "Manual" || c.type === "Manual Cliente") &&
@@ -168,6 +177,7 @@ export function getContaIdsForInstitution(
     .filter(
       (c) =>
         c.type === "Automático" &&
+        c.institution.name !== "Smart" &&
         c.institution.name === institutionName &&
         isMonthInRange(competencia, c.start_date, c.end_date),
     )

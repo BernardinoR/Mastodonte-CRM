@@ -1,9 +1,8 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
-import { useAuth } from "@clerk/clerk-react";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/shared/lib/supabase";
-import { apiRequest } from "@/shared/lib/queryClient";
 import { useToast } from "@/shared/hooks/use-toast";
+import { useCurrentUser } from "@/features/users/hooks/useCurrentUser";
 import { DaySelector } from "../components/DaySelector";
 import { ProgressBar } from "../components/ProgressBar";
 import { InstitutionCard } from "../components/InstitutionCard";
@@ -11,7 +10,6 @@ import { ManagerGroupCard } from "../components/ManagerGroupCard";
 import {
   buildDirectInstitutions,
   buildManagerGroups,
-  getContaIdsForInstitution,
   formatCompetencia,
   type VarreduraConta,
 } from "../utils/buildVarredura";
@@ -20,49 +18,59 @@ const CONTA_SELECT = `
   id, client_id, type, start_date, end_date, account_name,
   manager_phone, manager_email, manager_name,
   client:clients!client_id(name, initials, emails, primary_email_index, phone),
-  institution:institutions!institution_id(name, attachment_count, currency),
+  institution:institutions!institution_id(id, name, attachment_count, currency),
   extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
 `;
 
 export default function Varredura() {
-  const { getToken } = useAuth();
   const { toast } = useToast();
+  const { data: userData } = useCurrentUser();
+  const userId = userData?.user?.id;
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [contas, setContas] = useState<VarreduraConta[]>([]);
+  const [checkedInstitutionIds, setCheckedInstitutionIds] = useState<Set<number>>(new Set());
   const [loading, setLoading] = useState(true);
 
   const competencia = useMemo(() => formatCompetencia(selectedDay), [selectedDay]);
 
-  const authHeaders = useCallback(async () => {
-    const token = await getToken();
-    return { Authorization: `Bearer ${token}` };
-  }, [getToken]);
+  const dateStr = useMemo(() => {
+    const y = selectedDay.getFullYear();
+    const m = String(selectedDay.getMonth() + 1).padStart(2, "0");
+    const d = String(selectedDay.getDate()).padStart(2, "0");
+    return `${y}-${m}-${d}`;
+  }, [selectedDay]);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await supabase
-        .from("contas")
-        .select(CONTA_SELECT)
-        .eq("status", "Ativa");
+      const [contasResult, checksResult] = await Promise.all([
+        supabase.from("contas").select(CONTA_SELECT).eq("status", "Ativa"),
+        supabase.from("varredura_checks").select("institution_id").eq("date", dateStr),
+      ]);
 
-      if (result.error) throw result.error;
-      setContas((result.data ?? []) as unknown as VarreduraConta[]);
+      if (contasResult.error) throw contasResult.error;
+      setContas((contasResult.data ?? []) as unknown as VarreduraConta[]);
+
+      const ids = new Set(
+        (checksResult.data ?? []).map((c: { institution_id: number }) => c.institution_id),
+      );
+      setCheckedInstitutionIds(ids);
     } catch (error) {
       console.error("Failed to fetch varredura data:", error);
       setContas([]);
+      setCheckedInstitutionIds(new Set());
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [dateStr]);
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
   const directInstitutions = useMemo(
-    () => buildDirectInstitutions(contas, competencia),
-    [contas, competencia],
+    () => buildDirectInstitutions(contas, competencia, checkedInstitutionIds),
+    [contas, competencia, checkedInstitutionIds],
   );
 
   const managerGroups = useMemo(
@@ -80,39 +88,32 @@ export default function Varredura() {
   const totalManagerClients = managerGroups.reduce((s, g) => s + g.clients.length, 0);
 
   const toggleInstitution = useCallback(
-    async (institutionName: string, currentlyChecked: boolean) => {
-      const contaIds = getContaIdsForInstitution(contas, institutionName, competencia);
-      if (contaIds.length === 0) return;
+    async (institutionId: number, currentlyChecked: boolean) => {
+      if (!userId) return;
 
-      const newStatus = currentlyChecked ? "Pendente" : "Recebido";
-
-      setContas((prev) =>
-        prev.map((c) => {
-          if (!contaIds.includes(c.id)) return c;
-          const existingEs = c.extrato_statuses.find((es) => es.competencia === competencia);
-          const now = new Date().toISOString();
-          const updatedEs = existingEs
-            ? { ...existingEs, status: newStatus, updated_at: now, received_at: !currentlyChecked ? now : existingEs.received_at }
-            : { id: `temp-${c.id}`, status: newStatus, competencia, requested_at: null, received_at: !currentlyChecked ? now : null, consolidated_at: null, updated_at: now };
-
-          return {
-            ...c,
-            extrato_statuses: existingEs
-              ? c.extrato_statuses.map((es) => (es.competencia === competencia ? updatedEs : es))
-              : [...c.extrato_statuses, updatedEs],
-          };
-        }),
-      );
+      // Optimistic update
+      setCheckedInstitutionIds((prev) => {
+        const next = new Set(prev);
+        if (currentlyChecked) {
+          next.delete(institutionId);
+        } else {
+          next.add(institutionId);
+        }
+        return next;
+      });
 
       try {
-        const headers = await authHeaders();
-        for (const contaId of contaIds) {
-          await apiRequest(
-            "PATCH",
-            `/api/consolidador/extratos/${contaId}/status`,
-            { competencia, status: newStatus },
-            headers,
-          );
+        if (currentlyChecked) {
+          const { error } = await supabase
+            .from("varredura_checks")
+            .delete()
+            .match({ user_id: userId, institution_id: institutionId, date: dateStr });
+          if (error) throw error;
+        } else {
+          const { error } = await supabase
+            .from("varredura_checks")
+            .insert({ user_id: userId, institution_id: institutionId, date: dateStr });
+          if (error) throw error;
         }
       } catch (error) {
         console.error("Failed to toggle institution:", error);
@@ -124,7 +125,7 @@ export default function Varredura() {
         fetchData();
       }
     },
-    [contas, competencia, authHeaders, toast, fetchData],
+    [userId, dateStr, toast, fetchData],
   );
 
   const pendingManagerCount = managerGroups.reduce(
@@ -175,7 +176,7 @@ export default function Varredura() {
                     institutionName={inst.institutionName}
                     initials={inst.initials}
                     checked={inst.checked}
-                    onToggle={() => toggleInstitution(inst.institutionName, inst.checked)}
+                    onToggle={() => toggleInstitution(inst.institutionId, inst.checked)}
                   />
                 ))}
               </div>
