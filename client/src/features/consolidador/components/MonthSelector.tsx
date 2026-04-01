@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { getVisibleContaTypes } from "../utils/businessDays";
 import { Calendar, Check, ChevronDown } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/components/ui/popover";
 import {
@@ -39,8 +40,21 @@ function generateMonthOptions() {
   const currentYear = now.getFullYear();
   const currentMonth = now.getMonth();
 
+  // Check if the latest closed month should be visible (3rd business day = earliest threshold)
+  let latestEndMonth = currentMonth - 1;
+  let latestEndYear = currentYear;
+  if (latestEndMonth < 0) {
+    latestEndMonth = 11;
+    latestEndYear--;
+  }
+  const lastClosedStr = `${String(latestEndMonth + 1).padStart(2, "0")}/${latestEndYear}`;
+  const hideLatestMonth = getVisibleContaTypes(lastClosedStr).size === 0;
+
   for (let year = 2024; year <= currentYear; year++) {
-    const endMonth = year === currentYear ? currentMonth - 1 : 11;
+    let endMonth = year === currentYear ? currentMonth - 1 : 11;
+    if (hideLatestMonth && year === latestEndYear && endMonth === latestEndMonth) {
+      endMonth--;
+    }
     for (let month = 0; month <= endMonth; month++) {
       const date = new Date(year, month, 1);
       const label = format(date, "MMM/yy", { locale: ptBR });

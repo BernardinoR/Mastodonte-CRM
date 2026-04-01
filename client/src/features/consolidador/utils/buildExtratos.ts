@@ -1,4 +1,6 @@
 import type { Extrato } from "../types/extrato";
+import { filterContasByVisibility } from "./filterContasByVisibility";
+import { getVisibleContaTypes } from "./businessDays";
 
 // ============================================
 // Supabase row types (snake_case)
@@ -186,7 +188,10 @@ export function buildExtratos(
   whatsappGroups: DbWhatsappGroup[],
   month: string,
 ): Extrato[] {
-  const eligible = contas.filter((c) => isMonthInRange(month, c.start_date, c.end_date));
+  const eligible = filterContasByVisibility(
+    contas.filter((c) => isMonthInRange(month, c.start_date, c.end_date)),
+    month,
+  );
   if (eligible.length === 0) return [];
 
   const [whatsappGroupMap, whatsappGroupLinkMap] = buildWhatsappMaps(whatsappGroups);
@@ -206,7 +211,10 @@ export function buildPendencias(
 
   const allExtratos: Extrato[] = [];
   for (const month of months) {
-    const eligible = contas.filter((c) => isMonthInRange(month, c.start_date, c.end_date));
+    const eligible = filterContasByVisibility(
+      contas.filter((c) => isMonthInRange(month, c.start_date, c.end_date)),
+      month,
+    );
     for (const conta of eligible) {
       const es = conta.extrato_statuses.find((s) => s.competencia === month);
       const status = es?.status || getDefaultStatus(conta.type);
@@ -278,6 +286,17 @@ export function getAllPendingMonths(contas: DbConta[]): string[] {
     upperM = 12;
     upperY--;
   }
+
+  // If no types are visible for the latest closed month, exclude it
+  const lastClosedStr = `${String(upperM).padStart(2, "0")}/${upperY}`;
+  if (getVisibleContaTypes(lastClosedStr).size === 0) {
+    upperM--;
+    if (upperM === 0) {
+      upperM = 12;
+      upperY--;
+    }
+  }
+
   const upperVal = upperY * 12 + upperM + 1;
 
   const months: string[] = [];

@@ -29,6 +29,7 @@ import type {
   ClientExtratoGroup as ClientGroupType,
   ExtratoStatusSummary,
 } from "../types/extrato";
+import { getVisibleContaTypes } from "../utils/businessDays";
 
 function formatMonthParam(date: Date): string {
   const mm = String(date.getMonth() + 1).padStart(2, "0");
@@ -52,7 +53,27 @@ export default function Consolidador() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<ExtratoStatus | null>(null);
   const [typeFilter, setTypeFilter] = useState<string | null>(null);
-  const [selectedMonth, setSelectedMonth] = useState(() => new Date(2026, 1, 1));
+  const [selectedMonth, setSelectedMonth] = useState(() => {
+    const now = new Date();
+    let m = now.getMonth(); // 0-indexed, previous month = current getMonth() value as 1-indexed
+    let y = now.getFullYear();
+    if (m === 0) {
+      m = 12;
+      y--;
+    } else {
+      /* m is already the previous month (1-indexed) */
+    }
+    const lastClosedStr = `${String(m).padStart(2, "0")}/${y}`;
+    // If no types visible for the latest month, go one month further back
+    if (getVisibleContaTypes(lastClosedStr).size === 0) {
+      m--;
+      if (m === 0) {
+        m = 12;
+        y--;
+      }
+    }
+    return new Date(y, m - 1, 1);
+  });
   const [historicalOpen, setHistoricalOpen] = useState(false);
   const [expandedClients, setExpandedClients] = useState<Set<string>>(new Set());
   const [methodOverrides, setMethodOverrides] = useState<Map<string, ExtratoCollectionMethod>>(
