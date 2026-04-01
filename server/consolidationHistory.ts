@@ -139,6 +139,13 @@ async function upsertExtratoFromMatch(
       data: { ...getDefaultExtratoData(contaType), consolidatedAt: null },
     });
   }
+  // Automático nunca deve ficar Pendente — corrigir para Recebido
+  if (existing && contaType === "Automático" && existing.status === "Pendente") {
+    return prisma.extratoStatus.update({
+      where: { id: existing.id },
+      data: { status: "Recebido", receivedAt: new Date() },
+    });
+  }
   if (existing) return existing;
   return prisma.extratoStatus.create({
     data: { contaId, competencia, ...getDefaultExtratoData(contaType) },
@@ -243,6 +250,13 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
         await prisma.extratoStatus.update({
           where: { id: existing.id },
           data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
+        });
+        totalSynced++;
+      } else if (existing && conta.type === "Automático" && existing.status === "Pendente") {
+        // Automático nunca deve ficar Pendente — corrigir para Recebido
+        await prisma.extratoStatus.update({
+          where: { id: existing.id },
+          data: { status: "Recebido", receivedAt: new Date() },
         });
         totalSynced++;
       } else if (!existing) {

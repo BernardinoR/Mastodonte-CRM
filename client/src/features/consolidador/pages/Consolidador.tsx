@@ -29,7 +29,7 @@ import type {
   ClientExtratoGroup as ClientGroupType,
   ExtratoStatusSummary,
 } from "../types/extrato";
-import { getVisibleContaTypes } from "../utils/businessDays";
+import { getVisibleContaTypes } from "../utils/contaVisibility";
 
 function formatMonthParam(date: Date): string {
   const mm = String(date.getMonth() + 1).padStart(2, "0");

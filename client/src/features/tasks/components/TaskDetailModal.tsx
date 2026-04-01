@@ -11,7 +11,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Calendar as CalendarIcon, Pencil, Plus } from "lucide-react";
 import { TaskContactButtons, TaskDescription, TaskHistory, TaskMeetingLink } from "./task-detail";
-import { format, isBefore, startOfDay, differenceInDays } from "date-fns";
+import { format, isBefore, startOfDay } from "date-fns";
+import { countBusinessDays } from "@/shared/lib/business-days";
 import { ptBR } from "date-fns/locale";
 import { DateInput } from "@/shared/components/ui/date-input";
 import {
@@ -65,7 +66,7 @@ function getDaysSinceLastUpdate(history?: TaskHistoryEvent[]): string {
 
   const lastUpdate = new Date(sortedHistory[0].timestamp);
   const today = startOfDay(new Date());
-  const days = differenceInDays(today, startOfDay(lastUpdate));
+  const days = countBusinessDays(startOfDay(lastUpdate), today);
 
   if (days === 0) {
     return "Atualizado hoje";

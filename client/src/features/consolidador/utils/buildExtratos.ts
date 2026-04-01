@@ -1,6 +1,5 @@
 import type { Extrato } from "../types/extrato";
-import { filterContasByVisibility } from "./filterContasByVisibility";
-import { getVisibleContaTypes } from "./businessDays";
+import { filterContasByVisibility, getVisibleContaTypes } from "./contaVisibility";
 
 // ============================================
 // Supabase row types (snake_case)

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { getVisibleContaTypes } from "../utils/businessDays";
+import { getVisibleContaTypes } from "../utils/contaVisibility";
 import { Calendar, Check, ChevronDown } from "lucide-react";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/components/ui/popover";
 import {
