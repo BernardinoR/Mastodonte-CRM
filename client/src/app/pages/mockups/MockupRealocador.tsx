@@ -707,6 +707,7 @@ function MatrixTable({
 
   const confirmDone = (assetId: string) => {
     setAssetActions((prev) => {
+      if (!prev[assetId] || prev[assetId].status !== "notified") return prev;
       const next = { ...prev };
       delete next[assetId];
       return next;
@@ -978,13 +979,15 @@ function MatrixTable({
                                           {asset.institution}
                                         </span>
                                       )}
-                                      <button
-                                        onClick={(e) => { e.stopPropagation(); setOpenActionMenu(isMenuOpen ? null : asset.id); }}
-                                        className={`ml-0.5 rounded p-0.5 transition-colors ${isMenuOpen ? "text-[#ededed]" : "text-[#444] hover:text-[#999]"}`}
-                                        data-testid={`button-asset-actions-${asset.id}`}
-                                      >
-                                        <MoreHorizontal className="h-3.5 w-3.5" />
-                                      </button>
+                                      {!action && (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setOpenActionMenu(isMenuOpen ? null : asset.id); }}
+                                          className={`ml-0.5 rounded p-0.5 transition-colors ${isMenuOpen ? "text-[#ededed]" : "text-[#444] hover:text-[#999]"}`}
+                                          data-testid={`button-asset-actions-${asset.id}`}
+                                        >
+                                          <MoreHorizontal className="h-3.5 w-3.5" />
+                                        </button>
+                                      )}
                                     </div>
                                   </td>
                                   {visibleInstitutions.map((inst, idx) => (
