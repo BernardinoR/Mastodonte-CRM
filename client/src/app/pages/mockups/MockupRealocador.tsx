@@ -911,25 +911,25 @@ function MatrixTable({
                   return (
                     <Fragment key={sub.id}>
                       <tr
-                        className="cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50"
+                        className="group/sub cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50"
                         onClick={(e) => toggleSub(sub.id, e)}
                         data-testid={`sub-row-${sub.id}`}
                       >
                         <td className="px-4 py-2 pl-10">
                           <div className="flex items-center gap-1.5">
-                            {isSubExpanded
-                              ? <ChevronDown className="h-3 w-3 text-[#555]" />
-                              : <ChevronRight className="h-3 w-3 text-[#555]" />}
-                            <span className="text-[#bbb]">{sub.name}</span>
-                            <span className="text-[10px] text-[#444]">({filteredAssets.length})</span>
                             <button
                               onClick={(e) => startAddingAsset(sub.id, e)}
-                              className="ml-1 rounded p-0.5 text-[#444] transition-colors hover:text-[#6ecf8e]"
+                              className="invisible rounded p-0.5 text-[#444] transition-colors hover:text-[#6ecf8e] group-hover/sub:visible"
                               title="Adicionar ativo"
                               data-testid={`button-add-asset-${sub.id}`}
                             >
                               <Plus className="h-3 w-3" />
                             </button>
+                            {isSubExpanded
+                              ? <ChevronDown className="h-3 w-3 text-[#555]" />
+                              : <ChevronRight className="h-3 w-3 text-[#555]" />}
+                            <span className="text-[#bbb]">{sub.name}</span>
+                            <span className="text-[10px] text-[#444]">({filteredAssets.length})</span>
                           </div>
                         </td>
                         <td className="px-2 py-2 text-right text-[#bbb]">{sub.pctPL.toFixed(1)}%</td>
@@ -1111,10 +1111,17 @@ function MatrixTable({
                           })}
 
                           {addingToSub === sub.id && (
-                            <tr className="border-b border-[#1a1a1a] bg-[#0e1210]" data-testid={`new-asset-row-${sub.id}`}>
+                            <tr
+                              className="border-b border-[#1a1a1a] bg-[#0e1210]"
+                              data-testid={`new-asset-row-${sub.id}`}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") { e.preventDefault(); confirmNewAsset(sub.id); }
+                                if (e.key === "Escape") { e.preventDefault(); cancelNewAsset(); }
+                              }}
+                            >
                               <td className="py-1.5 pl-14 pr-4">
                                 <div className="flex items-center gap-2">
-                                  <Plus className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
+                                  <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[#dcb092]" />
                                   <input
                                     type="text"
                                     placeholder="Nome do ativo"
@@ -1122,93 +1129,89 @@ function MatrixTable({
                                     onChange={(e) => setNewAssetDraft((d) => ({ ...d, name: e.target.value }))}
                                     onClick={(e) => e.stopPropagation()}
                                     autoFocus
-                                    className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-[11px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                    className="w-full bg-transparent text-[11px] text-[#6ecf8e] outline-none placeholder:text-[#444] focus:border-b focus:border-[#6ecf8e]/40"
                                     data-testid={`input-new-asset-name-${sub.id}`}
                                   />
+                                  <span className="rounded bg-[rgba(110,207,142,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#6ecf8e]">Adição</span>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); confirmNewAsset(sub.id); }}
+                                    className="rounded p-0.5 text-[#6ecf8e] transition-colors hover:text-[#8fffaa]"
+                                    title="Confirmar"
+                                    data-testid={`button-confirm-new-${sub.id}`}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); cancelNewAsset(); }}
+                                    className="rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
+                                    title="Cancelar"
+                                    data-testid={`button-cancel-new-${sub.id}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
                                 </div>
                               </td>
                               <td className="px-2 py-1.5 text-center text-[10px] text-[#555]">—</td>
-                              <td className="px-1 py-1.5">
+                              <td className="px-2 py-1.5">
                                 <input
                                   type="text"
-                                  placeholder="Taxa"
+                                  placeholder="—"
                                   value={newAssetDraft.rate}
                                   onChange={(e) => setNewAssetDraft((d) => ({ ...d, rate: e.target.value }))}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  className="w-full bg-transparent text-center text-[10px] text-[#6ecf8e]/60 outline-none placeholder:text-[#333] focus:border-b focus:border-[#6ecf8e]/40"
                                   data-testid={`input-new-asset-rate-${sub.id}`}
                                 />
                               </td>
-                              <td className="px-1 py-1.5">
+                              <td className="px-2 py-1.5">
                                 <input
                                   type="text"
-                                  placeholder="Venc."
+                                  placeholder="—"
                                   value={newAssetDraft.maturity}
                                   onChange={(e) => setNewAssetDraft((d) => ({ ...d, maturity: e.target.value }))}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  className="w-full bg-transparent text-center text-[10px] text-[#6ecf8e]/60 outline-none placeholder:text-[#333] focus:border-b focus:border-[#6ecf8e]/40"
                                   data-testid={`input-new-asset-maturity-${sub.id}`}
                                 />
                               </td>
-                              <td className="px-1 py-1.5">
+                              <td className="px-2 py-1.5">
                                 <input
                                   type="text"
-                                  placeholder="Liquidez"
+                                  placeholder="—"
                                   value={newAssetDraft.liquidity}
                                   onChange={(e) => setNewAssetDraft((d) => ({ ...d, liquidity: e.target.value }))}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  className="w-full bg-transparent text-center text-[10px] text-[#6ecf8e]/60 outline-none placeholder:text-[#333] focus:border-b focus:border-[#6ecf8e]/40"
                                   data-testid={`input-new-asset-liquidity-${sub.id}`}
                                 />
                               </td>
-                              <td className="px-1 py-1.5">
+                              <td className="px-2 py-1.5">
                                 <input
                                   type="text"
                                   placeholder="R$ 0"
                                   value={newAssetDraft.value}
                                   onChange={(e) => setNewAssetDraft((d) => ({ ...d, value: e.target.value }))}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-right text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  className="w-full bg-transparent text-right text-[10px] text-[#6ecf8e]/60 outline-none placeholder:text-[#333] focus:border-b focus:border-[#6ecf8e]/40"
                                   data-testid={`input-new-asset-value-${sub.id}`}
                                 />
                               </td>
-                              <td className="px-1 py-1.5">
+                              <td className="px-2 py-1.5">
                                 <select
                                   value={newAssetDraft.institution}
                                   onChange={(e) => { e.stopPropagation(); setNewAssetDraft((d) => ({ ...d, institution: e.target.value })); }}
                                   onClick={(e) => e.stopPropagation()}
-                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-1 py-1 text-[10px] text-[#ededed] outline-none focus:border-[#6ecf8e]/50"
+                                  className="w-full bg-transparent text-[10px] text-[#6ecf8e]/60 outline-none"
                                   data-testid={`select-new-asset-inst-${sub.id}`}
                                 >
                                   {visibleInstitutions.map((inst) => (
-                                    <option key={inst.name} value={inst.name}>{inst.name}</option>
+                                    <option key={inst.name} value={inst.name} className="bg-[#1a1a1a]">{inst.name}</option>
                                   ))}
                                 </select>
                               </td>
                               {visibleInstitutions.map((inst) => (
                                 <Fragment key={`new-${inst.name}`}>
-                                  <td className="border-l border-[#1a1a1a] px-2 py-1.5 text-center">
-                                    {inst.name === (newAssetDraft.institution || visibleInstitutions[0]?.name) && (
-                                      <div className="flex items-center justify-center gap-1">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); confirmNewAsset(sub.id); }}
-                                          className="rounded p-0.5 text-[#6ecf8e] transition-colors hover:text-[#8fffaa]"
-                                          title="Confirmar"
-                                          data-testid={`button-confirm-new-${sub.id}`}
-                                        >
-                                          <Check className="h-3.5 w-3.5" />
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); cancelNewAsset(); }}
-                                          className="rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
-                                          title="Cancelar"
-                                          data-testid={`button-cancel-new-${sub.id}`}
-                                        >
-                                          <X className="h-3.5 w-3.5" />
-                                        </button>
-                                      </div>
-                                    )}
-                                  </td>
+                                  <td className="border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] text-transparent" />
                                   <td />
                                 </Fragment>
                               ))}
