@@ -979,7 +979,7 @@ function MatrixTable({
                             ))}
                             {hasHiddenInsts && <td />}
                           </tr>
-                          {filteredAssets.filter((a) => !pendingIds.has(a.id) || pendingMap[a.id]?.type !== "remocao").map((asset) => {
+                          {filteredAssets.map((asset) => {
                             const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
                             const instColor = instObj ? getInstitutionColor(instObj.colorKey) : null;
                             const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
@@ -1020,7 +1020,7 @@ function MatrixTable({
                                     )}
                                     {pending && (
                                       <div className="flex items-center gap-1.5">
-                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${pending.type === "resgate" ? "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]" : "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]"}`}>
+                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${pending.type === "resgate" ? "bg-[rgba(220,176,146,0.12)] text-[#dcb092]" : "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]"}`}>
                                           {pending.type === "resgate" ? "Resgate" : "Remoção"}
                                         </span>
                                         <button
