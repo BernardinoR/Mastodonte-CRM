@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useCallback } from "react";
 import { Textarea } from "@/shared/components/ui/textarea";
 import { UI_CLASSES } from "../../lib/statusConfig";
 import { cn } from "@/shared/lib/utils";
@@ -12,13 +12,6 @@ interface TaskDescriptionProps {
 export function TaskDescription({ description, onChange, onSave }: TaskDescriptionProps) {
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    if (descriptionRef.current) {
-      descriptionRef.current.style.height = "auto";
-      descriptionRef.current.style.height = `${descriptionRef.current.scrollHeight}px`;
-    }
-  }, [description]);
-
   const handleBlur = useCallback(() => {
     onSave();
   }, [onSave]);
@@ -27,7 +20,7 @@ export function TaskDescription({ description, onChange, onSave }: TaskDescripti
     <div className="flex min-h-0 flex-[0.6] flex-col">
       <label className={UI_CLASSES.sectionLabel}>Descrição</label>
       <div
-        className={cn("min-h-0 flex-1 cursor-text", UI_CLASSES.descriptionContainer)}
+        className={cn("min-h-0 flex-1 cursor-text overflow-y-auto", UI_CLASSES.descriptionContainer)}
         onClick={() => descriptionRef.current?.focus()}
       >
         <Textarea
