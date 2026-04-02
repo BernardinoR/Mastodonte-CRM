@@ -20,13 +20,11 @@ import {
   Minus,
   Plus,
   X,
-  MoreHorizontal,
   Clock,
   Mail,
   MessageCircle,
-  ArrowUpFromLine,
-  PlusCircle,
   Check,
+  Trash2,
 } from "lucide-react";
 import {
   Sidebar,
@@ -658,13 +656,25 @@ function MockupSidebar() {
 }
 
 
-type AssetActionType = "resgate" | "adicao";
-type AssetActionStatus = "choosing" | "saved" | "notified";
-
-interface AssetAction {
-  type: AssetActionType;
-  status: AssetActionStatus;
+interface PendingChange {
+  type: "resgate" | "adicao" | "remocao";
+  assetId: string;
+  assetName: string;
+  subId: string;
+  institution: string;
+  value?: number;
 }
+
+interface NewAssetDraft {
+  name: string;
+  rate: string;
+  maturity: string;
+  liquidity: string;
+  institution: string;
+  value: string;
+}
+
+const EMPTY_DRAFT: NewAssetDraft = { name: "", rate: "", maturity: "", liquidity: "", institution: "", value: "" };
 
 function MatrixTable({
   allocatorValues,
@@ -672,46 +682,63 @@ function MatrixTable({
   visibleInstitutions,
   allInstitutions,
   onToggleInstitution,
+  pendingChanges,
+  onAddChange,
+  onRemoveChange,
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
   visibleInstitutions: Institution[];
   allInstitutions: Institution[];
   onToggleInstitution: (name: string) => void;
+  pendingChanges: PendingChange[];
+  onAddChange: (change: PendingChange) => void;
+  onRemoveChange: (assetId: string) => void;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [expandedSubs, setExpandedSubs] = useState<Record<string, boolean>>({});
-  const [assetActions, setAssetActions] = useState<Record<string, AssetAction>>({});
-  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+  const [addingToSub, setAddingToSub] = useState<string | null>(null);
+  const [newAssetDraft, setNewAssetDraft] = useState<NewAssetDraft>(EMPTY_DRAFT);
 
-  const setAction = (assetId: string, type: AssetActionType) => {
-    setAssetActions((prev) => ({ ...prev, [assetId]: { type, status: "choosing" } }));
-    setOpenActionMenu(null);
+  const pendingIds = useMemo(() => new Set(pendingChanges.map((c) => c.assetId)), [pendingChanges]);
+  const pendingMap = useMemo(() => {
+    const m: Record<string, PendingChange> = {};
+    for (const c of pendingChanges) m[c.assetId] = c;
+    return m;
+  }, [pendingChanges]);
+
+  const startAddingAsset = (subId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setAddingToSub(subId);
+    setNewAssetDraft({ ...EMPTY_DRAFT, institution: visibleInstitutions[0]?.name || "" });
+    if (!expandedSubs[subId]) {
+      setExpandedSubs((prev) => ({ ...prev, [subId]: true }));
+    }
   };
 
-  const confirmAction = (assetId: string) => {
-    setAssetActions((prev) => prev[assetId] ? { ...prev, [assetId]: { ...prev[assetId], status: "saved" } } : prev);
-  };
-
-  const markNotified = (assetId: string) => {
-    setAssetActions((prev) => prev[assetId] ? { ...prev, [assetId]: { ...prev[assetId], status: "notified" } } : prev);
-  };
-
-  const cancelAction = (assetId: string) => {
-    setAssetActions((prev) => {
-      const next = { ...prev };
-      delete next[assetId];
-      return next;
+  const confirmNewAsset = (subId: string) => {
+    if (!newAssetDraft.name.trim()) return;
+    const id = `new-${subId}-${Date.now()}`;
+    onAddChange({
+      type: "adicao",
+      assetId: id,
+      assetName: newAssetDraft.name.trim(),
+      subId,
+      institution: newAssetDraft.institution || visibleInstitutions[0]?.name || "",
+      value: parseFloat(newAssetDraft.value) || 0,
     });
+    setAddingToSub(null);
+    setNewAssetDraft(EMPTY_DRAFT);
   };
 
-  const confirmDone = (assetId: string) => {
-    setAssetActions((prev) => {
-      if (!prev[assetId] || prev[assetId].status !== "notified") return prev;
-      const next = { ...prev };
-      delete next[assetId];
-      return next;
-    });
+  const cancelNewAsset = () => {
+    setAddingToSub(null);
+    setNewAssetDraft(EMPTY_DRAFT);
+  };
+
+  const removeAsset = (asset: Asset, subId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddChange({ type: "remocao", assetId: asset.id, assetName: asset.name, subId, institution: asset.institution, value: asset.value });
   };
 
   const toggleCategory = (catId: string) => {
@@ -882,6 +909,14 @@ function MatrixTable({
                               : <ChevronRight className="h-3 w-3 text-[#555]" />}
                             <span className="text-[#bbb]">{sub.name}</span>
                             <span className="text-[10px] text-[#444]">({filteredAssets.length})</span>
+                            <button
+                              onClick={(e) => startAddingAsset(sub.id, e)}
+                              className="ml-1 rounded p-0.5 text-[#444] transition-colors hover:text-[#6ecf8e]"
+                              title="Adicionar ativo"
+                              data-testid={`button-add-asset-${sub.id}`}
+                            >
+                              <Plus className="h-3 w-3" />
+                            </button>
                           </div>
                         </td>
                         <td className="px-2 py-2 text-right text-[#bbb]">{sub.pctPL.toFixed(1)}%</td>
@@ -931,202 +966,186 @@ function MatrixTable({
                             ))}
                             {hasHiddenInsts && <td />}
                           </tr>
-                          {filteredAssets.map((asset) => {
+                          {filteredAssets.filter((a) => !pendingIds.has(a.id) || pendingMap[a.id]?.type !== "remocao").map((asset) => {
                             const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
                             const instColor = instObj ? getInstitutionColor(instObj.colorKey) : null;
                             const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
-                            const action = assetActions[asset.id];
-                            const isMenuOpen = openActionMenu === asset.id;
-                            const totalCols = 7 + visibleInstitutions.length * 2 + (hasHiddenInsts ? 1 : 0);
+                            const pending = pendingMap[asset.id];
                             return (
-                              <Fragment key={asset.id}>
-                                <tr className={`border-b border-[#1a1a1a] ${action ? "bg-[#151515]" : "bg-[#131313]"}`} data-testid={`asset-row-${asset.id}`}>
-                                  <td className="py-1.5 pl-14 pr-4">
-                                    <div className="flex items-center gap-2">
-                                      {action && action.status !== "choosing" ? (
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); confirmDone(asset.id); }}
-                                          className="group flex-shrink-0"
-                                          title="Pendente — clique para confirmar"
-                                          data-testid={`pending-icon-${asset.id}`}
-                                        >
-                                          <Clock className="h-3.5 w-3.5 text-[#dcb092] group-hover:text-[#6ecf8e]" />
-                                        </button>
+                              <tr key={asset.id} className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"}`} data-testid={`asset-row-${asset.id}`}>
+                                <td className="py-1.5 pl-14 pr-4">
+                                  <div className="flex items-center gap-2">
+                                    <div className="relative h-3.5 w-3.5 flex-shrink-0">
+                                      {pending ? (
+                                        <Clock className="h-3.5 w-3.5 text-[#dcb092]" />
                                       ) : (
-                                        <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
-                                      )}
-                                      <span className="text-[11px] text-[#999]">{asset.name}</span>
-                                      {action && action.status !== "choosing" && (
-                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${action.type === "resgate" ? "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]" : "bg-[rgba(110,207,142,0.12)] text-[#6ecf8e]"}`}>
-                                          {action.type === "resgate" ? "Resgate" : "Adição"}
-                                        </span>
+                                        <>
+                                          <div className="flex h-full w-full items-center justify-center group-hover:invisible">
+                                            <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
+                                          </div>
+                                          <button
+                                            onClick={(e) => removeAsset(asset, sub.id, e)}
+                                            className="invisible absolute inset-0 flex items-center justify-center text-[#555] transition-colors hover:text-[#e05c5c] group-hover:visible"
+                                            title="Remover ativo"
+                                            data-testid={`button-remove-asset-${asset.id}`}
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </button>
+                                        </>
                                       )}
                                     </div>
-                                  </td>
-                                  <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">{asset.pctSub.toFixed(1)}%</td>
-                                  <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.rate || "—"}</td>
-                                  <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.maturity || "—"}</td>
-                                  <td className="px-2 py-1.5 text-center">
-                                    <span className={`text-[10px] ${asset.liquidity === "Ilíquido" ? "text-[#e05c5c]" : asset.liquidity === "D+0" || asset.liquidity === "D+1" ? "text-[#6db1d4]" : "text-[#888]"}`}>
-                                      {asset.liquidity || "—"}
+                                    <span className={`text-[11px] ${pending ? "text-[#666] line-through" : "text-[#999]"}`}>{asset.name}</span>
+                                    {pending && (
+                                      <div className="flex items-center gap-1.5">
+                                        <span className="rounded bg-[rgba(224,92,92,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#e05c5c]">
+                                          {pending.type === "resgate" ? "Resgate" : "Remoção"}
+                                        </span>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); onRemoveChange(asset.id); }}
+                                          className="rounded p-0.5 text-[#555] transition-colors hover:text-[#999]"
+                                          title="Desfazer"
+                                          data-testid={`button-undo-${asset.id}`}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">{asset.pctSub.toFixed(1)}%</td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.rate || "—"}</td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.maturity || "—"}</td>
+                                <td className="px-2 py-1.5 text-center">
+                                  <span className={`text-[10px] ${asset.liquidity === "Ilíquido" ? "text-[#e05c5c]" : asset.liquidity === "D+0" || asset.liquidity === "D+1" ? "text-[#6db1d4]" : "text-[#888]"}`}>
+                                    {asset.liquidity || "—"}
+                                  </span>
+                                </td>
+                                <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">{formatBRL(asset.value)}</td>
+                                <td className="px-2 py-1.5 text-center">
+                                  {instColor && (
+                                    <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${instColor.bg} ${instColor.text}`}>
+                                      {asset.institution}
                                     </span>
-                                  </td>
-                                  <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">{formatBRL(asset.value)}</td>
-                                  <td className="px-2 py-1.5 text-center">
-                                    <div className="flex items-center justify-center gap-1">
-                                      {instColor && (
-                                        <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${instColor.bg} ${instColor.text}`}>
-                                          {asset.institution}
-                                        </span>
-                                      )}
-                                      {!action && (
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); setOpenActionMenu(isMenuOpen ? null : asset.id); }}
-                                          className={`ml-0.5 rounded p-0.5 transition-colors ${isMenuOpen ? "text-[#ededed]" : "text-[#444] hover:text-[#999]"}`}
-                                          data-testid={`button-asset-actions-${asset.id}`}
-                                        >
-                                          <MoreHorizontal className="h-3.5 w-3.5" />
-                                        </button>
-                                      )}
-                                    </div>
-                                  </td>
-                                  {visibleInstitutions.map((inst, idx) => (
-                                    <Fragment key={`${asset.id}-${inst.name}`}>
-                                      <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
-                                        {idx === instIndex ? formatBRL(asset.value) : ""}
-                                      </td>
-                                      <td />
-                                    </Fragment>
-                                  ))}
-                                  {hasHiddenInsts && <td />}
-                                </tr>
-
-                                {isMenuOpen && !action && (
-                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
-                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
-                                      <div className="flex items-center gap-2">
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); setAction(asset.id, "resgate"); }}
-                                          className="flex items-center gap-1.5 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1.5 text-[11px] text-[#e05c5c] transition-colors hover:border-[#e05c5c]/30 hover:bg-[rgba(224,92,92,0.08)]"
-                                          data-testid={`button-resgate-${asset.id}`}
-                                        >
-                                          <ArrowUpFromLine className="h-3 w-3" />
-                                          Resgate Total
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); setAction(asset.id, "adicao"); }}
-                                          className="flex items-center gap-1.5 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1.5 text-[11px] text-[#6ecf8e] transition-colors hover:border-[#6ecf8e]/30 hover:bg-[rgba(110,207,142,0.08)]"
-                                          data-testid={`button-adicao-${asset.id}`}
-                                        >
-                                          <PlusCircle className="h-3 w-3" />
-                                          Adicionar Ativo
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); setOpenActionMenu(null); }}
-                                          className="ml-1 rounded p-1 text-[#555] transition-colors hover:text-[#999]"
-                                          data-testid={`button-cancel-menu-${asset.id}`}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </button>
-                                      </div>
+                                  )}
+                                </td>
+                                {visibleInstitutions.map((inst, idx) => (
+                                  <Fragment key={`${asset.id}-${inst.name}`}>
+                                    <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
+                                      {idx === instIndex ? formatBRL(asset.value) : ""}
                                     </td>
-                                  </tr>
-                                )}
-
-                                {action && action.status === "choosing" && (
-                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
-                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
-                                      <div className="flex items-center gap-3">
-                                        <span className={`text-[11px] font-medium ${action.type === "resgate" ? "text-[#e05c5c]" : "text-[#6ecf8e]"}`}>
-                                          {action.type === "resgate" ? "Resgate Total" : "Adição de Ativo"}
-                                        </span>
-                                        <span className="text-[10px] text-[#555]">—</span>
-                                        <span className="text-[10px] text-[#888]">
-                                          {action.type === "resgate"
-                                            ? `Resgatar ${formatBRL(asset.value)} de ${asset.name}`
-                                            : `Adicionar ativo em ${asset.institution}`}
-                                        </span>
-                                        <div className="flex items-center gap-1.5">
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); confirmAction(asset.id); }}
-                                            className="flex items-center gap-1 rounded-md border border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] px-2.5 py-1 text-[10px] font-medium text-[#6ecf8e] transition-colors hover:bg-[rgba(110,207,142,0.2)]"
-                                            data-testid={`button-confirm-${asset.id}`}
-                                          >
-                                            <Check className="h-3 w-3" />
-                                            Confirmar
-                                          </button>
-                                          <button
-                                            onClick={(e) => { e.stopPropagation(); cancelAction(asset.id); }}
-                                            className="rounded-md px-2 py-1 text-[10px] text-[#555] transition-colors hover:text-[#999]"
-                                            data-testid={`button-cancel-action-${asset.id}`}
-                                          >
-                                            Cancelar
-                                          </button>
-                                        </div>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-
-                                {action && action.status === "saved" && (
-                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
-                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
-                                      <div className="flex items-center gap-3">
-                                        <Clock className="h-3 w-3 flex-shrink-0 text-[#dcb092]" />
-                                        <span className="text-[10px] text-[#dcb092]">Pendente</span>
-                                        <span className="text-[10px] text-[#555]">—</span>
-                                        <span className="text-[10px] text-[#888]">Notificar o cliente:</span>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); markNotified(asset.id); }}
-                                          className="flex items-center gap-1 rounded-md border border-[rgba(110,207,142,0.25)] bg-[rgba(110,207,142,0.08)] px-2.5 py-1 text-[10px] text-[#6ecf8e] transition-colors hover:bg-[rgba(110,207,142,0.15)]"
-                                          data-testid={`button-whatsapp-${asset.id}`}
-                                        >
-                                          <MessageCircle className="h-3 w-3" />
-                                          WhatsApp
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); markNotified(asset.id); }}
-                                          className="flex items-center gap-1 rounded-md border border-[rgba(109,177,212,0.25)] bg-[rgba(109,177,212,0.08)] px-2.5 py-1 text-[10px] text-[#6db1d4] transition-colors hover:bg-[rgba(109,177,212,0.15)]"
-                                          data-testid={`button-email-${asset.id}`}
-                                        >
-                                          <Mail className="h-3 w-3" />
-                                          Email
-                                        </button>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); cancelAction(asset.id); }}
-                                          className="ml-1 rounded p-1 text-[#444] transition-colors hover:text-[#999]"
-                                          data-testid={`button-cancel-notify-${asset.id}`}
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-
-                                {action && action.status === "notified" && (
-                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
-                                    <td colSpan={totalCols} className="py-1.5 pl-14 pr-4">
-                                      <div className="flex items-center gap-2">
-                                        <CheckCircle className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
-                                        <span className="text-[10px] text-[#6ecf8e]">Notificado</span>
-                                        <span className="text-[10px] text-[#555]">—</span>
-                                        <span className="text-[10px] text-[#888]">Aguardando confirmação da task</span>
-                                        <button
-                                          onClick={(e) => { e.stopPropagation(); confirmDone(asset.id); }}
-                                          className="ml-2 flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-2 py-1 text-[10px] text-[#8c8c8c] transition-colors hover:text-[#ededed]"
-                                          data-testid={`button-simulate-done-${asset.id}`}
-                                        >
-                                          <Check className="h-3 w-3" />
-                                          Simular conclusão
-                                        </button>
-                                      </div>
-                                    </td>
-                                  </tr>
-                                )}
-                              </Fragment>
+                                    <td />
+                                  </Fragment>
+                                ))}
+                                {hasHiddenInsts && <td />}
+                              </tr>
                             );
                           })}
+
+                          {addingToSub === sub.id && (
+                            <tr className="border-b border-[#1a1a1a] bg-[#0e1210]" data-testid={`new-asset-row-${sub.id}`}>
+                              <td className="py-1.5 pl-14 pr-4">
+                                <div className="flex items-center gap-2">
+                                  <Plus className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
+                                  <input
+                                    type="text"
+                                    placeholder="Nome do ativo"
+                                    value={newAssetDraft.name}
+                                    onChange={(e) => setNewAssetDraft((d) => ({ ...d, name: e.target.value }))}
+                                    onClick={(e) => e.stopPropagation()}
+                                    autoFocus
+                                    className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-[11px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                    data-testid={`input-new-asset-name-${sub.id}`}
+                                  />
+                                </div>
+                              </td>
+                              <td className="px-2 py-1.5 text-center text-[10px] text-[#555]">—</td>
+                              <td className="px-1 py-1.5">
+                                <input
+                                  type="text"
+                                  placeholder="Taxa"
+                                  value={newAssetDraft.rate}
+                                  onChange={(e) => setNewAssetDraft((d) => ({ ...d, rate: e.target.value }))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  data-testid={`input-new-asset-rate-${sub.id}`}
+                                />
+                              </td>
+                              <td className="px-1 py-1.5">
+                                <input
+                                  type="text"
+                                  placeholder="Venc."
+                                  value={newAssetDraft.maturity}
+                                  onChange={(e) => setNewAssetDraft((d) => ({ ...d, maturity: e.target.value }))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  data-testid={`input-new-asset-maturity-${sub.id}`}
+                                />
+                              </td>
+                              <td className="px-1 py-1.5">
+                                <input
+                                  type="text"
+                                  placeholder="Liquidez"
+                                  value={newAssetDraft.liquidity}
+                                  onChange={(e) => setNewAssetDraft((d) => ({ ...d, liquidity: e.target.value }))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  data-testid={`input-new-asset-liquidity-${sub.id}`}
+                                />
+                              </td>
+                              <td className="px-1 py-1.5">
+                                <input
+                                  type="text"
+                                  placeholder="R$ 0"
+                                  value={newAssetDraft.value}
+                                  onChange={(e) => setNewAssetDraft((d) => ({ ...d, value: e.target.value }))}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-right text-[10px] text-[#ededed] outline-none placeholder:text-[#444] focus:border-[#6ecf8e]/50"
+                                  data-testid={`input-new-asset-value-${sub.id}`}
+                                />
+                              </td>
+                              <td className="px-1 py-1.5">
+                                <select
+                                  value={newAssetDraft.institution}
+                                  onChange={(e) => { e.stopPropagation(); setNewAssetDraft((d) => ({ ...d, institution: e.target.value })); }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-1 py-1 text-[10px] text-[#ededed] outline-none focus:border-[#6ecf8e]/50"
+                                  data-testid={`select-new-asset-inst-${sub.id}`}
+                                >
+                                  {visibleInstitutions.map((inst) => (
+                                    <option key={inst.name} value={inst.name}>{inst.name}</option>
+                                  ))}
+                                </select>
+                              </td>
+                              {visibleInstitutions.map((inst) => (
+                                <Fragment key={`new-${inst.name}`}>
+                                  <td className="border-l border-[#1a1a1a] px-2 py-1.5 text-center">
+                                    {inst.name === (newAssetDraft.institution || visibleInstitutions[0]?.name) && (
+                                      <div className="flex items-center justify-center gap-1">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); confirmNewAsset(sub.id); }}
+                                          className="rounded p-0.5 text-[#6ecf8e] transition-colors hover:text-[#8fffaa]"
+                                          title="Confirmar"
+                                          data-testid={`button-confirm-new-${sub.id}`}
+                                        >
+                                          <Check className="h-3.5 w-3.5" />
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); cancelNewAsset(); }}
+                                          className="rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
+                                          title="Cancelar"
+                                          data-testid={`button-cancel-new-${sub.id}`}
+                                        >
+                                          <X className="h-3.5 w-3.5" />
+                                        </button>
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td />
+                                </Fragment>
+                              ))}
+                              {hasHiddenInsts && <td />}
+                            </tr>
+                          )}
                         </>
                       )}
                     </Fragment>
@@ -1832,6 +1851,7 @@ function PolicySection() {
 export default function MockupRealocador() {
   const [allocatorValues, setAllocatorValues] = useState<Record<string, Record<string, string>>>({});
   const [visibleInstNames, setVisibleInstNames] = useState<Set<string>>(() => new Set(["XP", "BTG", "Itaú"]));
+  const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
 
   const handleAllocatorChange = (subId: string, inst: string, val: string) => {
     setAllocatorValues((prev) => ({ ...prev, [subId]: { ...prev[subId], [inst]: val } }));
@@ -1850,11 +1870,24 @@ export default function MockupRealocador() {
     });
   };
 
+  const addChange = (change: PendingChange) => {
+    setPendingChanges((prev) => [...prev.filter((c) => c.assetId !== change.assetId), change]);
+  };
+
+  const removeChange = (assetId: string) => {
+    setPendingChanges((prev) => prev.filter((c) => c.assetId !== assetId));
+  };
+
+  const clearAllChanges = () => {
+    setPendingChanges([]);
+  };
+
   const visibleInstitutions = useMemo(
     () => ALL_CLIENT_INSTITUTIONS.filter((i) => visibleInstNames.has(i.name)),
     [visibleInstNames]
   );
 
+  const hasPending = pendingChanges.length > 0;
   const overallStatus: BalanceStatus = "atencao";
   const style = { "--sidebar-width": "16rem", "--sidebar-width-icon": "3rem" };
 
@@ -1891,10 +1924,39 @@ export default function MockupRealocador() {
                   <Button className="border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] text-[#6ecf8e]" data-testid="button-save">
                     <Save className="mr-1.5 h-3.5 w-3.5" />Salvar ajustes
                   </Button>
+                  <div className="h-5 w-px bg-[#2a2a2a]" />
+                  <button
+                    onClick={() => { if (hasPending) clearAllChanges(); }}
+                    disabled={!hasPending}
+                    className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition-colors ${hasPending ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.08)] text-[#6ecf8e] hover:bg-[rgba(110,207,142,0.15)]" : "cursor-not-allowed border-[#2a2a2a] bg-[#161616] text-[#444]"}`}
+                    data-testid="button-whatsapp-global"
+                  >
+                    <MessageCircle className="h-3.5 w-3.5" />
+                    WhatsApp
+                    {hasPending && (
+                      <span className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#6ecf8e] px-1 text-[9px] font-bold text-[#121212]">
+                        {pendingChanges.length}
+                      </span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => { if (hasPending) clearAllChanges(); }}
+                    disabled={!hasPending}
+                    className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition-colors ${hasPending ? "border-[rgba(109,177,212,0.3)] bg-[rgba(109,177,212,0.08)] text-[#6db1d4] hover:bg-[rgba(109,177,212,0.15)]" : "cursor-not-allowed border-[#2a2a2a] bg-[#161616] text-[#444]"}`}
+                    data-testid="button-email-global"
+                  >
+                    <Mail className="h-3.5 w-3.5" />
+                    Email
+                    {hasPending && (
+                      <span className="ml-0.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#6db1d4] px-1 text-[9px] font-bold text-[#121212]">
+                        {pendingChanges.length}
+                      </span>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} visibleInstitutions={visibleInstitutions} allInstitutions={ALL_CLIENT_INSTITUTIONS} onToggleInstitution={toggleInstitution} />
+              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} visibleInstitutions={visibleInstitutions} allInstitutions={ALL_CLIENT_INSTITUTIONS} onToggleInstitution={toggleInstitution} pendingChanges={pendingChanges} onAddChange={addChange} onRemoveChange={removeChange} />
 
               <FGCBarChart />
 
