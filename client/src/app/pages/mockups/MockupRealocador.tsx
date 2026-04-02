@@ -746,6 +746,11 @@ function MatrixTable({
   const confirmNewAssetRef = useRef(confirmNewAsset);
   confirmNewAssetRef.current = confirmNewAsset;
 
+  const cancelNewAssetRef = useRef(cancelNewAsset);
+  cancelNewAssetRef.current = cancelNewAsset;
+  const newAssetDraftRef = useRef(newAssetDraft);
+  newAssetDraftRef.current = newAssetDraft;
+
   const handleNewAssetRowBlur = useCallback((subId: string) => (e: React.FocusEvent) => {
     const row = newAssetRowRef.current;
     if (!row) return;
@@ -753,7 +758,11 @@ function MatrixTable({
     if (next && row.contains(next)) return;
     setTimeout(() => {
       if (newAssetRowRef.current && !newAssetRowRef.current.contains(document.activeElement)) {
-        confirmNewAssetRef.current(subId);
+        if (newAssetDraftRef.current.name.trim()) {
+          confirmNewAssetRef.current(subId);
+        } else {
+          cancelNewAssetRef.current();
+        }
       }
     }, 0);
   }, []);
