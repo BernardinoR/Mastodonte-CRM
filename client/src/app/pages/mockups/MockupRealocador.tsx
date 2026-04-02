@@ -1,4 +1,4 @@
-import { useState, useMemo, Fragment } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect, Fragment } from "react";
 import {
   LayoutDashboard,
   Users,
@@ -742,6 +742,22 @@ function MatrixTable({
     setNewAssetDraft(EMPTY_DRAFT);
   };
 
+  const newAssetRowRef = useRef<HTMLTableRowElement>(null);
+  const confirmNewAssetRef = useRef(confirmNewAsset);
+  confirmNewAssetRef.current = confirmNewAsset;
+
+  const handleNewAssetRowBlur = useCallback((subId: string) => (e: React.FocusEvent) => {
+    const row = newAssetRowRef.current;
+    if (!row) return;
+    const next = e.relatedTarget as Node | null;
+    if (next && row.contains(next)) return;
+    setTimeout(() => {
+      if (newAssetRowRef.current && !newAssetRowRef.current.contains(document.activeElement)) {
+        confirmNewAssetRef.current(subId);
+      }
+    }, 0);
+  }, []);
+
   const removeAsset = (asset: Asset, subId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onAddChange({ type: "remocao", assetId: asset.id, assetName: asset.name, subId, institution: asset.institution, value: asset.value });
@@ -1112,12 +1128,14 @@ function MatrixTable({
 
                           {addingToSub === sub.id && (
                             <tr
+                              ref={newAssetRowRef}
                               className="border-b border-[#1a1a1a] bg-[#0e1210]"
                               data-testid={`new-asset-row-${sub.id}`}
                               onKeyDown={(e) => {
                                 if (e.key === "Enter") { e.preventDefault(); confirmNewAsset(sub.id); }
                                 if (e.key === "Escape") { e.preventDefault(); cancelNewAsset(); }
                               }}
+                              onBlur={handleNewAssetRowBlur(sub.id)}
                             >
                               <td className="py-1.5 pl-14 pr-4">
                                 <div className="flex items-center gap-2">
@@ -1133,22 +1151,6 @@ function MatrixTable({
                                     data-testid={`input-new-asset-name-${sub.id}`}
                                   />
                                   <span className="rounded bg-[rgba(110,207,142,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#6ecf8e]">Adição</span>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); confirmNewAsset(sub.id); }}
-                                    className="rounded p-0.5 text-[#6ecf8e] transition-colors hover:text-[#8fffaa]"
-                                    title="Confirmar"
-                                    data-testid={`button-confirm-new-${sub.id}`}
-                                  >
-                                    <Check className="h-3 w-3" />
-                                  </button>
-                                  <button
-                                    onClick={(e) => { e.stopPropagation(); cancelNewAsset(); }}
-                                    className="rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
-                                    title="Cancelar"
-                                    data-testid={`button-cancel-new-${sub.id}`}
-                                  >
-                                    <X className="h-3 w-3" />
-                                  </button>
                                 </div>
                               </td>
                               <td className="px-2 py-1.5 text-center text-[10px] text-[#555]">—</td>
@@ -1197,17 +1199,35 @@ function MatrixTable({
                                 />
                               </td>
                               <td className="px-2 py-1.5">
-                                <select
-                                  value={newAssetDraft.institution}
-                                  onChange={(e) => { e.stopPropagation(); setNewAssetDraft((d) => ({ ...d, institution: e.target.value })); }}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="w-full bg-transparent text-[10px] text-[#6ecf8e]/60 outline-none"
-                                  data-testid={`select-new-asset-inst-${sub.id}`}
-                                >
-                                  {visibleInstitutions.map((inst) => (
-                                    <option key={inst.name} value={inst.name} className="bg-[#1a1a1a]">{inst.name}</option>
-                                  ))}
-                                </select>
+                                <div className="flex items-center gap-1">
+                                  <select
+                                    value={newAssetDraft.institution}
+                                    onChange={(e) => { e.stopPropagation(); setNewAssetDraft((d) => ({ ...d, institution: e.target.value })); }}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="w-full bg-transparent text-[10px] text-[#6ecf8e]/60 outline-none"
+                                    data-testid={`select-new-asset-inst-${sub.id}`}
+                                  >
+                                    {visibleInstitutions.map((inst) => (
+                                      <option key={inst.name} value={inst.name} className="bg-[#1a1a1a]">{inst.name}</option>
+                                    ))}
+                                  </select>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); confirmNewAsset(sub.id); }}
+                                    className="flex-shrink-0 rounded p-0.5 text-[#6ecf8e] transition-colors hover:text-[#8fffaa]"
+                                    title="Confirmar"
+                                    data-testid={`button-confirm-new-${sub.id}`}
+                                  >
+                                    <Check className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    onClick={(e) => { e.stopPropagation(); cancelNewAsset(); }}
+                                    className="flex-shrink-0 rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
+                                    title="Cancelar"
+                                    data-testid={`button-cancel-new-${sub.id}`}
+                                  >
+                                    <X className="h-3 w-3" />
+                                  </button>
+                                </div>
                               </td>
                               {visibleInstitutions.map((inst) => (
                                 <Fragment key={`new-${inst.name}`}>
