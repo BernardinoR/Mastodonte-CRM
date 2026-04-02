@@ -979,7 +979,7 @@ function MatrixTable({
                             ))}
                             {hasHiddenInsts && <td />}
                           </tr>
-                          {filteredAssets.map((asset) => {
+                          {filteredAssets.filter((a) => !pendingIds.has(a.id) || pendingMap[a.id]?.type !== "remocao").map((asset) => {
                             const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
                             const instColor = instObj ? getInstitutionColor(instObj.colorKey) : null;
                             const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
@@ -1072,7 +1072,7 @@ function MatrixTable({
                               <tr key={added.assetId} className="border-b border-[#1a1a1a] bg-[#0e1210]" data-testid={`added-asset-row-${added.assetId}`}>
                                 <td className="py-1.5 pl-14 pr-4">
                                   <div className="flex items-center gap-2">
-                                    <Plus className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
+                                    <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[#dcb092]" />
                                     <span className="text-[11px] text-[#6ecf8e]">{added.assetName}</span>
                                     <span className="rounded bg-[rgba(110,207,142,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#6ecf8e]">Adição</span>
                                     <button
