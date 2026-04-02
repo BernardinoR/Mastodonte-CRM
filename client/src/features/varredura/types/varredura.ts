@@ -6,6 +6,7 @@ export interface DirectInstitution {
   institutionName: string;
   initials: string;
   checked: boolean;
+  accessUrl?: string;
 }
 
 export interface ManagerClient {

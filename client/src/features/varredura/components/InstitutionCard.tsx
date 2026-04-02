@@ -6,6 +6,7 @@ interface InstitutionCardProps {
   initials: string;
   checked: boolean;
   onToggle: () => void;
+  accessUrl?: string;
 }
 
 export function InstitutionCard({
@@ -13,6 +14,7 @@ export function InstitutionCard({
   initials,
   checked,
   onToggle,
+  accessUrl,
 }: InstitutionCardProps) {
   const color = getInstitutionColor(institutionName);
 
@@ -61,15 +63,20 @@ export function InstitutionCard({
         </button>
       </div>
 
-      <div className="mt-3 flex items-center justify-between border-t border-[#2a2a2a] pt-3">
-        <button
-          className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#8c8c8c] transition-colors hover:bg-[#2c2c2c] hover:text-[#ededed]"
-          data-testid={`button-access-${initials.toLowerCase()}`}
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Acessar
-        </button>
-      </div>
+      {accessUrl && (
+        <div className="mt-3 flex items-center justify-between border-t border-[#2a2a2a] pt-3">
+          <a
+            href={accessUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-[#8c8c8c] transition-colors hover:bg-[#2c2c2c] hover:text-[#ededed]"
+            data-testid={`button-access-${initials.toLowerCase()}`}
+          >
+            <ExternalLink className="h-3.5 w-3.5" />
+            Acessar
+          </a>
+        </div>
+      )}
     </div>
   );
 }

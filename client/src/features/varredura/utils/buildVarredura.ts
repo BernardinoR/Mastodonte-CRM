@@ -28,6 +28,7 @@ interface DbInstitution {
   name: string;
   attachment_count: number;
   currency: string;
+  access_url?: string;
 }
 
 export interface VarreduraConta {
@@ -113,6 +114,7 @@ export function buildDirectInstitutions(
       institutionName: name,
       initials: name.substring(0, 2).toUpperCase(),
       checked,
+      accessUrl: institutionContas[0].institution.access_url ?? undefined,
     });
   }
 

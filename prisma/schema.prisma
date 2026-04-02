@@ -67,6 +67,7 @@ model Institution {
   currency        Moeda   @default(Real)
   attachmentCount Int     @default(1) @map("attachment_count")
   referenceFiles  String[] @default([]) @map("reference_files")
+  accessUrl       String?  @map("access_url")
   contas          Conta[]
   varreduraChecks VarreduraCheck[]
 
