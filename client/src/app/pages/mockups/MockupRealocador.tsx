@@ -42,11 +42,6 @@ import {
 import { Avatar, AvatarFallback } from "@/shared/components/ui/avatar";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/components/ui/popover";
 import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 
 type BalanceStatus = "ok" | "atencao" | "desbalanceado";
@@ -682,7 +677,7 @@ const EMPTY_DRAFT: NewAssetDraft = { name: "", rate: "", maturity: "", liquidity
 function MatrixTable({
   allocatorValues,
   onAllocatorChange,
-  visibleInstitutions,
+  expandedInstitutions,
   allInstitutions,
   onToggleInstitution,
   pendingChanges,
@@ -691,7 +686,7 @@ function MatrixTable({
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
-  visibleInstitutions: Institution[];
+  expandedInstitutions: Institution[];
   allInstitutions: Institution[];
   onToggleInstitution: (name: string) => void;
   pendingChanges: PendingChange[];
@@ -713,7 +708,7 @@ function MatrixTable({
   const startAddingAsset = (subId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setAddingToSub(subId);
-    setNewAssetDraft({ ...EMPTY_DRAFT, institution: visibleInstitutions[0]?.name || "" });
+    setNewAssetDraft({ ...EMPTY_DRAFT, institution: allInstitutions[0]?.name || "" });
     if (!expandedSubs[subId]) {
       setExpandedSubs((prev) => ({ ...prev, [subId]: true }));
     }
@@ -727,7 +722,7 @@ function MatrixTable({
       assetId: id,
       assetName: newAssetDraft.name.trim(),
       subId,
-      institution: newAssetDraft.institution || visibleInstitutions[0]?.name || "",
+      institution: newAssetDraft.institution || allInstitutions[0]?.name || "",
       value: parseFloat(newAssetDraft.value) || 0,
       rate: newAssetDraft.rate || undefined,
       maturity: newAssetDraft.maturity || undefined,
@@ -796,7 +791,7 @@ function MatrixTable({
           alocAtual: acc.alocAtual + sub.alocAtual,
           sugestao: acc.sugestao + sub.sugestao,
           pctPL: acc.pctPL + sub.pctPL,
-          byInstitution: visibleInstitutions.reduce(
+          byInstitution: allInstitutions.reduce(
             (instAcc, inst) => ({ ...instAcc, [inst.name]: (instAcc[inst.name] || 0) + (sub.byInstitution[inst.name] || 0) }),
             acc.byInstitution
           ),
@@ -805,7 +800,7 @@ function MatrixTable({
       );
       return { catId: cat.id, ...total };
     });
-  }, [visibleInstitutions]);
+  }, [allInstitutions]);
 
   const grandTotals = useMemo(() => {
     return categoryTotals.reduce(
@@ -814,81 +809,92 @@ function MatrixTable({
         alocAtual: acc.alocAtual + ct.alocAtual,
         sugestao: acc.sugestao + ct.sugestao,
         pctPL: acc.pctPL + ct.pctPL,
-        byInstitution: visibleInstitutions.reduce(
+        byInstitution: allInstitutions.reduce(
           (instAcc, inst) => ({ ...instAcc, [inst.name]: (instAcc[inst.name] || 0) + (ct.byInstitution[inst.name] || 0) }),
           acc.byInstitution
         ),
       }),
       { alocIdeal: 0, alocAtual: 0, sugestao: 0, pctPL: 0, byInstitution: {} as Record<string, number> }
     );
-  }, [categoryTotals, visibleInstitutions]);
+  }, [categoryTotals, allInstitutions]);
 
-  const instColCount = visibleInstitutions.length * 2;
-  const hasHiddenInsts = allInstitutions.length > visibleInstitutions.length;
+  const expandedSet = useMemo(() => new Set(expandedInstitutions.map((i) => i.name)), [expandedInstitutions]);
 
   return (
     <div className="overflow-x-auto rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
-      <table className="w-full border-collapse text-xs">
+      <table className="w-full border-collapse text-xs" style={{ tableLayout: "fixed" }}>
+        <colgroup>
+          <col style={{ width: "auto" }} />
+          <col style={{ width: "3.5rem" }} />
+          <col style={{ width: "5rem" }} />
+          <col style={{ width: "3.5rem" }} />
+          <col style={{ width: "6rem" }} />
+          <col style={{ width: "6rem" }} />
+          <col style={{ width: "6rem" }} />
+          {expandedInstitutions.map((inst) => (
+            <Fragment key={`col-${inst.name}`}>
+              <col style={{ width: `${25 / Math.max(expandedInstitutions.length, 1) / 2}%` }} />
+              <col style={{ width: `${25 / Math.max(expandedInstitutions.length, 1) / 2}%` }} />
+            </Fragment>
+          ))}
+        </colgroup>
         <thead className="bg-[#1a1a1a]">
           <tr className="border-b border-[#2a2a2a]">
-            <th rowSpan={2} className="min-w-[180px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
-            <th rowSpan={2} className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% P.L.</th>
-            <th rowSpan={2} className="w-20 px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
-            <th rowSpan={2} className="w-14 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
-            <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
-            <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
-            <th rowSpan={2} className="w-24 px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Sugestão</th>
-            {visibleInstitutions.map((inst) => (
-              <th key={inst.name} colSpan={2} className="border-l border-[#2a2a2a] px-1 py-2 text-center">
-                <div className="flex items-center justify-center gap-1.5">
-                  <InstitutionAvatar colorKey={inst.colorKey} initials={inst.initials} />
-                  <span className="font-medium text-[#ededed]">{inst.name}</span>
+            <th rowSpan={2} className="px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% P.L.</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
+            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">
+              <div className="flex items-center justify-end gap-3">
+                <span>Sugestão</span>
+                <div className="flex items-center gap-1 border-l border-[#2a2a2a] pl-3">
+                  {allInstitutions.map((inst) => {
+                    const c = getInstitutionColor(inst.colorKey);
+                    const isExpanded = expandedSet.has(inst.name);
+                    const hexColor = INST_HEX[inst.colorKey] || "#888";
+                    return (
+                      <button
+                        key={inst.name}
+                        onClick={(e) => { e.stopPropagation(); onToggleInstitution(inst.name); }}
+                        className={`flex h-6 w-6 items-center justify-center rounded-full transition-all ${isExpanded ? "ring-2 ring-offset-1 ring-offset-[#1a1a1a]" : "opacity-40 hover:opacity-80"}`}
+                        style={isExpanded ? { ["--tw-ring-color" as string]: hexColor } : undefined}
+                        title={inst.name}
+                        data-testid={`toggle-institution-${inst.name}`}
+                      >
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
+                        </Avatar>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </th>
+            {expandedInstitutions.map((inst) => {
+              const c = getInstitutionColor(inst.colorKey);
+              return (
+                <th key={inst.name} colSpan={2} className="border-l border-[#2a2a2a] px-1 py-2 text-center">
                   <button
                     onClick={(e) => { e.stopPropagation(); onToggleInstitution(inst.name); }}
-                    className="ml-0.5 rounded p-0.5 text-[#555] transition-colors hover:text-[#e05c5c]"
-                    data-testid={`button-remove-inst-${inst.name}`}
+                    className="inline-flex items-center gap-1"
+                    data-testid={`header-inst-${inst.name}`}
                   >
-                    <X className="h-3 w-3" />
+                    <Avatar className="h-5 w-5">
+                      <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
+                    </Avatar>
+                    <span className="text-[11px] font-medium text-[#ededed]">{inst.name}</span>
                   </button>
-                </div>
-              </th>
-            ))}
-            {allInstitutions.filter((i) => !visibleInstitutions.some((v) => v.name === i.name)).length > 0 && (
-              <th rowSpan={2} className="border-l border-[#2a2a2a] px-2 py-2 text-center align-middle">
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <button className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-dashed border-[#3a3a3a] text-[#555] transition-colors hover:border-[#6db1d4] hover:text-[#6db1d4]" data-testid="button-add-institution-header">
-                      <Plus className="h-3.5 w-3.5" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-48 p-2" align="end">
-                    <p className="mb-1.5 px-1 text-[10px] font-medium uppercase tracking-wider text-[#8c8c8c]">Adicionar instituição</p>
-                    {allInstitutions.filter((i) => !visibleInstitutions.some((v) => v.name === i.name)).map((inst) => {
-                      const c = getInstitutionColor(inst.colorKey);
-                      return (
-                        <button
-                          key={inst.name}
-                          onClick={() => onToggleInstitution(inst.name)}
-                          className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-[#ccc] hover-elevate"
-                          data-testid={`add-institution-${inst.name}`}
-                        >
-                          <Avatar className="h-5 w-5">
-                            <AvatarFallback className={`text-[9px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
-                          </Avatar>
-                          {inst.name}
-                        </button>
-                      );
-                    })}
-                  </PopoverContent>
-                </Popover>
-              </th>
-            )}
+                </th>
+              );
+            })}
           </tr>
           <tr className="border-b border-[#2a2a2a]">
-            {visibleInstitutions.map((inst) => (
+            {expandedInstitutions.map((inst) => (
               <Fragment key={`${inst.name}-sub`}>
-                <th className="border-l border-[#2a2a2a] px-2 py-1 text-center text-[10px] font-normal text-[#555]">$ Atual</th>
-                <th className="px-2 py-1 text-center text-[10px] font-normal text-[#555]">Alocador</th>
+                <th className="border-l border-[#2a2a2a] px-1 py-1 text-center text-[9px] font-normal text-[#555]">$ Atual</th>
+                <th className="px-1 py-1 text-center text-[9px] font-normal text-[#555]">Alocador</th>
               </Fragment>
             ))}
           </tr>
@@ -921,18 +927,18 @@ function MatrixTable({
                   <td className="px-2 py-2 text-right font-medium text-[#ededed]">{formatBRL(ct.alocIdeal)}</td>
                   <td className="px-2 py-2 text-right font-medium text-[#ededed]">{formatBRL(ct.alocAtual)}</td>
                   <td className="px-2 py-2 text-right"><SugestaoCell value={ct.sugestao} /></td>
-                  {visibleInstitutions.map((inst) => (
+                  {expandedInstitutions.map((inst) => (
                     <Fragment key={`${cat.id}-${inst.name}`}>
                       <td className="border-l border-[#2a2a2a] px-2 py-2 text-right font-medium text-[#bbb]">{formatBRL(ct.byInstitution[inst.name] || 0)}</td>
                       <td className="px-2 py-2 text-center text-[#444]">—</td>
                     </Fragment>
                   ))}
-                  {hasHiddenInsts && <td />}
+
                 </tr>
 
                 {!isCollapsed && cat.subs.map((sub) => {
                   const isSubExpanded = expandedSubs[sub.id] ?? false;
-                  const filteredAssets = sub.assets.filter((a) => visibleInstitutions.some((vi) => vi.name === a.institution));
+                  const filteredAssets = sub.assets;
                   return (
                     <Fragment key={sub.id}>
                       <tr
@@ -967,7 +973,7 @@ function MatrixTable({
                         <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocIdeal)}</td>
                         <td className="px-2 py-2 text-right text-[#bbb]">{formatBRL(sub.alocAtual)}</td>
                         <td className="px-2 py-2 text-right"><SugestaoCell value={sub.sugestao} /></td>
-                        {visibleInstitutions.map((inst) => (
+                        {expandedInstitutions.map((inst) => (
                           <Fragment key={`${sub.id}-${inst.name}`}>
                             <td className="border-l border-[#2a2a2a] px-2 py-2 text-right text-[#888]">{formatBRL(sub.byInstitution[inst.name] || 0)}</td>
                             <td className="px-1 py-1.5">
@@ -983,7 +989,7 @@ function MatrixTable({
                             </td>
                           </Fragment>
                         ))}
-                        {hasHiddenInsts && <td />}
+      
                       </tr>
 
                       {isSubExpanded && (
@@ -996,18 +1002,18 @@ function MatrixTable({
                             <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">Liquidez</td>
                             <td className="px-2 py-1 text-right text-[10px] font-medium text-[#555]">Valor</td>
                             <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">Inst.</td>
-                            {visibleInstitutions.map((inst) => (
+                            {expandedInstitutions.map((inst) => (
                               <Fragment key={`hdr-asset-${inst.name}`}>
                                 <td className="border-l border-[#1a1a1a]" />
                                 <td />
                               </Fragment>
                             ))}
-                            {hasHiddenInsts && <td />}
+          
                           </tr>
                           {filteredAssets.filter((a) => !pendingIds.has(a.id) || pendingMap[a.id]?.type !== "remocao").map((asset) => {
-                            const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
+                            const instObj = allInstitutions.find((vi) => vi.name === asset.institution);
                             const instColor = instObj ? getInstitutionColor(instObj.colorKey) : null;
-                            const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
+                            const instIndex = expandedInstitutions.findIndex((vi) => vi.name === asset.institution);
                             const pending = pendingMap[asset.id];
                             return (
                               <tr key={asset.id} className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"}`} data-testid={`asset-row-${asset.id}`}>
@@ -1076,7 +1082,7 @@ function MatrixTable({
                                     </span>
                                   )}
                                 </td>
-                                {visibleInstitutions.map((inst, idx) => (
+                                {expandedInstitutions.map((inst, idx) => (
                                   <Fragment key={`${asset.id}-${inst.name}`}>
                                     <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
                                       {idx === instIndex ? formatBRL(asset.value) : ""}
@@ -1084,15 +1090,15 @@ function MatrixTable({
                                     <td />
                                   </Fragment>
                                 ))}
-                                {hasHiddenInsts && <td />}
+              
                               </tr>
                             );
                           })}
 
                           {addedAssetsForSub(sub.id).map((added) => {
-                            const addedInstObj = visibleInstitutions.find((vi) => vi.name === added.institution);
+                            const addedInstObj = allInstitutions.find((vi) => vi.name === added.institution);
                             const addedInstColor = addedInstObj ? getInstitutionColor(addedInstObj.colorKey) : null;
-                            const addedInstIndex = addedInstObj ? visibleInstitutions.indexOf(addedInstObj) : -1;
+                            const addedInstIndex = expandedInstitutions.findIndex((vi) => vi.name === added.institution);
                             return (
                               <tr key={added.assetId} className="border-b border-[#1a1a1a] bg-[#0e1210]" data-testid={`added-asset-row-${added.assetId}`}>
                                 <td className="py-1.5 pl-14 pr-4">
@@ -1122,7 +1128,7 @@ function MatrixTable({
                                     </span>
                                   )}
                                 </td>
-                                {visibleInstitutions.map((inst, idx) => (
+                                {expandedInstitutions.map((inst, idx) => (
                                   <Fragment key={`${added.assetId}-${inst.name}`}>
                                     <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === addedInstIndex ? "text-[#6ecf8e]/60" : "text-transparent"}`}>
                                       {idx === addedInstIndex && added.value ? formatBRL(added.value) : ""}
@@ -1130,7 +1136,7 @@ function MatrixTable({
                                     <td />
                                   </Fragment>
                                 ))}
-                                {hasHiddenInsts && <td />}
+              
                               </tr>
                             );
                           })}
@@ -1216,7 +1222,7 @@ function MatrixTable({
                                     className="w-full bg-transparent text-[10px] text-[#6ecf8e]/60 outline-none"
                                     data-testid={`select-new-asset-inst-${sub.id}`}
                                   >
-                                    {visibleInstitutions.map((inst) => (
+                                    {allInstitutions.map((inst) => (
                                       <option key={inst.name} value={inst.name} className="bg-[#1a1a1a]">{inst.name}</option>
                                     ))}
                                   </select>
@@ -1238,13 +1244,13 @@ function MatrixTable({
                                   </button>
                                 </div>
                               </td>
-                              {visibleInstitutions.map((inst) => (
+                              {expandedInstitutions.map((inst) => (
                                 <Fragment key={`new-${inst.name}`}>
                                   <td className="border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] text-transparent" />
                                   <td />
                                 </Fragment>
                               ))}
-                              {hasHiddenInsts && <td />}
+            
                             </tr>
                           )}
                         </>
@@ -1266,13 +1272,12 @@ function MatrixTable({
             <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRLFull(grandTotals.alocIdeal)}</td>
             <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRLFull(grandTotals.alocAtual)}</td>
             <td className="px-2 py-2.5 text-right"><SugestaoCell value={grandTotals.sugestao} /></td>
-            {visibleInstitutions.map((inst) => (
+            {expandedInstitutions.map((inst) => (
               <Fragment key={`total-${inst.name}`}>
                 <td className="border-l border-[#2a2a2a] px-2 py-2.5 text-right font-semibold text-[#ededed]">{formatBRL(grandTotals.byInstitution[inst.name] || 0)}</td>
                 <td className="px-2 py-2.5 text-center text-[#444]">—</td>
               </Fragment>
             ))}
-            {hasHiddenInsts && <td />}
           </tr>
         </tfoot>
       </table>
@@ -1951,7 +1956,7 @@ function PolicySection() {
 
 export default function MockupRealocador() {
   const [allocatorValues, setAllocatorValues] = useState<Record<string, Record<string, string>>>({});
-  const [visibleInstNames, setVisibleInstNames] = useState<Set<string>>(() => new Set(["XP", "BTG", "Itaú"]));
+  const [expandedInstOrder, setExpandedInstOrder] = useState<string[]>([]);
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
   const [notifyPreview, setNotifyPreview] = useState<{ channel: "whatsapp" | "email" } | null>(null);
 
@@ -1960,14 +1965,12 @@ export default function MockupRealocador() {
   };
 
   const toggleInstitution = (name: string) => {
-    setVisibleInstNames((prev) => {
-      const next = new Set(prev);
-      if (next.has(name)) {
-        if (next.size <= 1) return prev;
-        next.delete(name);
-      } else {
-        next.add(name);
+    setExpandedInstOrder((prev) => {
+      if (prev.includes(name)) {
+        return prev.filter((n) => n !== name);
       }
+      const next = [...prev, name];
+      if (next.length > 3) next.shift();
       return next;
     });
   };
@@ -2012,9 +2015,9 @@ export default function MockupRealocador() {
     return lines.join("\n");
   }, [pendingChanges]);
 
-  const visibleInstitutions = useMemo(
-    () => ALL_CLIENT_INSTITUTIONS.filter((i) => visibleInstNames.has(i.name)),
-    [visibleInstNames]
+  const expandedInstitutions = useMemo(
+    () => expandedInstOrder.map((name) => ALL_CLIENT_INSTITUTIONS.find((i) => i.name === name)!).filter(Boolean),
+    [expandedInstOrder]
   );
 
   const hasPending = pendingChanges.length > 0;
@@ -2086,7 +2089,7 @@ export default function MockupRealocador() {
                 </div>
               </div>
 
-              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} visibleInstitutions={visibleInstitutions} allInstitutions={ALL_CLIENT_INSTITUTIONS} onToggleInstitution={toggleInstitution} pendingChanges={pendingChanges} onAddChange={addChange} onRemoveChange={removeChange} />
+              <MatrixTable allocatorValues={allocatorValues} onAllocatorChange={handleAllocatorChange} expandedInstitutions={expandedInstitutions} allInstitutions={ALL_CLIENT_INSTITUTIONS} onToggleInstitution={toggleInstitution} pendingChanges={pendingChanges} onAddChange={addChange} onRemoveChange={removeChange} />
 
               <FGCBarChart />
 
