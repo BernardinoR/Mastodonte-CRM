@@ -20,6 +20,13 @@ import {
   Minus,
   Plus,
   X,
+  MoreHorizontal,
+  Clock,
+  Mail,
+  MessageCircle,
+  ArrowUpFromLine,
+  PlusCircle,
+  Check,
 } from "lucide-react";
 import {
   Sidebar,
@@ -651,6 +658,14 @@ function MockupSidebar() {
 }
 
 
+type AssetActionType = "resgate" | "adicao";
+type AssetActionStatus = "choosing" | "saved" | "notified";
+
+interface AssetAction {
+  type: AssetActionType;
+  status: AssetActionStatus;
+}
+
 function MatrixTable({
   allocatorValues,
   onAllocatorChange,
@@ -666,6 +681,37 @@ function MatrixTable({
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [expandedSubs, setExpandedSubs] = useState<Record<string, boolean>>({});
+  const [assetActions, setAssetActions] = useState<Record<string, AssetAction>>({});
+  const [openActionMenu, setOpenActionMenu] = useState<string | null>(null);
+
+  const setAction = (assetId: string, type: AssetActionType) => {
+    setAssetActions((prev) => ({ ...prev, [assetId]: { type, status: "choosing" } }));
+    setOpenActionMenu(null);
+  };
+
+  const confirmAction = (assetId: string) => {
+    setAssetActions((prev) => prev[assetId] ? { ...prev, [assetId]: { ...prev[assetId], status: "saved" } } : prev);
+  };
+
+  const markNotified = (assetId: string) => {
+    setAssetActions((prev) => prev[assetId] ? { ...prev, [assetId]: { ...prev[assetId], status: "notified" } } : prev);
+  };
+
+  const cancelAction = (assetId: string) => {
+    setAssetActions((prev) => {
+      const next = { ...prev };
+      delete next[assetId];
+      return next;
+    });
+  };
+
+  const confirmDone = (assetId: string) => {
+    setAssetActions((prev) => {
+      const next = { ...prev };
+      delete next[assetId];
+      return next;
+    });
+  };
 
   const toggleCategory = (catId: string) => {
     setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }));
@@ -888,40 +934,194 @@ function MatrixTable({
                             const instObj = visibleInstitutions.find((vi) => vi.name === asset.institution);
                             const instColor = instObj ? getInstitutionColor(instObj.colorKey) : null;
                             const instIndex = instObj ? visibleInstitutions.indexOf(instObj) : -1;
+                            const action = assetActions[asset.id];
+                            const isMenuOpen = openActionMenu === asset.id;
+                            const totalCols = 7 + visibleInstitutions.length * 2 + (hasHiddenInsts ? 1 : 0);
                             return (
-                              <tr key={asset.id} className="border-b border-[#1a1a1a] bg-[#131313]" data-testid={`asset-row-${asset.id}`}>
-                                <td className="py-1.5 pl-14 pr-4">
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
-                                    <span className="text-[11px] text-[#999]">{asset.name}</span>
-                                  </div>
-                                </td>
-                                <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">{asset.pctSub.toFixed(1)}%</td>
-                                <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.rate || "—"}</td>
-                                <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.maturity || "—"}</td>
-                                <td className="px-2 py-1.5 text-center">
-                                  <span className={`text-[10px] ${asset.liquidity === "Ilíquido" ? "text-[#e05c5c]" : asset.liquidity === "D+0" || asset.liquidity === "D+1" ? "text-[#6db1d4]" : "text-[#888]"}`}>
-                                    {asset.liquidity || "—"}
-                                  </span>
-                                </td>
-                                <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">{formatBRL(asset.value)}</td>
-                                <td className="px-2 py-1.5 text-center">
-                                  {instColor && (
-                                    <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${instColor.bg} ${instColor.text}`}>
-                                      {asset.institution}
+                              <Fragment key={asset.id}>
+                                <tr className={`border-b border-[#1a1a1a] ${action ? "bg-[#151515]" : "bg-[#131313]"}`} data-testid={`asset-row-${asset.id}`}>
+                                  <td className="py-1.5 pl-14 pr-4">
+                                    <div className="flex items-center gap-2">
+                                      {action && action.status !== "choosing" ? (
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); confirmDone(asset.id); }}
+                                          className="group flex-shrink-0"
+                                          title="Pendente — clique para confirmar"
+                                          data-testid={`pending-icon-${asset.id}`}
+                                        >
+                                          <Clock className="h-3.5 w-3.5 text-[#dcb092] group-hover:text-[#6ecf8e]" />
+                                        </button>
+                                      ) : (
+                                        <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
+                                      )}
+                                      <span className="text-[11px] text-[#999]">{asset.name}</span>
+                                      {action && action.status !== "choosing" && (
+                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${action.type === "resgate" ? "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]" : "bg-[rgba(110,207,142,0.12)] text-[#6ecf8e]"}`}>
+                                          {action.type === "resgate" ? "Resgate" : "Adição"}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">{asset.pctSub.toFixed(1)}%</td>
+                                  <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.rate || "—"}</td>
+                                  <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">{asset.maturity || "—"}</td>
+                                  <td className="px-2 py-1.5 text-center">
+                                    <span className={`text-[10px] ${asset.liquidity === "Ilíquido" ? "text-[#e05c5c]" : asset.liquidity === "D+0" || asset.liquidity === "D+1" ? "text-[#6db1d4]" : "text-[#888]"}`}>
+                                      {asset.liquidity || "—"}
                                     </span>
-                                  )}
-                                </td>
-                                {visibleInstitutions.map((inst, idx) => (
-                                  <Fragment key={`${asset.id}-${inst.name}`}>
-                                    <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
-                                      {idx === instIndex ? formatBRL(asset.value) : ""}
+                                  </td>
+                                  <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">{formatBRL(asset.value)}</td>
+                                  <td className="px-2 py-1.5 text-center">
+                                    <div className="flex items-center justify-center gap-1">
+                                      {instColor && (
+                                        <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${instColor.bg} ${instColor.text}`}>
+                                          {asset.institution}
+                                        </span>
+                                      )}
+                                      <button
+                                        onClick={(e) => { e.stopPropagation(); setOpenActionMenu(isMenuOpen ? null : asset.id); }}
+                                        className={`ml-0.5 rounded p-0.5 transition-colors ${isMenuOpen ? "text-[#ededed]" : "text-[#444] hover:text-[#999]"}`}
+                                        data-testid={`button-asset-actions-${asset.id}`}
+                                      >
+                                        <MoreHorizontal className="h-3.5 w-3.5" />
+                                      </button>
+                                    </div>
+                                  </td>
+                                  {visibleInstitutions.map((inst, idx) => (
+                                    <Fragment key={`${asset.id}-${inst.name}`}>
+                                      <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
+                                        {idx === instIndex ? formatBRL(asset.value) : ""}
+                                      </td>
+                                      <td />
+                                    </Fragment>
+                                  ))}
+                                  {hasHiddenInsts && <td />}
+                                </tr>
+
+                                {isMenuOpen && !action && (
+                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
+                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setAction(asset.id, "resgate"); }}
+                                          className="flex items-center gap-1.5 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1.5 text-[11px] text-[#e05c5c] transition-colors hover:border-[#e05c5c]/30 hover:bg-[rgba(224,92,92,0.08)]"
+                                          data-testid={`button-resgate-${asset.id}`}
+                                        >
+                                          <ArrowUpFromLine className="h-3 w-3" />
+                                          Resgate Total
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setAction(asset.id, "adicao"); }}
+                                          className="flex items-center gap-1.5 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-3 py-1.5 text-[11px] text-[#6ecf8e] transition-colors hover:border-[#6ecf8e]/30 hover:bg-[rgba(110,207,142,0.08)]"
+                                          data-testid={`button-adicao-${asset.id}`}
+                                        >
+                                          <PlusCircle className="h-3 w-3" />
+                                          Adicionar Ativo
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); setOpenActionMenu(null); }}
+                                          className="ml-1 rounded p-1 text-[#555] transition-colors hover:text-[#999]"
+                                          data-testid={`button-cancel-menu-${asset.id}`}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
                                     </td>
-                                    <td />
-                                  </Fragment>
-                                ))}
-                                {hasHiddenInsts && <td />}
-                              </tr>
+                                  </tr>
+                                )}
+
+                                {action && action.status === "choosing" && (
+                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
+                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
+                                      <div className="flex items-center gap-3">
+                                        <span className={`text-[11px] font-medium ${action.type === "resgate" ? "text-[#e05c5c]" : "text-[#6ecf8e]"}`}>
+                                          {action.type === "resgate" ? "Resgate Total" : "Adição de Ativo"}
+                                        </span>
+                                        <span className="text-[10px] text-[#555]">—</span>
+                                        <span className="text-[10px] text-[#888]">
+                                          {action.type === "resgate"
+                                            ? `Resgatar ${formatBRL(asset.value)} de ${asset.name}`
+                                            : `Adicionar ativo em ${asset.institution}`}
+                                        </span>
+                                        <div className="flex items-center gap-1.5">
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); confirmAction(asset.id); }}
+                                            className="flex items-center gap-1 rounded-md border border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] px-2.5 py-1 text-[10px] font-medium text-[#6ecf8e] transition-colors hover:bg-[rgba(110,207,142,0.2)]"
+                                            data-testid={`button-confirm-${asset.id}`}
+                                          >
+                                            <Check className="h-3 w-3" />
+                                            Confirmar
+                                          </button>
+                                          <button
+                                            onClick={(e) => { e.stopPropagation(); cancelAction(asset.id); }}
+                                            className="rounded-md px-2 py-1 text-[10px] text-[#555] transition-colors hover:text-[#999]"
+                                            data-testid={`button-cancel-action-${asset.id}`}
+                                          >
+                                            Cancelar
+                                          </button>
+                                        </div>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+
+                                {action && action.status === "saved" && (
+                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
+                                    <td colSpan={totalCols} className="py-2 pl-14 pr-4">
+                                      <div className="flex items-center gap-3">
+                                        <Clock className="h-3 w-3 flex-shrink-0 text-[#dcb092]" />
+                                        <span className="text-[10px] text-[#dcb092]">Pendente</span>
+                                        <span className="text-[10px] text-[#555]">—</span>
+                                        <span className="text-[10px] text-[#888]">Notificar o cliente:</span>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); markNotified(asset.id); }}
+                                          className="flex items-center gap-1 rounded-md border border-[rgba(110,207,142,0.25)] bg-[rgba(110,207,142,0.08)] px-2.5 py-1 text-[10px] text-[#6ecf8e] transition-colors hover:bg-[rgba(110,207,142,0.15)]"
+                                          data-testid={`button-whatsapp-${asset.id}`}
+                                        >
+                                          <MessageCircle className="h-3 w-3" />
+                                          WhatsApp
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); markNotified(asset.id); }}
+                                          className="flex items-center gap-1 rounded-md border border-[rgba(109,177,212,0.25)] bg-[rgba(109,177,212,0.08)] px-2.5 py-1 text-[10px] text-[#6db1d4] transition-colors hover:bg-[rgba(109,177,212,0.15)]"
+                                          data-testid={`button-email-${asset.id}`}
+                                        >
+                                          <Mail className="h-3 w-3" />
+                                          Email
+                                        </button>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); cancelAction(asset.id); }}
+                                          className="ml-1 rounded p-1 text-[#444] transition-colors hover:text-[#999]"
+                                          data-testid={`button-cancel-notify-${asset.id}`}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+
+                                {action && action.status === "notified" && (
+                                  <tr className="border-b border-[#1a1a1a] bg-[#0f0f0f]">
+                                    <td colSpan={totalCols} className="py-1.5 pl-14 pr-4">
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
+                                        <span className="text-[10px] text-[#6ecf8e]">Notificado</span>
+                                        <span className="text-[10px] text-[#555]">—</span>
+                                        <span className="text-[10px] text-[#888]">Aguardando confirmação da task</span>
+                                        <button
+                                          onClick={(e) => { e.stopPropagation(); confirmDone(asset.id); }}
+                                          className="ml-2 flex items-center gap-1 rounded-md border border-[#2a2a2a] bg-[#1a1a1a] px-2 py-1 text-[10px] text-[#8c8c8c] transition-colors hover:text-[#ededed]"
+                                          data-testid={`button-simulate-done-${asset.id}`}
+                                        >
+                                          <Check className="h-3 w-3" />
+                                          Simular conclusão
+                                        </button>
+                                      </div>
+                                    </td>
+                                  </tr>
+                                )}
+                              </Fragment>
                             );
                           })}
                         </>
