@@ -663,6 +663,9 @@ interface PendingChange {
   subId: string;
   institution: string;
   value?: number;
+  rate?: string;
+  maturity?: string;
+  liquidity?: string;
 }
 
 interface NewAssetDraft {
@@ -726,6 +729,9 @@ function MatrixTable({
       subId,
       institution: newAssetDraft.institution || visibleInstitutions[0]?.name || "",
       value: parseFloat(newAssetDraft.value) || 0,
+      rate: newAssetDraft.rate || undefined,
+      maturity: newAssetDraft.maturity || undefined,
+      liquidity: newAssetDraft.liquidity || undefined,
     });
     setAddingToSub(null);
     setNewAssetDraft(EMPTY_DRAFT);
@@ -740,6 +746,13 @@ function MatrixTable({
     e.stopPropagation();
     onAddChange({ type: "remocao", assetId: asset.id, assetName: asset.name, subId, institution: asset.institution, value: asset.value });
   };
+
+  const resgateAsset = (asset: Asset, subId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddChange({ type: "resgate", assetId: asset.id, assetName: asset.name, subId, institution: asset.institution, value: asset.value });
+  };
+
+  const addedAssetsForSub = (subId: string) => pendingChanges.filter((c) => c.type === "adicao" && c.subId === subId);
 
   const toggleCategory = (catId: string) => {
     setCollapsed((prev) => ({ ...prev, [catId]: !prev[catId] }));
@@ -975,29 +988,39 @@ function MatrixTable({
                               <tr key={asset.id} className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"}`} data-testid={`asset-row-${asset.id}`}>
                                 <td className="py-1.5 pl-14 pr-4">
                                   <div className="flex items-center gap-2">
-                                    <div className="relative h-3.5 w-3.5 flex-shrink-0">
+                                    <div className="relative flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
                                       {pending ? (
                                         <Clock className="h-3.5 w-3.5 text-[#dcb092]" />
                                       ) : (
                                         <>
-                                          <div className="flex h-full w-full items-center justify-center group-hover:invisible">
-                                            <div className="h-1.5 w-1.5 rounded-full bg-[#333]" />
+                                          <div className="h-1.5 w-1.5 rounded-full bg-[#333] group-hover:invisible" />
+                                          <div className="invisible absolute inset-0 flex items-center justify-center gap-0.5 group-hover:visible">
+                                            <button
+                                              onClick={(e) => removeAsset(asset, sub.id, e)}
+                                              className="text-[#555] transition-colors hover:text-[#e05c5c]"
+                                              title="Remover ativo"
+                                              data-testid={`button-remove-asset-${asset.id}`}
+                                            >
+                                              <Trash2 className="h-3 w-3" />
+                                            </button>
                                           </div>
-                                          <button
-                                            onClick={(e) => removeAsset(asset, sub.id, e)}
-                                            className="invisible absolute inset-0 flex items-center justify-center text-[#555] transition-colors hover:text-[#e05c5c] group-hover:visible"
-                                            title="Remover ativo"
-                                            data-testid={`button-remove-asset-${asset.id}`}
-                                          >
-                                            <Trash2 className="h-3 w-3" />
-                                          </button>
                                         </>
                                       )}
                                     </div>
                                     <span className={`text-[11px] ${pending ? "text-[#666] line-through" : "text-[#999]"}`}>{asset.name}</span>
+                                    {!pending && (
+                                      <button
+                                        onClick={(e) => resgateAsset(asset, sub.id, e)}
+                                        className="invisible rounded bg-[rgba(224,92,92,0.08)] px-1.5 py-0.5 text-[9px] font-medium text-[#e05c5c] transition-colors hover:bg-[rgba(224,92,92,0.15)] group-hover:visible"
+                                        title="Marcar resgate total"
+                                        data-testid={`button-resgate-${asset.id}`}
+                                      >
+                                        Resgate
+                                      </button>
+                                    )}
                                     {pending && (
                                       <div className="flex items-center gap-1.5">
-                                        <span className="rounded bg-[rgba(224,92,92,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#e05c5c]">
+                                        <span className={`rounded px-1.5 py-0.5 text-[9px] font-medium ${pending.type === "resgate" ? "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]" : "bg-[rgba(224,92,92,0.12)] text-[#e05c5c]"}`}>
                                           {pending.type === "resgate" ? "Resgate" : "Remoção"}
                                         </span>
                                         <button
@@ -1032,6 +1055,52 @@ function MatrixTable({
                                   <Fragment key={`${asset.id}-${inst.name}`}>
                                     <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}>
                                       {idx === instIndex ? formatBRL(asset.value) : ""}
+                                    </td>
+                                    <td />
+                                  </Fragment>
+                                ))}
+                                {hasHiddenInsts && <td />}
+                              </tr>
+                            );
+                          })}
+
+                          {addedAssetsForSub(sub.id).map((added) => {
+                            const addedInstObj = visibleInstitutions.find((vi) => vi.name === added.institution);
+                            const addedInstColor = addedInstObj ? getInstitutionColor(addedInstObj.colorKey) : null;
+                            const addedInstIndex = addedInstObj ? visibleInstitutions.indexOf(addedInstObj) : -1;
+                            return (
+                              <tr key={added.assetId} className="border-b border-[#1a1a1a] bg-[#0e1210]" data-testid={`added-asset-row-${added.assetId}`}>
+                                <td className="py-1.5 pl-14 pr-4">
+                                  <div className="flex items-center gap-2">
+                                    <Plus className="h-3 w-3 flex-shrink-0 text-[#6ecf8e]" />
+                                    <span className="text-[11px] text-[#6ecf8e]">{added.assetName}</span>
+                                    <span className="rounded bg-[rgba(110,207,142,0.12)] px-1.5 py-0.5 text-[9px] font-medium text-[#6ecf8e]">Adição</span>
+                                    <button
+                                      onClick={(e) => { e.stopPropagation(); onRemoveChange(added.assetId); }}
+                                      className="rounded p-0.5 text-[#555] transition-colors hover:text-[#999]"
+                                      title="Desfazer"
+                                      data-testid={`button-undo-${added.assetId}`}
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                </td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#555]">—</td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#6ecf8e]/60">{added.rate || "—"}</td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#6ecf8e]/60">{added.maturity || "—"}</td>
+                                <td className="px-2 py-1.5 text-center text-[10px] text-[#6ecf8e]/60">{added.liquidity || "—"}</td>
+                                <td className="px-2 py-1.5 text-right text-[10px] text-[#6ecf8e]/60">{added.value ? formatBRL(added.value) : "—"}</td>
+                                <td className="px-2 py-1.5 text-center">
+                                  {addedInstColor && (
+                                    <span className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${addedInstColor.bg} ${addedInstColor.text}`}>
+                                      {added.institution}
+                                    </span>
+                                  )}
+                                </td>
+                                {visibleInstitutions.map((inst, idx) => (
+                                  <Fragment key={`${added.assetId}-${inst.name}`}>
+                                    <td className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === addedInstIndex ? "text-[#6ecf8e]/60" : "text-transparent"}`}>
+                                      {idx === addedInstIndex && added.value ? formatBRL(added.value) : ""}
                                     </td>
                                     <td />
                                   </Fragment>
@@ -1852,6 +1921,7 @@ export default function MockupRealocador() {
   const [allocatorValues, setAllocatorValues] = useState<Record<string, Record<string, string>>>({});
   const [visibleInstNames, setVisibleInstNames] = useState<Set<string>>(() => new Set(["XP", "BTG", "Itaú"]));
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
+  const [notifyPreview, setNotifyPreview] = useState<{ channel: "whatsapp" | "email" } | null>(null);
 
   const handleAllocatorChange = (subId: string, inst: string, val: string) => {
     setAllocatorValues((prev) => ({ ...prev, [subId]: { ...prev[subId], [inst]: val } }));
@@ -1878,9 +1948,37 @@ export default function MockupRealocador() {
     setPendingChanges((prev) => prev.filter((c) => c.assetId !== assetId));
   };
 
-  const clearAllChanges = () => {
+  const confirmNotify = () => {
     setPendingChanges([]);
+    setNotifyPreview(null);
   };
+
+  const compileNotificationText = useMemo(() => {
+    const resgates = pendingChanges.filter((c) => c.type === "resgate");
+    const remocoes = pendingChanges.filter((c) => c.type === "remocao");
+    const adicoes = pendingChanges.filter((c) => c.type === "adicao");
+    const lines: string[] = ["Olá Roberto, segue o resumo das movimentações sugeridas:", ""];
+    if (resgates.length > 0) {
+      lines.push(`Resgates (${resgates.length}):`);
+      resgates.forEach((r) => lines.push(`  - ${r.assetName} (${r.institution}) ${r.value ? formatBRL(r.value) : ""}`));
+      lines.push("");
+    }
+    if (remocoes.length > 0) {
+      lines.push(`Remoções (${remocoes.length}):`);
+      remocoes.forEach((r) => lines.push(`  - ${r.assetName} (${r.institution}) ${r.value ? formatBRL(r.value) : ""}`));
+      lines.push("");
+    }
+    if (adicoes.length > 0) {
+      lines.push(`Adições (${adicoes.length}):`);
+      adicoes.forEach((a) => {
+        const details = [a.rate, a.maturity, a.liquidity].filter(Boolean).join(", ");
+        lines.push(`  - ${a.assetName} (${a.institution})${details ? ` [${details}]` : ""} ${a.value ? formatBRL(a.value) : ""}`);
+      });
+      lines.push("");
+    }
+    lines.push("Por favor, confirme se está de acordo.");
+    return lines.join("\n");
+  }, [pendingChanges]);
 
   const visibleInstitutions = useMemo(
     () => ALL_CLIENT_INSTITUTIONS.filter((i) => visibleInstNames.has(i.name)),
@@ -1926,7 +2024,7 @@ export default function MockupRealocador() {
                   </Button>
                   <div className="h-5 w-px bg-[#2a2a2a]" />
                   <button
-                    onClick={() => { if (hasPending) clearAllChanges(); }}
+                    onClick={() => { if (hasPending) setNotifyPreview({ channel: "whatsapp" }); }}
                     disabled={!hasPending}
                     className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition-colors ${hasPending ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.08)] text-[#6ecf8e] hover:bg-[rgba(110,207,142,0.15)]" : "cursor-not-allowed border-[#2a2a2a] bg-[#161616] text-[#444]"}`}
                     data-testid="button-whatsapp-global"
@@ -1940,7 +2038,7 @@ export default function MockupRealocador() {
                     )}
                   </button>
                   <button
-                    onClick={() => { if (hasPending) clearAllChanges(); }}
+                    onClick={() => { if (hasPending) setNotifyPreview({ channel: "email" }); }}
                     disabled={!hasPending}
                     className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs transition-colors ${hasPending ? "border-[rgba(109,177,212,0.3)] bg-[rgba(109,177,212,0.08)] text-[#6db1d4] hover:bg-[rgba(109,177,212,0.15)]" : "cursor-not-allowed border-[#2a2a2a] bg-[#161616] text-[#444]"}`}
                     data-testid="button-email-global"
@@ -1973,6 +2071,44 @@ export default function MockupRealocador() {
           </main>
         </div>
       </div>
+
+      {notifyPreview && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setNotifyPreview(null)} data-testid="notify-preview-overlay">
+          <div className="w-full max-w-lg rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] p-6" onClick={(e) => e.stopPropagation()} data-testid="notify-preview-modal">
+            <div className="mb-4 flex items-center gap-2">
+              {notifyPreview.channel === "whatsapp" ? (
+                <MessageCircle className="h-4 w-4 text-[#6ecf8e]" />
+              ) : (
+                <Mail className="h-4 w-4 text-[#6db1d4]" />
+              )}
+              <span className="text-sm font-medium text-[#ededed]">
+                {notifyPreview.channel === "whatsapp" ? "Prévia WhatsApp" : "Prévia Email"}
+              </span>
+              <span className="text-xs text-[#555]">Roberto Mendes</span>
+            </div>
+            <pre className="mb-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-md border border-[#2a2a2a] bg-[#121212] p-4 text-xs leading-relaxed text-[#bbb]" data-testid="notify-preview-text">
+              {compileNotificationText}
+            </pre>
+            <div className="flex items-center justify-end gap-2">
+              <button
+                onClick={() => setNotifyPreview(null)}
+                className="rounded-md px-3 py-1.5 text-xs text-[#8c8c8c] transition-colors hover:text-[#ededed]"
+                data-testid="button-cancel-notify"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmNotify}
+                className={`flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-xs font-medium transition-colors ${notifyPreview.channel === "whatsapp" ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] text-[#6ecf8e] hover:bg-[rgba(110,207,142,0.2)]" : "border-[rgba(109,177,212,0.3)] bg-[rgba(109,177,212,0.12)] text-[#6db1d4] hover:bg-[rgba(109,177,212,0.2)]"}`}
+                data-testid="button-confirm-notify"
+              >
+                {notifyPreview.channel === "whatsapp" ? <MessageCircle className="h-3 w-3" /> : <Mail className="h-3 w-3" />}
+                Enviar {notifyPreview.channel === "whatsapp" ? "WhatsApp" : "Email"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </SidebarProvider>
   );
 }
