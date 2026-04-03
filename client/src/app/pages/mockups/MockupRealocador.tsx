@@ -820,65 +820,53 @@ function MatrixTable({
 
   const expandedSet = useMemo(() => new Set(expandedInstitutions.map((i) => i.name)), [expandedInstitutions]);
 
+  const hasExpanded = expandedInstitutions.length > 0;
+
   return (
-    <div className="overflow-x-auto rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
-      <table className="w-full border-collapse text-xs" style={{ tableLayout: "fixed" }}>
-        <colgroup>
-          <col style={{ width: "auto" }} />
-          <col style={{ width: "3.5rem" }} />
-          <col style={{ width: "5rem" }} />
-          <col style={{ width: "3.5rem" }} />
-          <col style={{ width: "6rem" }} />
-          <col style={{ width: "6rem" }} />
-          <col style={{ width: "6rem" }} />
-          {expandedInstitutions.map((inst) => (
-            <Fragment key={`col-${inst.name}`}>
-              <col style={{ width: `${25 / Math.max(expandedInstitutions.length, 1) / 2}%` }} />
-              <col style={{ width: `${25 / Math.max(expandedInstitutions.length, 1) / 2}%` }} />
-            </Fragment>
-          ))}
-        </colgroup>
+    <div className="rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
+      <div className="flex items-center justify-between border-b border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2">
+        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#555]">Instituições</span>
+        <div className="flex items-center gap-1.5">
+          {allInstitutions.map((inst) => {
+            const c = getInstitutionColor(inst.colorKey);
+            const isExpanded = expandedSet.has(inst.name);
+            const hexColor = INST_HEX[inst.colorKey] || "#888";
+            return (
+              <button
+                key={inst.name}
+                onClick={(e) => { e.stopPropagation(); onToggleInstitution(inst.name); }}
+                className={`flex h-7 items-center gap-1.5 rounded-full px-1 transition-all ${isExpanded ? "ring-2 ring-offset-1 ring-offset-[#1a1a1a] pr-2.5" : "opacity-40 hover:opacity-80"}`}
+                style={isExpanded ? { ["--tw-ring-color" as string]: hexColor } : undefined}
+                title={inst.name}
+                data-testid={`toggle-institution-${inst.name}`}
+              >
+                <Avatar className="h-5 w-5">
+                  <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
+                </Avatar>
+                {isExpanded && <span className="text-[10px] font-medium text-[#ccc]">{inst.name}</span>}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+      <table className="w-full border-collapse text-xs">
         <thead className="bg-[#1a1a1a]">
           <tr className="border-b border-[#2a2a2a]">
-            <th rowSpan={2} className="px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% P.L.</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
-            <th rowSpan={2} className="px-2 py-2.5 text-right font-medium text-[#8c8c8c]">
-              <div className="flex items-center justify-end gap-3">
-                <span>Sugestão</span>
-                <div className="flex items-center gap-1 border-l border-[#2a2a2a] pl-3">
-                  {allInstitutions.map((inst) => {
-                    const c = getInstitutionColor(inst.colorKey);
-                    const isExpanded = expandedSet.has(inst.name);
-                    const hexColor = INST_HEX[inst.colorKey] || "#888";
-                    return (
-                      <button
-                        key={inst.name}
-                        onClick={(e) => { e.stopPropagation(); onToggleInstitution(inst.name); }}
-                        className={`flex h-6 w-6 items-center justify-center rounded-full transition-all ${isExpanded ? "ring-2 ring-offset-1 ring-offset-[#1a1a1a]" : "opacity-40 hover:opacity-80"}`}
-                        style={isExpanded ? { ["--tw-ring-color" as string]: hexColor } : undefined}
-                        title={inst.name}
-                        data-testid={`toggle-institution-${inst.name}`}
-                      >
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>{inst.initials}</AvatarFallback>
-                        </Avatar>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            </th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="min-w-[200px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]">Classificação</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% P.L.</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-center font-medium text-[#8c8c8c]">Status</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]">% Fora</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Ideal</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Atual</th>
+            <th rowSpan={hasExpanded ? 2 : 1} className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]">Sugestão</th>
             {expandedInstitutions.map((inst) => {
               const c = getInstitutionColor(inst.colorKey);
               return (
-                <th key={inst.name} colSpan={2} className="border-l border-[#2a2a2a] px-1 py-2 text-center">
+                <th key={inst.name} colSpan={2} className="border-l border-[#2a2a2a] px-2 py-2 text-center">
                   <button
                     onClick={(e) => { e.stopPropagation(); onToggleInstitution(inst.name); }}
-                    className="inline-flex items-center gap-1"
+                    className="inline-flex items-center gap-1.5 whitespace-nowrap"
                     data-testid={`header-inst-${inst.name}`}
                   >
                     <Avatar className="h-5 w-5">
@@ -890,14 +878,16 @@ function MatrixTable({
               );
             })}
           </tr>
-          <tr className="border-b border-[#2a2a2a]">
-            {expandedInstitutions.map((inst) => (
-              <Fragment key={`${inst.name}-sub`}>
-                <th className="border-l border-[#2a2a2a] px-1 py-1 text-center text-[9px] font-normal text-[#555]">$ Atual</th>
-                <th className="px-1 py-1 text-center text-[9px] font-normal text-[#555]">Alocador</th>
-              </Fragment>
-            ))}
-          </tr>
+          {hasExpanded && (
+            <tr className="border-b border-[#2a2a2a]">
+              {expandedInstitutions.map((inst) => (
+                <Fragment key={`${inst.name}-sub`}>
+                  <th className="border-l border-[#2a2a2a] whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555]">$ Atual</th>
+                  <th className="whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555]">Alocador</th>
+                </Fragment>
+              ))}
+            </tr>
+          )}
         </thead>
 
         <tbody>
@@ -1281,6 +1271,7 @@ function MatrixTable({
           </tr>
         </tfoot>
       </table>
+      </div>
     </div>
   );
 }
