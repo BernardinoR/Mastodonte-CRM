@@ -824,9 +824,9 @@ function MatrixTable({
 
   return (
     <div className="rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
-      <div className="flex items-center justify-between border-b border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2">
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-[#555]">Instituições</span>
-        <div className="flex items-center gap-1.5">
+      <div className="flex items-center justify-between gap-3 border-b border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2">
+        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#555]">Instituições</span>
+        <div className="flex flex-wrap items-center justify-end gap-1.5">
           {allInstitutions.map((inst) => {
             const c = getInstitutionColor(inst.colorKey);
             const isExpanded = expandedSet.has(inst.name);
