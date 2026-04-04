@@ -124,7 +124,8 @@
       "Bash(find /home/runner/workspace/client/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "Bash(find /home/runner/workspace -path */client/src/features/varredura/* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "Bash(2)",
-      "Bash(find /home/runner/workspace -path *api/auth* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))"
+      "Bash(find /home/runner/workspace -path *api/auth* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
+      "WebFetch(domain:skills.sh)"
     ]
   },
   "enableAllProjectMcpServers": true,
