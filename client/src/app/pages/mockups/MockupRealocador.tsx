@@ -2628,22 +2628,8 @@ function MatrixTable({
                                       <td className="py-1.5 pl-14 pr-4">
                                         <div className="flex items-center gap-2">
                                           <div className="relative flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
-                                            {pending ? (
+                                            {pending && (
                                               <Clock className="h-3.5 w-3.5 text-[#dcb092]" />
-                                            ) : (
-                                              <>
-                                                <div className="h-1.5 w-1.5 rounded-full bg-[#333] group-hover:invisible" />
-                                                <div className="invisible absolute inset-0 flex items-center justify-center gap-0.5 group-hover:visible">
-                                                  <button
-                                                    onClick={(e) => removeAsset(asset, sub.id, e)}
-                                                    className="text-[#555] transition-colors hover:text-[#e05c5c]"
-                                                    title="Remover ativo"
-                                                    data-testid={`button-remove-asset-${asset.id}`}
-                                                  >
-                                                    <Trash2 className="h-3 w-3" />
-                                                  </button>
-                                                </div>
-                                              </>
                                             )}
                                           </div>
                                           <span
