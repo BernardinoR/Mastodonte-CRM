@@ -2366,6 +2366,8 @@ function MatrixTable({
   pendingChanges,
   onAddChange,
   onRemoveChange,
+  globalBudgetNum,
+  totalAllocated,
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
@@ -2377,6 +2379,8 @@ function MatrixTable({
   pendingChanges: PendingChange[];
   onAddChange: (change: PendingChange) => void;
   onRemoveChange: (assetId: string) => void;
+  globalBudgetNum: number;
+  totalAllocated: number;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [expandedSubs, setExpandedSubs] = useState<Record<string, boolean>>({});
@@ -2539,6 +2543,9 @@ function MatrixTable({
     );
   }, [categoryTotals, allAccounts]);
 
+  const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
+  const idealScale = effectiveDelta !== 0 ? (TOTAL_AUM + effectiveDelta) / TOTAL_AUM : 1;
+
   const expandedSet = useMemo(
     () => new Set(expandedAccounts.map((i) => i.name)),
     [expandedAccounts],
@@ -2619,7 +2626,7 @@ function MatrixTable({
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="sticky left-[200px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[200px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
               >
                 % P.L.
               </th>
@@ -2631,25 +2638,25 @@ function MatrixTable({
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="sticky left-[340px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[340px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
               >
                 % Fora
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="sticky left-[392px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[392px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
               >
                 Ideal
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="sticky left-[452px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[452px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
               >
                 Atual
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="sticky left-[512px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[512px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 pr-4 text-center font-medium text-[#8c8c8c]"
               >
                 Sugestão
               </th>
@@ -2754,43 +2761,59 @@ function MatrixTable({
                         <span className="text-[10px] text-[#555]">({cat.subs.length})</span>
                       </div>
                     </td>
-                    <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
+                    <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-center font-medium text-[#ededed]">
                       {ct.pctPL.toFixed(1)}%
                     </td>
                     <td className="sticky left-[252px] z-10 bg-[#161616] px-2 py-2 text-center">
                       <StatusBadge status={worstStatus} />
                     </td>
-                    <td className="sticky left-[340px] z-10 bg-[#161616] px-2 py-2 text-right text-[#555]">
+                    <td className="sticky left-[340px] z-10 bg-[#161616] px-2 py-2 text-center text-[#555]">
                       —
                     </td>
-                    <td className="sticky left-[392px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
-                      {formatBRL(ct.alocIdeal)}
+                    <td className="sticky left-[392px] z-10 bg-[#161616] px-2 py-2 text-center font-medium">
+                      <div className="flex flex-col items-center">
+                        <span className="text-[#ededed]">
+                          {formatBRL(idealScale !== 1 ? ct.alocIdeal * idealScale : ct.alocIdeal)}
+                        </span>
+                        {idealScale !== 1 && (
+                          <span className="text-[9px] font-normal text-[#555]">
+                            era {formatBRL(ct.alocIdeal)}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     {(() => {
-                      const catAlloc = cat.subs.reduce(
-                        (sum, sub) => sum + (allocatorBySub[sub.id] || 0),
-                        0,
-                      );
+                      const catAlloc = cat.subs.reduce((sum, sub) => {
+                        const sa = allocatorBySub[sub.id] || 0;
+                        const aa = assetAllocBySub[sub.id] || 0;
+                        return sum + Math.max(sa, aa);
+                      }, 0);
                       const projectedAtual = ct.alocAtual + catAlloc;
                       const remainingSugestao = ct.sugestao - catAlloc;
                       return (
                         <>
-                          <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-right">
-                            <div className="flex flex-col items-end">
-                              <span className="font-medium text-[#ededed]">
-                                {formatBRL(ct.alocAtual)}
-                              </span>
-                              {catAlloc !== 0 && (
-                                <span
-                                  className={`text-[9px] font-medium ${catAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
-                                >
-                                  {catAlloc > 0 ? "+" : ""}
-                                  {formatBRL(catAlloc)} → {formatBRL(projectedAtual)}
+                          <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-center">
+                            <div className="flex flex-col items-center">
+                              {catAlloc !== 0 ? (
+                                <>
+                                  <span
+                                    className={`font-medium ${catAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                                  >
+                                    {formatBRL(projectedAtual)}
+                                  </span>
+                                  <span className="text-[9px] text-[#555]">
+                                    {catAlloc > 0 ? "+" : ""}
+                                    {formatBRL(catAlloc)}
+                                  </span>
+                                </>
+                              ) : (
+                                <span className="font-medium text-[#ededed]">
+                                  {formatBRL(ct.alocAtual)}
                                 </span>
                               )}
                             </div>
                           </td>
-                          <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 text-right">
+                          <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 pr-4 text-center">
                             {catAlloc !== 0 ? (
                               <SugestaoCell value={remainingSugestao} />
                             ) : (
@@ -2861,7 +2884,7 @@ function MatrixTable({
                                 </span>
                               </div>
                             </td>
-                            <td className="sticky left-[200px] z-[5] bg-[#141414] px-2 py-2 text-right text-[#bbb]">
+                            <td className="sticky left-[200px] z-[5] bg-[#141414] px-2 py-2 text-center text-[#bbb]">
                               {sub.pctPL.toFixed(1)}%
                             </td>
                             <td className="sticky left-[252px] z-[5] bg-[#141414] px-2 py-2 text-center">
@@ -2869,16 +2892,24 @@ function MatrixTable({
                             </td>
                             {(() => {
                               const subAlloc = allocatorBySub[sub.id] || 0;
-                              const projected = sub.alocAtual + subAlloc;
+                              const assetAlloc = assetAllocBySub[sub.id] || 0;
+                              const effectiveSubAlloc = Math.max(subAlloc, assetAlloc);
+                              const projected = sub.alocAtual + effectiveSubAlloc;
+                              const projIdeal = sub.alocIdeal * idealScale;
                               const newPctFora =
-                                sub.alocIdeal > 0
-                                  ? Math.abs(((projected - sub.alocIdeal) / sub.alocIdeal) * 100)
+                                projIdeal > 0
+                                  ? Math.abs(((projected - projIdeal) / projIdeal) * 100)
                                   : sub.pctForaIdeal;
-                              const remainingSugestao = sub.sugestao - subAlloc;
-                              const pctForaDisplay = subAlloc !== 0 ? newPctFora : sub.pctForaIdeal;
+                              const remainingSugestao = sub.sugestao - effectiveSubAlloc;
+                              const pctForaDisplay =
+                                effectiveSubAlloc !== 0
+                                  ? newPctFora
+                                  : idealScale !== 1
+                                    ? Math.abs(((sub.alocAtual - projIdeal) / projIdeal) * 100)
+                                    : sub.pctForaIdeal;
                               return (
                                 <>
-                                  <td className="sticky left-[340px] z-[5] bg-[#141414] px-2 py-2 text-right">
+                                  <td className="sticky left-[340px] z-[5] bg-[#141414] px-2 py-2 text-center">
                                     <span
                                       className={
                                         pctForaDisplay > 10
@@ -2891,26 +2922,45 @@ function MatrixTable({
                                       {pctForaDisplay.toFixed(1)}%
                                     </span>
                                   </td>
-                                  <td className="sticky left-[392px] z-[5] bg-[#141414] px-2 py-2 text-right text-[#bbb]">
-                                    {formatBRL(sub.alocIdeal)}
-                                  </td>
-                                  <td className="sticky left-[452px] z-[5] bg-[#141414] px-2 py-2 text-right">
-                                    <div className="flex flex-col items-end">
+                                  <td className="sticky left-[392px] z-[5] bg-[#141414] px-2 py-2 text-center">
+                                    <div className="flex flex-col items-center">
                                       <span className="text-[#bbb]">
-                                        {formatBRL(sub.alocAtual)}
+                                        {formatBRL(
+                                          idealScale !== 1
+                                            ? sub.alocIdeal * idealScale
+                                            : sub.alocIdeal,
+                                        )}
                                       </span>
-                                      {subAlloc !== 0 && (
-                                        <span
-                                          className={`text-[9px] font-medium ${subAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
-                                        >
-                                          {subAlloc > 0 ? "+" : ""}
-                                          {formatBRL(subAlloc)} → {formatBRL(projected)}
+                                      {idealScale !== 1 && (
+                                        <span className="text-[9px] text-[#555]">
+                                          era {formatBRL(sub.alocIdeal)}
                                         </span>
                                       )}
                                     </div>
                                   </td>
-                                  <td className="sticky left-[512px] z-[5] bg-[#141414] px-2 py-2 text-right">
-                                    {subAlloc !== 0 ? (
+                                  <td className="sticky left-[452px] z-[5] bg-[#141414] px-2 py-2 text-center">
+                                    <div className="flex flex-col items-center">
+                                      {effectiveSubAlloc !== 0 ? (
+                                        <>
+                                          <span
+                                            className={`font-medium ${effectiveSubAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                                          >
+                                            {formatBRL(projected)}
+                                          </span>
+                                          <span className="text-[9px] text-[#555]">
+                                            {effectiveSubAlloc > 0 ? "+" : ""}
+                                            {formatBRL(effectiveSubAlloc)}
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-[#bbb]">
+                                          {formatBRL(sub.alocAtual)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="sticky left-[512px] z-[5] bg-[#141414] px-2 py-2 pr-4 text-center">
+                                    {effectiveSubAlloc !== 0 ? (
                                       <SugestaoCell value={remainingSugestao} />
                                     ) : (
                                       <SugestaoCell value={sub.sugestao} />
@@ -3048,7 +3098,7 @@ function MatrixTable({
                                 <td className="py-1 pl-10 pr-4 text-[10px] font-medium text-[#555]">
                                   Ativo
                                 </td>
-                                <td className="px-2 py-1 text-right text-[10px] font-medium text-[#555]">
+                                <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
                                   % Sub
                                 </td>
                                 <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
@@ -3060,7 +3110,7 @@ function MatrixTable({
                                 <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
                                   Liquidez
                                 </td>
-                                <td className="px-2 py-1 text-right text-[10px] font-medium text-[#555]">
+                                <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
                                   Valor
                                 </td>
                                 <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
@@ -3151,7 +3201,7 @@ function MatrixTable({
                                           )}
                                         </div>
                                       </td>
-                                      <td className="px-2 py-1.5 text-right text-[10px] text-[#666]">
+                                      <td className="px-2 py-1.5 text-center text-[10px] text-[#666]">
                                         {asset.pctSub.toFixed(1)}%
                                       </td>
                                       <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">
@@ -3167,7 +3217,7 @@ function MatrixTable({
                                           {asset.liquidity || "—"}
                                         </span>
                                       </td>
-                                      <td className="px-2 py-1.5 text-right text-[10px] text-[#888]">
+                                      <td className="px-2 py-1.5 text-center text-[10px] text-[#888]">
                                         {formatBRL(asset.value)}
                                       </td>
                                       <td className="px-2 py-1.5 text-center">
@@ -3295,7 +3345,7 @@ function MatrixTable({
                                     <td className="px-2 py-1.5 text-center text-[10px] text-[#6ecf8e]/60">
                                       {added.liquidity || "—"}
                                     </td>
-                                    <td className="px-2 py-1.5 text-right text-[10px] text-[#6ecf8e]/60">
+                                    <td className="px-2 py-1.5 text-center text-[10px] text-[#6ecf8e]/60">
                                       {added.value ? formatBRL(added.value) : "—"}
                                     </td>
                                     <td className="px-2 py-1.5 text-center">
@@ -3321,7 +3371,7 @@ function MatrixTable({
                                             >
                                               {""}
                                             </td>
-                                            <td className="w-[90px] px-1 py-0.5 text-right text-[10px]">
+                                            <td className="w-[90px] px-1 py-0.5 text-center text-[10px]">
                                               {idx === addedInstIdx && added.value ? (
                                                 <span className="font-medium text-[#6ecf8e]">
                                                   {formatBRL(added.value)}
@@ -3530,36 +3580,62 @@ function MatrixTable({
               <td className="sticky left-0 z-10 bg-[#1a1a1a] px-4 py-2.5 font-semibold text-[#ededed]">
                 Total
               </td>
-              <td className="sticky left-[200px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right font-semibold text-[#ededed]">
+              <td className="sticky left-[200px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center font-semibold text-[#ededed]">
                 {grandTotals.pctPL.toFixed(1)}%
               </td>
               <td className="sticky left-[252px] z-10 bg-[#1a1a1a]" />
               <td className="sticky left-[340px] z-10 bg-[#1a1a1a]" />
-              <td className="sticky left-[392px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right font-semibold text-[#ededed]">
-                {formatBRLFull(grandTotals.alocIdeal)}
+              <td className="sticky left-[392px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center font-semibold">
+                <div className="flex flex-col items-center">
+                  <span className="text-[#ededed]">
+                    {formatBRLFull(
+                      idealScale !== 1 ? grandTotals.alocIdeal * idealScale : grandTotals.alocIdeal,
+                    )}
+                  </span>
+                  {idealScale !== 1 && (
+                    <span className="text-[9px] font-normal text-[#555]">
+                      era {formatBRLFull(grandTotals.alocIdeal)}
+                    </span>
+                  )}
+                </div>
               </td>
               {(() => {
-                const totalAlloc = Object.values(allocatorBySub).reduce((s, v) => s + v, 0);
+                const totalAlloc = CATEGORIES.reduce(
+                  (sum, cat) =>
+                    sum +
+                    cat.subs.reduce((s, sub) => {
+                      const sa = allocatorBySub[sub.id] || 0;
+                      const aa = assetAllocBySub[sub.id] || 0;
+                      return s + Math.max(sa, aa);
+                    }, 0),
+                  0,
+                );
                 const projectedAtual = grandTotals.alocAtual + totalAlloc;
                 const remainingSugestao = grandTotals.sugestao - totalAlloc;
                 return (
                   <>
-                    <td className="sticky left-[452px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right">
-                      <div className="flex flex-col items-end">
-                        <span className="font-semibold text-[#ededed]">
-                          {formatBRLFull(grandTotals.alocAtual)}
-                        </span>
-                        {totalAlloc !== 0 && (
-                          <span
-                            className={`text-[9px] font-medium ${totalAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
-                          >
-                            {totalAlloc > 0 ? "+" : ""}
-                            {formatBRL(totalAlloc)} → {formatBRLFull(projectedAtual)}
+                    <td className="sticky left-[452px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center">
+                      <div className="flex flex-col items-center">
+                        {totalAlloc !== 0 ? (
+                          <>
+                            <span
+                              className={`font-semibold ${totalAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                            >
+                              {formatBRLFull(projectedAtual)}
+                            </span>
+                            <span className="text-[9px] text-[#555]">
+                              {totalAlloc > 0 ? "+" : ""}
+                              {formatBRL(totalAlloc)}
+                            </span>
+                          </>
+                        ) : (
+                          <span className="font-semibold text-[#ededed]">
+                            {formatBRLFull(grandTotals.alocAtual)}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="sticky left-[512px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right">
+                    <td className="sticky left-[512px] z-10 bg-[#1a1a1a] px-2 py-2.5 pr-4 text-center">
                       {totalAlloc !== 0 ? (
                         <SugestaoCell value={remainingSugestao} />
                       ) : (
@@ -4822,6 +4898,8 @@ export default function MockupRealocador() {
                 pendingChanges={pendingChanges}
                 onAddChange={addChange}
                 onRemoveChange={removeChange}
+                globalBudgetNum={globalBudgetNum}
+                totalAllocated={totalAllocated}
               />
 
               <FGCBarChart />

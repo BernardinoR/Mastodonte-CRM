@@ -43,6 +43,8 @@ export interface VarreduraConta {
   manager_name: string | null;
   sweep_active: boolean;
   sweep_frequency: string | null;
+  whatsapp_group_id: string | null;
+  whatsapp_group_linked: boolean;
   client: DbClient;
   institution: DbInstitution & { id?: number };
   extrato_statuses: DbExtratoStatus[];
@@ -123,7 +125,11 @@ export function buildDirectInstitutions(
   return result.sort((a, b) => a.institutionName.localeCompare(b.institutionName));
 }
 
-export function buildManagerGroups(contas: VarreduraConta[], competencia: string): ManagerGroup[] {
+export function buildManagerGroups(
+  contas: VarreduraConta[],
+  competencia: string,
+  whatsappGroupLinkMap?: Map<string, string | null>,
+): ManagerGroup[] {
   const manualContas = contas.filter(
     (c) =>
       (c.type === "Manual" || c.type === "Manual Cliente") &&
@@ -140,10 +146,21 @@ export function buildManagerGroups(contas: VarreduraConta[], competencia: string
 
     let contactPhone: string | undefined;
     let contactEmail: string | undefined;
+    let whatsappIsGroup = false;
+    let whatsappGroupLink: string | undefined;
 
     if (c.type === "Manual") {
-      contactPhone = c.manager_phone ?? undefined;
+      const groupIdStr = c.whatsapp_group_id != null ? String(c.whatsapp_group_id) : null;
+      contactPhone =
+        c.whatsapp_group_linked && groupIdStr
+          ? (whatsappGroupLinkMap?.get(groupIdStr) ?? c.manager_phone ?? undefined)
+          : (c.manager_phone ?? undefined);
       contactEmail = c.manager_email ?? undefined;
+      whatsappIsGroup = !!c.whatsapp_group_linked;
+      whatsappGroupLink =
+        c.whatsapp_group_linked && groupIdStr
+          ? (whatsappGroupLinkMap?.get(groupIdStr) ?? undefined)
+          : undefined;
     } else {
       contactPhone = c.client.phone ?? undefined;
       contactEmail = c.client.emails?.[c.client.primary_email_index ?? 0] ?? undefined;
@@ -158,6 +175,10 @@ export function buildManagerGroups(contas: VarreduraConta[], competencia: string
       status,
       phone: contactPhone,
       email: contactEmail,
+      contactType: c.type === "Manual" ? "manager" : "client",
+      managerName: c.manager_name ?? undefined,
+      whatsappIsGroup,
+      whatsappGroupLink,
     });
   }
 

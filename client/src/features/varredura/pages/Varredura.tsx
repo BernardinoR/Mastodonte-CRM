@@ -18,6 +18,7 @@ const CONTA_SELECT = `
   id, client_id, type, start_date, end_date, account_name,
   manager_phone, manager_email, manager_name,
   sweep_active, sweep_frequency,
+  whatsapp_group_id, whatsapp_group_linked,
   client:clients!client_id(name, initials, emails, primary_email_index, phone),
   institution:institutions!institution_id(id, name, attachment_count, currency, access_url),
   extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
@@ -30,6 +31,9 @@ export default function Varredura() {
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [contas, setContas] = useState<VarreduraConta[]>([]);
   const [checkedInstitutionIds, setCheckedInstitutionIds] = useState<Set<number>>(new Set());
+  const [whatsappGroupLinkMap, setWhatsappGroupLinkMap] = useState<Map<string, string | null>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(true);
 
   const competencia = useMemo(() => formatCompetencia(selectedDay), [selectedDay]);
@@ -44,9 +48,10 @@ export default function Varredura() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [contasResult, checksResult] = await Promise.all([
+      const [contasResult, checksResult, whatsappResult] = await Promise.all([
         supabase.from("contas").select(CONTA_SELECT).eq("status", "Ativa"),
         supabase.from("varredura_checks").select("institution_id").eq("date", dateStr),
+        supabase.from("whatsapp_groups").select("id, link").eq("status", "Ativo"),
       ]);
 
       if (contasResult.error) throw contasResult.error;
@@ -56,10 +61,17 @@ export default function Varredura() {
         (checksResult.data ?? []).map((c: { institution_id: number }) => c.institution_id),
       );
       setCheckedInstitutionIds(ids);
+
+      const linkMap = new Map<string, string | null>();
+      for (const g of whatsappResult.data ?? []) {
+        linkMap.set(String(g.id), g.link);
+      }
+      setWhatsappGroupLinkMap(linkMap);
     } catch (error) {
       console.error("Failed to fetch varredura data:", error);
       setContas([]);
       setCheckedInstitutionIds(new Set());
+      setWhatsappGroupLinkMap(new Map());
     } finally {
       setLoading(false);
     }
@@ -75,8 +87,8 @@ export default function Varredura() {
   );
 
   const managerGroups = useMemo(
-    () => buildManagerGroups(contas, competencia),
-    [contas, competencia],
+    () => buildManagerGroups(contas, competencia, whatsappGroupLinkMap),
+    [contas, competencia, whatsappGroupLinkMap],
   );
 
   const checkedDirect = directInstitutions.filter((i) => i.checked).length;

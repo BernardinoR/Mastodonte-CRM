@@ -10,6 +10,12 @@ import {
 } from "lucide-react";
 import type { ManagerGroup, VarreduraStatus } from "../types/varredura";
 import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
+import { useToast } from "@/shared/hooks/use-toast";
+import {
+  buildSweepMessage,
+  buildSweepWhatsAppUrl,
+  buildSweepMailtoUrl,
+} from "../utils/sweepMessage";
 
 const STATUS_CONFIG: Record<
   VarreduraStatus,
@@ -45,6 +51,7 @@ export function ManagerGroupCard({
   group: ManagerGroup;
   defaultExpanded?: boolean;
 }) {
+  const { toast } = useToast();
   const [expanded, setExpanded] = useState(defaultExpanded);
   const color = getInstitutionColor(group.institutionName);
   const pendingCount = group.clients.filter((c) => c.status === "pendente").length;
@@ -109,20 +116,29 @@ export function ManagerGroupCard({
                 </span>
                 <span className="text-xs text-[#555]">{client.accountName}</span>
                 <div className="invisible ml-auto flex shrink-0 items-center gap-1 group-hover/row:visible">
-                  {client.phone && (
-                    <a
-                      href={`https://wa.me/${client.phone.replace(/\D/g, "")}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                  {(client.whatsappGroupLink || client.phone) && (
+                    <button
+                      onClick={() => {
+                        const msg = buildSweepMessage(client, group.institutionName);
+                        if (client.whatsappIsGroup && client.whatsappGroupLink) {
+                          navigator.clipboard.writeText(msg);
+                          toast({ title: "Mensagem copiada!" });
+                          window.open(client.whatsappGroupLink, "_blank");
+                        } else {
+                          window.open(buildSweepWhatsAppUrl(client.phone!, msg), "_blank");
+                        }
+                      }}
                       className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6ecf8e]"
                       data-testid={`button-whatsapp-${client.clientInitials.toLowerCase()}`}
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
-                    </a>
+                    </button>
                   )}
                   {client.email && (
                     <a
-                      href={`mailto:${client.email}`}
+                      href={buildSweepMailtoUrl(client.email, client, group.institutionName)}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6db1d4]"
                       data-testid={`button-email-${client.clientInitials.toLowerCase()}`}
                     >

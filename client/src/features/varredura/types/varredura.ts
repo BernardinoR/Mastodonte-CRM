@@ -18,6 +18,10 @@ export interface ManagerClient {
   status: VarreduraStatus;
   phone?: string;
   email?: string;
+  contactType: "manager" | "client";
+  managerName?: string;
+  whatsappIsGroup: boolean;
+  whatsappGroupLink?: string;
 }
 
 export interface ManagerGroup {
