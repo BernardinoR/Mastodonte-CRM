@@ -47,9 +47,11 @@ const STATUS_CONFIG: Record<
 export function ManagerGroupCard({
   group,
   defaultExpanded = false,
+  onStatusChange,
 }: {
   group: ManagerGroup;
   defaultExpanded?: boolean;
+  onStatusChange?: (contaId: string) => void;
 }) {
   const { toast } = useToast();
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -127,6 +129,7 @@ export function ManagerGroupCard({
                         } else {
                           window.open(buildSweepWhatsAppUrl(client.phone!, msg), "_blank");
                         }
+                        if (client.status !== "verificado") onStatusChange?.(client.contaId);
                       }}
                       className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6ecf8e]"
                       data-testid={`button-whatsapp-${client.clientInitials.toLowerCase()}`}
@@ -135,15 +138,18 @@ export function ManagerGroupCard({
                     </button>
                   )}
                   {client.email && (
-                    <a
-                      href={buildSweepMailtoUrl(client.email, client, group.institutionName)}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      onClick={() => {
+                        window.open(
+                          buildSweepMailtoUrl(client.email!, client, group.institutionName),
+                        );
+                        if (client.status !== "verificado") onStatusChange?.(client.contaId);
+                      }}
                       className="flex h-7 w-7 items-center justify-center rounded-md text-[#555] hover:bg-[#333] hover:text-[#6db1d4]"
                       data-testid={`button-email-${client.clientInitials.toLowerCase()}`}
                     >
                       <Mail className="h-3.5 w-3.5" />
-                    </a>
+                    </button>
                   )}
                 </div>
                 <span

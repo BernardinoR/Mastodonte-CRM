@@ -141,6 +141,69 @@ export default function Varredura() {
     [userId, dateStr, toast, fetchData],
   );
 
+  const updateClientStatus = useCallback(
+    async (contaId: string) => {
+      const now = new Date().toISOString();
+
+      // Optimistic update
+      setContas((prev) =>
+        prev.map((c) => {
+          if (c.id !== contaId) return c;
+          const existing = c.extrato_statuses.find((s) => s.competencia === competencia);
+          if (existing) {
+            return {
+              ...c,
+              extrato_statuses: c.extrato_statuses.map((s) =>
+                s.competencia === competencia
+                  ? { ...s, status: "Solicitado", requested_at: now }
+                  : s,
+              ),
+            };
+          }
+          return {
+            ...c,
+            extrato_statuses: [
+              ...c.extrato_statuses,
+              {
+                id: crypto.randomUUID(),
+                status: "Solicitado",
+                requested_at: now,
+                received_at: null,
+                consolidated_at: null,
+                updated_at: now,
+                competencia,
+              },
+            ],
+          };
+        }),
+      );
+
+      try {
+        const { error } = await supabase.from("extrato_statuses").upsert(
+          {
+            id: crypto.randomUUID(),
+            conta_id: contaId,
+            competencia,
+            status: "Solicitado",
+            requested_at: now,
+            updated_at: now,
+          },
+          { onConflict: "conta_id,competencia", ignoreDuplicates: false },
+        );
+        if (error) throw error;
+      } catch (error) {
+        console.error("Failed to update client status:", error);
+        toast({
+          title: "Erro ao atualizar status",
+          description: "Tente novamente.",
+          variant: "destructive",
+        });
+        fetchData();
+      }
+    },
+    [competencia, toast, fetchData],
+  );
+
   const pendingManagerCount = managerGroups.reduce(
     (s, g) => s + g.clients.filter((c) => c.status !== "verificado").length,
     0,
@@ -216,6 +279,7 @@ export default function Varredura() {
                     key={group.institutionName}
                     group={group}
                     defaultExpanded={idx === 0}
+                    onStatusChange={updateClientStatus}
                   />
                 ))}
               </div>
