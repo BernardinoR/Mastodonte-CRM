@@ -635,6 +635,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         managerPhone,
         whatsappGroupId,
         whatsappGroupLinked,
+        sweepActive,
+        sweepFrequency,
       } = req.body;
 
       const updates: Record<string, any> = {};
@@ -653,6 +655,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (whatsappGroupId !== undefined)
         updates.whatsappGroupId = whatsappGroupId ? parseInt(whatsappGroupId, 10) : null;
       if (whatsappGroupLinked !== undefined) updates.whatsappGroupLinked = whatsappGroupLinked;
+      if (sweepActive !== undefined) updates.sweepActive = sweepActive;
+      if (sweepFrequency !== undefined) updates.sweepFrequency = sweepFrequency || null;
 
       const conta = await storage.updateConta(id, updates);
       if (!conta) {

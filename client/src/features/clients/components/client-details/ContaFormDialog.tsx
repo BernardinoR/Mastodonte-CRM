@@ -56,6 +56,8 @@ export interface ContaFormData {
   whatsappGroupId: string;
   whatsappGroupAtivo: boolean;
   canais: string[];
+  varreduraAtiva: boolean;
+  varreduraFrequencia: string;
 }
 
 function formatCompetencia(value: string): string {
@@ -79,6 +81,12 @@ const tipoOptions: { value: ContaTipo; label: string }[] = [
   { value: "Manual Cliente", label: "Manual Cliente" },
 ];
 const frequenciaOptions = ["Mensal", "Trimestral", "Semestral"];
+const varreduraFrequenciaOptions = [
+  { value: "2dias", label: "A cada 2 dias" },
+  { value: "semanal", label: "Semanal" },
+  { value: "quinzenal", label: "Quinzenal" },
+  { value: "mensal", label: "Mensal" },
+];
 
 export function ContaFormDialog({
   conta,
@@ -105,6 +113,8 @@ export function ContaFormDialog({
   const [gerenteTelefone, setGerenteTelefone] = useState("");
   const [whatsappGroupId, setWhatsappGroupId] = useState("");
   const [whatsappGroupAtivo, setWhatsappGroupAtivo] = useState(false);
+  const [varreduraAtiva, setVarreduraAtiva] = useState(false);
+  const [varreduraFrequencia, setVarreduraFrequencia] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
@@ -123,6 +133,8 @@ export function ContaFormDialog({
         setWhatsappGroupId(conta.whatsappGroupId || "");
         setWhatsappGroupAtivo(conta.whatsappGroupAtivo || false);
         setCanais(conta.canais || ["WhatsApp", "Email"]);
+        setVarreduraAtiva(conta.varreduraAtiva || false);
+        setVarreduraFrequencia(conta.varreduraFrequencia || "");
       } else {
         setInstitutionId(null);
         setAccountName("");
@@ -138,6 +150,8 @@ export function ContaFormDialog({
         setGerenteTelefone("");
         setWhatsappGroupId("");
         setWhatsappGroupAtivo(false);
+        setVarreduraAtiva(false);
+        setVarreduraFrequencia("");
       }
     }
   }, [open, conta]);
@@ -158,6 +172,8 @@ export function ContaFormDialog({
       whatsappGroupId,
       whatsappGroupAtivo,
       canais,
+      varreduraAtiva,
+      varreduraFrequencia,
     });
   };
 
@@ -223,6 +239,12 @@ export function ContaFormDialog({
                   className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-[#2eaadc] data-[state=active]:bg-transparent data-[state=active]:text-[#2eaadc] data-[state=active]:shadow-none"
                 >
                   Contato do Gerente
+                </TabsTrigger>
+                <TabsTrigger
+                  value="varredura"
+                  className="rounded-none border-b-2 border-transparent bg-transparent py-3 text-sm font-medium text-zinc-500 shadow-none transition-colors hover:text-white data-[state=active]:border-[#2eaadc] data-[state=active]:bg-transparent data-[state=active]:text-[#2eaadc] data-[state=active]:shadow-none"
+                >
+                  Varredura
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -566,6 +588,44 @@ export function ContaFormDialog({
                   className="data-[state=checked]:bg-[#2eaadc]"
                 />
               </div>
+            </TabsContent>
+
+            <TabsContent value="varredura" className="space-y-6 px-6 py-6">
+              <div className="flex items-center justify-between rounded-md border border-[#3f3f46]/50 bg-[#27272a]/50 px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium">Ativar Varredura</p>
+                  <p className="text-xs text-muted-foreground">
+                    {varreduraAtiva
+                      ? "Varredura ativa — saldo será verificado periodicamente."
+                      : "Varredura desativada para esta conta."}
+                  </p>
+                </div>
+                <Switch
+                  checked={varreduraAtiva}
+                  onCheckedChange={setVarreduraAtiva}
+                  className="data-[state=checked]:bg-[#2eaadc]"
+                />
+              </div>
+
+              {varreduraAtiva && (
+                <div className="space-y-2">
+                  <Label className="mb-2 block text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                    Frequência de Verificação
+                  </Label>
+                  <Select value={varreduraFrequencia} onValueChange={setVarreduraFrequencia}>
+                    <SelectTrigger className="border-[#3f3f46] bg-[#27272a]">
+                      <SelectValue placeholder="Selecione a frequência" />
+                    </SelectTrigger>
+                    <SelectContent className="border-[#27272a] bg-[#18181b]">
+                      {varreduraFrequenciaOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </div>

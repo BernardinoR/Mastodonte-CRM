@@ -41,6 +41,8 @@ export interface VarreduraConta {
   manager_phone: string | null;
   manager_email: string | null;
   manager_name: string | null;
+  sweep_active: boolean;
+  sweep_frequency: string | null;
   client: DbClient;
   institution: DbInstitution & { id?: number };
   extrato_statuses: DbExtratoStatus[];
@@ -125,6 +127,7 @@ export function buildManagerGroups(contas: VarreduraConta[], competencia: string
   const manualContas = contas.filter(
     (c) =>
       (c.type === "Manual" || c.type === "Manual Cliente") &&
+      c.sweep_active &&
       isMonthInRange(competencia, c.start_date, c.end_date),
   );
 

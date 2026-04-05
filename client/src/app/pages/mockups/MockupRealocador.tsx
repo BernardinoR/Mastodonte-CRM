@@ -457,8 +457,8 @@ const CATEGORIES: Category[] = [
         ],
       },
       {
-        id: "pre",
-        name: "Pré-Fixado",
+        id: "pre-tit",
+        name: "Pré Fixado - Títulos",
         pctPL: 5.5,
         status: "atencao",
         pctForaIdeal: 4.6,
@@ -526,158 +526,281 @@ const CATEGORIES: Category[] = [
         ],
       },
       {
-        id: "debent",
-        name: "Debêntures",
+        id: "pre-fund",
+        name: "Pré Fixado - Fundos",
         pctPL: 3.5,
         status: "ok",
-        pctForaIdeal: 0.8,
+        pctForaIdeal: 1.8,
         alocIdeal: 463_750,
-        alocAtual: 460_100,
-        sugestao: 3_650,
+        alocAtual: 460_000,
+        sugestao: 3_750,
         byAccount: {
-          "XP PF": 180_000,
-          "BTG Principal": 130_000,
-          "Itaú Joint": 72_000,
-          Safra: 53_100,
-          Bradesco: 25_000,
+          "XP PF": 160_000,
+          "BTG Principal": 120_000,
+          "Itaú Joint": 85_000,
+          Safra: 60_000,
+          Bradesco: 35_000,
         },
         assets: [
           {
-            id: "a32",
-            name: "Deb. Eletrobras",
+            id: "a200",
+            name: "Kinea Pré FIC",
             account: "XP PF",
-            value: 180_000,
-            pctSub: 39.1,
-            rate: "IPCA+7.8%",
-            maturity: "Jun/2030",
-            liquidity: "D+180",
+            value: 160_000,
+            pctSub: 34.8,
+            rate: "Pré 12.5%",
+            liquidity: "D+30",
           },
           {
-            id: "a33",
-            name: "Deb. Rumo",
+            id: "a201",
+            name: "BTG Pré Fixado RF",
             account: "BTG Principal",
-            value: 130_000,
-            pctSub: 28.3,
-            rate: "CDI+2.1%",
-            maturity: "Dez/2029",
-            liquidity: "D+90",
+            value: 120_000,
+            pctSub: 26.1,
+            rate: "Pré 12.8%",
+            liquidity: "D+30",
           },
           {
-            id: "a34",
-            name: "Deb. Energisa",
+            id: "a202",
+            name: "Itaú Pré DI Mix",
             account: "Itaú Joint",
-            value: 72_000,
-            pctSub: 15.6,
-            rate: "IPCA+6.5%",
-            maturity: "Set/2031",
-            liquidity: "D+180",
+            value: 85_000,
+            pctSub: 18.5,
+            rate: "Pré 12.0%",
+            liquidity: "D+30",
           },
           {
-            id: "a35",
-            name: "Deb. CCR",
+            id: "a203",
+            name: "Safra Pré Select",
             account: "Safra",
-            value: 53_100,
-            pctSub: 11.5,
-            rate: "CDI+1.8%",
-            maturity: "Mar/2028",
-            liquidity: "D+90",
+            value: 60_000,
+            pctSub: 13.0,
+            rate: "Pré 13.0%",
+            liquidity: "D+30",
           },
           {
-            id: "a36",
-            name: "Deb. Sabesp",
+            id: "a204",
+            name: "Bradesco FI Pré",
             account: "Bradesco",
-            value: 25_000,
-            pctSub: 5.4,
-            rate: "IPCA+6.0%",
-            maturity: "Jul/2032",
-            liquidity: "D+360",
-          },
-        ],
-      },
-      {
-        id: "cri-cra",
-        name: "CRI / CRA",
-        pctPL: 2.5,
-        status: "atencao",
-        pctForaIdeal: 6.3,
-        alocIdeal: 331_250,
-        alocAtual: 352_000,
-        sugestao: -20_750,
-        byAccount: {
-          "XP PF": 140_000,
-          "BTG Principal": 100_000,
-          "Itaú Joint": 55_000,
-          Safra: 37_000,
-          Bradesco: 20_000,
-        },
-        assets: [
-          {
-            id: "a37",
-            name: "CRI MRV",
-            account: "XP PF",
-            value: 140_000,
-            pctSub: 39.8,
-            rate: "IPCA+8.5%",
-            maturity: "Dez/2030",
-            liquidity: "D+360",
-          },
-          {
-            id: "a38",
-            name: "CRA BRF",
-            account: "BTG Principal",
-            value: 100_000,
-            pctSub: 28.4,
-            rate: "CDI+2.5%",
-            maturity: "Jun/2029",
-            liquidity: "D+180",
-          },
-          {
-            id: "a39",
-            name: "CRI Cyrela",
-            account: "Itaú Joint",
-            value: 55_000,
-            pctSub: 15.6,
-            rate: "IPCA+7.8%",
-            maturity: "Set/2031",
-            liquidity: "D+360",
-          },
-          {
-            id: "a40",
-            name: "CRA JBS",
-            account: "Safra",
-            value: 37_000,
-            pctSub: 10.5,
-            rate: "CDI+2.0%",
-            maturity: "Mar/2028",
-            liquidity: "D+180",
-          },
-          {
-            id: "a41",
-            name: "CRI Log CP",
-            account: "Bradesco",
-            value: 20_000,
-            pctSub: 5.7,
-            rate: "IPCA+8.0%",
-            maturity: "Dez/2029",
-            liquidity: "D+360",
+            value: 35_000,
+            pctSub: 7.6,
+            rate: "Pré 11.8%",
+            liquidity: "D+30",
           },
         ],
       },
     ],
   },
   {
-    id: "eq-br",
-    name: "Equities Brasil",
+    id: "mm",
+    name: "Multimercado",
     subs: [
       {
-        id: "acoes",
-        name: "Ações",
-        pctPL: 8.5,
+        id: "mm-gen",
+        name: "Multimercado",
+        pctPL: 4.0,
+        status: "atencao",
+        pctForaIdeal: 5.2,
+        alocIdeal: 530_000,
+        alocAtual: 502_500,
+        sugestao: 27_500,
+        byAccount: {
+          "XP PF": 200_000,
+          "BTG Principal": 140_000,
+          "Itaú Joint": 80_000,
+          Safra: 52_500,
+          Bradesco: 30_000,
+        },
+        assets: [
+          {
+            id: "a70",
+            name: "Bridgewater All Weather",
+            account: "XP PF",
+            value: 200_000,
+            pctSub: 39.8,
+            liquidity: "D+90",
+          },
+          {
+            id: "a71",
+            name: "AQR Risk Parity",
+            account: "BTG Principal",
+            value: 140_000,
+            pctSub: 27.9,
+            liquidity: "D+90",
+          },
+          {
+            id: "a72",
+            name: "Itaú Global Macro",
+            account: "Itaú Joint",
+            value: 80_000,
+            pctSub: 15.9,
+            liquidity: "D+30",
+          },
+          {
+            id: "a73",
+            name: "Safra Multi Global",
+            account: "Safra",
+            value: 52_500,
+            pctSub: 10.4,
+            liquidity: "D+30",
+          },
+          {
+            id: "a74",
+            name: "Bradesco Global Alloc.",
+            account: "Bradesco",
+            value: 30_000,
+            pctSub: 6.0,
+            liquidity: "D+30",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "imob-cat",
+    name: "Imobiliário",
+    subs: [
+      {
+        id: "imob-atv",
+        name: "Imobiliário - Ativos",
+        pctPL: 4.5,
+        status: "ok",
+        pctForaIdeal: 1.5,
+        alocIdeal: 596_250,
+        alocAtual: 605_300,
+        sugestao: -9_050,
+        byAccount: {
+          "XP PF": 240_000,
+          "BTG Principal": 170_000,
+          "Itaú Joint": 95_000,
+          Safra: 60_300,
+          Bradesco: 40_000,
+        },
+        assets: [
+          {
+            id: "a86",
+            name: "HGLG11 - CSHG Logística",
+            account: "XP PF",
+            value: 130_000,
+            pctSub: 21.5,
+            liquidity: "D+2",
+          },
+          {
+            id: "a87",
+            name: "XPML11 - XP Malls",
+            account: "XP PF",
+            value: 110_000,
+            pctSub: 18.2,
+            liquidity: "D+2",
+          },
+          {
+            id: "a88",
+            name: "BTLG11 - BTG Log.",
+            account: "BTG Principal",
+            value: 170_000,
+            pctSub: 28.1,
+            liquidity: "D+2",
+          },
+          {
+            id: "a89",
+            name: "IRDM11 - Iridium Receb.",
+            account: "Itaú Joint",
+            value: 95_000,
+            pctSub: 15.7,
+            liquidity: "D+2",
+          },
+          {
+            id: "a90",
+            name: "KNCR11 - Kinea Rend.",
+            account: "Safra",
+            value: 60_300,
+            pctSub: 10.0,
+            liquidity: "D+2",
+          },
+          {
+            id: "a91",
+            name: "HGRE11 - CSHG Real Est.",
+            account: "Bradesco",
+            value: 40_000,
+            pctSub: 6.6,
+            liquidity: "D+2",
+          },
+        ],
+      },
+      {
+        id: "imob-fund",
+        name: "Imobiliário - Fundos",
+        pctPL: 2.1,
+        status: "ok",
+        pctForaIdeal: 2.0,
+        alocIdeal: 278_250,
+        alocAtual: 280_000,
+        sugestao: -1_750,
+        byAccount: {
+          "XP PF": 100_000,
+          "BTG Principal": 75_000,
+          "Itaú Joint": 50_000,
+          Safra: 35_000,
+          Bradesco: 20_000,
+        },
+        assets: [
+          {
+            id: "a210",
+            name: "Kinea Renda Imob. FII",
+            account: "XP PF",
+            value: 100_000,
+            pctSub: 35.7,
+            liquidity: "D+30",
+          },
+          {
+            id: "a211",
+            name: "BTG Real Estate FoF",
+            account: "BTG Principal",
+            value: 75_000,
+            pctSub: 26.8,
+            liquidity: "D+30",
+          },
+          {
+            id: "a212",
+            name: "Itaú Imob. Renda FIC",
+            account: "Itaú Joint",
+            value: 50_000,
+            pctSub: 17.9,
+            liquidity: "D+30",
+          },
+          {
+            id: "a213",
+            name: "Safra FoF Imob.",
+            account: "Safra",
+            value: 35_000,
+            pctSub: 12.5,
+            liquidity: "D+30",
+          },
+          {
+            id: "a214",
+            name: "Bradesco FII Mix",
+            account: "Bradesco",
+            value: 20_000,
+            pctSub: 7.1,
+            liquidity: "D+30",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "acoes-cat",
+    name: "Ações",
+    subs: [
+      {
+        id: "acoes-atv",
+        name: "Ações - Ativos",
+        pctPL: 7.0,
         status: "desbalanceado",
         pctForaIdeal: 12.5,
-        alocIdeal: 1_126_250,
+        alocIdeal: 927_500,
         alocAtual: 985_500,
-        sugestao: 140_750,
+        sugestao: -58_000,
         byAccount: {
           "XP PF": 400_000,
           "BTG Principal": 280_000,
@@ -753,8 +876,126 @@ const CATEGORIES: Category[] = [
         ],
       },
       {
-        id: "long-biased",
-        name: "Long Biased",
+        id: "acoes-etf",
+        name: "Ações - ETFs",
+        pctPL: 2.2,
+        status: "ok",
+        pctForaIdeal: 2.5,
+        alocIdeal: 291_500,
+        alocAtual: 285_000,
+        sugestao: 6_500,
+        byAccount: {
+          "XP PF": 110_000,
+          "BTG Principal": 75_000,
+          "Itaú Joint": 50_000,
+          Safra: 30_000,
+          Bradesco: 20_000,
+        },
+        assets: [
+          {
+            id: "a220",
+            name: "BOVA11 - Ibovespa ETF",
+            account: "XP PF",
+            value: 110_000,
+            pctSub: 38.6,
+            liquidity: "D+2",
+          },
+          {
+            id: "a221",
+            name: "SMAL11 - Small Cap ETF",
+            account: "BTG Principal",
+            value: 75_000,
+            pctSub: 26.3,
+            liquidity: "D+2",
+          },
+          {
+            id: "a222",
+            name: "IVVB11 - S&P 500 ETF",
+            account: "Itaú Joint",
+            value: 50_000,
+            pctSub: 17.5,
+            liquidity: "D+2",
+          },
+          {
+            id: "a223",
+            name: "DIVO11 - Dividendos ETF",
+            account: "Safra",
+            value: 30_000,
+            pctSub: 10.5,
+            liquidity: "D+2",
+          },
+          {
+            id: "a224",
+            name: "HASH11 - Crypto ETF",
+            account: "Bradesco",
+            value: 20_000,
+            pctSub: 7.0,
+            liquidity: "D+2",
+          },
+        ],
+      },
+      {
+        id: "acoes-fund",
+        name: "Ações - Fundos",
+        pctPL: 2.5,
+        status: "desbalanceado",
+        pctForaIdeal: 18.0,
+        alocIdeal: 331_250,
+        alocAtual: 271_625,
+        sugestao: 59_625,
+        byAccount: {
+          "XP PF": 110_000,
+          "BTG Principal": 75_000,
+          "Itaú Joint": 45_000,
+          Safra: 26_625,
+          Bradesco: 15_000,
+        },
+        assets: [
+          {
+            id: "a60",
+            name: "Trígono Flagship SC",
+            account: "XP PF",
+            value: 110_000,
+            pctSub: 40.5,
+            liquidity: "D+30",
+          },
+          {
+            id: "a61",
+            name: "HIX Capital FIA",
+            account: "BTG Principal",
+            value: 75_000,
+            pctSub: 27.6,
+            liquidity: "D+30",
+          },
+          {
+            id: "a62",
+            name: "Brasil Capital SC",
+            account: "Itaú Joint",
+            value: 45_000,
+            pctSub: 16.6,
+            liquidity: "D+30",
+          },
+          {
+            id: "a63",
+            name: "Organon FIA",
+            account: "Safra",
+            value: 26_625,
+            pctSub: 9.8,
+            liquidity: "D+30",
+          },
+          {
+            id: "a64",
+            name: "Constellation Compounders",
+            account: "Bradesco",
+            value: 15_000,
+            pctSub: 5.5,
+            liquidity: "D+30",
+          },
+        ],
+      },
+      {
+        id: "acoes-lb",
+        name: "Ações - Long Biased",
         pctPL: 4.5,
         status: "ok",
         pctForaIdeal: 2.0,
@@ -812,36 +1053,52 @@ const CATEGORIES: Category[] = [
         ],
       },
       {
-        id: "private-br",
-        name: "Private Brasil",
-        pctPL: 4.0,
+        id: "pe-vc",
+        name: "PE / VC / Special Sits",
+        pctPL: 6.3,
         status: "ok",
-        pctForaIdeal: 1.0,
-        alocIdeal: 530_000,
-        alocAtual: 524_700,
-        sugestao: 5_300,
+        pctForaIdeal: 0.6,
+        alocIdeal: 834_750,
+        alocAtual: 830_000,
+        sugestao: 4_750,
         byAccount: {
-          "XP PF": 210_000,
-          "BTG Principal": 150_000,
-          "Itaú Joint": 80_000,
-          Safra: 54_700,
-          Bradesco: 30_000,
+          "XP PF": 320_000,
+          "BTG Principal": 230_000,
+          "Itaú Joint": 140_000,
+          Safra: 85_000,
+          Bradesco: 55_000,
         },
         assets: [
           {
             id: "a55",
             name: "Vinci Partners Private",
             account: "XP PF",
-            value: 210_000,
-            pctSub: 40.0,
+            value: 180_000,
+            pctSub: 21.7,
+            liquidity: "Ilíquido",
+          },
+          {
+            id: "a92",
+            name: "Pátria Growth Fund V",
+            account: "XP PF",
+            value: 140_000,
+            pctSub: 16.9,
             liquidity: "Ilíquido",
           },
           {
             id: "a56",
             name: "Pátria Infra BR IV",
             account: "BTG Principal",
-            value: 150_000,
-            pctSub: 28.6,
+            value: 120_000,
+            pctSub: 14.5,
+            liquidity: "Ilíquido",
+          },
+          {
+            id: "a93",
+            name: "Vinci Capital Partners IV",
+            account: "BTG Principal",
+            value: 110_000,
+            pctSub: 13.3,
             liquidity: "Ilíquido",
           },
           {
@@ -849,15 +1106,31 @@ const CATEGORIES: Category[] = [
             name: "Itaú Private Equity II",
             account: "Itaú Joint",
             value: 80_000,
-            pctSub: 15.2,
+            pctSub: 9.6,
+            liquidity: "Ilíquido",
+          },
+          {
+            id: "a94",
+            name: "Itaú PE Fund III",
+            account: "Itaú Joint",
+            value: 60_000,
+            pctSub: 7.2,
             liquidity: "Ilíquido",
           },
           {
             id: "a58",
             name: "Spectra Private V",
             account: "Safra",
-            value: 54_700,
-            pctSub: 10.4,
+            value: 55_000,
+            pctSub: 6.6,
+            liquidity: "Ilíquido",
+          },
+          {
+            id: "a95",
+            name: "Spectra Ventures VII",
+            account: "Safra",
+            value: 30_000,
+            pctSub: 3.6,
             liquidity: "Ilíquido",
           },
           {
@@ -865,67 +1138,16 @@ const CATEGORIES: Category[] = [
             name: "Kinea Private Equity",
             account: "Bradesco",
             value: 30_000,
-            pctSub: 5.7,
+            pctSub: 3.6,
             liquidity: "Ilíquido",
           },
-        ],
-      },
-      {
-        id: "small-caps",
-        name: "Small Caps",
-        pctPL: 2.5,
-        status: "desbalanceado",
-        pctForaIdeal: 18.0,
-        alocIdeal: 331_250,
-        alocAtual: 271_625,
-        sugestao: 59_625,
-        byAccount: {
-          "XP PF": 110_000,
-          "BTG Principal": 75_000,
-          "Itaú Joint": 45_000,
-          Safra: 26_625,
-          Bradesco: 15_000,
-        },
-        assets: [
           {
-            id: "a60",
-            name: "Trígono Flagship SC",
-            account: "XP PF",
-            value: 110_000,
-            pctSub: 40.5,
-            liquidity: "D+30",
-          },
-          {
-            id: "a61",
-            name: "HIX Capital FIA",
-            account: "BTG Principal",
-            value: 75_000,
-            pctSub: 27.6,
-            liquidity: "D+30",
-          },
-          {
-            id: "a62",
-            name: "Brasil Capital SC",
-            account: "Itaú Joint",
-            value: 45_000,
-            pctSub: 16.6,
-            liquidity: "D+30",
-          },
-          {
-            id: "a63",
-            name: "Organon FIA",
-            account: "Safra",
-            value: 26_625,
-            pctSub: 9.8,
-            liquidity: "D+30",
-          },
-          {
-            id: "a64",
-            name: "Constellation Compounders",
+            id: "a96",
+            name: "EB Capital FIP",
             account: "Bradesco",
-            value: 15_000,
-            pctSub: 5.5,
-            liquidity: "D+30",
+            value: 25_000,
+            pctSub: 3.0,
+            liquidity: "Ilíquido",
           },
         ],
       },
@@ -937,7 +1159,7 @@ const CATEGORIES: Category[] = [
     subs: [
       {
         id: "ext-rf",
-        name: "RF Exterior",
+        name: "Exterior - Renda Fixa",
         pctPL: 4.5,
         status: "ok",
         pctForaIdeal: 0.8,
@@ -1000,67 +1222,8 @@ const CATEGORIES: Category[] = [
         ],
       },
       {
-        id: "ext-mm",
-        name: "Multimercado Ext.",
-        pctPL: 4.0,
-        status: "atencao",
-        pctForaIdeal: 5.2,
-        alocIdeal: 530_000,
-        alocAtual: 502_500,
-        sugestao: 27_500,
-        byAccount: {
-          "XP PF": 200_000,
-          "BTG Principal": 140_000,
-          "Itaú Joint": 80_000,
-          Safra: 52_500,
-          Bradesco: 30_000,
-        },
-        assets: [
-          {
-            id: "a70",
-            name: "Bridgewater All Weather",
-            account: "XP PF",
-            value: 200_000,
-            pctSub: 39.8,
-            liquidity: "D+90",
-          },
-          {
-            id: "a71",
-            name: "AQR Risk Parity",
-            account: "BTG Principal",
-            value: 140_000,
-            pctSub: 27.9,
-            liquidity: "D+90",
-          },
-          {
-            id: "a72",
-            name: "Itaú Global Macro",
-            account: "Itaú Joint",
-            value: 80_000,
-            pctSub: 15.9,
-            liquidity: "D+30",
-          },
-          {
-            id: "a73",
-            name: "Safra Multi Global",
-            account: "Safra",
-            value: 52_500,
-            pctSub: 10.4,
-            liquidity: "D+30",
-          },
-          {
-            id: "a74",
-            name: "Bradesco Global Alloc.",
-            account: "Bradesco",
-            value: 30_000,
-            pctSub: 6.0,
-            liquidity: "D+30",
-          },
-        ],
-      },
-      {
         id: "ext-acoes",
-        name: "Ações Exterior",
+        name: "Exterior - Ações",
         pctPL: 4.0,
         status: "desbalanceado",
         pctForaIdeal: 15.3,
@@ -1125,228 +1288,225 @@ const CATEGORIES: Category[] = [
           },
         ],
       },
-      {
-        id: "ext-hedge",
-        name: "Hedge Cambial",
-        pctPL: 1.5,
-        status: "ok",
-        pctForaIdeal: 0.5,
-        alocIdeal: 198_750,
-        alocAtual: 199_750,
-        sugestao: -1_000,
-        byAccount: {
-          "XP PF": 80_000,
-          "BTG Principal": 55_000,
-          "Itaú Joint": 35_000,
-          Safra: 19_750,
-          Bradesco: 10_000,
-        },
-        assets: [
-          {
-            id: "a81",
-            name: "Trend Dólar FIC",
-            account: "XP PF",
-            value: 80_000,
-            pctSub: 40.1,
-            liquidity: "D+1",
-          },
-          {
-            id: "a82",
-            name: "BTG Cambial USD",
-            account: "BTG Principal",
-            value: 55_000,
-            pctSub: 27.5,
-            liquidity: "D+1",
-          },
-          {
-            id: "a83",
-            name: "Itaú Cambial FIC",
-            account: "Itaú Joint",
-            value: 35_000,
-            pctSub: 17.5,
-            liquidity: "D+1",
-          },
-          {
-            id: "a84",
-            name: "Safra Hedge FX",
-            account: "Safra",
-            value: 19_750,
-            pctSub: 9.9,
-            liquidity: "D+1",
-          },
-          {
-            id: "a85",
-            name: "Bradesco Cambial",
-            account: "Bradesco",
-            value: 10_000,
-            pctSub: 5.0,
-            liquidity: "D+1",
-          },
-        ],
-      },
     ],
   },
   {
-    id: "alt",
-    name: "Alternativo",
+    id: "alt-cat",
+    name: "Alternativos",
     subs: [
       {
-        id: "imob",
-        name: "Imobiliário",
-        pctPL: 4.5,
+        id: "coe",
+        name: "COE",
+        pctPL: 1.4,
+        status: "ok",
+        pctForaIdeal: 3.0,
+        alocIdeal: 185_500,
+        alocAtual: 180_000,
+        sugestao: 5_500,
+        byAccount: {
+          "XP PF": 75_000,
+          "BTG Principal": 50_000,
+          "Itaú Joint": 28_000,
+          Safra: 15_000,
+          Bradesco: 12_000,
+        },
+        assets: [
+          {
+            id: "a230",
+            name: "COE S&P Capital Protegido XP",
+            account: "XP PF",
+            value: 75_000,
+            pctSub: 41.7,
+            maturity: "Mar/2027",
+            liquidity: "Vencimento",
+          },
+          {
+            id: "a231",
+            name: "COE Autocallable BTG",
+            account: "BTG Principal",
+            value: 50_000,
+            pctSub: 27.8,
+            maturity: "Jun/2027",
+            liquidity: "Vencimento",
+          },
+          {
+            id: "a232",
+            name: "COE Euro Stoxx Itaú",
+            account: "Itaú Joint",
+            value: 28_000,
+            pctSub: 15.6,
+            maturity: "Set/2027",
+            liquidity: "Vencimento",
+          },
+          {
+            id: "a233",
+            name: "COE Ouro Safra",
+            account: "Safra",
+            value: 15_000,
+            pctSub: 8.3,
+            maturity: "Dez/2026",
+            liquidity: "Vencimento",
+          },
+          {
+            id: "a234",
+            name: "COE Ibov Bradesco",
+            account: "Bradesco",
+            value: 12_000,
+            pctSub: 6.7,
+            maturity: "Mar/2027",
+            liquidity: "Vencimento",
+          },
+        ],
+      },
+      {
+        id: "ouro",
+        name: "Ouro",
+        pctPL: 0.9,
         status: "ok",
         pctForaIdeal: 1.5,
-        alocIdeal: 596_250,
-        alocAtual: 605_300,
-        sugestao: -9_050,
+        alocIdeal: 119_250,
+        alocAtual: 120_000,
+        sugestao: -750,
         byAccount: {
-          "XP PF": 240_000,
-          "BTG Principal": 170_000,
-          "Itaú Joint": 95_000,
-          Safra: 60_300,
-          Bradesco: 40_000,
+          "XP PF": 50_000,
+          "BTG Principal": 32_000,
+          "Itaú Joint": 20_000,
+          Safra: 11_000,
+          Bradesco: 7_000,
         },
         assets: [
           {
-            id: "a86",
-            name: "HGLG11 - CSHG Logística",
+            id: "a240",
+            name: "Trend Ouro FIC",
             account: "XP PF",
-            value: 130_000,
-            pctSub: 21.5,
-            liquidity: "D+2",
+            value: 50_000,
+            pctSub: 41.7,
+            liquidity: "D+1",
           },
           {
-            id: "a87",
-            name: "XPML11 - XP Malls",
-            account: "XP PF",
-            value: 110_000,
-            pctSub: 18.2,
-            liquidity: "D+2",
-          },
-          {
-            id: "a88",
-            name: "BTLG11 - BTG Log.",
+            id: "a241",
+            name: "BTG Gold FI",
             account: "BTG Principal",
-            value: 170_000,
-            pctSub: 28.1,
-            liquidity: "D+2",
+            value: 32_000,
+            pctSub: 26.7,
+            liquidity: "D+1",
           },
           {
-            id: "a89",
-            name: "IRDM11 - Iridium Receb.",
+            id: "a242",
+            name: "Itaú Ouro FIC",
             account: "Itaú Joint",
-            value: 95_000,
-            pctSub: 15.7,
-            liquidity: "D+2",
+            value: 20_000,
+            pctSub: 16.7,
+            liquidity: "D+1",
           },
           {
-            id: "a90",
-            name: "KNCR11 - Kinea Rend.",
+            id: "a243",
+            name: "Safra Gold Plus",
             account: "Safra",
-            value: 60_300,
-            pctSub: 10.0,
-            liquidity: "D+2",
+            value: 11_000,
+            pctSub: 9.2,
+            liquidity: "D+1",
           },
           {
-            id: "a91",
-            name: "HGRE11 - CSHG Real Est.",
+            id: "a244",
+            name: "Bradesco FI Ouro",
             account: "Bradesco",
-            value: 40_000,
-            pctSub: 6.6,
-            liquidity: "D+2",
+            value: 7_000,
+            pctSub: 5.8,
+            liquidity: "D+1",
           },
         ],
       },
       {
-        id: "pe",
-        name: "Private Equity",
-        pctPL: 3.5,
-        status: "ok",
-        pctForaIdeal: 0.3,
-        alocIdeal: 463_750,
-        alocAtual: 465_150,
-        sugestao: -1_400,
+        id: "cripto",
+        name: "Criptoativos",
+        pctPL: 0.9,
+        status: "atencao",
+        pctForaIdeal: 8.0,
+        alocIdeal: 119_250,
+        alocAtual: 115_000,
+        sugestao: 4_250,
         byAccount: {
-          "XP PF": 185_000,
-          "BTG Principal": 130_000,
-          "Itaú Joint": 75_000,
-          Safra: 45_150,
-          Bradesco: 30_000,
+          "XP PF": 48_000,
+          "BTG Principal": 30_000,
+          "Itaú Joint": 18_000,
+          Safra: 12_000,
+          Bradesco: 7_000,
         },
         assets: [
           {
-            id: "a92",
-            name: "Pátria Growth Fund V",
+            id: "a250",
+            name: "Hashdex Bitcoin FIC",
             account: "XP PF",
-            value: 185_000,
-            pctSub: 39.8,
-            liquidity: "Ilíquido",
+            value: 48_000,
+            pctSub: 41.7,
+            liquidity: "D+1",
           },
           {
-            id: "a93",
-            name: "Vinci Capital Partners IV",
+            id: "a251",
+            name: "BTG Digital Assets",
             account: "BTG Principal",
-            value: 130_000,
-            pctSub: 27.9,
-            liquidity: "Ilíquido",
-          },
-          {
-            id: "a94",
-            name: "Itaú PE Fund III",
-            account: "Itaú Joint",
-            value: 75_000,
-            pctSub: 16.1,
-            liquidity: "Ilíquido",
-          },
-          {
-            id: "a95",
-            name: "Spectra Ventures VII",
-            account: "Safra",
-            value: 45_150,
-            pctSub: 9.7,
-            liquidity: "Ilíquido",
-          },
-          {
-            id: "a96",
-            name: "EB Capital FIP",
-            account: "Bradesco",
             value: 30_000,
-            pctSub: 6.4,
-            liquidity: "Ilíquido",
+            pctSub: 26.1,
+            liquidity: "D+1",
+          },
+          {
+            id: "a252",
+            name: "Itaú Crypto Allocation",
+            account: "Itaú Joint",
+            value: 18_000,
+            pctSub: 15.7,
+            liquidity: "D+1",
+          },
+          {
+            id: "a253",
+            name: "Safra Blockchain FIC",
+            account: "Safra",
+            value: 12_000,
+            pctSub: 10.4,
+            liquidity: "D+1",
+          },
+          {
+            id: "a254",
+            name: "Bradesco Cripto FI",
+            account: "Bradesco",
+            value: 7_000,
+            pctSub: 6.1,
+            liquidity: "D+1",
           },
         ],
       },
       {
-        id: "infra",
-        name: "Infraestrutura",
-        pctPL: 2.5,
+        id: "alt-gen",
+        name: "Alternativo",
+        pctPL: 3.3,
         status: "ok",
         pctForaIdeal: 2.1,
-        alocIdeal: 331_250,
-        alocAtual: 324_300,
-        sugestao: 6_950,
+        alocIdeal: 437_250,
+        alocAtual: 440_475,
+        sugestao: -3_225,
         byAccount: {
-          "XP PF": 130_000,
-          "BTG Principal": 90_000,
+          "XP PF": 190_000,
+          "BTG Principal": 121_000,
           "Itaú Joint": 55_000,
-          Safra: 29_300,
-          Bradesco: 20_000,
+          Safra: 49_475,
+          Bradesco: 25_000,
         },
         assets: [
           {
             id: "a97",
             name: "Pátria Infra Energy III",
             account: "XP PF",
-            value: 130_000,
-            pctSub: 40.1,
+            value: 150_000,
+            pctSub: 34.1,
             liquidity: "Ilíquido",
           },
           {
             id: "a98",
             name: "BTG Infra Core Fund",
             account: "BTG Principal",
-            value: 90_000,
-            pctSub: 27.7,
+            value: 105_000,
+            pctSub: 23.8,
             liquidity: "Ilíquido",
           },
           {
@@ -1354,83 +1514,48 @@ const CATEGORIES: Category[] = [
             name: "Itaú Infra FIP-IE",
             account: "Itaú Joint",
             value: 55_000,
-            pctSub: 17.0,
+            pctSub: 12.5,
             liquidity: "Ilíquido",
           },
           {
             id: "a100",
             name: "Safra Infra Debentures",
             account: "Safra",
-            value: 29_300,
-            pctSub: 9.0,
+            value: 40_000,
+            pctSub: 9.1,
             liquidity: "D+360",
+          },
+          {
+            id: "a102",
+            name: "Fiagro KNCA11",
+            account: "XP PF",
+            value: 40_000,
+            pctSub: 9.1,
+            liquidity: "D+2",
           },
           {
             id: "a101",
             name: "Bradesco FIP Infra",
             account: "Bradesco",
-            value: 20_000,
-            pctSub: 6.2,
+            value: 25_000,
+            pctSub: 5.7,
             liquidity: "Ilíquido",
-          },
-        ],
-      },
-      {
-        id: "agro",
-        name: "Agronegócio",
-        pctPL: 1.5,
-        status: "atencao",
-        pctForaIdeal: 7.5,
-        alocIdeal: 198_750,
-        alocAtual: 183_825,
-        sugestao: 14_925,
-        byAccount: {
-          "XP PF": 75_000,
-          "BTG Principal": 50_000,
-          "Itaú Joint": 30_000,
-          Safra: 18_825,
-          Bradesco: 10_000,
-        },
-        assets: [
-          {
-            id: "a102",
-            name: "Fiagro KNCA11",
-            account: "XP PF",
-            value: 75_000,
-            pctSub: 40.8,
-            liquidity: "D+2",
           },
           {
             id: "a103",
             name: "BTG Agro Strategy",
             account: "BTG Principal",
-            value: 50_000,
-            pctSub: 27.2,
+            value: 16_000,
+            pctSub: 3.6,
             liquidity: "D+90",
-          },
-          {
-            id: "a104",
-            name: "Itaú Fiagro Plus",
-            account: "Itaú Joint",
-            value: 30_000,
-            pctSub: 16.3,
-            liquidity: "D+30",
           },
           {
             id: "a105",
             name: "Safra Agribusiness",
             account: "Safra",
-            value: 18_825,
-            pctSub: 10.2,
+            value: 9_475,
+            pctSub: 2.2,
             liquidity: "D+90",
-          },
-          {
-            id: "a106",
-            name: "Bradesco Fiagro FIC",
-            account: "Bradesco",
-            value: 10_000,
-            pctSub: 5.4,
-            liquidity: "D+30",
           },
         ],
       },
@@ -2009,6 +2134,20 @@ function formatBRLFull(value: number): string {
   }).format(value);
 }
 
+function parseBRLInput(raw: string): number {
+  const cleaned = String(raw)
+    .replace(/[^\d.,-]/g, "")
+    .replace(/\./g, "")
+    .replace(",", ".");
+  return parseFloat(cleaned) || 0;
+}
+
+function formatInputBRL(raw: string): string {
+  const num = parseBRLInput(raw);
+  if (num === 0) return "";
+  return new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 0 }).format(num);
+}
+
 const STATUS_STYLES: Record<
   BalanceStatus,
   { label: string; color: string; bg: string; border: string }
@@ -2411,7 +2550,7 @@ function MatrixTable({
     const byInst: Record<string, number> = {};
     for (const [, instMap] of Object.entries(allocatorValues)) {
       for (const [instName, val] of Object.entries(instMap)) {
-        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        const num = parseBRLInput(val);
         byInst[instName] = (byInst[instName] || 0) + num;
       }
     }
@@ -2422,7 +2561,7 @@ function MatrixTable({
     const bySub: Record<string, number> = {};
     for (const [subId, instMap] of Object.entries(allocatorValues)) {
       for (const val of Object.values(instMap)) {
-        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        const num = parseBRLInput(val);
         bySub[subId] = (bySub[subId] || 0) + num;
       }
     }
@@ -2434,7 +2573,7 @@ function MatrixTable({
     for (const [subId, instMap] of Object.entries(allocatorValues)) {
       result[subId] = {};
       for (const [instName, val] of Object.entries(instMap)) {
-        result[subId][instName] = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        result[subId][instName] = parseBRLInput(val);
       }
     }
     return result;
@@ -2454,7 +2593,7 @@ function MatrixTable({
       const subId = assetToSub[assetId];
       if (!subId) continue;
       for (const val of Object.values(instMap)) {
-        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        const num = parseBRLInput(val);
         bySub[subId] = (bySub[subId] || 0) + num;
       }
     }
@@ -2574,11 +2713,11 @@ function MatrixTable({
                   return (
                     <Fragment key={`${inst.name}-sub`}>
                       <th
-                        className={`whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555] ${isFirst ? "border-l-2 border-[#3a3a3a]" : "border-l border-[#2a2a2a]"}`}
+                        className={`w-[90px] whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555] ${isFirst ? "border-l-2 border-[#3a3a3a]" : "border-l border-[#2a2a2a]"}`}
                       >
                         $ Atual
                       </th>
-                      <th className="whitespace-nowrap px-2 py-1 text-center text-[9px] font-medium text-[#6db1d4]/60">
+                      <th className="w-[90px] whitespace-nowrap px-2 py-1 text-center text-[9px] font-medium text-[#6db1d4]/60">
                         Alocar
                       </th>
                     </Fragment>
@@ -2627,12 +2766,40 @@ function MatrixTable({
                     <td className="sticky left-[392px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
                       {formatBRL(ct.alocIdeal)}
                     </td>
-                    <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
-                      {formatBRL(ct.alocAtual)}
-                    </td>
-                    <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 text-right">
-                      <SugestaoCell value={ct.sugestao} />
-                    </td>
+                    {(() => {
+                      const catAlloc = cat.subs.reduce(
+                        (sum, sub) => sum + (allocatorBySub[sub.id] || 0),
+                        0,
+                      );
+                      const projectedAtual = ct.alocAtual + catAlloc;
+                      const remainingSugestao = ct.sugestao - catAlloc;
+                      return (
+                        <>
+                          <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-right">
+                            <div className="flex flex-col items-end">
+                              <span className="font-medium text-[#ededed]">
+                                {formatBRL(ct.alocAtual)}
+                              </span>
+                              {catAlloc !== 0 && (
+                                <span
+                                  className={`text-[9px] font-medium ${catAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                                >
+                                  {catAlloc > 0 ? "+" : ""}
+                                  {formatBRL(catAlloc)} → {formatBRL(projectedAtual)}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 text-right">
+                            {catAlloc !== 0 ? (
+                              <SugestaoCell value={remainingSugestao} />
+                            ) : (
+                              <SugestaoCell value={ct.sugestao} />
+                            )}
+                          </td>
+                        </>
+                      );
+                    })()}
                     {allAccounts.map((inst, idx) => {
                       const isExp = expandedSet.has(inst.name);
                       const isFirst = idx === 0;
@@ -2643,11 +2810,11 @@ function MatrixTable({
                         return (
                           <Fragment key={`${cat.id}-${inst.name}`}>
                             <td
-                              className={`${borderCls} px-2 py-2 text-right font-medium text-[#bbb]`}
+                              className={`${borderCls} w-[90px] px-2 py-2 text-center font-medium text-[#bbb]`}
                             >
                               {formatBRL(ct.byAccount[inst.name] || 0)}
                             </td>
-                            <td className="px-2 py-2 text-center text-[#444]">—</td>
+                            <td className="w-[90px] px-2 py-2 text-center text-[#444]">—</td>
                           </Fragment>
                         );
                       }
@@ -2760,8 +2927,7 @@ function MatrixTable({
                                 : "border-l border-[#2a2a2a]";
                               if (isExp) {
                                 const rawVal = allocatorValues[sub.id]?.[inst.name] ?? "";
-                                const numVal =
-                                  parseFloat(String(rawVal).replace(/[^\d.-]/g, "")) || 0;
+                                const numVal = parseBRLInput(rawVal);
                                 const valColor =
                                   numVal > 0
                                     ? "text-[#6ecf8e]"
@@ -2770,10 +2936,12 @@ function MatrixTable({
                                       : "text-[#ededed]";
                                 return (
                                   <Fragment key={`${sub.id}-${inst.name}`}>
-                                    <td className={`${borderCls} px-2 py-2 text-right text-[#888]`}>
+                                    <td
+                                      className={`${borderCls} w-[90px] px-2 py-2 text-center text-[#888]`}
+                                    >
                                       {formatBRL(sub.byAccount[inst.name] || 0)}
                                     </td>
-                                    <td className="px-0.5 py-0.5">
+                                    <td className="w-[90px] px-0.5 py-0.5">
                                       <input
                                         type="text"
                                         placeholder="—"
@@ -2782,8 +2950,13 @@ function MatrixTable({
                                           e.stopPropagation();
                                           onAllocatorChange(sub.id, inst.name, e.target.value);
                                         }}
+                                        onBlur={() => {
+                                          const formatted = formatInputBRL(rawVal);
+                                          if (formatted !== rawVal)
+                                            onAllocatorChange(sub.id, inst.name, formatted);
+                                        }}
                                         onClick={(e) => e.stopPropagation()}
-                                        className={`mx-auto block w-16 rounded border ${rawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${valColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
+                                        className={`mx-auto block w-20 rounded border ${rawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${valColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
                                         data-testid={`input-allocator-${sub.id}-${inst.name}`}
                                       />
                                     </td>
@@ -3015,10 +3188,7 @@ function MatrixTable({
                                         if (isExp) {
                                           const assetRawVal =
                                             assetAllocValues[asset.id]?.[inst.name] ?? "";
-                                          const assetNumVal =
-                                            parseFloat(
-                                              String(assetRawVal).replace(/[^\d.-]/g, ""),
-                                            ) || 0;
+                                          const assetNumVal = parseBRLInput(assetRawVal);
                                           const assetValColor =
                                             assetNumVal > 0
                                               ? "text-[#6ecf8e]"
@@ -3028,11 +3198,11 @@ function MatrixTable({
                                           return (
                                             <Fragment key={`${asset.id}-${inst.name}`}>
                                               <td
-                                                className={`${borderCls} px-2 py-1.5 text-right text-[10px] ${idx === assetInstIdx ? "text-[#999]" : "text-transparent"}`}
+                                                className={`${borderCls} w-[90px] px-2 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? "text-[#999]" : "text-transparent"}`}
                                               >
                                                 {idx === assetInstIdx ? formatBRL(asset.value) : ""}
                                               </td>
-                                              <td className="px-0.5 py-0.5">
+                                              <td className="w-[90px] px-0.5 py-0.5">
                                                 <input
                                                   type="text"
                                                   placeholder="—"
@@ -3045,8 +3215,17 @@ function MatrixTable({
                                                       e.target.value,
                                                     );
                                                   }}
+                                                  onBlur={() => {
+                                                    const formatted = formatInputBRL(assetRawVal);
+                                                    if (formatted !== assetRawVal)
+                                                      onAssetAllocChange(
+                                                        asset.id,
+                                                        inst.name,
+                                                        formatted,
+                                                      );
+                                                  }}
                                                   onClick={(e) => e.stopPropagation()}
-                                                  className={`mx-auto block w-16 rounded border ${assetRawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${assetValColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
+                                                  className={`mx-auto block w-20 rounded border ${assetRawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${assetValColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
                                                   data-testid={`input-asset-alloc-${asset.id}-${inst.name}`}
                                                 />
                                               </td>
@@ -3138,11 +3317,11 @@ function MatrixTable({
                                         return (
                                           <Fragment key={`${added.assetId}-${inst.name}`}>
                                             <td
-                                              className={`${borderCls} px-2 py-1.5 text-right text-[10px] text-transparent`}
+                                              className={`${borderCls} w-[90px] px-2 py-1.5 text-center text-[10px] text-transparent`}
                                             >
                                               {""}
                                             </td>
-                                            <td className="px-1 py-0.5 text-right text-[10px]">
+                                            <td className="w-[90px] px-1 py-0.5 text-right text-[10px]">
                                               {idx === addedInstIdx && added.value ? (
                                                 <span className="font-medium text-[#6ecf8e]">
                                                   {formatBRL(added.value)}
@@ -3324,9 +3503,9 @@ function MatrixTable({
                                       return (
                                         <Fragment key={`new-${inst.name}`}>
                                           <td
-                                            className={`${borderCls} px-2 py-1.5 text-right text-[10px] text-transparent`}
+                                            className={`${borderCls} w-[90px] px-2 py-1.5 text-center text-[10px] text-transparent`}
                                           />
-                                          <td />
+                                          <td className="w-[90px]" />
                                         </Fragment>
                                       );
                                     }
@@ -3405,12 +3584,12 @@ function MatrixTable({
                   return (
                     <Fragment key={`total-${inst.name}`}>
                       <td
-                        className={`${borderCls} px-2 py-2.5 text-right font-semibold text-[#ededed]`}
+                        className={`${borderCls} w-[90px] px-2 py-2.5 text-center font-semibold text-[#ededed]`}
                       >
                         {formatBRL(currentTotal)}
                       </td>
-                      <td className="px-2 py-1.5 text-right">
-                        <div className="flex flex-col items-end">
+                      <td className="w-[90px] px-2 py-1.5 text-center">
+                        <div className="flex flex-col items-center">
                           <span className="text-xs font-semibold text-[#ededed]">
                             {allocTotal > 0 ? formatBRL(allocTotal) : "—"}
                           </span>
@@ -4358,13 +4537,13 @@ export default function MockupRealocador() {
     null,
   );
 
-  const globalBudgetNum = parseFloat(String(globalBudget).replace(/[^\d.-]/g, "")) || 0;
+  const globalBudgetNum = parseBRLInput(globalBudget);
 
   const totalAllocated = useMemo(() => {
     let sum = 0;
     for (const instMap of Object.values(allocatorValues)) {
       for (const val of Object.values(instMap)) {
-        sum += parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        sum += parseBRLInput(val);
       }
     }
     return sum;
@@ -4536,6 +4715,10 @@ export default function MockupRealocador() {
                           placeholder="Aporte / Resgate"
                           value={globalBudget}
                           onChange={(e) => setGlobalBudget(e.target.value)}
+                          onBlur={() => {
+                            const formatted = formatInputBRL(globalBudget);
+                            if (formatted !== globalBudget) setGlobalBudget(formatted);
+                          }}
                           className={`w-32 bg-transparent text-center text-sm font-medium ${hasBudget ? budgetColor : "text-[#ededed]"} outline-none transition-all placeholder:text-[#444] focus:placeholder:text-[#555]`}
                           data-testid="input-aporte-resgate"
                         />

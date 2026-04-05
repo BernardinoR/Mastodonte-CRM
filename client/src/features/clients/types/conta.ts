@@ -22,4 +22,6 @@ export interface Conta {
   whatsappGroupId?: string;
   whatsappGroupAtivo?: boolean;
   canais?: string[];
+  varreduraAtiva?: boolean;
+  varreduraFrequencia?: string;
 }

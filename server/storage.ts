@@ -20,6 +20,8 @@ export type InsertConta = {
   managerPhone?: string | null;
   whatsappGroupId?: number | null;
   whatsappGroupLinked?: boolean;
+  sweepActive?: boolean;
+  sweepFrequency?: string | null;
 };
 
 export type InsertUser = {

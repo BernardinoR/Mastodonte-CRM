@@ -44,6 +44,8 @@ function mapDbConta(row: Record<string, unknown>): Conta {
     whatsappGroupId: row.whatsapp_group_id != null ? String(row.whatsapp_group_id) : undefined,
     whatsappGroupAtivo: row.whatsapp_group_linked as boolean | undefined,
     canais: (row.canais as string[] | undefined) ?? ["WhatsApp", "Email"],
+    varreduraAtiva: (row.sweep_active as boolean | undefined) ?? false,
+    varreduraFrequencia: row.sweep_frequency as string | undefined,
   };
 }
 
@@ -63,6 +65,8 @@ function mapContaToDb(clientId: string, data: ContaFormData) {
     whatsapp_group_id: data.whatsappGroupId ? parseInt(data.whatsappGroupId, 10) : null,
     whatsapp_group_linked: data.whatsappGroupAtivo,
     canais: data.canais,
+    sweep_active: data.varreduraAtiva,
+    sweep_frequency: data.varreduraFrequencia || null,
     updated_at: new Date().toISOString(),
   };
 }
@@ -135,12 +139,9 @@ export function ClientConsolidacao({ clientId, whatsappGroups = [] }: ClientCons
 
         // Sync consolidation statuses for the new conta
         const token = await getToken();
-        apiRequest(
-          "POST",
-          `/api/consolidador/contas/${inserted.id}/sync-all`,
-          undefined,
-          { Authorization: `Bearer ${token}` },
-        ).catch((e) => console.warn("Sync after conta creation failed:", e));
+        apiRequest("POST", `/api/consolidador/contas/${inserted.id}/sync-all`, undefined, {
+          Authorization: `Bearer ${token}`,
+        }).catch((e) => console.warn("Sync after conta creation failed:", e));
       }
 
       setIsFormDialogOpen(false);
