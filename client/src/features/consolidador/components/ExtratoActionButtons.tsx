@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MessageCircle, Mail, RefreshCw } from "lucide-react";
+import { MessageCircle, Mail, RefreshCw, ExternalLink } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import {
 } from "@/shared/components/ui/tooltip";
 
 interface ExtratoActionButtonsProps {
+  clientName: string;
   hasWhatsApp?: boolean;
   hasEmail?: boolean;
   contactPhone?: string;
@@ -19,6 +20,7 @@ interface ExtratoActionButtonsProps {
 }
 
 export function ExtratoActionButtons({
+  clientName,
   hasWhatsApp,
   hasEmail,
   contactPhone,
@@ -42,6 +44,26 @@ export function ExtratoActionButtons({
 
   return (
     <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={() =>
+                window.open(
+                  `https://invest-insight-visor.lovable.app/data-management/${encodeURIComponent(clientName)}`,
+                  "_blank",
+                )
+              }
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-transparent text-purple-400 transition-colors hover:border-purple-500/30 hover:bg-purple-500/10"
+            >
+              <ExternalLink className="h-[16px] w-[16px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs">
+            Alocação do cliente
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       {onSync && (
         <button
           onClick={handleSync}

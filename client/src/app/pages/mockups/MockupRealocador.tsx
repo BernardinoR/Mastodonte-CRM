@@ -47,8 +47,9 @@ import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
 type BalanceStatus = "ok" | "atencao" | "desbalanceado";
 type FGCStatus = "ok" | "alerta" | "critico";
 
-interface Institution {
+interface Account {
   name: string;
+  institution: string;
   colorKey: string;
   initials: string;
 }
@@ -56,7 +57,7 @@ interface Institution {
 interface Asset {
   id: string;
   name: string;
-  institution: string;
+  account: string;
   value: number;
   pctSub: number;
   maturity?: string;
@@ -73,7 +74,7 @@ interface SubCategory {
   alocIdeal: number;
   alocAtual: number;
   sugestao: number;
-  byInstitution: Record<string, number>;
+  byAccount: Record<string, number>;
   assets: Asset[];
 }
 
@@ -91,12 +92,13 @@ interface FGCInfo {
   status: FGCStatus;
 }
 
-const ALL_CLIENT_INSTITUTIONS: Institution[] = [
-  { name: "XP", colorKey: "XP", initials: "XP" },
-  { name: "BTG", colorKey: "BTG", initials: "BT" },
-  { name: "Itaú", colorKey: "Itaú", initials: "IT" },
-  { name: "Safra", colorKey: "Safra", initials: "SF" },
-  { name: "Bradesco", colorKey: "Bradesco", initials: "BR" },
+const ALL_CLIENT_ACCOUNTS: Account[] = [
+  { name: "XP PF", account: "XP PF", colorKey: "XP", initials: "XP" },
+  { name: "XP PJ", account: "XP PF", colorKey: "XP", initials: "XP" },
+  { name: "BTG Principal", account: "BTG Principal", colorKey: "BTG", initials: "BT" },
+  { name: "Itaú Joint", account: "Itaú Joint", colorKey: "Itaú", initials: "IT" },
+  { name: "Safra", account: "Safra", colorKey: "Safra", initials: "SF" },
+  { name: "Bradesco", account: "Bradesco", colorKey: "Bradesco", initials: "BR" },
 ];
 
 const TOTAL_AUM = 13_250_000;
@@ -115,10 +117,11 @@ const CATEGORIES: Category[] = [
         alocIdeal: 1_590_000,
         alocAtual: 1_570_800,
         sugestao: 19_200,
-        byInstitution: {
-          XP: 470_000,
-          BTG: 340_000,
-          Itaú: 285_000,
+        byAccount: {
+          "XP PF": 300_000,
+          "XP PJ": 170_000,
+          "BTG Principal": 340_000,
+          "Itaú Joint": 285_000,
           Safra: 245_800,
           Bradesco: 230_000,
         },
@@ -126,16 +129,23 @@ const CATEGORIES: Category[] = [
           {
             id: "a1",
             name: "CDB Liquidez Diária XP",
-            institution: "XP",
-            value: 470_000,
-            pctSub: 29.9,
+            account: "XP PF",
+            value: 300_000,
+            pctSub: 19.1,
+          },
+          {
+            id: "a1_pj",
+            name: "CDB Caixa XP PJ",
+            account: "XP PJ",
+            value: 170_000,
+            pctSub: 10.8,
             rate: "100% CDI",
             liquidity: "D+0",
           },
           {
             id: "a2",
             name: "CDB Liquidez BTG",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 340_000,
             pctSub: 21.6,
             rate: "101% CDI",
@@ -144,7 +154,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a3",
             name: "Fundo DI Itaú Soberano",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 285_000,
             pctSub: 18.1,
             rate: "99.5% CDI",
@@ -153,7 +163,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a4",
             name: "CDB Liquidez Safra",
-            institution: "Safra",
+            account: "Safra",
             value: 245_800,
             pctSub: 15.7,
             rate: "100.5% CDI",
@@ -162,7 +172,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a5",
             name: "CDB Liquidez Bradesco",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 230_000,
             pctSub: 14.7,
             rate: "99% CDI",
@@ -179,10 +189,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 1_126_250,
         alocAtual: 1_168_950,
         sugestao: -42_700,
-        byInstitution: {
-          XP: 380_000,
-          BTG: 270_000,
-          Itaú: 230_000,
+        byAccount: {
+          "XP PF": 380_000,
+          "BTG Principal": 270_000,
+          "Itaú Joint": 230_000,
           Safra: 178_950,
           Bradesco: 110_000,
         },
@@ -190,7 +200,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a6",
             name: "CDB XP 2027",
-            institution: "XP",
+            account: "XP PF",
             value: 380_000,
             pctSub: 32.5,
             rate: "CDI+1.2%",
@@ -200,7 +210,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a7",
             name: "CDB BTG 2026",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 270_000,
             pctSub: 23.1,
             rate: "CDI+0.8%",
@@ -210,7 +220,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a8",
             name: "LCI Itaú 2026",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 230_000,
             pctSub: 19.7,
             rate: "94% CDI",
@@ -220,7 +230,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a9",
             name: "CDB Safra 2027",
-            institution: "Safra",
+            account: "Safra",
             value: 178_950,
             pctSub: 15.3,
             rate: "CDI+1.5%",
@@ -230,7 +240,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a10",
             name: "LCA Bradesco 2026",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 110_000,
             pctSub: 9.4,
             rate: "92% CDI",
@@ -248,10 +258,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 861_250,
         alocAtual: 855_000,
         sugestao: 6_250,
-        byInstitution: {
-          XP: 280_000,
-          BTG: 220_000,
-          Itaú: 165_000,
+        byAccount: {
+          "XP PF": 280_000,
+          "BTG Principal": 220_000,
+          "Itaú Joint": 165_000,
           Safra: 100_000,
           Bradesco: 90_000,
         },
@@ -259,7 +269,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a11",
             name: "Trend DI FIC",
-            institution: "XP",
+            account: "XP PF",
             value: 280_000,
             pctSub: 32.7,
             rate: "CDI+0.05%",
@@ -268,7 +278,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a12",
             name: "BTG Digital Tesouro",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 220_000,
             pctSub: 25.7,
             rate: "CDI+0.02%",
@@ -277,7 +287,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a13",
             name: "Itaú Privilège DI",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 165_000,
             pctSub: 19.3,
             rate: "99.8% CDI",
@@ -286,7 +296,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a14",
             name: "Safra Corporate DI",
-            institution: "Safra",
+            account: "Safra",
             value: 100_000,
             pctSub: 11.7,
             rate: "100% CDI",
@@ -295,7 +305,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a15",
             name: "Bradesco FI Ref DI",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 90_000,
             pctSub: 10.5,
             rate: "99% CDI",
@@ -312,10 +322,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 1_325_000,
         alocAtual: 1_433_600,
         sugestao: -108_600,
-        byInstitution: {
-          XP: 450_000,
-          BTG: 340_000,
-          Itaú: 280_000,
+        byAccount: {
+          "XP PF": 450_000,
+          "BTG Principal": 340_000,
+          "Itaú Joint": 280_000,
           Safra: 223_600,
           Bradesco: 140_000,
         },
@@ -323,7 +333,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a16",
             name: "NTN-B 2030",
-            institution: "XP",
+            account: "XP PF",
             value: 250_000,
             pctSub: 17.4,
             rate: "IPCA+6.2%",
@@ -333,7 +343,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a17",
             name: "NTN-B 2028",
-            institution: "XP",
+            account: "XP PF",
             value: 200_000,
             pctSub: 14.0,
             rate: "IPCA+5.8%",
@@ -343,7 +353,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a18",
             name: "NTN-B 2029",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 340_000,
             pctSub: 23.7,
             rate: "IPCA+6.0%",
@@ -353,7 +363,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a19",
             name: "Debênture IPCA Itaú",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 280_000,
             pctSub: 19.5,
             rate: "IPCA+7.2%",
@@ -363,7 +373,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a20",
             name: "CRI IPCA Safra",
-            institution: "Safra",
+            account: "Safra",
             value: 223_600,
             pctSub: 15.6,
             rate: "IPCA+7.5%",
@@ -373,7 +383,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a21",
             name: "NTN-B 2032",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 140_000,
             pctSub: 9.8,
             rate: "IPCA+6.5%",
@@ -391,10 +401,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 795_000,
         alocAtual: 791_800,
         sugestao: 3_200,
-        byInstitution: {
-          XP: 250_000,
-          BTG: 200_000,
-          Itaú: 160_000,
+        byAccount: {
+          "XP PF": 250_000,
+          "BTG Principal": 200_000,
+          "Itaú Joint": 160_000,
           Safra: 101_800,
           Bradesco: 80_000,
         },
@@ -402,7 +412,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a22",
             name: "Kinea IPCA Dinâmico",
-            institution: "XP",
+            account: "XP PF",
             value: 250_000,
             pctSub: 31.6,
             rate: "IPCA+5.5%",
@@ -411,7 +421,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a23",
             name: "SPX Seahawk IPCA",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 200_000,
             pctSub: 25.3,
             rate: "IPCA+6.1%",
@@ -420,7 +430,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a24",
             name: "Itaú Flexprev IMA-B",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 160_000,
             pctSub: 20.2,
             rate: "IMA-B",
@@ -429,7 +439,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a25",
             name: "Safra IMA-B 5",
-            institution: "Safra",
+            account: "Safra",
             value: 101_800,
             pctSub: 12.9,
             rate: "IMA-B 5",
@@ -438,7 +448,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a26",
             name: "Bradesco Inflação FI",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 80_000,
             pctSub: 10.1,
             rate: "IPCA+4.8%",
@@ -455,10 +465,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 728_750,
         alocAtual: 695_250,
         sugestao: 33_500,
-        byInstitution: {
-          XP: 230_000,
-          BTG: 170_000,
-          Itaú: 140_000,
+        byAccount: {
+          "XP PF": 230_000,
+          "BTG Principal": 170_000,
+          "Itaú Joint": 140_000,
           Safra: 90_250,
           Bradesco: 65_000,
         },
@@ -466,7 +476,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a27",
             name: "LTN 2027",
-            institution: "XP",
+            account: "XP PF",
             value: 230_000,
             pctSub: 33.1,
             rate: "12.8% a.a.",
@@ -476,7 +486,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a28",
             name: "CDB Pré BTG",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 170_000,
             pctSub: 24.5,
             rate: "13.2% a.a.",
@@ -486,7 +496,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a29",
             name: "LTN 2026",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 140_000,
             pctSub: 20.1,
             rate: "11.5% a.a.",
@@ -496,7 +506,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a30",
             name: "CDB Pré Safra",
-            institution: "Safra",
+            account: "Safra",
             value: 90_250,
             pctSub: 13.0,
             rate: "13.5% a.a.",
@@ -506,7 +516,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a31",
             name: "CDB Pré Bradesco",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 65_000,
             pctSub: 9.3,
             rate: "12.0% a.a.",
@@ -524,12 +534,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 463_750,
         alocAtual: 460_100,
         sugestao: 3_650,
-        byInstitution: { XP: 180_000, BTG: 130_000, Itaú: 72_000, Safra: 53_100, Bradesco: 25_000 },
+        byAccount: {
+          "XP PF": 180_000,
+          "BTG Principal": 130_000,
+          "Itaú Joint": 72_000,
+          Safra: 53_100,
+          Bradesco: 25_000,
+        },
         assets: [
           {
             id: "a32",
             name: "Deb. Eletrobras",
-            institution: "XP",
+            account: "XP PF",
             value: 180_000,
             pctSub: 39.1,
             rate: "IPCA+7.8%",
@@ -539,7 +555,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a33",
             name: "Deb. Rumo",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 130_000,
             pctSub: 28.3,
             rate: "CDI+2.1%",
@@ -549,7 +565,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a34",
             name: "Deb. Energisa",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 72_000,
             pctSub: 15.6,
             rate: "IPCA+6.5%",
@@ -559,7 +575,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a35",
             name: "Deb. CCR",
-            institution: "Safra",
+            account: "Safra",
             value: 53_100,
             pctSub: 11.5,
             rate: "CDI+1.8%",
@@ -569,7 +585,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a36",
             name: "Deb. Sabesp",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 25_000,
             pctSub: 5.4,
             rate: "IPCA+6.0%",
@@ -587,12 +603,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 331_250,
         alocAtual: 352_000,
         sugestao: -20_750,
-        byInstitution: { XP: 140_000, BTG: 100_000, Itaú: 55_000, Safra: 37_000, Bradesco: 20_000 },
+        byAccount: {
+          "XP PF": 140_000,
+          "BTG Principal": 100_000,
+          "Itaú Joint": 55_000,
+          Safra: 37_000,
+          Bradesco: 20_000,
+        },
         assets: [
           {
             id: "a37",
             name: "CRI MRV",
-            institution: "XP",
+            account: "XP PF",
             value: 140_000,
             pctSub: 39.8,
             rate: "IPCA+8.5%",
@@ -602,7 +624,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a38",
             name: "CRA BRF",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 100_000,
             pctSub: 28.4,
             rate: "CDI+2.5%",
@@ -612,7 +634,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a39",
             name: "CRI Cyrela",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 55_000,
             pctSub: 15.6,
             rate: "IPCA+7.8%",
@@ -622,7 +644,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a40",
             name: "CRA JBS",
-            institution: "Safra",
+            account: "Safra",
             value: 37_000,
             pctSub: 10.5,
             rate: "CDI+2.0%",
@@ -632,7 +654,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a41",
             name: "CRI Log CP",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 20_000,
             pctSub: 5.7,
             rate: "IPCA+8.0%",
@@ -656,10 +678,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 1_126_250,
         alocAtual: 985_500,
         sugestao: 140_750,
-        byInstitution: {
-          XP: 400_000,
-          BTG: 280_000,
-          Itaú: 165_000,
+        byAccount: {
+          "XP PF": 400_000,
+          "BTG Principal": 280_000,
+          "Itaú Joint": 165_000,
           Safra: 85_500,
           Bradesco: 55_000,
         },
@@ -667,7 +689,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a42",
             name: "PETR4",
-            institution: "XP",
+            account: "XP PF",
             value: 180_000,
             pctSub: 18.3,
             liquidity: "D+2",
@@ -675,7 +697,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a43",
             name: "VALE3",
-            institution: "XP",
+            account: "XP PF",
             value: 120_000,
             pctSub: 12.2,
             liquidity: "D+2",
@@ -683,7 +705,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a44",
             name: "ITUB4",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 150_000,
             pctSub: 15.2,
             liquidity: "D+2",
@@ -691,7 +713,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a45",
             name: "BBDC4",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 130_000,
             pctSub: 13.2,
             liquidity: "D+2",
@@ -699,7 +721,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a46",
             name: "WEGE3",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 165_000,
             pctSub: 16.7,
             liquidity: "D+2",
@@ -707,7 +729,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a47",
             name: "RENT3",
-            institution: "XP",
+            account: "XP PF",
             value: 100_000,
             pctSub: 10.1,
             liquidity: "D+2",
@@ -715,7 +737,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a48",
             name: "B3SA3",
-            institution: "Safra",
+            account: "Safra",
             value: 85_500,
             pctSub: 8.7,
             liquidity: "D+2",
@@ -723,7 +745,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a49",
             name: "SUZB3",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 55_000,
             pctSub: 5.6,
             liquidity: "D+2",
@@ -739,10 +761,10 @@ const CATEGORIES: Category[] = [
         alocIdeal: 596_250,
         alocAtual: 608_150,
         sugestao: -11_900,
-        byInstitution: {
-          XP: 250_000,
-          BTG: 175_000,
-          Itaú: 100_000,
+        byAccount: {
+          "XP PF": 250_000,
+          "BTG Principal": 175_000,
+          "Itaú Joint": 100_000,
           Safra: 53_150,
           Bradesco: 30_000,
         },
@@ -750,7 +772,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a50",
             name: "SPX Nimitz Feeder",
-            institution: "XP",
+            account: "XP PF",
             value: 250_000,
             pctSub: 41.1,
             liquidity: "D+30",
@@ -758,7 +780,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a51",
             name: "Verde AM Long Bias",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 175_000,
             pctSub: 28.8,
             liquidity: "D+30",
@@ -766,7 +788,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a52",
             name: "Dynamo Cougar",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 100_000,
             pctSub: 16.4,
             liquidity: "D+60",
@@ -774,7 +796,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a53",
             name: "Atmos Ações FIC",
-            institution: "Safra",
+            account: "Safra",
             value: 53_150,
             pctSub: 8.7,
             liquidity: "D+30",
@@ -782,7 +804,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a54",
             name: "Bogari Value FIC",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 30_000,
             pctSub: 4.9,
             liquidity: "D+30",
@@ -798,12 +820,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 530_000,
         alocAtual: 524_700,
         sugestao: 5_300,
-        byInstitution: { XP: 210_000, BTG: 150_000, Itaú: 80_000, Safra: 54_700, Bradesco: 30_000 },
+        byAccount: {
+          "XP PF": 210_000,
+          "BTG Principal": 150_000,
+          "Itaú Joint": 80_000,
+          Safra: 54_700,
+          Bradesco: 30_000,
+        },
         assets: [
           {
             id: "a55",
             name: "Vinci Partners Private",
-            institution: "XP",
+            account: "XP PF",
             value: 210_000,
             pctSub: 40.0,
             liquidity: "Ilíquido",
@@ -811,7 +839,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a56",
             name: "Pátria Infra BR IV",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 150_000,
             pctSub: 28.6,
             liquidity: "Ilíquido",
@@ -819,7 +847,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a57",
             name: "Itaú Private Equity II",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 80_000,
             pctSub: 15.2,
             liquidity: "Ilíquido",
@@ -827,7 +855,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a58",
             name: "Spectra Private V",
-            institution: "Safra",
+            account: "Safra",
             value: 54_700,
             pctSub: 10.4,
             liquidity: "Ilíquido",
@@ -835,7 +863,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a59",
             name: "Kinea Private Equity",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 30_000,
             pctSub: 5.7,
             liquidity: "Ilíquido",
@@ -851,12 +879,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 331_250,
         alocAtual: 271_625,
         sugestao: 59_625,
-        byInstitution: { XP: 110_000, BTG: 75_000, Itaú: 45_000, Safra: 26_625, Bradesco: 15_000 },
+        byAccount: {
+          "XP PF": 110_000,
+          "BTG Principal": 75_000,
+          "Itaú Joint": 45_000,
+          Safra: 26_625,
+          Bradesco: 15_000,
+        },
         assets: [
           {
             id: "a60",
             name: "Trígono Flagship SC",
-            institution: "XP",
+            account: "XP PF",
             value: 110_000,
             pctSub: 40.5,
             liquidity: "D+30",
@@ -864,7 +898,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a61",
             name: "HIX Capital FIA",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 75_000,
             pctSub: 27.6,
             liquidity: "D+30",
@@ -872,7 +906,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a62",
             name: "Brasil Capital SC",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 45_000,
             pctSub: 16.6,
             liquidity: "D+30",
@@ -880,7 +914,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a63",
             name: "Organon FIA",
-            institution: "Safra",
+            account: "Safra",
             value: 26_625,
             pctSub: 9.8,
             liquidity: "D+30",
@@ -888,7 +922,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a64",
             name: "Constellation Compounders",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 15_000,
             pctSub: 5.5,
             liquidity: "D+30",
@@ -910,12 +944,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 596_250,
         alocAtual: 601_000,
         sugestao: -4_750,
-        byInstitution: { XP: 240_000, BTG: 170_000, Itaú: 90_000, Safra: 61_000, Bradesco: 40_000 },
+        byAccount: {
+          "XP PF": 240_000,
+          "BTG Principal": 170_000,
+          "Itaú Joint": 90_000,
+          Safra: 61_000,
+          Bradesco: 40_000,
+        },
         assets: [
           {
             id: "a65",
             name: "iShares US Bond (AGG)",
-            institution: "XP",
+            account: "XP PF",
             value: 240_000,
             pctSub: 39.9,
             rate: "USD Bonds",
@@ -924,7 +964,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a66",
             name: "Pimco Income Fund",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 170_000,
             pctSub: 28.3,
             rate: "USD Income",
@@ -933,7 +973,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a67",
             name: "Itaú RF Global FIC",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 90_000,
             pctSub: 15.0,
             rate: "USD + Hedge",
@@ -942,7 +982,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a68",
             name: "Safra Bond Global",
-            institution: "Safra",
+            account: "Safra",
             value: 61_000,
             pctSub: 10.1,
             rate: "USD Bonds",
@@ -951,7 +991,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a69",
             name: "Bradesco Global Fixed",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 40_000,
             pctSub: 6.7,
             rate: "USD + Hedge",
@@ -968,12 +1008,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 530_000,
         alocAtual: 502_500,
         sugestao: 27_500,
-        byInstitution: { XP: 200_000, BTG: 140_000, Itaú: 80_000, Safra: 52_500, Bradesco: 30_000 },
+        byAccount: {
+          "XP PF": 200_000,
+          "BTG Principal": 140_000,
+          "Itaú Joint": 80_000,
+          Safra: 52_500,
+          Bradesco: 30_000,
+        },
         assets: [
           {
             id: "a70",
             name: "Bridgewater All Weather",
-            institution: "XP",
+            account: "XP PF",
             value: 200_000,
             pctSub: 39.8,
             liquidity: "D+90",
@@ -981,7 +1027,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a71",
             name: "AQR Risk Parity",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 140_000,
             pctSub: 27.9,
             liquidity: "D+90",
@@ -989,7 +1035,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a72",
             name: "Itaú Global Macro",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 80_000,
             pctSub: 15.9,
             liquidity: "D+30",
@@ -997,7 +1043,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a73",
             name: "Safra Multi Global",
-            institution: "Safra",
+            account: "Safra",
             value: 52_500,
             pctSub: 10.4,
             liquidity: "D+30",
@@ -1005,7 +1051,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a74",
             name: "Bradesco Global Alloc.",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 30_000,
             pctSub: 6.0,
             liquidity: "D+30",
@@ -1021,12 +1067,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 530_000,
         alocAtual: 449_000,
         sugestao: 81_000,
-        byInstitution: { XP: 180_000, BTG: 120_000, Itaú: 75_000, Safra: 44_000, Bradesco: 30_000 },
+        byAccount: {
+          "XP PF": 180_000,
+          "BTG Principal": 120_000,
+          "Itaú Joint": 75_000,
+          Safra: 44_000,
+          Bradesco: 30_000,
+        },
         assets: [
           {
             id: "a75",
             name: "iShares S&P 500 (IVV)",
-            institution: "XP",
+            account: "XP PF",
             value: 100_000,
             pctSub: 22.3,
             liquidity: "D+3",
@@ -1034,7 +1086,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a76",
             name: "Nasdaq 100 ETF (QQQ)",
-            institution: "XP",
+            account: "XP PF",
             value: 80_000,
             pctSub: 17.8,
             liquidity: "D+3",
@@ -1042,7 +1094,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a77",
             name: "Morgan Stanley Global",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 120_000,
             pctSub: 26.7,
             liquidity: "D+30",
@@ -1050,7 +1102,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a78",
             name: "Itaú USA Equities",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 75_000,
             pctSub: 16.7,
             liquidity: "D+30",
@@ -1058,7 +1110,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a79",
             name: "Safra International Eq.",
-            institution: "Safra",
+            account: "Safra",
             value: 44_000,
             pctSub: 9.8,
             liquidity: "D+30",
@@ -1066,7 +1118,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a80",
             name: "Bradesco Global Eq.",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 30_000,
             pctSub: 6.7,
             liquidity: "D+30",
@@ -1082,12 +1134,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 198_750,
         alocAtual: 199_750,
         sugestao: -1_000,
-        byInstitution: { XP: 80_000, BTG: 55_000, Itaú: 35_000, Safra: 19_750, Bradesco: 10_000 },
+        byAccount: {
+          "XP PF": 80_000,
+          "BTG Principal": 55_000,
+          "Itaú Joint": 35_000,
+          Safra: 19_750,
+          Bradesco: 10_000,
+        },
         assets: [
           {
             id: "a81",
             name: "Trend Dólar FIC",
-            institution: "XP",
+            account: "XP PF",
             value: 80_000,
             pctSub: 40.1,
             liquidity: "D+1",
@@ -1095,7 +1153,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a82",
             name: "BTG Cambial USD",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 55_000,
             pctSub: 27.5,
             liquidity: "D+1",
@@ -1103,7 +1161,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a83",
             name: "Itaú Cambial FIC",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 35_000,
             pctSub: 17.5,
             liquidity: "D+1",
@@ -1111,7 +1169,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a84",
             name: "Safra Hedge FX",
-            institution: "Safra",
+            account: "Safra",
             value: 19_750,
             pctSub: 9.9,
             liquidity: "D+1",
@@ -1119,7 +1177,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a85",
             name: "Bradesco Cambial",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 10_000,
             pctSub: 5.0,
             liquidity: "D+1",
@@ -1141,12 +1199,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 596_250,
         alocAtual: 605_300,
         sugestao: -9_050,
-        byInstitution: { XP: 240_000, BTG: 170_000, Itaú: 95_000, Safra: 60_300, Bradesco: 40_000 },
+        byAccount: {
+          "XP PF": 240_000,
+          "BTG Principal": 170_000,
+          "Itaú Joint": 95_000,
+          Safra: 60_300,
+          Bradesco: 40_000,
+        },
         assets: [
           {
             id: "a86",
             name: "HGLG11 - CSHG Logística",
-            institution: "XP",
+            account: "XP PF",
             value: 130_000,
             pctSub: 21.5,
             liquidity: "D+2",
@@ -1154,7 +1218,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a87",
             name: "XPML11 - XP Malls",
-            institution: "XP",
+            account: "XP PF",
             value: 110_000,
             pctSub: 18.2,
             liquidity: "D+2",
@@ -1162,7 +1226,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a88",
             name: "BTLG11 - BTG Log.",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 170_000,
             pctSub: 28.1,
             liquidity: "D+2",
@@ -1170,7 +1234,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a89",
             name: "IRDM11 - Iridium Receb.",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 95_000,
             pctSub: 15.7,
             liquidity: "D+2",
@@ -1178,7 +1242,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a90",
             name: "KNCR11 - Kinea Rend.",
-            institution: "Safra",
+            account: "Safra",
             value: 60_300,
             pctSub: 10.0,
             liquidity: "D+2",
@@ -1186,7 +1250,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a91",
             name: "HGRE11 - CSHG Real Est.",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 40_000,
             pctSub: 6.6,
             liquidity: "D+2",
@@ -1202,12 +1266,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 463_750,
         alocAtual: 465_150,
         sugestao: -1_400,
-        byInstitution: { XP: 185_000, BTG: 130_000, Itaú: 75_000, Safra: 45_150, Bradesco: 30_000 },
+        byAccount: {
+          "XP PF": 185_000,
+          "BTG Principal": 130_000,
+          "Itaú Joint": 75_000,
+          Safra: 45_150,
+          Bradesco: 30_000,
+        },
         assets: [
           {
             id: "a92",
             name: "Pátria Growth Fund V",
-            institution: "XP",
+            account: "XP PF",
             value: 185_000,
             pctSub: 39.8,
             liquidity: "Ilíquido",
@@ -1215,7 +1285,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a93",
             name: "Vinci Capital Partners IV",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 130_000,
             pctSub: 27.9,
             liquidity: "Ilíquido",
@@ -1223,7 +1293,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a94",
             name: "Itaú PE Fund III",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 75_000,
             pctSub: 16.1,
             liquidity: "Ilíquido",
@@ -1231,7 +1301,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a95",
             name: "Spectra Ventures VII",
-            institution: "Safra",
+            account: "Safra",
             value: 45_150,
             pctSub: 9.7,
             liquidity: "Ilíquido",
@@ -1239,7 +1309,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a96",
             name: "EB Capital FIP",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 30_000,
             pctSub: 6.4,
             liquidity: "Ilíquido",
@@ -1255,12 +1325,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 331_250,
         alocAtual: 324_300,
         sugestao: 6_950,
-        byInstitution: { XP: 130_000, BTG: 90_000, Itaú: 55_000, Safra: 29_300, Bradesco: 20_000 },
+        byAccount: {
+          "XP PF": 130_000,
+          "BTG Principal": 90_000,
+          "Itaú Joint": 55_000,
+          Safra: 29_300,
+          Bradesco: 20_000,
+        },
         assets: [
           {
             id: "a97",
             name: "Pátria Infra Energy III",
-            institution: "XP",
+            account: "XP PF",
             value: 130_000,
             pctSub: 40.1,
             liquidity: "Ilíquido",
@@ -1268,7 +1344,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a98",
             name: "BTG Infra Core Fund",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 90_000,
             pctSub: 27.7,
             liquidity: "Ilíquido",
@@ -1276,7 +1352,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a99",
             name: "Itaú Infra FIP-IE",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 55_000,
             pctSub: 17.0,
             liquidity: "Ilíquido",
@@ -1284,7 +1360,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a100",
             name: "Safra Infra Debentures",
-            institution: "Safra",
+            account: "Safra",
             value: 29_300,
             pctSub: 9.0,
             liquidity: "D+360",
@@ -1292,7 +1368,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a101",
             name: "Bradesco FIP Infra",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 20_000,
             pctSub: 6.2,
             liquidity: "Ilíquido",
@@ -1308,12 +1384,18 @@ const CATEGORIES: Category[] = [
         alocIdeal: 198_750,
         alocAtual: 183_825,
         sugestao: 14_925,
-        byInstitution: { XP: 75_000, BTG: 50_000, Itaú: 30_000, Safra: 18_825, Bradesco: 10_000 },
+        byAccount: {
+          "XP PF": 75_000,
+          "BTG Principal": 50_000,
+          "Itaú Joint": 30_000,
+          Safra: 18_825,
+          Bradesco: 10_000,
+        },
         assets: [
           {
             id: "a102",
             name: "Fiagro KNCA11",
-            institution: "XP",
+            account: "XP PF",
             value: 75_000,
             pctSub: 40.8,
             liquidity: "D+2",
@@ -1321,7 +1403,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a103",
             name: "BTG Agro Strategy",
-            institution: "BTG",
+            account: "BTG Principal",
             value: 50_000,
             pctSub: 27.2,
             liquidity: "D+90",
@@ -1329,7 +1411,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a104",
             name: "Itaú Fiagro Plus",
-            institution: "Itaú",
+            account: "Itaú Joint",
             value: 30_000,
             pctSub: 16.3,
             liquidity: "D+30",
@@ -1337,7 +1419,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a105",
             name: "Safra Agribusiness",
-            institution: "Safra",
+            account: "Safra",
             value: 18_825,
             pctSub: 10.2,
             liquidity: "D+90",
@@ -1345,7 +1427,7 @@ const CATEGORIES: Category[] = [
           {
             id: "a106",
             name: "Bradesco Fiagro FIC",
-            institution: "Bradesco",
+            account: "Bradesco",
             value: 10_000,
             pctSub: 5.4,
             liquidity: "D+30",
@@ -1357,11 +1439,11 @@ const CATEGORIES: Category[] = [
 ];
 
 const FGC_DATA: FGCInfo[] = [
-  { institution: "XP", colorKey: "XP", covered: 145_000, limit: 250_000, status: "ok" },
-  { institution: "BTG", colorKey: "BTG", covered: 210_000, limit: 250_000, status: "alerta" },
-  { institution: "Itaú", colorKey: "Itaú", covered: 268_500, limit: 250_000, status: "critico" },
-  { institution: "Safra", colorKey: "Safra", covered: 92_000, limit: 250_000, status: "ok" },
-  { institution: "Bradesco", colorKey: "Bradesco", covered: 55_000, limit: 250_000, status: "ok" },
+  { account: "XP PF", colorKey: "XP", covered: 145_000, limit: 250_000, status: "ok" },
+  { account: "BTG Principal", colorKey: "BTG", covered: 210_000, limit: 250_000, status: "alerta" },
+  { account: "Itaú Joint", colorKey: "Itaú", covered: 268_500, limit: 250_000, status: "critico" },
+  { account: "Safra", colorKey: "Safra", covered: 92_000, limit: 250_000, status: "ok" },
+  { account: "Bradesco", colorKey: "Bradesco", covered: 55_000, limit: 250_000, status: "ok" },
 ];
 
 const POLICY = {
@@ -2004,14 +2086,24 @@ function SugestaoCell({ value }: { value: number }) {
   );
 }
 
-function InstitutionAvatar({ colorKey, initials }: { colorKey: string; initials: string }) {
+function InstitutionAvatar({
+  colorKey,
+  initials,
+  size = "md",
+}: {
+  colorKey: string;
+  initials: string;
+  size?: "sm" | "md";
+}) {
   const c = getInstitutionColor(colorKey);
+  const sizeClass = size === "sm" ? "h-5 w-5" : "h-7 w-7";
+  const textSize = size === "sm" ? "text-[8px]" : "text-[10px]";
   return (
-    <Avatar className="h-6 w-6">
-      <AvatarFallback className={`text-[10px] font-bold ${c.bg} ${c.text} ${c.border} border`}>
-        {initials}
-      </AvatarFallback>
-    </Avatar>
+    <span
+      className={`flex ${sizeClass} shrink-0 items-center justify-center rounded-md ${textSize} font-bold ${c.bg} ${c.text} ${c.border} border`}
+    >
+      {initials}
+    </span>
   );
 }
 
@@ -2111,24 +2203,26 @@ interface NewAssetDraft {
   rate: string;
   maturity: string;
   liquidity: string;
-  institution: string;
+  account: string;
   value: string;
 }
 
 const EMPTY_DRAFT: NewAssetDraft = {
   name: "",
+  account: "",
+  value: "",
   rate: "",
   maturity: "",
   liquidity: "",
-  institution: "",
-  value: "",
 };
 
 function MatrixTable({
   allocatorValues,
   onAllocatorChange,
-  expandedInstitutions,
-  allInstitutions,
+  assetAllocValues,
+  onAssetAllocChange,
+  expandedAccounts,
+  allAccounts,
   onToggleInstitution,
   pendingChanges,
   onAddChange,
@@ -2136,8 +2230,10 @@ function MatrixTable({
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
-  expandedInstitutions: Institution[];
-  allInstitutions: Institution[];
+  assetAllocValues: Record<string, Record<string, string>>;
+  onAssetAllocChange: (assetId: string, inst: string, val: string) => void;
+  expandedAccounts: Account[];
+  allAccounts: Account[];
   onToggleInstitution: (name: string) => void;
   pendingChanges: PendingChange[];
   onAddChange: (change: PendingChange) => void;
@@ -2158,7 +2254,7 @@ function MatrixTable({
   const startAddingAsset = (subId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setAddingToSub(subId);
-    setNewAssetDraft({ ...EMPTY_DRAFT, institution: allInstitutions[0]?.name || "" });
+    setNewAssetDraft({ ...EMPTY_DRAFT, account: allAccounts[0]?.name || "" });
     if (!expandedSubs[subId]) {
       setExpandedSubs((prev) => ({ ...prev, [subId]: true }));
     }
@@ -2172,7 +2268,7 @@ function MatrixTable({
       assetId: id,
       assetName: newAssetDraft.name.trim(),
       subId,
-      institution: newAssetDraft.institution || allInstitutions[0]?.name || "",
+      account: newAssetDraft.account || allAccounts[0]?.name || "",
       value: parseFloat(newAssetDraft.value) || 0,
       rate: newAssetDraft.rate || undefined,
       maturity: newAssetDraft.maturity || undefined,
@@ -2222,7 +2318,7 @@ function MatrixTable({
       assetId: asset.id,
       assetName: asset.name,
       subId,
-      institution: asset.institution,
+      institution: asset.account,
       value: asset.value,
     });
   };
@@ -2234,7 +2330,7 @@ function MatrixTable({
       assetId: asset.id,
       assetName: asset.name,
       subId,
-      institution: asset.institution,
+      institution: asset.account,
       value: asset.value,
     });
   };
@@ -2259,12 +2355,12 @@ function MatrixTable({
           alocAtual: acc.alocAtual + sub.alocAtual,
           sugestao: acc.sugestao + sub.sugestao,
           pctPL: acc.pctPL + sub.pctPL,
-          byInstitution: allInstitutions.reduce(
+          byAccount: allAccounts.reduce(
             (instAcc, inst) => ({
               ...instAcc,
-              [inst.name]: (instAcc[inst.name] || 0) + (sub.byInstitution[inst.name] || 0),
+              [inst.name]: (instAcc[inst.name] || 0) + (sub.byAccount[inst.name] || 0),
             }),
-            acc.byInstitution,
+            acc.byAccount,
           ),
         }),
         {
@@ -2272,12 +2368,12 @@ function MatrixTable({
           alocAtual: 0,
           sugestao: 0,
           pctPL: 0,
-          byInstitution: {} as Record<string, number>,
+          byAccount: {} as Record<string, number>,
         },
       );
       return { catId: cat.id, ...total };
     });
-  }, [allInstitutions]);
+  }, [allAccounts]);
 
   const grandTotals = useMemo(() => {
     return categoryTotals.reduce(
@@ -2286,12 +2382,12 @@ function MatrixTable({
         alocAtual: acc.alocAtual + ct.alocAtual,
         sugestao: acc.sugestao + ct.sugestao,
         pctPL: acc.pctPL + ct.pctPL,
-        byInstitution: allInstitutions.reduce(
+        byAccount: allAccounts.reduce(
           (instAcc, inst) => ({
             ...instAcc,
-            [inst.name]: (instAcc[inst.name] || 0) + (ct.byInstitution[inst.name] || 0),
+            [inst.name]: (instAcc[inst.name] || 0) + (ct.byAccount[inst.name] || 0),
           }),
-          acc.byInstitution,
+          acc.byAccount,
         ),
       }),
       {
@@ -2299,139 +2395,195 @@ function MatrixTable({
         alocAtual: 0,
         sugestao: 0,
         pctPL: 0,
-        byInstitution: {} as Record<string, number>,
+        byAccount: {} as Record<string, number>,
       },
     );
-  }, [categoryTotals, allInstitutions]);
+  }, [categoryTotals, allAccounts]);
 
   const expandedSet = useMemo(
-    () => new Set(expandedInstitutions.map((i) => i.name)),
-    [expandedInstitutions],
+    () => new Set(expandedAccounts.map((i) => i.name)),
+    [expandedAccounts],
   );
 
-  const hasExpanded = expandedInstitutions.length > 0;
+  const hasExpanded = expandedAccounts.length > 0;
+
+  const allocatorTotals = useMemo(() => {
+    const byInst: Record<string, number> = {};
+    for (const [, instMap] of Object.entries(allocatorValues)) {
+      for (const [instName, val] of Object.entries(instMap)) {
+        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        byInst[instName] = (byInst[instName] || 0) + num;
+      }
+    }
+    return byInst;
+  }, [allocatorValues]);
+
+  const allocatorBySub = useMemo(() => {
+    const bySub: Record<string, number> = {};
+    for (const [subId, instMap] of Object.entries(allocatorValues)) {
+      for (const val of Object.values(instMap)) {
+        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        bySub[subId] = (bySub[subId] || 0) + num;
+      }
+    }
+    return bySub;
+  }, [allocatorValues]);
+
+  const allocatorBySubByInst = useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+    for (const [subId, instMap] of Object.entries(allocatorValues)) {
+      result[subId] = {};
+      for (const [instName, val] of Object.entries(instMap)) {
+        result[subId][instName] = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+      }
+    }
+    return result;
+  }, [allocatorValues]);
+
+  const assetAllocBySub = useMemo(() => {
+    const bySub: Record<string, number> = {};
+    const assetToSub: Record<string, string> = {};
+    for (const cat of CATEGORIES) {
+      for (const sub of cat.subs) {
+        for (const asset of sub.assets) {
+          assetToSub[asset.id] = sub.id;
+        }
+      }
+    }
+    for (const [assetId, instMap] of Object.entries(assetAllocValues)) {
+      const subId = assetToSub[assetId];
+      if (!subId) continue;
+      for (const val of Object.values(instMap)) {
+        const num = parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+        bySub[subId] = (bySub[subId] || 0) + num;
+      }
+    }
+    for (const c of pendingChanges) {
+      if (c.type === "adicao" && c.value) {
+        bySub[c.subId] = (bySub[c.subId] || 0) + c.value;
+      }
+    }
+    return bySub;
+  }, [assetAllocValues, pendingChanges]);
 
   return (
     <div className="rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
-      <div className="flex items-center justify-between gap-3 border-b border-[#2a2a2a] bg-[#1a1a1a] px-4 py-2">
-        <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wider text-[#555]">
-          Instituições
-        </span>
-        <div className="flex flex-wrap items-center justify-end gap-1.5">
-          {allInstitutions.map((inst) => {
-            const c = getInstitutionColor(inst.colorKey);
-            const isExpanded = expandedSet.has(inst.name);
-            const hexColor = INST_HEX[inst.colorKey] || "#888";
-            return (
-              <button
-                key={inst.name}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleInstitution(inst.name);
-                }}
-                className={`flex h-7 items-center gap-1.5 rounded-full px-1 transition-all ${isExpanded ? "pr-2.5 ring-2 ring-offset-1 ring-offset-[#1a1a1a]" : "opacity-40 hover:opacity-80"}`}
-                style={isExpanded ? { ["--tw-ring-color" as string]: hexColor } : undefined}
-                title={inst.name}
-                data-testid={`toggle-institution-${inst.name}`}
-              >
-                <Avatar className="h-5 w-5">
-                  <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>
-                    {inst.initials}
-                  </AvatarFallback>
-                </Avatar>
-                {isExpanded && (
-                  <span className="text-[10px] font-medium text-[#ccc]">{inst.name}</span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
       <div className="overflow-x-auto">
         <table className="w-full border-collapse text-xs">
           <thead className="bg-[#1a1a1a]">
             <tr className="border-b border-[#2a2a2a]">
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="min-w-[200px] px-4 py-2.5 text-left font-medium text-[#8c8c8c]"
+                className="sticky left-0 z-20 min-w-[200px] bg-[#1a1a1a] px-4 py-2.5 text-left font-medium text-[#8c8c8c]"
               >
                 Classificação
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[200px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
               >
                 % P.L.
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
+                className="sticky left-[252px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-center font-medium text-[#8c8c8c]"
               >
                 Status
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[340px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
               >
                 % Fora
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[392px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
               >
                 Ideal
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[452px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
               >
                 Atual
               </th>
               <th
                 rowSpan={hasExpanded ? 2 : 1}
-                className="whitespace-nowrap px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
+                className="sticky left-[512px] z-20 whitespace-nowrap bg-[#1a1a1a] px-2 py-2.5 text-right font-medium text-[#8c8c8c]"
               >
                 Sugestão
               </th>
-              {expandedInstitutions.map((inst) => {
+              {allAccounts.map((inst, idx) => {
                 const c = getInstitutionColor(inst.colorKey);
+                const isExp = expandedSet.has(inst.name);
+                const hexColor = INST_HEX[inst.colorKey] || "#888";
+                const isFirst = idx === 0;
+                if (isExp) {
+                  return (
+                    <th
+                      key={inst.name}
+                      colSpan={2}
+                      className={`relative px-2 py-2 text-center ${isFirst ? "border-l-2 border-[#3a3a3a]" : "border-l border-[#2a2a2a]"}`}
+                    >
+                      <div
+                        className="absolute inset-x-0 top-0 h-[2px]"
+                        style={{ backgroundColor: hexColor }}
+                      />
+                      <div className="flex justify-center">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleInstitution(inst.name);
+                          }}
+                          className="group inline-flex items-center gap-2 whitespace-nowrap"
+                          data-testid={`header-inst-${inst.name}`}
+                        >
+                          <InstitutionAvatar colorKey={inst.colorKey} initials={inst.initials} />
+                          <span className="text-[11px] font-bold text-[#ededed]">{inst.name}</span>
+                          <X className="h-3 w-3 text-[#555] opacity-0 transition-opacity group-hover:opacity-100" />
+                        </button>
+                      </div>
+                    </th>
+                  );
+                }
                 return (
                   <th
                     key={inst.name}
-                    colSpan={2}
-                    className="border-l border-[#2a2a2a] px-2 py-2 text-center"
+                    rowSpan={hasExpanded ? 2 : 1}
+                    className={`w-12 min-w-[48px] cursor-pointer px-1 py-2 text-center transition-colors hover:bg-[#1e1e1e] ${isFirst ? "border-l-2 border-[#3a3a3a]" : "border-l border-[#2a2a2a]"}`}
+                    onClick={() => onToggleInstitution(inst.name)}
+                    title={`Expandir ${inst.name}`}
+                    data-testid={`toggle-institution-${inst.name}`}
                   >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onToggleInstitution(inst.name);
-                      }}
-                      className="inline-flex items-center gap-1.5 whitespace-nowrap"
-                      data-testid={`header-inst-${inst.name}`}
-                    >
-                      <Avatar className="h-5 w-5">
-                        <AvatarFallback className={`text-[8px] font-bold ${c.bg} ${c.text}`}>
-                          {inst.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-[11px] font-medium text-[#ededed]">{inst.name}</span>
-                    </button>
+                    <div className="flex flex-col items-center gap-1">
+                      <InstitutionAvatar colorKey={inst.colorKey} initials={inst.initials} />
+                      <span className="max-w-[44px] overflow-hidden text-ellipsis whitespace-nowrap text-[8px] leading-tight text-[#555]">
+                        {inst.name}
+                      </span>
+                    </div>
                   </th>
                 );
               })}
             </tr>
             {hasExpanded && (
               <tr className="border-b border-[#2a2a2a]">
-                {expandedInstitutions.map((inst) => (
-                  <Fragment key={`${inst.name}-sub`}>
-                    <th className="whitespace-nowrap border-l border-[#2a2a2a] px-2 py-1 text-center text-[9px] font-normal text-[#555]">
-                      $ Atual
-                    </th>
-                    <th className="whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555]">
-                      Alocador
-                    </th>
-                  </Fragment>
-                ))}
+                {allAccounts.map((inst, idx) => {
+                  if (!expandedSet.has(inst.name)) return null;
+                  const isFirst = idx === 0;
+                  return (
+                    <Fragment key={`${inst.name}-sub`}>
+                      <th
+                        className={`whitespace-nowrap px-2 py-1 text-center text-[9px] font-normal text-[#555] ${isFirst ? "border-l-2 border-[#3a3a3a]" : "border-l border-[#2a2a2a]"}`}
+                      >
+                        $ Atual
+                      </th>
+                      <th className="whitespace-nowrap px-2 py-1 text-center text-[9px] font-medium text-[#6db1d4]/60">
+                        Alocar
+                      </th>
+                    </Fragment>
+                  );
+                })}
               </tr>
             )}
           </thead>
@@ -2452,7 +2604,7 @@ function MatrixTable({
                     onClick={() => toggleCategory(cat.id)}
                     data-testid={`category-row-${cat.id}`}
                   >
-                    <td className="px-4 py-2">
+                    <td className="sticky left-0 z-10 bg-[#161616] px-4 py-2">
                       <div className="flex items-center gap-2">
                         {isCollapsed ? (
                           <ChevronRight className="h-3.5 w-3.5 text-[#8c8c8c]" />
@@ -2463,30 +2615,51 @@ function MatrixTable({
                         <span className="text-[10px] text-[#555]">({cat.subs.length})</span>
                       </div>
                     </td>
-                    <td className="px-2 py-2 text-right font-medium text-[#ededed]">
+                    <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
                       {ct.pctPL.toFixed(1)}%
                     </td>
-                    <td className="px-2 py-2 text-center">
+                    <td className="sticky left-[252px] z-10 bg-[#161616] px-2 py-2 text-center">
                       <StatusBadge status={worstStatus} />
                     </td>
-                    <td className="px-2 py-2 text-right text-[#555]">—</td>
-                    <td className="px-2 py-2 text-right font-medium text-[#ededed]">
+                    <td className="sticky left-[340px] z-10 bg-[#161616] px-2 py-2 text-right text-[#555]">
+                      —
+                    </td>
+                    <td className="sticky left-[392px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
                       {formatBRL(ct.alocIdeal)}
                     </td>
-                    <td className="px-2 py-2 text-right font-medium text-[#ededed]">
+                    <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-right font-medium text-[#ededed]">
                       {formatBRL(ct.alocAtual)}
                     </td>
-                    <td className="px-2 py-2 text-right">
+                    <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 text-right">
                       <SugestaoCell value={ct.sugestao} />
                     </td>
-                    {expandedInstitutions.map((inst) => (
-                      <Fragment key={`${cat.id}-${inst.name}`}>
-                        <td className="border-l border-[#2a2a2a] px-2 py-2 text-right font-medium text-[#bbb]">
-                          {formatBRL(ct.byInstitution[inst.name] || 0)}
+                    {allAccounts.map((inst, idx) => {
+                      const isExp = expandedSet.has(inst.name);
+                      const isFirst = idx === 0;
+                      const borderCls = isFirst
+                        ? "border-l-2 border-[#3a3a3a]"
+                        : "border-l border-[#2a2a2a]";
+                      if (isExp) {
+                        return (
+                          <Fragment key={`${cat.id}-${inst.name}`}>
+                            <td
+                              className={`${borderCls} px-2 py-2 text-right font-medium text-[#bbb]`}
+                            >
+                              {formatBRL(ct.byAccount[inst.name] || 0)}
+                            </td>
+                            <td className="px-2 py-2 text-center text-[#444]">—</td>
+                          </Fragment>
+                        );
+                      }
+                      return (
+                        <td
+                          key={`${cat.id}-${inst.name}`}
+                          className={`${borderCls} whitespace-nowrap px-1 py-2 text-center text-[10px] font-medium text-[#666]`}
+                        >
+                          {formatBRL(ct.byAccount[inst.name] || 0)}
                         </td>
-                        <td className="px-2 py-2 text-center text-[#444]">—</td>
-                      </Fragment>
-                    ))}
+                      );
+                    })}
                   </tr>
 
                   {!isCollapsed &&
@@ -2500,7 +2673,7 @@ function MatrixTable({
                             onClick={(e) => toggleSub(sub.id, e)}
                             data-testid={`sub-row-${sub.id}`}
                           >
-                            <td className="px-4 py-2 pl-10">
+                            <td className="sticky left-0 z-[5] bg-[#141414] px-4 py-2 pl-6">
                               <div className="flex items-center gap-1.5">
                                 <button
                                   onClick={(e) => startAddingAsset(sub.id, e)}
@@ -2521,61 +2694,185 @@ function MatrixTable({
                                 </span>
                               </div>
                             </td>
-                            <td className="px-2 py-2 text-right text-[#bbb]">
+                            <td className="sticky left-[200px] z-[5] bg-[#141414] px-2 py-2 text-right text-[#bbb]">
                               {sub.pctPL.toFixed(1)}%
                             </td>
-                            <td className="px-2 py-2 text-center">
+                            <td className="sticky left-[252px] z-[5] bg-[#141414] px-2 py-2 text-center">
                               <StatusBadge status={sub.status} />
                             </td>
-                            <td className="px-2 py-2 text-right">
-                              <span
-                                className={
-                                  sub.pctForaIdeal > 10
-                                    ? "text-[#e05c5c]"
-                                    : sub.pctForaIdeal > 3
-                                      ? "text-[#dcb092]"
-                                      : "text-[#8c8c8c]"
-                                }
-                              >
-                                {sub.pctForaIdeal.toFixed(1)}%
-                              </span>
-                            </td>
-                            <td className="px-2 py-2 text-right text-[#bbb]">
-                              {formatBRL(sub.alocIdeal)}
-                            </td>
-                            <td className="px-2 py-2 text-right text-[#bbb]">
-                              {formatBRL(sub.alocAtual)}
-                            </td>
-                            <td className="px-2 py-2 text-right">
-                              <SugestaoCell value={sub.sugestao} />
-                            </td>
-                            {expandedInstitutions.map((inst) => (
-                              <Fragment key={`${sub.id}-${inst.name}`}>
-                                <td className="border-l border-[#2a2a2a] px-2 py-2 text-right text-[#888]">
-                                  {formatBRL(sub.byInstitution[inst.name] || 0)}
+                            {(() => {
+                              const subAlloc = allocatorBySub[sub.id] || 0;
+                              const projected = sub.alocAtual + subAlloc;
+                              const newPctFora =
+                                sub.alocIdeal > 0
+                                  ? Math.abs(((projected - sub.alocIdeal) / sub.alocIdeal) * 100)
+                                  : sub.pctForaIdeal;
+                              const remainingSugestao = sub.sugestao - subAlloc;
+                              const pctForaDisplay = subAlloc !== 0 ? newPctFora : sub.pctForaIdeal;
+                              return (
+                                <>
+                                  <td className="sticky left-[340px] z-[5] bg-[#141414] px-2 py-2 text-right">
+                                    <span
+                                      className={
+                                        pctForaDisplay > 10
+                                          ? "text-[#e05c5c]"
+                                          : pctForaDisplay > 3
+                                            ? "text-[#dcb092]"
+                                            : "text-[#8c8c8c]"
+                                      }
+                                    >
+                                      {pctForaDisplay.toFixed(1)}%
+                                    </span>
+                                  </td>
+                                  <td className="sticky left-[392px] z-[5] bg-[#141414] px-2 py-2 text-right text-[#bbb]">
+                                    {formatBRL(sub.alocIdeal)}
+                                  </td>
+                                  <td className="sticky left-[452px] z-[5] bg-[#141414] px-2 py-2 text-right">
+                                    <div className="flex flex-col items-end">
+                                      <span className="text-[#bbb]">
+                                        {formatBRL(sub.alocAtual)}
+                                      </span>
+                                      {subAlloc !== 0 && (
+                                        <span
+                                          className={`text-[9px] font-medium ${subAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                                        >
+                                          {subAlloc > 0 ? "+" : ""}
+                                          {formatBRL(subAlloc)} → {formatBRL(projected)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td className="sticky left-[512px] z-[5] bg-[#141414] px-2 py-2 text-right">
+                                    {subAlloc !== 0 ? (
+                                      <SugestaoCell value={remainingSugestao} />
+                                    ) : (
+                                      <SugestaoCell value={sub.sugestao} />
+                                    )}
+                                  </td>
+                                </>
+                              );
+                            })()}
+                            {allAccounts.map((inst, idx) => {
+                              const isExp = expandedSet.has(inst.name);
+                              const isFirst = idx === 0;
+                              const borderCls = isFirst
+                                ? "border-l-2 border-[#3a3a3a]"
+                                : "border-l border-[#2a2a2a]";
+                              if (isExp) {
+                                const rawVal = allocatorValues[sub.id]?.[inst.name] ?? "";
+                                const numVal =
+                                  parseFloat(String(rawVal).replace(/[^\d.-]/g, "")) || 0;
+                                const valColor =
+                                  numVal > 0
+                                    ? "text-[#6ecf8e]"
+                                    : numVal < 0
+                                      ? "text-[#e05c5c]"
+                                      : "text-[#ededed]";
+                                return (
+                                  <Fragment key={`${sub.id}-${inst.name}`}>
+                                    <td className={`${borderCls} px-2 py-2 text-right text-[#888]`}>
+                                      {formatBRL(sub.byAccount[inst.name] || 0)}
+                                    </td>
+                                    <td className="px-0.5 py-0.5">
+                                      <input
+                                        type="text"
+                                        placeholder="—"
+                                        value={rawVal}
+                                        onChange={(e) => {
+                                          e.stopPropagation();
+                                          onAllocatorChange(sub.id, inst.name, e.target.value);
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className={`mx-auto block w-16 rounded border ${rawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${valColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
+                                        data-testid={`input-allocator-${sub.id}-${inst.name}`}
+                                      />
+                                    </td>
+                                  </Fragment>
+                                );
+                              }
+                              return (
+                                <td
+                                  key={`${sub.id}-${inst.name}`}
+                                  className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] text-[#555]`}
+                                >
+                                  {formatBRL(sub.byAccount[inst.name] || 0)}
                                 </td>
-                                <td className="px-1 py-1.5">
-                                  <input
-                                    type="text"
-                                    placeholder="—"
-                                    value={allocatorValues[sub.id]?.[inst.name] ?? ""}
-                                    onChange={(e) => {
-                                      e.stopPropagation();
-                                      onAllocatorChange(sub.id, inst.name, e.target.value);
-                                    }}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="w-full rounded border border-[#2a2a2a] bg-[#161616] px-2 py-1 text-center text-xs text-[#ededed] outline-none placeholder:text-[#333] focus:border-[#6db1d4]"
-                                    data-testid={`input-allocator-${sub.id}-${inst.name}`}
-                                  />
-                                </td>
-                              </Fragment>
-                            ))}
+                              );
+                            })}
                           </tr>
+
+                          {isSubExpanded && (allocatorBySub[sub.id] || 0) !== 0 && (
+                            <tr className="border-b border-[#1e1e1e] bg-[#0f1311]">
+                              <td colSpan={7} className="px-4 py-1.5 pl-6">
+                                {(() => {
+                                  const subTotal = allocatorBySub[sub.id] || 0;
+                                  const distributed = assetAllocBySub[sub.id] || 0;
+                                  const pct =
+                                    subTotal !== 0
+                                      ? Math.min(Math.abs(distributed / subTotal) * 100, 100)
+                                      : 0;
+                                  const remaining = subTotal - distributed;
+                                  const isComplete = Math.abs(remaining) < 1;
+                                  return (
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-[10px] font-medium text-[#888]">
+                                        Alocar:{" "}
+                                        <span
+                                          className={
+                                            subTotal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"
+                                          }
+                                        >
+                                          {formatBRL(subTotal)}
+                                        </span>
+                                      </span>
+                                      <div
+                                        className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#222]"
+                                        style={{ maxWidth: 120 }}
+                                      >
+                                        <div
+                                          className={`h-full rounded-full transition-all ${isComplete ? "bg-[#6ecf8e]" : "bg-[#6db1d4]"}`}
+                                          style={{ width: `${pct}%` }}
+                                        />
+                                      </div>
+                                      <span className="text-[10px] text-[#666]">
+                                        {pct.toFixed(0)}%
+                                      </span>
+                                      {isComplete ? (
+                                        <span className="flex items-center gap-1 text-[10px] font-medium text-[#6ecf8e]">
+                                          <CheckCircle className="h-3 w-3" /> Distribuído
+                                        </span>
+                                      ) : (
+                                        <span className="flex items-center gap-1 text-[10px] font-medium text-[#dcb092]">
+                                          <AlertTriangle className="h-3 w-3" />{" "}
+                                          {formatBRL(remaining)} pendente
+                                        </span>
+                                      )}
+                                    </div>
+                                  );
+                                })()}
+                              </td>
+                              {allAccounts.map((inst, idx) => {
+                                const isExp = expandedSet.has(inst.name);
+                                const isFirst = idx === 0;
+                                const borderCls = isFirst
+                                  ? "border-l-2 border-[#3a3a3a]"
+                                  : "border-l border-[#1a1a1a]";
+                                if (isExp)
+                                  return (
+                                    <Fragment key={`dist-${inst.name}`}>
+                                      <td className={borderCls} />
+                                      <td />
+                                    </Fragment>
+                                  );
+                                return <td key={`dist-${inst.name}`} className={borderCls} />;
+                              })}
+                            </tr>
+                          )}
 
                           {isSubExpanded && (
                             <>
                               <tr className="border-b border-[#1e1e1e] bg-[#111]">
-                                <td className="py-1 pl-14 pr-4 text-[10px] font-medium text-[#555]">
+                                <td className="py-1 pl-10 pr-4 text-[10px] font-medium text-[#555]">
                                   Ativo
                                 </td>
                                 <td className="px-2 py-1 text-right text-[10px] font-medium text-[#555]">
@@ -2596,12 +2893,24 @@ function MatrixTable({
                                 <td className="px-2 py-1 text-center text-[10px] font-medium text-[#555]">
                                   Inst.
                                 </td>
-                                {expandedInstitutions.map((inst) => (
-                                  <Fragment key={`hdr-asset-${inst.name}`}>
-                                    <td className="border-l border-[#1a1a1a]" />
-                                    <td />
-                                  </Fragment>
-                                ))}
+                                {allAccounts.map((inst, idx) => {
+                                  const isExp = expandedSet.has(inst.name);
+                                  const isFirst = idx === 0;
+                                  const borderCls = isFirst
+                                    ? "border-l-2 border-[#3a3a3a]"
+                                    : "border-l border-[#1a1a1a]";
+                                  if (isExp) {
+                                    return (
+                                      <Fragment key={`hdr-asset-${inst.name}`}>
+                                        <td className={borderCls} />
+                                        <td />
+                                      </Fragment>
+                                    );
+                                  }
+                                  return (
+                                    <td key={`hdr-asset-${inst.name}`} className={borderCls} />
+                                  );
+                                })}
                               </tr>
                               {filteredAssets
                                 .filter(
@@ -2609,14 +2918,14 @@ function MatrixTable({
                                     !pendingIds.has(a.id) || pendingMap[a.id]?.type !== "remocao",
                                 )
                                 .map((asset) => {
-                                  const instObj = allInstitutions.find(
-                                    (vi) => vi.name === asset.institution,
+                                  const instObj = allAccounts.find(
+                                    (vi) => vi.name === asset.account,
                                   );
                                   const instColor = instObj
                                     ? getInstitutionColor(instObj.colorKey)
                                     : null;
-                                  const instIndex = expandedInstitutions.findIndex(
-                                    (vi) => vi.name === asset.institution,
+                                  const assetInstIdx = allAccounts.findIndex(
+                                    (vi) => vi.name === asset.account,
                                   );
                                   const pending = pendingMap[asset.id];
                                   return (
@@ -2625,7 +2934,7 @@ function MatrixTable({
                                       className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"}`}
                                       data-testid={`asset-row-${asset.id}`}
                                     >
-                                      <td className="py-1.5 pl-14 pr-4">
+                                      <td className="py-1.5 pl-10 pr-4">
                                         <div className="flex items-center gap-2">
                                           <div className="relative flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center">
                                             {pending && (
@@ -2693,32 +3002,78 @@ function MatrixTable({
                                           <span
                                             className={`inline-block rounded px-1.5 py-0.5 text-[9px] font-medium ${instColor.bg} ${instColor.text}`}
                                           >
-                                            {asset.institution}
+                                            {asset.account}
                                           </span>
                                         )}
                                       </td>
-                                      {expandedInstitutions.map((inst, idx) => (
-                                        <Fragment key={`${asset.id}-${inst.name}`}>
+                                      {allAccounts.map((inst, idx) => {
+                                        const isExp = expandedSet.has(inst.name);
+                                        const isFirst = idx === 0;
+                                        const borderCls = isFirst
+                                          ? "border-l-2 border-[#3a3a3a]"
+                                          : "border-l border-[#1a1a1a]";
+                                        if (isExp) {
+                                          const assetRawVal =
+                                            assetAllocValues[asset.id]?.[inst.name] ?? "";
+                                          const assetNumVal =
+                                            parseFloat(
+                                              String(assetRawVal).replace(/[^\d.-]/g, ""),
+                                            ) || 0;
+                                          const assetValColor =
+                                            assetNumVal > 0
+                                              ? "text-[#6ecf8e]"
+                                              : assetNumVal < 0
+                                                ? "text-[#e05c5c]"
+                                                : "text-[#ededed]";
+                                          return (
+                                            <Fragment key={`${asset.id}-${inst.name}`}>
+                                              <td
+                                                className={`${borderCls} px-2 py-1.5 text-right text-[10px] ${idx === assetInstIdx ? "text-[#999]" : "text-transparent"}`}
+                                              >
+                                                {idx === assetInstIdx ? formatBRL(asset.value) : ""}
+                                              </td>
+                                              <td className="px-0.5 py-0.5">
+                                                <input
+                                                  type="text"
+                                                  placeholder="—"
+                                                  value={assetRawVal}
+                                                  onChange={(e) => {
+                                                    e.stopPropagation();
+                                                    onAssetAllocChange(
+                                                      asset.id,
+                                                      inst.name,
+                                                      e.target.value,
+                                                    );
+                                                  }}
+                                                  onClick={(e) => e.stopPropagation()}
+                                                  className={`mx-auto block w-16 rounded border ${assetRawVal ? "border-[#333] bg-[#111]" : "border-dashed border-[#2a2a2a] bg-[#0d0d0d]"} px-1 py-0.5 text-center text-[10px] font-medium ${assetValColor} outline-none transition-all placeholder:text-[#333] hover:border-[#444] hover:bg-[#151515] focus:border-[#6db1d4] focus:bg-[#111] focus:ring-1 focus:ring-[#6db1d4]/20`}
+                                                  data-testid={`input-asset-alloc-${asset.id}-${inst.name}`}
+                                                />
+                                              </td>
+                                            </Fragment>
+                                          );
+                                        }
+                                        return (
                                           <td
-                                            className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === instIndex ? "text-[#999]" : "text-transparent"}`}
+                                            key={`${asset.id}-${inst.name}`}
+                                            className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? "text-[#666]" : "text-transparent"}`}
                                           >
-                                            {idx === instIndex ? formatBRL(asset.value) : ""}
+                                            {idx === assetInstIdx ? formatBRL(asset.value) : ""}
                                           </td>
-                                          <td />
-                                        </Fragment>
-                                      ))}
+                                        );
+                                      })}
                                     </tr>
                                   );
                                 })}
 
                               {addedAssetsForSub(sub.id).map((added) => {
-                                const addedInstObj = allInstitutions.find(
+                                const addedInstObj = allAccounts.find(
                                   (vi) => vi.name === added.institution,
                                 );
                                 const addedInstColor = addedInstObj
                                   ? getInstitutionColor(addedInstObj.colorKey)
                                   : null;
-                                const addedInstIndex = expandedInstitutions.findIndex(
+                                const addedInstIdx = allAccounts.findIndex(
                                   (vi) => vi.name === added.institution,
                                 );
                                 return (
@@ -2727,7 +3082,7 @@ function MatrixTable({
                                     className="border-b border-[#1a1a1a] bg-[#0e1210]"
                                     data-testid={`added-asset-row-${added.assetId}`}
                                   >
-                                    <td className="py-1.5 pl-14 pr-4">
+                                    <td className="py-1.5 pl-10 pr-4">
                                       <div className="flex items-center gap-2">
                                         <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[#dcb092]" />
                                         <span className="text-[11px] text-[#6ecf8e]">
@@ -2773,18 +3128,41 @@ function MatrixTable({
                                         </span>
                                       )}
                                     </td>
-                                    {expandedInstitutions.map((inst, idx) => (
-                                      <Fragment key={`${added.assetId}-${inst.name}`}>
+                                    {allAccounts.map((inst, idx) => {
+                                      const isExp = expandedSet.has(inst.name);
+                                      const isFirst = idx === 0;
+                                      const borderCls = isFirst
+                                        ? "border-l-2 border-[#3a3a3a]"
+                                        : "border-l border-[#1a1a1a]";
+                                      if (isExp) {
+                                        return (
+                                          <Fragment key={`${added.assetId}-${inst.name}`}>
+                                            <td
+                                              className={`${borderCls} px-2 py-1.5 text-right text-[10px] text-transparent`}
+                                            >
+                                              {""}
+                                            </td>
+                                            <td className="px-1 py-0.5 text-right text-[10px]">
+                                              {idx === addedInstIdx && added.value ? (
+                                                <span className="font-medium text-[#6ecf8e]">
+                                                  {formatBRL(added.value)}
+                                                </span>
+                                              ) : null}
+                                            </td>
+                                          </Fragment>
+                                        );
+                                      }
+                                      return (
                                         <td
-                                          className={`border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] ${idx === addedInstIndex ? "text-[#6ecf8e]/60" : "text-transparent"}`}
+                                          key={`${added.assetId}-${inst.name}`}
+                                          className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] ${idx === addedInstIdx ? "text-[#6ecf8e]/60" : "text-transparent"}`}
                                         >
-                                          {idx === addedInstIndex && added.value
+                                          {idx === addedInstIdx && added.value
                                             ? formatBRL(added.value)
                                             : ""}
                                         </td>
-                                        <td />
-                                      </Fragment>
-                                    ))}
+                                      );
+                                    })}
                                   </tr>
                                 );
                               })}
@@ -2806,7 +3184,7 @@ function MatrixTable({
                                   }}
                                   onBlur={handleNewAssetRowBlur(sub.id)}
                                 >
-                                  <td className="py-1.5 pl-14 pr-4">
+                                  <td className="py-1.5 pl-10 pr-4">
                                     <div className="flex items-center gap-2">
                                       <Clock className="h-3.5 w-3.5 flex-shrink-0 text-[#dcb092]" />
                                       <input
@@ -2890,7 +3268,7 @@ function MatrixTable({
                                   <td className="px-2 py-1.5">
                                     <div className="flex items-center gap-1">
                                       <select
-                                        value={newAssetDraft.institution}
+                                        value={newAssetDraft.account}
                                         onChange={(e) => {
                                           e.stopPropagation();
                                           setNewAssetDraft((d) => ({
@@ -2902,7 +3280,7 @@ function MatrixTable({
                                         className="w-full bg-transparent text-[10px] text-[#6ecf8e]/60 outline-none"
                                         data-testid={`select-new-asset-inst-${sub.id}`}
                                       >
-                                        {allInstitutions.map((inst) => (
+                                        {allAccounts.map((inst) => (
                                           <option
                                             key={inst.name}
                                             value={inst.name}
@@ -2936,12 +3314,26 @@ function MatrixTable({
                                       </button>
                                     </div>
                                   </td>
-                                  {expandedInstitutions.map((inst) => (
-                                    <Fragment key={`new-${inst.name}`}>
-                                      <td className="border-l border-[#1a1a1a] px-2 py-1.5 text-right text-[10px] text-transparent" />
-                                      <td />
-                                    </Fragment>
-                                  ))}
+                                  {allAccounts.map((inst, idx) => {
+                                    const isExp = expandedSet.has(inst.name);
+                                    const isFirst = idx === 0;
+                                    const borderCls = isFirst
+                                      ? "border-l-2 border-[#3a3a3a]"
+                                      : "border-l border-[#1a1a1a]";
+                                    if (isExp) {
+                                      return (
+                                        <Fragment key={`new-${inst.name}`}>
+                                          <td
+                                            className={`${borderCls} px-2 py-1.5 text-right text-[10px] text-transparent`}
+                                          />
+                                          <td />
+                                        </Fragment>
+                                      );
+                                    }
+                                    return (
+                                      <td key={`new-${inst.name}`} className={`${borderCls}`} />
+                                    );
+                                  })}
                                 </tr>
                               )}
                             </>
@@ -2956,29 +3348,92 @@ function MatrixTable({
 
           <tfoot className="bg-[#1a1a1a]">
             <tr className="border-t-2 border-[#3a3a3a]">
-              <td className="px-4 py-2.5 font-semibold text-[#ededed]">Total</td>
-              <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">
+              <td className="sticky left-0 z-10 bg-[#1a1a1a] px-4 py-2.5 font-semibold text-[#ededed]">
+                Total
+              </td>
+              <td className="sticky left-[200px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right font-semibold text-[#ededed]">
                 {grandTotals.pctPL.toFixed(1)}%
               </td>
-              <td />
-              <td />
-              <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">
+              <td className="sticky left-[252px] z-10 bg-[#1a1a1a]" />
+              <td className="sticky left-[340px] z-10 bg-[#1a1a1a]" />
+              <td className="sticky left-[392px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right font-semibold text-[#ededed]">
                 {formatBRLFull(grandTotals.alocIdeal)}
               </td>
-              <td className="px-2 py-2.5 text-right font-semibold text-[#ededed]">
-                {formatBRLFull(grandTotals.alocAtual)}
-              </td>
-              <td className="px-2 py-2.5 text-right">
-                <SugestaoCell value={grandTotals.sugestao} />
-              </td>
-              {expandedInstitutions.map((inst) => (
-                <Fragment key={`total-${inst.name}`}>
-                  <td className="border-l border-[#2a2a2a] px-2 py-2.5 text-right font-semibold text-[#ededed]">
-                    {formatBRL(grandTotals.byInstitution[inst.name] || 0)}
+              {(() => {
+                const totalAlloc = Object.values(allocatorBySub).reduce((s, v) => s + v, 0);
+                const projectedAtual = grandTotals.alocAtual + totalAlloc;
+                const remainingSugestao = grandTotals.sugestao - totalAlloc;
+                return (
+                  <>
+                    <td className="sticky left-[452px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right">
+                      <div className="flex flex-col items-end">
+                        <span className="font-semibold text-[#ededed]">
+                          {formatBRLFull(grandTotals.alocAtual)}
+                        </span>
+                        {totalAlloc !== 0 && (
+                          <span
+                            className={`text-[9px] font-medium ${totalAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                          >
+                            {totalAlloc > 0 ? "+" : ""}
+                            {formatBRL(totalAlloc)} → {formatBRLFull(projectedAtual)}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="sticky left-[512px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-right">
+                      {totalAlloc !== 0 ? (
+                        <SugestaoCell value={remainingSugestao} />
+                      ) : (
+                        <SugestaoCell value={grandTotals.sugestao} />
+                      )}
+                    </td>
+                  </>
+                );
+              })()}
+              {allAccounts.map((inst, idx) => {
+                const isExp = expandedSet.has(inst.name);
+                const isFirst = idx === 0;
+                const borderCls = isFirst
+                  ? "border-l-2 border-[#3a3a3a]"
+                  : "border-l border-[#2a2a2a]";
+                const currentTotal = grandTotals.byAccount[inst.name] || 0;
+                if (isExp) {
+                  const allocTotal = allocatorTotals[inst.name] || 0;
+                  const delta = allocTotal - currentTotal;
+                  const deltaColor =
+                    delta > 0 ? "text-[#6ecf8e]" : delta < 0 ? "text-[#e05c5c]" : "text-[#444]";
+                  return (
+                    <Fragment key={`total-${inst.name}`}>
+                      <td
+                        className={`${borderCls} px-2 py-2.5 text-right font-semibold text-[#ededed]`}
+                      >
+                        {formatBRL(currentTotal)}
+                      </td>
+                      <td className="px-2 py-1.5 text-right">
+                        <div className="flex flex-col items-end">
+                          <span className="text-xs font-semibold text-[#ededed]">
+                            {allocTotal > 0 ? formatBRL(allocTotal) : "—"}
+                          </span>
+                          {allocTotal > 0 && (
+                            <span className={`text-[9px] font-medium ${deltaColor}`}>
+                              {delta > 0 ? "+" : ""}
+                              {formatBRL(delta)}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                    </Fragment>
+                  );
+                }
+                return (
+                  <td
+                    key={`total-${inst.name}`}
+                    className={`${borderCls} whitespace-nowrap px-1 py-2.5 text-center text-[10px] font-medium text-[#888]`}
+                  >
+                    {formatBRL(currentTotal)}
                   </td>
-                  <td className="px-2 py-2.5 text-center text-[#444]">—</td>
-                </Fragment>
-              ))}
+                );
+              })}
             </tr>
           </tfoot>
         </table>
@@ -3893,14 +4348,34 @@ export default function MockupRealocador() {
   const [allocatorValues, setAllocatorValues] = useState<Record<string, Record<string, string>>>(
     {},
   );
+  const [assetAllocValues, setAssetAllocValues] = useState<Record<string, Record<string, string>>>(
+    {},
+  );
+  const [globalBudget, setGlobalBudget] = useState("");
   const [expandedInstOrder, setExpandedInstOrder] = useState<string[]>([]);
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
   const [notifyPreview, setNotifyPreview] = useState<{ channel: "whatsapp" | "email" } | null>(
     null,
   );
 
+  const globalBudgetNum = parseFloat(String(globalBudget).replace(/[^\d.-]/g, "")) || 0;
+
+  const totalAllocated = useMemo(() => {
+    let sum = 0;
+    for (const instMap of Object.values(allocatorValues)) {
+      for (const val of Object.values(instMap)) {
+        sum += parseFloat(String(val).replace(/[^\d.-]/g, "")) || 0;
+      }
+    }
+    return sum;
+  }, [allocatorValues]);
+
   const handleAllocatorChange = (subId: string, inst: string, val: string) => {
     setAllocatorValues((prev) => ({ ...prev, [subId]: { ...prev[subId], [inst]: val } }));
+  };
+
+  const handleAssetAllocChange = (assetId: string, inst: string, val: string) => {
+    setAssetAllocValues((prev) => ({ ...prev, [assetId]: { ...prev[assetId], [inst]: val } }));
   };
 
   const toggleInstitution = (name: string) => {
@@ -3960,15 +4435,16 @@ export default function MockupRealocador() {
     return lines.join("\n");
   }, [pendingChanges]);
 
-  const expandedInstitutions = useMemo(
+  const expandedAccounts = useMemo(
     () =>
       expandedInstOrder
-        .map((name) => ALL_CLIENT_INSTITUTIONS.find((i) => i.name === name)!)
+        .map((name) => ALL_CLIENT_ACCOUNTS.find((i) => i.name === name)!)
         .filter(Boolean),
     [expandedInstOrder],
   );
 
   const hasPending = pendingChanges.length > 0;
+  const hasChanges = totalAllocated !== 0 || hasPending || globalBudgetNum !== 0;
   const overallStatus: BalanceStatus = "atencao";
   const style = { "--sidebar-width": "16rem", "--sidebar-width-icon": "3rem" };
 
@@ -4001,25 +4477,116 @@ export default function MockupRealocador() {
                   </Badge>
                   <StatusBadge status={overallStatus} />
                   <div className="h-5 w-px bg-[#2a2a2a]" />
-                  <span className="text-sm font-medium text-[#ededed]" data-testid="text-aum">
-                    {formatBRLFull(TOTAL_AUM)}
-                  </span>
+                  {(() => {
+                    const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
+                    const deltaColor = effectiveDelta > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]";
+                    return (
+                      <span className="text-sm font-medium text-[#ededed]" data-testid="text-aum">
+                        {formatBRLFull(TOTAL_AUM)}
+                        {effectiveDelta !== 0 && (
+                          <span className={`ml-1.5 text-xs font-medium ${deltaColor}`}>
+                            → {formatBRLFull(TOTAL_AUM + effectiveDelta)}
+                          </span>
+                        )}
+                      </span>
+                    );
+                  })()}
                   <span className="text-xs text-[#555]" data-testid="text-last-consolidation">
                     Consolidado 28/02/2026
                   </span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-2 rounded-md border border-[#2a2a2a] bg-[#161616] px-3 py-1.5">
-                    <span className="text-xs text-[#8c8c8c]">Aporte/resgate</span>
-                    <input
-                      type="text"
-                      placeholder="R$ 0"
-                      className="w-20 bg-transparent text-sm text-[#ededed] outline-none placeholder:text-[#444]"
-                      data-testid="input-aporte-resgate"
-                    />
-                  </div>
+                  {(() => {
+                    const hasBudget = globalBudgetNum !== 0;
+                    const hasImplicit = !hasBudget && totalAllocated !== 0;
+                    const effectiveColor =
+                      totalAllocated > 0
+                        ? "text-[#6ecf8e]"
+                        : totalAllocated < 0
+                          ? "text-[#e05c5c]"
+                          : "";
+                    const budgetColor =
+                      globalBudgetNum > 0
+                        ? "text-[#6ecf8e]"
+                        : globalBudgetNum < 0
+                          ? "text-[#e05c5c]"
+                          : "";
+                    const absBudget = Math.abs(globalBudgetNum);
+                    const absAllocated = Math.abs(totalAllocated);
+                    const pct = absBudget > 0 ? Math.min((absAllocated / absBudget) * 100, 100) : 0;
+                    const remaining = globalBudgetNum - totalAllocated;
+                    const isComplete = hasBudget && Math.abs(remaining) < 1;
+                    const isOver = hasBudget && absAllocated > absBudget;
+                    const borderStyle = hasBudget
+                      ? isComplete
+                        ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.04)]"
+                        : "border-[#333] bg-[#111]"
+                      : hasImplicit
+                        ? "border-[#333] bg-[#111]"
+                        : "border-dashed border-[#333] bg-[#0d0d0d]";
+                    return (
+                      <div
+                        className={`flex items-center gap-2.5 rounded-md border px-3 py-1.5 transition-all ${borderStyle}`}
+                      >
+                        <ArrowDownUp
+                          className={`h-3.5 w-3.5 shrink-0 ${hasBudget ? budgetColor : hasImplicit ? effectiveColor : "text-[#444]"}`}
+                        />
+                        <input
+                          type="text"
+                          placeholder="Aporte / Resgate"
+                          value={globalBudget}
+                          onChange={(e) => setGlobalBudget(e.target.value)}
+                          className={`w-32 bg-transparent text-center text-sm font-medium ${hasBudget ? budgetColor : "text-[#ededed]"} outline-none transition-all placeholder:text-[#444] focus:placeholder:text-[#555]`}
+                          data-testid="input-aporte-resgate"
+                        />
+                        {hasBudget && (
+                          <>
+                            <div className="h-4 w-px bg-[#2a2a2a]" />
+                            <div className="flex items-center gap-2">
+                              <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#222]">
+                                <div
+                                  className={`h-full rounded-full transition-all ${isComplete ? "bg-[#6ecf8e]" : isOver ? "bg-[#e05c5c]" : "bg-[#6db1d4]"}`}
+                                  style={{ width: `${Math.min(pct, 100)}%` }}
+                                />
+                              </div>
+                              <span className="whitespace-nowrap text-[10px] text-[#666]">
+                                {formatBRL(totalAllocated)} / {formatBRL(globalBudgetNum)}
+                              </span>
+                              {isComplete ? (
+                                <CheckCircle className="h-3 w-3 shrink-0 text-[#6ecf8e]" />
+                              ) : isOver ? (
+                                <span className="whitespace-nowrap text-[10px] font-medium text-[#e05c5c]">
+                                  {formatBRL(Math.abs(remaining))} excedido
+                                </span>
+                              ) : (
+                                <span className="whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
+                                  {formatBRL(remaining)} restante
+                                </span>
+                              )}
+                            </div>
+                          </>
+                        )}
+                        {hasImplicit && (
+                          <>
+                            <div className="h-4 w-px bg-[#2a2a2a]" />
+                            <span
+                              className={`whitespace-nowrap text-[10px] font-medium ${effectiveColor}`}
+                            >
+                              {totalAllocated > 0 ? "+" : ""}
+                              {formatBRL(totalAllocated)} alocado
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })()}
                   <Button
-                    className="border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] text-[#6ecf8e]"
+                    disabled={!hasChanges}
+                    className={
+                      hasChanges
+                        ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.12)] text-[#6ecf8e] transition-all"
+                        : "cursor-not-allowed border-[#2a2a2a] bg-[#161616] text-[#444] transition-all"
+                    }
                     data-testid="button-save"
                   >
                     <Save className="mr-1.5 h-3.5 w-3.5" />
@@ -4064,8 +4631,10 @@ export default function MockupRealocador() {
               <MatrixTable
                 allocatorValues={allocatorValues}
                 onAllocatorChange={handleAllocatorChange}
-                expandedInstitutions={expandedInstitutions}
-                allInstitutions={ALL_CLIENT_INSTITUTIONS}
+                assetAllocValues={assetAllocValues}
+                onAssetAllocChange={handleAssetAllocChange}
+                expandedAccounts={expandedAccounts}
+                allAccounts={ALL_CLIENT_ACCOUNTS}
                 onToggleInstitution={toggleInstitution}
                 pendingChanges={pendingChanges}
                 onAddChange={addChange}

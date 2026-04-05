@@ -95,6 +95,7 @@ export function ExtratoRow({
       />
       <div className="ml-auto opacity-0 transition-opacity group-hover:opacity-100">
         <ExtratoActionButtons
+          clientName={extrato.clientName}
           hasWhatsApp={extrato.hasWhatsApp}
           hasEmail={extrato.hasEmail}
           contactPhone={extrato.contactPhone}
