@@ -126,8 +126,8 @@ export function ManagerGroupCard({
                           navigator.clipboard.writeText(msg);
                           toast({ title: "Mensagem copiada!" });
                           window.open(client.whatsappGroupLink, "_blank");
-                        } else {
-                          window.open(buildSweepWhatsAppUrl(client.phone!, msg), "_blank");
+                        } else if (client.phone) {
+                          window.open(buildSweepWhatsAppUrl(client.phone, msg), "_blank");
                         }
                         if (client.status !== "verificado") onStatusChange?.(client.contaId);
                       }}
