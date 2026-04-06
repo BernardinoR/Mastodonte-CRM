@@ -2815,7 +2815,14 @@ function MatrixTable({
                         return sum + Math.max(sa, aa);
                       }, 0);
                       const projectedAtual = ct.alocAtual + catAlloc;
-                      const remainingSugestao = ct.sugestao - catAlloc;
+                      const catSugestao = cat.subs.reduce((s, sub) => {
+                        const sa = allocatorBySub[sub.id] || 0;
+                        const aa = assetAllocBySub[sub.id] || 0;
+                        const eff = Math.max(sa, aa);
+                        const projected = sub.alocAtual + eff;
+                        const projIdeal = sub.alocIdeal * idealScale;
+                        return s + (projIdeal - projected);
+                      }, 0);
                       return (
                         <>
                           <td className="sticky left-[452px] z-10 bg-[#161616] px-2 py-2 text-center">
@@ -2840,11 +2847,7 @@ function MatrixTable({
                             </div>
                           </td>
                           <td className="sticky left-[512px] z-10 bg-[#161616] px-2 py-2 pr-4 text-center">
-                            {catAlloc !== 0 ? (
-                              <SugestaoCell value={remainingSugestao} />
-                            ) : (
-                              <SugestaoCell value={ct.sugestao} />
-                            )}
+                            <SugestaoCell value={catSugestao} />
                           </td>
                         </>
                       );
@@ -2922,7 +2925,7 @@ function MatrixTable({
                                 projIdeal > 0
                                   ? Math.abs(((projected - projIdeal) / projIdeal) * 100)
                                   : sub.pctForaIdeal;
-                              const remainingSugestao = sub.sugestao - effectiveSubAlloc;
+                              const sugDisplay = projIdeal - projected;
                               const pctForaDisplay =
                                 effectiveSubAlloc !== 0
                                   ? newPctFora
@@ -3002,11 +3005,7 @@ function MatrixTable({
                                     </div>
                                   </td>
                                   <td className="sticky left-[512px] z-[5] bg-[#141414] px-2 py-2 pr-4 text-center">
-                                    {effectiveSubAlloc !== 0 ? (
-                                      <SugestaoCell value={remainingSugestao} />
-                                    ) : (
-                                      <SugestaoCell value={sub.sugestao} />
-                                    )}
+                                    <SugestaoCell value={sugDisplay} />
                                   </td>
                                 </>
                               );
@@ -3675,7 +3674,19 @@ function MatrixTable({
                   0,
                 );
                 const projectedAtual = grandTotals.alocAtual + totalAlloc;
-                const remainingSugestao = grandTotals.sugestao - totalAlloc;
+                const grandSugestao = CATEGORIES.reduce(
+                  (sum, cat) =>
+                    sum +
+                    cat.subs.reduce((s, sub) => {
+                      const sa = allocatorBySub[sub.id] || 0;
+                      const aa = assetAllocBySub[sub.id] || 0;
+                      const eff = Math.max(sa, aa);
+                      const projected = sub.alocAtual + eff;
+                      const projIdeal = sub.alocIdeal * idealScale;
+                      return s + (projIdeal - projected);
+                    }, 0),
+                  0,
+                );
                 return (
                   <>
                     <td className="sticky left-[452px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center">
@@ -3700,11 +3711,7 @@ function MatrixTable({
                       </div>
                     </td>
                     <td className="sticky left-[512px] z-10 bg-[#1a1a1a] px-2 py-2.5 pr-4 text-center">
-                      {totalAlloc !== 0 ? (
-                        <SugestaoCell value={remainingSugestao} />
-                      ) : (
-                        <SugestaoCell value={grandTotals.sugestao} />
-                      )}
+                      <SugestaoCell value={grandSugestao} />
                     </td>
                   </>
                 );
@@ -3718,26 +3725,37 @@ function MatrixTable({
                 const currentTotal = grandTotals.byAccount[inst.name] || 0;
                 if (isExp) {
                   const allocTotal = allocatorTotals[inst.name] || 0;
-                  const delta = allocTotal - currentTotal;
-                  const deltaColor =
-                    delta > 0 ? "text-[#6ecf8e]" : delta < 0 ? "text-[#e05c5c]" : "text-[#444]";
+                  const projectedInst = currentTotal + allocTotal;
                   return (
                     <Fragment key={`total-${inst.name}`}>
                       <td
                         className={`${borderCls} w-[90px] px-2 py-2.5 text-center font-semibold text-[#ededed]`}
                       >
-                        {formatBRL(currentTotal)}
+                        <div className="flex flex-col items-center">
+                          <span>{formatBRL(currentTotal)}</span>
+                          {allocTotal !== 0 && (
+                            <span
+                              className={`text-[9px] font-medium ${allocTotal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                            >
+                              {allocTotal > 0 ? "+" : ""}
+                              {formatBRL(allocTotal)}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="w-[90px] px-2 py-1.5 text-center">
                         <div className="flex flex-col items-center">
-                          <span className="text-xs font-semibold text-[#ededed]">
-                            {allocTotal > 0 ? formatBRL(allocTotal) : "—"}
-                          </span>
-                          {allocTotal > 0 && (
-                            <span className={`text-[9px] font-medium ${deltaColor}`}>
-                              {delta > 0 ? "+" : ""}
-                              {formatBRL(delta)}
-                            </span>
+                          {allocTotal !== 0 ? (
+                            <>
+                              <span className="text-xs font-semibold text-[#ededed]">
+                                {formatBRL(allocTotal)}
+                              </span>
+                              <span className="text-[9px] font-medium text-[#6db1d4]">
+                                → {formatBRL(projectedInst)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-xs text-[#555]">—</span>
                           )}
                         </div>
                       </td>
