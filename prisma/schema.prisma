@@ -46,7 +46,8 @@ model User {
   taskAssignments   TaskAssignee[]
   taskHistoryEvents TaskHistory[]     @relation("TaskHistoryAuthor")
   meetingsCreated   Meeting[]         @relation("MeetingCreator")
-  varreduraChecks   VarreduraCheck[]
+  varreduraChecks         VarreduraCheck[]
+  varreduraSolicitations  VarreduraSolicitation[]
 
   @@map("users")
 }
@@ -148,9 +149,10 @@ model Conta {
   createdAt              DateTime @default(now()) @map("created_at")
   updatedAt              DateTime @updatedAt @map("updated_at")
 
-  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  institution     Institution     @relation(fields: [institutionId], references: [id])
-  extratoStatuses ExtratoStatus[]
+  client                 Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  institution            Institution           @relation(fields: [institutionId], references: [id])
+  extratoStatuses        ExtratoStatus[]
+  varreduraSolicitations VarreduraSolicitation[]
 
   @@map("contas")
 }
@@ -284,6 +286,20 @@ model VarreduraCheck {
 
   @@unique([userId, institutionId, date])
   @@map("varredura_checks")
+}
+
+model VarreduraSolicitation {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  contaId   String   @map("conta_id")
+  date      String   // "YYYY-MM-DD"
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conta Conta @relation(fields: [contaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, contaId, date])
+  @@map("varredura_solicitations")
 }
 
 // ============================================

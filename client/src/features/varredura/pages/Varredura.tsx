@@ -20,8 +20,7 @@ const CONTA_SELECT = `
   sweep_active, sweep_frequency,
   whatsapp_group_id, whatsapp_group_linked,
   client:clients!client_id(name, initials, emails, primary_email_index, phone),
-  institution:institutions!institution_id(id, name, attachment_count, currency, access_url),
-  extrato_statuses(id, status, requested_at, received_at, consolidated_at, updated_at, competencia)
+  institution:institutions!institution_id(id, name, attachment_count, currency, access_url)
 `;
 
 export default function Varredura() {
@@ -31,6 +30,7 @@ export default function Varredura() {
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const [contas, setContas] = useState<VarreduraConta[]>([]);
   const [checkedInstitutionIds, setCheckedInstitutionIds] = useState<Set<number>>(new Set());
+  const [solicitedContaIds, setSolicitedContaIds] = useState<Set<string>>(new Set());
   const [whatsappGroupLinkMap, setWhatsappGroupLinkMap] = useState<Map<string, string | null>>(
     new Map(),
   );
@@ -48,9 +48,10 @@ export default function Varredura() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [contasResult, checksResult, whatsappResult] = await Promise.all([
+      const [contasResult, checksResult, solicitationsResult, whatsappResult] = await Promise.all([
         supabase.from("contas").select(CONTA_SELECT).eq("status", "Ativa"),
         supabase.from("varredura_checks").select("institution_id").eq("date", dateStr),
+        supabase.from("varredura_solicitations").select("conta_id").eq("date", dateStr),
         supabase.from("whatsapp_groups").select("id, link").eq("status", "Ativo"),
       ]);
 
@@ -62,6 +63,11 @@ export default function Varredura() {
       );
       setCheckedInstitutionIds(ids);
 
+      const solIds = new Set(
+        (solicitationsResult.data ?? []).map((s: { conta_id: string }) => s.conta_id),
+      );
+      setSolicitedContaIds(solIds);
+
       const linkMap = new Map<string, string | null>();
       for (const g of whatsappResult.data ?? []) {
         linkMap.set(String(g.id), g.link);
@@ -71,6 +77,7 @@ export default function Varredura() {
       console.error("Failed to fetch varredura data:", error);
       setContas([]);
       setCheckedInstitutionIds(new Set());
+      setSolicitedContaIds(new Set());
       setWhatsappGroupLinkMap(new Map());
     } finally {
       setLoading(false);
@@ -87,8 +94,9 @@ export default function Varredura() {
   );
 
   const managerGroups = useMemo(
-    () => buildManagerGroups(contas, competencia, whatsappGroupLinkMap),
-    [contas, competencia, whatsappGroupLinkMap],
+    () =>
+      buildManagerGroups(contas, competencia, whatsappGroupLinkMap, solicitedContaIds, selectedDay),
+    [contas, competencia, whatsappGroupLinkMap, solicitedContaIds, selectedDay],
   );
 
   const checkedDirect = directInstitutions.filter((i) => i.checked).length;
@@ -143,53 +151,22 @@ export default function Varredura() {
 
   const updateClientStatus = useCallback(
     async (contaId: string) => {
-      const now = new Date().toISOString();
+      if (!userId) return;
 
       // Optimistic update
-      setContas((prev) =>
-        prev.map((c) => {
-          if (c.id !== contaId) return c;
-          const existing = c.extrato_statuses.find((s) => s.competencia === competencia);
-          if (existing) {
-            return {
-              ...c,
-              extrato_statuses: c.extrato_statuses.map((s) =>
-                s.competencia === competencia
-                  ? { ...s, status: "Solicitado", requested_at: now }
-                  : s,
-              ),
-            };
-          }
-          return {
-            ...c,
-            extrato_statuses: [
-              ...c.extrato_statuses,
-              {
-                id: crypto.randomUUID(),
-                status: "Solicitado",
-                requested_at: now,
-                received_at: null,
-                consolidated_at: null,
-                updated_at: now,
-                competencia,
-              },
-            ],
-          };
-        }),
-      );
+      setSolicitedContaIds((prev) => {
+        const next = new Set(prev);
+        next.add(contaId);
+        return next;
+      });
 
       try {
-        const { error } = await supabase.from("extrato_statuses").upsert(
-          {
-            id: crypto.randomUUID(),
-            conta_id: contaId,
-            competencia,
-            status: "Solicitado",
-            requested_at: now,
-            updated_at: now,
-          },
-          { onConflict: "conta_id,competencia", ignoreDuplicates: false },
-        );
+        const { error } = await supabase
+          .from("varredura_solicitations")
+          .upsert(
+            { user_id: userId, conta_id: contaId, date: dateStr },
+            { onConflict: "user_id,conta_id,date", ignoreDuplicates: true },
+          );
         if (error) throw error;
       } catch (error) {
         console.error("Failed to update client status:", error);
@@ -201,11 +178,11 @@ export default function Varredura() {
         fetchData();
       }
     },
-    [competencia, toast, fetchData],
+    [userId, dateStr, toast, fetchData],
   );
 
   const pendingManagerCount = managerGroups.reduce(
-    (s, g) => s + g.clients.filter((c) => c.status !== "verificado").length,
+    (s, g) => s + g.clients.filter((c) => c.status !== "solicitado").length,
     0,
   );
 

@@ -5,16 +5,6 @@ import type {
   VarreduraStatus,
 } from "../types/varredura";
 
-interface DbExtratoStatus {
-  id: string;
-  status: string;
-  requested_at: string | null;
-  received_at: string | null;
-  consolidated_at: string | null;
-  updated_at: string | null;
-  competencia: string;
-}
-
 interface DbClient {
   name: string;
   initials: string | null;
@@ -47,7 +37,6 @@ export interface VarreduraConta {
   whatsapp_group_linked: boolean;
   client: DbClient;
   institution: DbInstitution & { id?: number };
-  extrato_statuses: DbExtratoStatus[];
 }
 
 function computeInitials(name: string): string {
@@ -78,19 +67,34 @@ function isMonthInRange(month: string, startDate: string, endDate: string | null
   return true;
 }
 
-function getStatusForConta(conta: VarreduraConta, competencia: string): VarreduraStatus {
-  const es = conta.extrato_statuses.find((s) => s.competencia === competencia);
-  if (!es) return "pendente";
+function getISOWeek(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+}
 
-  if (es.status === "Consolidado" || es.status === "Recebido") return "verificado";
-  if (es.status === "Solicitado") return "solicitado";
-  return "pendente";
+function isDueOnDate(frequency: string | null, date: Date): boolean {
+  if (!frequency) return true;
+  const day = date.getDay();
+  switch (frequency) {
+    case "2dias":
+      return day === 1 || day === 3 || day === 5; // seg, qua, sex
+    case "semanal":
+      return day === 1; // segunda
+    case "quinzenal": {
+      if (day !== 1) return false;
+      return getISOWeek(date) % 2 === 0;
+    }
+    default:
+      return true;
+  }
 }
 
 export function buildDirectInstitutions(
   contas: VarreduraConta[],
   competencia: string,
-  checkedInstitutionIds?: Set<number>,
+  checkedInstitutionIds: Set<number>,
 ): DirectInstitution[] {
   const autoContas = contas.filter(
     (c) =>
@@ -109,15 +113,12 @@ export function buildDirectInstitutions(
   const result: DirectInstitution[] = [];
   for (const [name, institutionContas] of grouped) {
     const instId = institutionContas[0].institution.id ?? 0;
-    const checked = checkedInstitutionIds
-      ? checkedInstitutionIds.has(instId)
-      : institutionContas.every((c) => getStatusForConta(c, competencia) === "verificado");
     result.push({
       contaId: institutionContas[0].id,
       institutionId: instId,
       institutionName: name,
       initials: name.substring(0, 2).toUpperCase(),
-      checked,
+      checked: checkedInstitutionIds.has(instId),
       accessUrl: institutionContas[0].institution.access_url ?? undefined,
     });
   }
@@ -129,12 +130,15 @@ export function buildManagerGroups(
   contas: VarreduraConta[],
   competencia: string,
   whatsappGroupLinkMap?: Map<string, string | null>,
+  solicitedContaIds?: Set<string>,
+  selectedDate?: Date,
 ): ManagerGroup[] {
   const manualContas = contas.filter(
     (c) =>
       (c.type === "Manual" || c.type === "Manual Cliente") &&
       c.sweep_active &&
-      isMonthInRange(competencia, c.start_date, c.end_date),
+      isMonthInRange(competencia, c.start_date, c.end_date) &&
+      (!selectedDate || isDueOnDate(c.sweep_frequency, selectedDate)),
   );
 
   const grouped = new Map<string, ManagerClient[]>();
@@ -142,7 +146,7 @@ export function buildManagerGroups(
     const key = c.institution.name;
     if (!grouped.has(key)) grouped.set(key, []);
 
-    const status = getStatusForConta(c, competencia);
+    const status: VarreduraStatus = solicitedContaIds?.has(c.id) ? "solicitado" : "pendente";
 
     let contactPhone: string | undefined;
     let contactEmail: string | undefined;

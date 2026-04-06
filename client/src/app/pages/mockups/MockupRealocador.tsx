@@ -2545,6 +2545,7 @@ function MatrixTable({
 
   const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
   const idealScale = effectiveDelta !== 0 ? (TOTAL_AUM + effectiveDelta) / TOTAL_AUM : 1;
+  const newAUM = TOTAL_AUM + effectiveDelta;
 
   const expandedSet = useMemo(
     () => new Set(expandedAccounts.map((i) => i.name)),
@@ -2761,8 +2762,33 @@ function MatrixTable({
                         <span className="text-[10px] text-[#555]">({cat.subs.length})</span>
                       </div>
                     </td>
-                    <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-center font-medium text-[#ededed]">
-                      {ct.pctPL.toFixed(1)}%
+                    <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-center font-medium">
+                      {(() => {
+                        const catProjPctPL = cat.subs.reduce((sum, s) => {
+                          const sa = allocatorBySub[s.id] || 0;
+                          const aa = assetAllocBySub[s.id] || 0;
+                          const eff = Math.max(sa, aa);
+                          return (
+                            sum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
+                          );
+                        }, 0);
+                        const changed = effectiveDelta !== 0 || catProjPctPL !== ct.pctPL;
+                        return changed ? (
+                          <span
+                            className={
+                              catProjPctPL > ct.pctPL
+                                ? "text-[#6ecf8e]"
+                                : catProjPctPL < ct.pctPL
+                                  ? "text-[#dcb092]"
+                                  : "text-[#ededed]"
+                            }
+                          >
+                            {catProjPctPL.toFixed(1)}%
+                          </span>
+                        ) : (
+                          <span className="text-[#ededed]">{ct.pctPL.toFixed(1)}%</span>
+                        );
+                      })()}
                     </td>
                     <td className="sticky left-[252px] z-10 bg-[#161616] px-2 py-2 text-center">
                       <StatusBadge status={worstStatus} />
@@ -2884,18 +2910,14 @@ function MatrixTable({
                                 </span>
                               </div>
                             </td>
-                            <td className="sticky left-[200px] z-[5] bg-[#141414] px-2 py-2 text-center text-[#bbb]">
-                              {sub.pctPL.toFixed(1)}%
-                            </td>
-                            <td className="sticky left-[252px] z-[5] bg-[#141414] px-2 py-2 text-center">
-                              <StatusBadge status={sub.status} />
-                            </td>
                             {(() => {
                               const subAlloc = allocatorBySub[sub.id] || 0;
                               const assetAlloc = assetAllocBySub[sub.id] || 0;
                               const effectiveSubAlloc = Math.max(subAlloc, assetAlloc);
                               const projected = sub.alocAtual + effectiveSubAlloc;
                               const projIdeal = sub.alocIdeal * idealScale;
+                              const projPctPL = newAUM > 0 ? (projected / newAUM) * 100 : sub.pctPL;
+                              const pctChanged = effectiveDelta !== 0 || effectiveSubAlloc !== 0;
                               const newPctFora =
                                 projIdeal > 0
                                   ? Math.abs(((projected - projIdeal) / projIdeal) * 100)
@@ -2909,6 +2931,26 @@ function MatrixTable({
                                     : sub.pctForaIdeal;
                               return (
                                 <>
+                                  <td className="sticky left-[200px] z-[5] bg-[#141414] px-2 py-2 text-center">
+                                    {pctChanged ? (
+                                      <span
+                                        className={
+                                          projPctPL > sub.pctPL
+                                            ? "text-[#6ecf8e]"
+                                            : projPctPL < sub.pctPL
+                                              ? "text-[#dcb092]"
+                                              : "text-[#bbb]"
+                                        }
+                                      >
+                                        {projPctPL.toFixed(1)}%
+                                      </span>
+                                    ) : (
+                                      <span className="text-[#bbb]">{sub.pctPL.toFixed(1)}%</span>
+                                    )}
+                                  </td>
+                                  <td className="sticky left-[252px] z-[5] bg-[#141414] px-2 py-2 text-center">
+                                    <StatusBadge status={sub.status} />
+                                  </td>
                                   <td className="sticky left-[340px] z-[5] bg-[#141414] px-2 py-2 text-center">
                                     <span
                                       className={
@@ -3580,8 +3622,30 @@ function MatrixTable({
               <td className="sticky left-0 z-10 bg-[#1a1a1a] px-4 py-2.5 font-semibold text-[#ededed]">
                 Total
               </td>
-              <td className="sticky left-[200px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center font-semibold text-[#ededed]">
-                {grandTotals.pctPL.toFixed(1)}%
+              <td className="sticky left-[200px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center font-semibold">
+                {(() => {
+                  const totalProjPctPL = CATEGORIES.reduce(
+                    (catSum, cat) =>
+                      catSum +
+                      cat.subs.reduce((subSum, s) => {
+                        const sa = allocatorBySub[s.id] || 0;
+                        const aa = assetAllocBySub[s.id] || 0;
+                        const eff = Math.max(sa, aa);
+                        return (
+                          subSum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
+                        );
+                      }, 0),
+                    0,
+                  );
+                  const changed = effectiveDelta !== 0;
+                  return changed ? (
+                    <span className={totalProjPctPL < 100 ? "text-[#dcb092]" : "text-[#ededed]"}>
+                      {totalProjPctPL.toFixed(1)}%
+                    </span>
+                  ) : (
+                    <span className="text-[#ededed]">{grandTotals.pctPL.toFixed(1)}%</span>
+                  );
+                })()}
               </td>
               <td className="sticky left-[252px] z-10 bg-[#1a1a1a]" />
               <td className="sticky left-[340px] z-10 bg-[#1a1a1a]" />

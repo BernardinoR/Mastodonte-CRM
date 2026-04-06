@@ -26,7 +26,10 @@ export function startCronJobs() {
       const { count } = await prisma.varreduraCheck.deleteMany({
         where: { date: { lt: cutoffStr } },
       });
-      console.log(`[cron] Varredura cleanup: ${count} checks antigos removidos`);
+      const { count: solCount } = await prisma.varreduraSolicitation.deleteMany({
+        where: { date: { lt: cutoffStr } },
+      });
+      console.log(`[cron] Varredura cleanup: ${count} checks, ${solCount} solicitations removidos`);
     } catch (error) {
       console.error("[cron] Varredura cleanup erro:", error);
     }
