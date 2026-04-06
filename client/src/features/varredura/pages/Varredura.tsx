@@ -13,6 +13,7 @@ import {
   formatCompetencia,
   type VarreduraConta,
 } from "../utils/buildVarredura";
+import { getLatestBusinessDay } from "@/shared/lib/business-days";
 
 const CONTA_SELECT = `
   id, client_id, type, start_date, end_date, account_name,
@@ -27,7 +28,7 @@ export default function Varredura() {
   const { toast } = useToast();
   const { data: userData } = useCurrentUser();
   const userId = userData?.user?.id;
-  const [selectedDay, setSelectedDay] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState(() => getLatestBusinessDay(new Date()));
   const [contas, setContas] = useState<VarreduraConta[]>([]);
   const [checkedInstitutionIds, setCheckedInstitutionIds] = useState<Set<number>>(new Set());
   const [solicitedContaIds, setSolicitedContaIds] = useState<Set<string>>(new Set());

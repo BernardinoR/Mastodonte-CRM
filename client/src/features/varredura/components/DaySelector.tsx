@@ -2,11 +2,20 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarDays, ChevronDown } from "lucide-react";
+import { isBusinessDay, getBrazilianHolidays } from "@/shared/lib/business-days";
 import { Popover, PopoverTrigger, PopoverContent } from "@/shared/components/ui/popover";
 import { Calendar } from "@/shared/components/ui/calendar";
 
 export function DaySelector({ value, onChange }: { value: Date; onChange: (d: Date) => void }) {
   const [open, setOpen] = useState(false);
+
+  const holidays = useMemo(() => {
+    const year = value.getFullYear();
+    const set = getBrazilianHolidays(year);
+    for (const h of getBrazilianHolidays(year - 1)) set.add(h);
+    for (const h of getBrazilianHolidays(year + 1)) set.add(h);
+    return set;
+  }, [value]);
 
   const label = useMemo(() => {
     const today = new Date();
@@ -42,7 +51,7 @@ export function DaySelector({ value, onChange }: { value: Date; onChange: (d: Da
               setOpen(false);
             }
           }}
-          disabled={(d) => d > new Date()}
+          disabled={(d) => d > new Date() || !isBusinessDay(d, holidays)}
           locale={ptBR}
         />
       </PopoverContent>

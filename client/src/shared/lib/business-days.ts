@@ -26,11 +26,11 @@ function getEasterDate(year: number): Date {
 // Brazilian National Holidays
 // ============================================
 
-function formatDateKey(d: Date): string {
+export function formatDateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function getBrazilianHolidays(year: number): Set<string> {
+export function getBrazilianHolidays(year: number): Set<string> {
   const holidays = new Set<string>();
 
   const fixed = [
@@ -61,9 +61,23 @@ function getBrazilianHolidays(year: number): Set<string> {
 // Business Day Utilities
 // ============================================
 
-function isBusinessDay(date: Date, holidays: Set<string>): boolean {
+export function isBusinessDay(date: Date, holidays: Set<string>): boolean {
   const dow = date.getDay();
   return dow !== 0 && dow !== 6 && !holidays.has(formatDateKey(date));
+}
+
+export function getLatestBusinessDay(date: Date): Date {
+  const holidays = getBrazilianHolidays(date.getFullYear());
+  let d = startOfDay(date);
+  while (!isBusinessDay(d, holidays)) {
+    d = subDays(d, 1);
+    if (d.getFullYear() !== date.getFullYear()) {
+      for (const h of getBrazilianHolidays(d.getFullYear())) {
+        holidays.add(h);
+      }
+    }
+  }
+  return d;
 }
 
 export function getNthBusinessDay(year: number, month: number, n: number): Date {
