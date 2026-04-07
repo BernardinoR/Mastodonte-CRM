@@ -181,6 +181,15 @@ export default function Consolidador() {
     );
   }, [extratosWithOverrides]);
 
+  const verificationRedCount = useMemo(() => {
+    const month = formatMonthParam(selectedMonth);
+    let count = 0;
+    verificationMap.forEach((v) => {
+      if (v.competencia === month && !v.all_green) count++;
+    });
+    return count;
+  }, [verificationMap, selectedMonth]);
+
   const filteredExtratos = useMemo(() => {
     return extratosWithOverrides.filter((e) => {
       if (searchTerm) {
@@ -441,6 +450,7 @@ export default function Consolidador() {
         onOpenHistorical={() => setHistoricalOpen(true)}
         activeStatusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
+        verificationRedCount={verificationRedCount}
       />
 
       <ConsolidadorFilters
@@ -549,6 +559,7 @@ export default function Consolidador() {
         open={historicalOpen}
         onOpenChange={setHistoricalOpen}
         pendencies={historicalPendencies}
+        verificationMap={verificationMap}
         onMonthClick={(monthKey) => {
           const [mm, yyyy] = monthKey.split("/");
           setSelectedMonth(new Date(parseInt(yyyy), parseInt(mm) - 1, 1));

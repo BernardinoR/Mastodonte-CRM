@@ -1,4 +1,4 @@
-import { AlertTriangle, Mail, CheckCircle } from "lucide-react";
+import { AlertTriangle, Mail, CheckCircle, ShieldAlert } from "lucide-react";
 import type { ExtratoStatus, ExtratoStatusSummary } from "../types/extrato";
 import { MonthSelector } from "./MonthSelector";
 
@@ -10,6 +10,7 @@ interface ConsolidadorHeaderProps {
   onOpenHistorical: () => void;
   activeStatusFilter: ExtratoStatus | null;
   onStatusFilterChange: (status: ExtratoStatus | null) => void;
+  verificationRedCount?: number;
 }
 
 export function ConsolidadorHeader({
@@ -20,6 +21,7 @@ export function ConsolidadorHeader({
   onOpenHistorical,
   activeStatusFilter,
   onStatusFilterChange,
+  verificationRedCount,
 }: ConsolidadorHeaderProps) {
   const handleBadgeClick = (status: ExtratoStatus) => {
     onStatusFilterChange(activeStatusFilter === status ? null : status);
@@ -72,6 +74,12 @@ export function ConsolidadorHeader({
           <CheckCircle className="h-4 w-4" />
           {summary.recebidos} Recebidos
         </button>
+        {verificationRedCount != null && verificationRedCount > 0 && (
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-red-400">
+            <ShieldAlert className="h-4 w-4" />
+            {verificationRedCount} Verificado{verificationRedCount > 1 ? "s" : ""}
+          </span>
+        )}
         <div className="h-6 w-px bg-border" />
         <MonthSelector value={selectedMonth} onChange={onMonthChange} />
       </div>

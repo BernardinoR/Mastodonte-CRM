@@ -4,13 +4,14 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import type { Extrato } from "../types/extrato";
+import type { Extrato, VerificationResult } from "../types/extrato";
 
 interface HistoricalPendenciesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pendencies: Extrato[];
   onMonthClick: (monthKey: string) => void;
+  verificationMap?: Map<string, VerificationResult>;
 }
 
 interface MonthSummary {
@@ -19,6 +20,7 @@ interface MonthSummary {
   pendentes: number;
   solicitados: number;
   recebidos: number;
+  verificationRed: number;
   total: number;
 }
 
@@ -27,7 +29,22 @@ function parseReferenceMonth(ref: string): Date {
   return new Date(parseInt(yyyy), parseInt(mm) - 1, 1);
 }
 
-function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
+function countVerificationRedForMonth(
+  competencia: string,
+  verificationMap?: Map<string, VerificationResult>,
+): number {
+  if (!verificationMap) return 0;
+  let count = 0;
+  verificationMap.forEach((v) => {
+    if (v.competencia === competencia && !v.all_green) count++;
+  });
+  return count;
+}
+
+function getMonthSummaries(
+  pendencies: Extrato[],
+  verificationMap?: Map<string, VerificationResult>,
+): MonthSummary[] {
   const groups: Record<string, Extrato[]> = {};
   for (const p of pendencies) {
     const key = p.referenceMonth;
@@ -45,34 +62,46 @@ function getMonthSummaries(pendencies: Extrato[]): MonthSummary[] {
       const pendentes = items.filter((i) => i.status === "Pendente").length;
       const solicitados = items.filter((i) => i.status === "Solicitado").length;
       const recebidos = items.filter((i) => i.status === "Recebido").length;
+      const verificationRed = countVerificationRedForMonth(key, verificationMap);
       const monthDate = parseReferenceMonth(items[0].referenceMonth);
       const label = format(monthDate, "MMMM yyyy", { locale: ptBR });
 
-      return { key, label, pendentes, solicitados, recebidos, total: items.length };
+      return {
+        key,
+        label,
+        pendentes,
+        solicitados,
+        recebidos,
+        verificationRed,
+        total: items.length,
+      };
     });
 }
 
 function CountCell({ value, color }: { value: number; color: string }) {
   if (value === 0) return <span className="text-center text-sm tabular-nums text-zinc-700">-</span>;
-  return (
-    <span className={`text-center text-sm font-medium tabular-nums ${color}`}>
-      {value}
-    </span>
-  );
+  return <span className={`text-center text-sm font-medium tabular-nums ${color}`}>{value}</span>;
 }
 
-const COL_GRID = "grid grid-cols-[1fr_2rem_2rem_2rem_1.5rem] items-center gap-x-2";
+const COL_GRID = "grid grid-cols-[1fr_2rem_2rem_2rem_2rem_1.5rem] items-center gap-x-2";
 
 export function HistoricalPendenciesModal({
   open,
   onOpenChange,
   pendencies,
   onMonthClick,
+  verificationMap,
 }: HistoricalPendenciesModalProps) {
-  const summaries = useMemo(() => getMonthSummaries(pendencies), [pendencies]);
+  const summaries = useMemo(
+    () => getMonthSummaries(pendencies, verificationMap),
+    [pendencies, verificationMap],
+  );
 
   const totalAll = useMemo(() => summaries.reduce((sum, m) => sum + m.total, 0), [summaries]);
-  const totalRecebidos = useMemo(() => summaries.reduce((sum, m) => sum + m.recebidos, 0), [summaries]);
+  const totalRecebidos = useMemo(
+    () => summaries.reduce((sum, m) => sum + m.recebidos, 0),
+    [summaries],
+  );
   const mesesComPendencia = useMemo(
     () => summaries.filter((m) => m.pendentes > 0 || m.solicitados > 0 || m.recebidos > 0).length,
     [summaries],
@@ -80,8 +109,14 @@ export function HistoricalPendenciesModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent hideCloseButton className="max-w-[640px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0" aria-describedby={undefined}>
-        <VisuallyHidden><DialogTitle>Pendências Históricas</DialogTitle></VisuallyHidden>
+      <DialogContent
+        hideCloseButton
+        className="max-w-[640px] gap-0 border-zinc-800 bg-[#1a1a1a] p-0"
+        aria-describedby={undefined}
+      >
+        <VisuallyHidden>
+          <DialogTitle>Pendências Históricas</DialogTitle>
+        </VisuallyHidden>
         <div className="flex items-center justify-between gap-4 border-b border-zinc-800/60 px-6 py-5">
           <div>
             <h2 className="text-lg font-semibold text-zinc-100" data-testid="text-modal-title">
@@ -96,14 +131,22 @@ export function HistoricalPendenciesModal({
             </p>
           </div>
           <div className="flex h-10 w-10 items-center justify-center rounded-md bg-orange-500/10">
-            <span className="text-base font-bold text-orange-400" data-testid="badge-total-pendentes">
+            <span
+              className="text-base font-bold text-orange-400"
+              data-testid="badge-total-pendentes"
+            >
               {totalAll}
             </span>
           </div>
         </div>
 
-        <div className="overflow-y-auto" style={{ maxHeight: `${5 * 52 + 36}px`, scrollbarGutter: "stable" }}>
-          <div className={`${COL_GRID} sticky top-0 z-10 border-b border-zinc-800/40 bg-[#1a1a1a] px-6 py-2.5`}>
+        <div
+          className="overflow-y-auto"
+          style={{ maxHeight: `${5 * 52 + 36}px`, scrollbarGutter: "stable" }}
+        >
+          <div
+            className={`${COL_GRID} sticky top-0 z-10 border-b border-zinc-800/40 bg-[#1a1a1a] px-6 py-2.5`}
+          >
             <span className="text-xs font-medium uppercase tracking-wider text-zinc-600">Mês</span>
             <span className="flex items-center justify-center" title="Pendentes">
               <span className="h-2 w-2 rounded-full bg-orange-500" />
@@ -113,6 +156,9 @@ export function HistoricalPendenciesModal({
             </span>
             <span className="flex items-center justify-center" title="Recebidos">
               <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            </span>
+            <span className="flex items-center justify-center" title="Verificação com problema">
+              <span className="h-2 w-2 rounded-full bg-red-500" />
             </span>
             <span />
           </div>
@@ -133,6 +179,7 @@ export function HistoricalPendenciesModal({
                 <CountCell value={month.pendentes} color="text-orange-400" />
                 <CountCell value={month.solicitados} color="text-sky-400" />
                 <CountCell value={month.recebidos} color="text-emerald-400" />
+                <CountCell value={month.verificationRed} color="text-red-400" />
 
                 <ChevronRight className="mx-auto h-4 w-4 shrink-0 text-zinc-700 transition-colors group-hover:text-zinc-400" />
               </button>
