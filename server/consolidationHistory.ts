@@ -342,7 +342,17 @@ export async function syncContaWithSupabase(contaId: string, competencia: string
     matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
   );
 
-  return upsertExtratoFromMatch(contaId, conta.type, competencia, match);
+  const result = await upsertExtratoFromMatch(contaId, conta.type, competencia, match);
+
+  if (match) {
+    try {
+      await triggerVerification(match.Nome, competencia);
+    } catch (err) {
+      console.error("Failed to trigger verification:", err);
+    }
+  }
+
+  return result;
 }
 
 function isMonthInRange(month: string, startDate: string, endDate: string | null): boolean {
@@ -362,6 +372,14 @@ function isMonthInRange(month: string, startDate: string, endDate: string | null
     }
   }
   return true;
+}
+
+export async function triggerVerification(clientName: string, competencia: string) {
+  const { error } = await externalSupabase.rpc("calculate_verification", {
+    p_client_name: clientName,
+    p_competencia: competencia,
+  });
+  if (error) throw new Error(`Verification trigger error: ${error.message}`);
 }
 
 export async function getVerificationResults() {
