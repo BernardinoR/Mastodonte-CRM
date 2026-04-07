@@ -2544,8 +2544,8 @@ function MatrixTable({
   }, [categoryTotals, allAccounts]);
 
   const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
-  const idealScale = effectiveDelta !== 0 ? (TOTAL_AUM + effectiveDelta) / TOTAL_AUM : 1;
-  const newAUM = TOTAL_AUM + effectiveDelta;
+  const idealScale = globalBudgetNum !== 0 ? (TOTAL_AUM + globalBudgetNum) / TOTAL_AUM : 1;
+  const newAUM = TOTAL_AUM + (globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated);
 
   const expandedSet = useMemo(
     () => new Set(expandedAccounts.map((i) => i.name)),
@@ -2612,6 +2612,28 @@ function MatrixTable({
     }
     return bySub;
   }, [assetAllocValues, pendingChanges]);
+
+  const assetAllocBySubByInst = useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+    const assetToSub: Record<string, string> = {};
+    for (const cat of CATEGORIES) {
+      for (const sub of cat.subs) {
+        for (const asset of sub.assets) {
+          assetToSub[asset.id] = sub.id;
+        }
+      }
+    }
+    for (const [assetId, instMap] of Object.entries(assetAllocValues)) {
+      const subId = assetToSub[assetId];
+      if (!subId) continue;
+      if (!result[subId]) result[subId] = {};
+      for (const [instName, val] of Object.entries(instMap)) {
+        const num = parseBRLInput(val);
+        result[subId][instName] = (result[subId][instName] || 0) + num;
+      }
+    }
+    return result;
+  }, [assetAllocValues]);
 
   return (
     <div className="rounded-md border border-[#2a2a2a]" data-testid="matrix-table-container">
@@ -2861,23 +2883,39 @@ function MatrixTable({
                       if (isExp) {
                         return (
                           <Fragment key={`${cat.id}-${inst.name}`}>
-                            <td
-                              className={`${borderCls} w-[90px] px-2 py-2 text-center font-medium text-[#bbb]`}
-                            >
-                              {formatBRL(ct.byAccount[inst.name] || 0)}
-                            </td>
+                            {(() => {
+                              const catInstAlloc = cat.subs.reduce((sum, sub) => {
+                                const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                                const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                                return sum + Math.max(subAlloc, assetAlloc);
+                              }, 0);
+                              return (
+                                <td
+                                  className={`${borderCls} w-[90px] px-2 py-2 text-center font-medium ${catInstAlloc !== 0 ? (catInstAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#bbb]"}`}
+                                >
+                                  {formatBRL((ct.byAccount[inst.name] || 0) + catInstAlloc)}
+                                </td>
+                              );
+                            })()}
                             <td className="w-[90px] px-2 py-2 text-center text-[#444]">—</td>
                           </Fragment>
                         );
                       }
-                      return (
-                        <td
-                          key={`${cat.id}-${inst.name}`}
-                          className={`${borderCls} whitespace-nowrap px-1 py-2 text-center text-[10px] font-medium text-[#666]`}
-                        >
-                          {formatBRL(ct.byAccount[inst.name] || 0)}
-                        </td>
-                      );
+                      return (() => {
+                        const catInstAlloc = cat.subs.reduce((sum, sub) => {
+                          const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                          const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                          return sum + Math.max(subAlloc, assetAlloc);
+                        }, 0);
+                        return (
+                          <td
+                            key={`${cat.id}-${inst.name}`}
+                            className={`${borderCls} whitespace-nowrap px-1 py-2 text-center text-[10px] font-medium ${catInstAlloc !== 0 ? (catInstAlloc > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#666]"}`}
+                          >
+                            {formatBRL((ct.byAccount[inst.name] || 0) + catInstAlloc)}
+                          </td>
+                        );
+                      })();
                     })}
                   </tr>
 
@@ -3025,12 +3063,15 @@ function MatrixTable({
                                     : numVal < 0
                                       ? "text-[#e05c5c]"
                                       : "text-[#ededed]";
+                                const assetAllocInst =
+                                  assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                                const effectiveInst = Math.max(numVal, assetAllocInst);
                                 return (
                                   <Fragment key={`${sub.id}-${inst.name}`}>
                                     <td
-                                      className={`${borderCls} w-[90px] px-2 py-2 text-center text-[#888]`}
+                                      className={`${borderCls} w-[90px] px-2 py-2 text-center ${effectiveInst !== 0 ? (effectiveInst > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#888]"}`}
                                     >
-                                      {formatBRL(sub.byAccount[inst.name] || 0)}
+                                      {formatBRL((sub.byAccount[inst.name] || 0) + effectiveInst)}
                                     </td>
                                     <td className="w-[90px] px-0.5 py-0.5">
                                       <input
@@ -3054,14 +3095,20 @@ function MatrixTable({
                                   </Fragment>
                                 );
                               }
-                              return (
-                                <td
-                                  key={`${sub.id}-${inst.name}`}
-                                  className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] text-[#555]`}
-                                >
-                                  {formatBRL(sub.byAccount[inst.name] || 0)}
-                                </td>
-                              );
+                              return (() => {
+                                const allocVal = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                                const assetAllocInst =
+                                  assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                                const effectiveVal = Math.max(allocVal, assetAllocInst);
+                                return (
+                                  <td
+                                    key={`${sub.id}-${inst.name}`}
+                                    className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] ${effectiveVal !== 0 ? (effectiveVal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#555]"}`}
+                                  >
+                                    {formatBRL((sub.byAccount[inst.name] || 0) + effectiveVal)}
+                                  </td>
+                                );
+                              })();
                             })}
                           </tr>
 
@@ -3289,9 +3336,11 @@ function MatrixTable({
                                           return (
                                             <Fragment key={`${asset.id}-${inst.name}`}>
                                               <td
-                                                className={`${borderCls} w-[90px] px-2 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? "text-[#999]" : "text-transparent"}`}
+                                                className={`${borderCls} w-[90px] px-2 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? (assetNumVal !== 0 ? (assetNumVal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#999]") : "text-transparent"}`}
                                               >
-                                                {idx === assetInstIdx ? formatBRL(asset.value) : ""}
+                                                {idx === assetInstIdx
+                                                  ? formatBRL(asset.value + assetNumVal)
+                                                  : ""}
                                               </td>
                                               <td className="w-[90px] px-0.5 py-0.5">
                                                 <input
@@ -3323,14 +3372,21 @@ function MatrixTable({
                                             </Fragment>
                                           );
                                         }
-                                        return (
-                                          <td
-                                            key={`${asset.id}-${inst.name}`}
-                                            className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? "text-[#666]" : "text-transparent"}`}
-                                          >
-                                            {idx === assetInstIdx ? formatBRL(asset.value) : ""}
-                                          </td>
-                                        );
+                                        return (() => {
+                                          const assetAllocVal = parseBRLInput(
+                                            assetAllocValues[asset.id]?.[inst.name] ?? "",
+                                          );
+                                          return (
+                                            <td
+                                              key={`${asset.id}-${inst.name}`}
+                                              className={`${borderCls} whitespace-nowrap px-1 py-1.5 text-center text-[10px] ${idx === assetInstIdx ? (assetAllocVal !== 0 ? (assetAllocVal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#666]") : "text-transparent"}`}
+                                            >
+                                              {idx === assetInstIdx
+                                                ? formatBRL(asset.value + assetAllocVal)
+                                                : ""}
+                                            </td>
+                                          );
+                                        })();
                                       })}
                                     </tr>
                                   );
@@ -3724,36 +3780,39 @@ function MatrixTable({
                   : "border-l border-[#2a2a2a]";
                 const currentTotal = grandTotals.byAccount[inst.name] || 0;
                 if (isExp) {
-                  const allocTotal = allocatorTotals[inst.name] || 0;
-                  const projectedInst = currentTotal + allocTotal;
+                  const effectiveTotal = CATEGORIES.reduce((catSum, cat) => {
+                    return (
+                      catSum +
+                      cat.subs.reduce((subSum, sub) => {
+                        const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                        const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                        return subSum + Math.max(subAlloc, assetAlloc);
+                      }, 0)
+                    );
+                  }, 0);
                   return (
                     <Fragment key={`total-${inst.name}`}>
                       <td
                         className={`${borderCls} w-[90px] px-2 py-2.5 text-center font-semibold text-[#ededed]`}
                       >
                         <div className="flex flex-col items-center">
-                          <span>{formatBRL(currentTotal)}</span>
-                          {allocTotal !== 0 && (
+                          <span>{formatBRL(currentTotal + effectiveTotal)}</span>
+                          {effectiveTotal !== 0 && (
                             <span
-                              className={`text-[9px] font-medium ${allocTotal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
+                              className={`text-[9px] font-medium ${effectiveTotal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]"}`}
                             >
-                              {allocTotal > 0 ? "+" : ""}
-                              {formatBRL(allocTotal)}
+                              {effectiveTotal > 0 ? "+" : ""}
+                              {formatBRL(effectiveTotal)}
                             </span>
                           )}
                         </div>
                       </td>
                       <td className="w-[90px] px-2 py-1.5 text-center">
                         <div className="flex flex-col items-center">
-                          {allocTotal !== 0 ? (
-                            <>
-                              <span className="text-xs font-semibold text-[#ededed]">
-                                {formatBRL(allocTotal)}
-                              </span>
-                              <span className="text-[9px] font-medium text-[#6db1d4]">
-                                → {formatBRL(projectedInst)}
-                              </span>
-                            </>
+                          {effectiveTotal !== 0 ? (
+                            <span className="text-xs font-semibold text-[#ededed]">
+                              {formatBRL(effectiveTotal)}
+                            </span>
                           ) : (
                             <span className="text-xs text-[#555]">—</span>
                           )}
@@ -3762,14 +3821,26 @@ function MatrixTable({
                     </Fragment>
                   );
                 }
-                return (
-                  <td
-                    key={`total-${inst.name}`}
-                    className={`${borderCls} whitespace-nowrap px-1 py-2.5 text-center text-[10px] font-medium text-[#888]`}
-                  >
-                    {formatBRL(currentTotal)}
-                  </td>
-                );
+                return (() => {
+                  const effectiveTotal = CATEGORIES.reduce((catSum, cat) => {
+                    return (
+                      catSum +
+                      cat.subs.reduce((subSum, sub) => {
+                        const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                        const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                        return subSum + Math.max(subAlloc, assetAlloc);
+                      }, 0)
+                    );
+                  }, 0);
+                  return (
+                    <td
+                      key={`total-${inst.name}`}
+                      className={`${borderCls} whitespace-nowrap px-1 py-2.5 text-center text-[10px] font-medium ${effectiveTotal !== 0 ? (effectiveTotal > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]") : "text-[#888]"}`}
+                    >
+                      {formatBRL(currentTotal + effectiveTotal)}
+                    </td>
+                  );
+                })();
               })}
             </tr>
           </tfoot>
