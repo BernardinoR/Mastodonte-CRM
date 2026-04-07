@@ -1,4 +1,10 @@
-import type { Extrato, ExtratoStatus, ExtratoCollectionMethod } from "../types/extrato";
+import type {
+  Extrato,
+  ExtratoStatus,
+  ExtratoCollectionMethod,
+  VerificationResult,
+} from "../types/extrato";
+import { verificationKey } from "../types/extrato";
 import { ExtratoStatusBadge } from "./ExtratoStatusBadge";
 import { CollectionMethodBadge } from "./CollectionMethodBadge";
 import { ExtratoActionButtons } from "./ExtratoActionButtons";
@@ -21,6 +27,7 @@ interface ExtratoRowProps {
   onBatchStatusChange?: (contaId: string, months: string[], status: ExtratoStatus) => void;
   labelField?: "institution" | "client";
   groupBy?: "client" | "institution";
+  verificationMap?: Map<string, VerificationResult>;
 }
 
 export function ExtratoRow({
@@ -33,6 +40,7 @@ export function ExtratoRow({
   onBatchStatusChange,
   labelField = "institution",
   groupBy = "client",
+  verificationMap,
 }: ExtratoRowProps) {
   const { toast } = useToast();
 
@@ -104,6 +112,18 @@ export function ExtratoRow({
           onEmail={handleEmail}
           onConsolidar={() => onConsolidar?.(extrato)}
           onSync={onSync ? () => onSync(extrato) : undefined}
+          verificationStatus={
+            extrato.status === "Consolidado"
+              ? verificationMap?.get(
+                  verificationKey(
+                    extrato.clientName,
+                    extrato.referenceMonth,
+                    extrato.institution,
+                    extrato.accountType,
+                  ),
+                )
+              : undefined
+          }
         />
       </div>
     </div>

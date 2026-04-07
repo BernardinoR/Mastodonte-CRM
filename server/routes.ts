@@ -7,6 +7,7 @@ import { createClerkClient } from "@clerk/clerk-sdk-node";
 import type { UserRole } from "@shared/types";
 import {
   getContaHistorico,
+  getVerificationResults,
   syncContaWithSupabase,
   syncContaExtratoStatuses,
   syncAllExtratoStatuses,
@@ -808,6 +809,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing extrato statuses:", error);
       return res.status(500).json({ error: "Failed to sync extrato statuses" });
+    }
+  });
+
+  // Verification summary from external Supabase
+  app.get("/api/consolidador/verification-summary", clerkAuthMiddleware, async (_req, res) => {
+    try {
+      const results = await getVerificationResults();
+      return res.json(results);
+    } catch (error) {
+      console.error("Error fetching verification summary:", error);
+      return res.status(500).json({ error: "Failed to fetch verification summary" });
     }
   });
 

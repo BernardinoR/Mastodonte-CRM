@@ -9,6 +9,7 @@ import type {
   Extrato,
   ExtratoStatus,
   ExtratoCollectionMethod,
+  VerificationResult,
 } from "../types/extrato";
 import { ExtratoRow } from "./ExtratoRow";
 import { getInstitutionColor } from "@/features/clients/lib/institutionColors";
@@ -26,6 +27,7 @@ interface ClientExtratoGroupProps {
   onBatchStatusChange?: (contaId: string, months: string[], status: ExtratoStatus) => void;
   labelField?: "institution" | "client";
   groupBy?: "client" | "institution";
+  verificationMap?: Map<string, VerificationResult>;
 }
 
 export function ClientExtratoGroup({
@@ -40,6 +42,7 @@ export function ClientExtratoGroup({
   onBatchStatusChange,
   labelField = "institution",
   groupBy = "client",
+  verificationMap,
 }: ClientExtratoGroupProps) {
   const colors =
     groupBy === "institution"
@@ -79,6 +82,7 @@ export function ClientExtratoGroup({
                 onBatchStatusChange={onBatchStatusChange}
                 labelField={labelField}
                 groupBy={groupBy}
+                verificationMap={verificationMap}
               />
             ))}
           </div>

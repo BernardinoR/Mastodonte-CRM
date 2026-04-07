@@ -125,7 +125,8 @@
       "Bash(find /home/runner/workspace -path */client/src/features/varredura/* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "Bash(2)",
       "Bash(find /home/runner/workspace -path *api/auth* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
-      "WebFetch(domain:skills.sh)"
+      "WebFetch(domain:skills.sh)",
+      "Bash(echo \"Total nodes: $\\(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/home/runner/workspace/santander-lovable-updated.json','utf8'\\)\\); console.log\\(d.nodes.length\\)\"\\)\")"
     ]
   },
   "enableAllProjectMcpServers": true,

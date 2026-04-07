@@ -43,3 +43,36 @@ export interface ExtratoStatusSummary {
   recebidos: number;
   consolidados: number;
 }
+
+export interface VerificationResult {
+  client_name: string;
+  competencia: string;
+  instituicao: string;
+  nome_conta: string;
+  patrimonio_status: string;
+  diferenca: number;
+  has_unclassified: boolean;
+  unclassified_count: number;
+  has_missing_yield: boolean;
+  missing_yield_count: number;
+  has_new_assets: boolean;
+  new_asset_count: number;
+  all_green: boolean;
+  verified_at: string;
+}
+
+function normalize(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+}
+
+export function verificationKey(
+  clientName: string,
+  competencia: string,
+  instituicao: string,
+  nomeConta: string,
+): string {
+  return `${normalize(clientName)}|${competencia}|${normalize(instituicao)}|${normalize(nomeConta)}`;
+}

@@ -364,6 +364,16 @@ function isMonthInRange(month: string, startDate: string, endDate: string | null
   return true;
 }
 
+export async function getVerificationResults() {
+  const { data, error } = await externalSupabase
+    .from("verification_results")
+    .select(
+      "client_name,competencia,instituicao,nome_conta,patrimonio_status,diferenca,has_unclassified,unclassified_count,has_missing_yield,missing_yield_count,has_new_assets,new_asset_count,all_green,verified_at",
+    );
+  if (error) throw new Error(`Verification results error: ${error.message}`);
+  return data || [];
+}
+
 export async function getContaHistorico(contaId: string): Promise<ContaHistoricoEntry[]> {
   const conta = await prisma.conta.findUnique({
     where: { id: contaId },

@@ -28,7 +28,9 @@ import type {
   ExtratoCollectionMethod,
   ClientExtratoGroup as ClientGroupType,
   ExtratoStatusSummary,
+  VerificationResult,
 } from "../types/extrato";
+import { verificationKey } from "../types/extrato";
 import { getVisibleContaTypes } from "../utils/contaVisibility";
 
 function formatMonthParam(date: Date): string {
@@ -87,6 +89,9 @@ export default function Consolidador() {
   const [extratos, setExtratos] = useState<Extrato[]>([]);
   const [historicalPendencies, setHistoricalPendencies] = useState<Extrato[]>([]);
   const [rawContas, setRawContas] = useState<DbConta[]>([]);
+  const [verificationMap, setVerificationMap] = useState<Map<string, VerificationResult>>(
+    new Map(),
+  );
   const [loading, setLoading] = useState(false);
 
   const authHeaders = useCallback(async () => {
@@ -115,6 +120,28 @@ export default function Consolidador() {
 
       const historicalMonths = getAllPendingMonths(contas);
       setHistoricalPendencies(buildPendencias(contas, whatsappGroups, historicalMonths));
+
+      // Verification is supplementary — fetch separately to not block main data
+      try {
+        const headers = await authHeaders();
+        const res = await fetch("/api/consolidador/verification-summary", { headers });
+        if (res.ok) {
+          const contentType = res.headers.get("content-type") || "";
+          if (contentType.includes("application/json")) {
+            const verificationData = (await res.json()) as VerificationResult[];
+            const vMap = new Map<string, VerificationResult>();
+            for (const v of verificationData) {
+              vMap.set(
+                verificationKey(v.client_name, v.competencia, v.instituicao, v.nome_conta),
+                v,
+              );
+            }
+            setVerificationMap(vMap);
+          }
+        }
+      } catch {
+        // Silently ignore — verification indicator is optional
+      }
     } catch (error) {
       console.error("Failed to fetch consolidador data:", error);
       setExtratos([]);
@@ -122,7 +149,7 @@ export default function Consolidador() {
     } finally {
       setLoading(false);
     }
-  }, [selectedMonth]);
+  }, [selectedMonth, authHeaders]);
 
   useEffect(() => {
     fetchData();
@@ -455,6 +482,7 @@ export default function Consolidador() {
               onBatchStatusChange={handleBatchStatusChange}
               labelField={groupBy === "institution" ? "client" : "institution"}
               groupBy={groupBy}
+              verificationMap={verificationMap}
             />
           ))}
           {actionGroups.length > visibleCount && (
@@ -498,6 +526,7 @@ export default function Consolidador() {
                       onConsolidar={handleConsolidar}
                       onSync={handleSync}
                       labelField={groupBy === "institution" ? "client" : "institution"}
+                      verificationMap={verificationMap}
                     />
                   ))}
                   {consolidatedGroups.length > visibleConsolidatedCount && (
