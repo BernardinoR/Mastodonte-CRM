@@ -82,6 +82,7 @@ export default function Consolidador() {
     new Map(),
   );
   const [consolidadosOpen, setConsolidadosOpen] = useState(false);
+  const [verificationFilter, setVerificationFilter] = useState(false);
   const [consolidarExtrato, setConsolidarExtrato] = useState<Extrato | null>(null);
   const [visibleCount, setVisibleCount] = useState(20);
   const [visibleConsolidatedCount, setVisibleConsolidatedCount] = useState(20);
@@ -268,6 +269,23 @@ export default function Consolidador() {
     return { actionGroups: action, consolidatedGroups: consolidated };
   }, [filteredExtratos, groupBy]);
 
+  const verificationRedGroups = useMemo(() => {
+    if (!verificationFilter) return [];
+    const groups: ClientGroupType[] = [];
+    for (const g of consolidatedGroups) {
+      const redExtratos = g.extratos.filter((e) => {
+        const v = verificationMap.get(
+          verificationKey(e.clientName, e.referenceMonth, e.institution, e.accountType),
+        );
+        return v && !v.all_green;
+      });
+      if (redExtratos.length > 0) {
+        groups.push({ ...g, extratos: redExtratos, pendingCount: 0 });
+      }
+    }
+    return groups;
+  }, [verificationFilter, consolidatedGroups, verificationMap]);
+
   const toggleClient = useCallback((clientId: string) => {
     setExpandedClients((prev) => {
       const next = new Set(prev);
@@ -451,6 +469,8 @@ export default function Consolidador() {
         activeStatusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}
         verificationRedCount={verificationRedCount}
+        verificationFilterActive={verificationFilter}
+        onVerificationFilterToggle={() => setVerificationFilter((prev) => !prev)}
       />
 
       <ConsolidadorFilters
@@ -468,7 +488,39 @@ export default function Consolidador() {
         <div className="py-12 text-center text-sm text-gray-500">Carregando extratos...</div>
       )}
 
-      {!loading && actionGroups.length > 0 && (
+      {!loading && verificationFilter && verificationRedGroups.length > 0 && (
+        <div className="flex flex-col gap-0">
+          <div className="flex items-center gap-3 py-3">
+            <h2 className="text-xs font-black uppercase tracking-[0.2em] text-red-400">
+              Verificação com Problema
+            </h2>
+            <span className="inline-flex items-center rounded-md bg-red-500/20 px-2 py-0.5 text-[10px] font-black text-red-400">
+              {verificationRedGroups.reduce((sum, g) => sum + g.extratos.length, 0)}
+            </span>
+          </div>
+          {verificationRedGroups.map((group) => (
+            <ClientExtratoGroup
+              key={group.clientId}
+              group={group}
+              isExpanded={expandedClients.has(group.clientId)}
+              onToggle={() => toggleClient(group.clientId)}
+              onConsolidar={handleConsolidar}
+              onSync={handleSync}
+              labelField={groupBy === "institution" ? "client" : "institution"}
+              groupBy={groupBy}
+              verificationMap={verificationMap}
+            />
+          ))}
+        </div>
+      )}
+
+      {!loading && verificationFilter && verificationRedGroups.length === 0 && (
+        <div className="py-12 text-center text-sm text-gray-500">
+          Nenhuma verificação com problema encontrada.
+        </div>
+      )}
+
+      {!loading && !verificationFilter && actionGroups.length > 0 && (
         <div className="flex flex-col gap-0">
           <div className="flex items-center gap-3 py-3">
             <h2 className="text-xs font-black uppercase tracking-[0.2em] text-zinc-500">
@@ -506,13 +558,16 @@ export default function Consolidador() {
         </div>
       )}
 
-      {!loading && actionGroups.length === 0 && consolidatedGroups.length === 0 && (
-        <div className="py-12 text-center text-sm text-gray-500">
-          Nenhum extrato encontrado para os filtros selecionados.
-        </div>
-      )}
+      {!loading &&
+        !verificationFilter &&
+        actionGroups.length === 0 &&
+        consolidatedGroups.length === 0 && (
+          <div className="py-12 text-center text-sm text-gray-500">
+            Nenhum extrato encontrado para os filtros selecionados.
+          </div>
+        )}
 
-      {!loading && consolidatedGroups.length > 0 && (
+      {!loading && !verificationFilter && consolidatedGroups.length > 0 && (
         <div className="flex flex-col gap-0 opacity-50">
           <div className="pt-4">
             <Collapsible open={consolidadosOpen} onOpenChange={setConsolidadosOpen}>

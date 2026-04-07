@@ -11,6 +11,8 @@ interface ConsolidadorHeaderProps {
   activeStatusFilter: ExtratoStatus | null;
   onStatusFilterChange: (status: ExtratoStatus | null) => void;
   verificationRedCount?: number;
+  verificationFilterActive?: boolean;
+  onVerificationFilterToggle?: () => void;
 }
 
 export function ConsolidadorHeader({
@@ -22,6 +24,8 @@ export function ConsolidadorHeader({
   activeStatusFilter,
   onStatusFilterChange,
   verificationRedCount,
+  verificationFilterActive,
+  onVerificationFilterToggle,
 }: ConsolidadorHeaderProps) {
   const handleBadgeClick = (status: ExtratoStatus) => {
     onStatusFilterChange(activeStatusFilter === status ? null : status);
@@ -75,10 +79,15 @@ export function ConsolidadorHeader({
           {summary.recebidos} Recebidos
         </button>
         {verificationRedCount != null && verificationRedCount > 0 && (
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-red-400">
+          <button
+            onClick={onVerificationFilterToggle}
+            className={`inline-flex items-center gap-1.5 rounded-lg border border-red-500/30 bg-red-950/30 px-4 py-1.5 text-[11px] font-black uppercase text-red-400 transition-all hover:bg-red-500/20 ${
+              verificationFilterActive ? "ring-2 ring-red-500/40" : ""
+            }`}
+          >
             <ShieldAlert className="h-4 w-4" />
             {verificationRedCount} Verificado{verificationRedCount > 1 ? "s" : ""}
-          </span>
+          </button>
         )}
         <div className="h-6 w-px bg-border" />
         <MonthSelector value={selectedMonth} onChange={onMonthChange} />
