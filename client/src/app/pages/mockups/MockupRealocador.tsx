@@ -2411,7 +2411,9 @@ function MovementSummaryPanel({
   const balanceLabel = isBalanced
     ? "Equilibrado"
     : scenario === "pure-reallocation"
-      ? `${netMatrix > 0 ? "+" : ""}R$ ${formatBRL(netMatrix)} pendente`
+      ? netMatrix > 0
+        ? `R$ ${formatBRL(netMatrix)} sem origem`
+        : `R$ ${formatBRL(Math.abs(netMatrix))} sem destino`
       : `R$ ${formatBRL(Math.abs(unallocatedBudget))} ${unallocatedBudget > 0 ? "restante" : "excedido"}`;
   const balanceColor = isBalanced ? "#6ecf8e" : "#dcb092";
 
@@ -2432,49 +2434,75 @@ function MovementSummaryPanel({
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#141414] transition-all duration-200">
+    <div className="overflow-hidden rounded-lg border border-[#1e1e1e] bg-gradient-to-b from-[#151515] to-[#131313] transition-all duration-200">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="flex w-full items-center justify-between px-4 py-2 text-xs text-[#bbb] transition-colors hover:bg-[#1a1a1a]"
+        className="flex w-full items-center justify-between px-4 py-2.5 text-xs transition-colors hover:bg-[#1a1a1a]"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           {isExpanded ? (
             <ChevronDown className="h-3 w-3 text-[#555]" />
           ) : (
             <ChevronRight className="h-3 w-3 text-[#555]" />
           )}
-          <span className="font-medium text-[#ededed]">Resumo:</span>
-          <span>{summaryParts.join(" + ") || "Sem movimentacoes"}</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span style={{ color: balanceColor }} className="font-medium">
-            {isBalanced && <CheckCircle className="mr-1 inline h-3 w-3" />}
-            {!isBalanced && <AlertTriangle className="mr-1 inline h-3 w-3" />}
-            {balanceLabel}
+          <span className="text-[11px] font-semibold uppercase tracking-wider text-[#555]">
+            Movimentacoes
           </span>
+          <div className="flex items-center gap-2">
+            {summaryParts.length > 0 ? (
+              summaryParts.map((part, i) => {
+                const color = part.startsWith("Aporte")
+                  ? "text-[#6ecf8e]"
+                  : part.startsWith("Resgate")
+                    ? "text-[#e05c5c]"
+                    : "text-[#6db1d4]";
+                return (
+                  <span key={i} className={`text-[11px] font-medium ${color}`}>
+                    {i > 0 && <span className="mr-2 text-[#333]">+</span>}
+                    {part}
+                  </span>
+                );
+              })
+            ) : (
+              <span className="text-[11px] text-[#444]">Sem movimentacoes</span>
+            )}
+          </div>
         </div>
+        <span
+          style={{ color: balanceColor }}
+          className="inline-flex items-center gap-1 text-[11px] font-medium"
+        >
+          {isBalanced ? <CheckCircle className="h-3 w-3" /> : <AlertTriangle className="h-3 w-3" />}
+          {balanceLabel}
+        </span>
       </button>
 
       {isExpanded && (
-        <div className="border-t border-[#2a2a2a] px-4 py-3">
-          <div className="grid grid-cols-2 gap-6">
+        <div className="border-t border-[#1e1e1e] px-4 py-3">
+          <div className="grid grid-cols-2 gap-8">
             <div>
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#6ecf8e]">
-                Entradas (Creditos)
+              <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#6ecf8e]">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#6ecf8e]" />
+                Entradas
               </div>
               {creditEntries.length === 0 ? (
                 <div className="text-[11px] text-[#444]">Nenhuma entrada</div>
               ) : (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {creditEntries.map((e, i) => (
-                    <div key={i} className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#999]">{e.label}</span>
-                      <span className="font-medium text-[#6ecf8e]">+{formatBRL(e.value)}</span>
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded px-1.5 py-0.5 text-[11px] transition-colors hover:bg-[#1a1a1a]"
+                    >
+                      <span className="text-[#888]">{e.label}</span>
+                      <span className="font-medium tabular-nums text-[#6ecf8e]">
+                        +{formatBRL(e.value)}
+                      </span>
                     </div>
                   ))}
-                  <div className="mt-1 flex items-center justify-between border-t border-[#2a2a2a] pt-1 text-[11px]">
+                  <div className="mt-1 flex items-center justify-between border-t border-dashed border-[#2a2a2a] px-1.5 pt-2 text-[11px]">
                     <span className="font-medium text-[#bbb]">Total entradas</span>
-                    <span className="font-semibold text-[#6ecf8e]">
+                    <span className="font-semibold tabular-nums text-[#6ecf8e]">
                       +{formatBRL(creditEntries.reduce((s, e) => s + e.value, 0))}
                     </span>
                   </div>
@@ -2483,22 +2511,28 @@ function MovementSummaryPanel({
             </div>
 
             <div>
-              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#e05c5c]">
-                Saidas (Debitos)
+              <div className="mb-2.5 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-[#e05c5c]">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-[#e05c5c]" />
+                Saidas
               </div>
               {debitEntries.length === 0 ? (
                 <div className="text-[11px] text-[#444]">Nenhuma saida</div>
               ) : (
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   {debitEntries.map((e, i) => (
-                    <div key={i} className="flex items-center justify-between text-[11px]">
-                      <span className="text-[#999]">{e.label}</span>
-                      <span className="font-medium text-[#e05c5c]">-{formatBRL(e.value)}</span>
+                    <div
+                      key={i}
+                      className="flex items-center justify-between rounded px-1.5 py-0.5 text-[11px] transition-colors hover:bg-[#1a1a1a]"
+                    >
+                      <span className="text-[#888]">{e.label}</span>
+                      <span className="font-medium tabular-nums text-[#e05c5c]">
+                        -{formatBRL(e.value)}
+                      </span>
                     </div>
                   ))}
-                  <div className="mt-1 flex items-center justify-between border-t border-[#2a2a2a] pt-1 text-[11px]">
+                  <div className="mt-1 flex items-center justify-between border-t border-dashed border-[#2a2a2a] px-1.5 pt-2 text-[11px]">
                     <span className="font-medium text-[#bbb]">Total saidas</span>
-                    <span className="font-semibold text-[#e05c5c]">
+                    <span className="font-semibold tabular-nums text-[#e05c5c]">
                       -{formatBRL(debitEntries.reduce((s, e) => s + e.value, 0))}
                     </span>
                   </div>
@@ -2507,17 +2541,17 @@ function MovementSummaryPanel({
             </div>
           </div>
 
-          <div className="mt-3 flex flex-col gap-1 border-t border-[#2a2a2a] pt-3">
+          <div className="mt-3 flex flex-col gap-1.5 border-t border-[#1e1e1e] pt-3">
             {globalBudgetNum !== 0 && (
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-[#999]">
+              <div className="flex items-center justify-between px-1.5 text-[11px]">
+                <span className="text-[#888]">
                   Dinheiro novo ({globalBudgetNum > 0 ? "aporte" : "resgate"})
                 </span>
                 <span
                   className={
                     globalBudgetNum > 0
-                      ? "font-medium text-[#6ecf8e]"
-                      : "font-medium text-[#e05c5c]"
+                      ? "font-medium tabular-nums text-[#6ecf8e]"
+                      : "font-medium tabular-nums text-[#e05c5c]"
                   }
                 >
                   {globalBudgetNum > 0 ? "+" : "-"}R$ {formatBRL(Math.abs(globalBudgetNum))}
@@ -2525,21 +2559,34 @@ function MovementSummaryPanel({
               </div>
             )}
             {reallocationAmount > 0 && (
-              <div className="flex items-center justify-between text-[11px]">
-                <span className="text-[#999]">Realocacao interna</span>
-                <span className="font-medium text-[#6db1d4]">
+              <div className="flex items-center justify-between px-1.5 text-[11px]">
+                <span className="text-[#888]">Realocacao interna</span>
+                <span className="font-medium tabular-nums text-[#6db1d4]">
                   R$ {formatBRL(reallocationAmount)}
                 </span>
               </div>
             )}
-            <div className="flex items-center justify-between text-[11px]">
-              <span className="font-medium text-[#bbb]">Saldo pendente</span>
-              <span style={{ color: balanceColor }} className="font-semibold">
-                {isBalanced && <CheckCircle className="mr-1 inline h-3 w-3" />}
-                {!isBalanced && <AlertTriangle className="mr-1 inline h-3 w-3" />}
+            <div className="flex items-center justify-between rounded bg-[#1a1a1a] px-1.5 py-1 text-[11px]">
+              <span className="font-medium text-[#bbb]">Saldo</span>
+              <span
+                style={{ color: balanceColor }}
+                className="inline-flex items-center gap-1 font-semibold"
+              >
+                {isBalanced ? (
+                  <CheckCircle className="h-3 w-3" />
+                ) : (
+                  <AlertTriangle className="h-3 w-3" />
+                )}
                 {balanceLabel}
               </span>
             </div>
+            {scenario === "pure-reallocation" && !isBalanced && (
+              <div className="mt-2 rounded-md border border-dashed border-[rgba(220,176,146,0.3)] bg-[rgba(220,176,146,0.04)] px-3 py-2 text-[11px] text-[#dcb092]">
+                {netMatrix > 0
+                  ? "Voce esta alocando dinheiro que nao tem origem. Defina um aporte no campo acima ou venda ativos equivalentes."
+                  : "Voce esta vendendo mais do que comprando. Aloque o saldo em outros ativos ou defina um resgate no campo acima."}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -5233,7 +5280,10 @@ export default function MockupRealocador() {
                       if (reallocationAmount > 0)
                         annotation += `, ${formatBRL(reallocationAmount)} realocado`;
                     } else if (scenario === "pure-reallocation" && Math.abs(netMatrix) >= 1) {
-                      annotation = `${netMatrix > 0 ? "+" : "-"}${formatBRL(Math.abs(netMatrix))} ${netMatrix > 0 ? "nao alocado" : "nao coberto"}`;
+                      annotation =
+                        netMatrix > 0
+                          ? `+${formatBRL(netMatrix)} sem origem definida`
+                          : `-${formatBRL(Math.abs(netMatrix))} sem destino definido`;
                     }
 
                     return (
@@ -5267,14 +5317,8 @@ export default function MockupRealocador() {
                 {/* Grupo esquerdo: fluxo de trabalho */}
                 <div className="flex flex-wrap items-center gap-3">
                   {(() => {
-                    const {
-                      scenario,
-                      reallocationAmount,
-                      isBalanced,
-                      netMatrix,
-                      positiveEntries,
-                      negativeEntries,
-                    } = movementBreakdown;
+                    const { scenario, reallocationAmount, isBalanced, netMatrix, negativeEntries } =
+                      movementBreakdown;
                     const hasBudget = globalBudgetNum !== 0;
                     const hasImplicit = !hasBudget && scenario !== "idle";
                     const budgetColor =
@@ -5288,9 +5332,11 @@ export default function MockupRealocador() {
                     const pct = absBudget > 0 ? Math.min((absNet / absBudget) * 100, 100) : 0;
                     const remaining = globalBudgetNum - netMatrix;
                     const isComplete = hasBudget && Math.abs(remaining) < 1;
-                    const isOver = hasBudget && absNet > absBudget;
+                    const hasReallocation = negativeEntries > 0 && reallocationAmount > 0;
+                    const isOverGenuine = hasBudget && absNet > absBudget && negativeEntries === 0;
+                    const isMixedOver = hasBudget && absNet > absBudget && hasReallocation;
                     const borderStyle = hasBudget
-                      ? isComplete
+                      ? isComplete || isMixedOver
                         ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.04)]"
                         : "border-[#333] bg-[#111]"
                       : hasImplicit
@@ -5321,23 +5367,46 @@ export default function MockupRealocador() {
                             <div className="flex items-center gap-2">
                               <div className="h-1.5 w-16 overflow-hidden rounded-full bg-[#222]">
                                 <div
-                                  className={`h-full rounded-full transition-all ${isComplete ? "bg-[#6ecf8e]" : isOver ? "bg-[#e05c5c]" : "bg-[#6db1d4]"}`}
+                                  className={`h-full rounded-full transition-all ${isComplete || isMixedOver ? "bg-[#6ecf8e]" : isOverGenuine ? "bg-[#e05c5c]" : "bg-[#6db1d4]"}`}
                                   style={{ width: `${Math.min(pct, 100)}%` }}
                                 />
                               </div>
-                              <span className="whitespace-nowrap text-[10px] text-[#666]">
-                                {formatBRL(netMatrix)} / {formatBRL(globalBudgetNum)}
-                              </span>
                               {isComplete ? (
-                                <CheckCircle className="h-3 w-3 shrink-0 text-[#6ecf8e]" />
-                              ) : isOver ? (
-                                <span className="whitespace-nowrap text-[10px] font-medium text-[#e05c5c]">
-                                  {formatBRL(Math.abs(remaining))} excedido
-                                </span>
+                                <>
+                                  <span className="whitespace-nowrap text-[10px] text-[#666]">
+                                    {formatBRL(globalBudgetNum)} alocado
+                                  </span>
+                                  <CheckCircle className="h-3 w-3 shrink-0 text-[#6ecf8e]" />
+                                </>
+                              ) : isMixedOver ? (
+                                <>
+                                  <span className="whitespace-nowrap text-[10px] text-[#6ecf8e]">
+                                    {formatBRL(absBudget)}{" "}
+                                    {globalBudgetNum > 0 ? "aporte" : "resgate"}
+                                  </span>
+                                  <span className="whitespace-nowrap text-[10px] text-[#6db1d4]">
+                                    + {formatBRL(reallocationAmount)} realoc.
+                                  </span>
+                                  <CheckCircle className="h-3 w-3 shrink-0 text-[#6ecf8e]" />
+                                </>
+                              ) : isOverGenuine ? (
+                                <>
+                                  <span className="whitespace-nowrap text-[10px] text-[#666]">
+                                    {formatBRL(netMatrix)} / {formatBRL(globalBudgetNum)}
+                                  </span>
+                                  <span className="whitespace-nowrap text-[10px] font-medium text-[#e05c5c]">
+                                    {formatBRL(Math.abs(remaining))} excedido
+                                  </span>
+                                </>
                               ) : (
-                                <span className="whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
-                                  {formatBRL(remaining)} restante
-                                </span>
+                                <>
+                                  <span className="whitespace-nowrap text-[10px] text-[#666]">
+                                    {formatBRL(netMatrix)} / {formatBRL(globalBudgetNum)}
+                                  </span>
+                                  <span className="whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
+                                    {formatBRL(remaining)} restante
+                                  </span>
+                                </>
                               )}
                             </div>
                           </>
@@ -5350,50 +5419,18 @@ export default function MockupRealocador() {
                                 <CheckCircle className="h-3 w-3" />
                                 Equilibrado
                               </span>
+                            ) : netMatrix > 0 ? (
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
+                                <AlertTriangle className="h-3 w-3" />
+                                {formatBRL(netMatrix)} sem origem
+                              </span>
                             ) : (
                               <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
                                 <AlertTriangle className="h-3 w-3" />
-                                {netMatrix > 0 ? "+" : ""}
-                                {formatBRL(netMatrix)} liquido
+                                {formatBRL(Math.abs(netMatrix))} sem destino
                               </span>
                             )}
                           </>
-                        )}
-                      </div>
-                    );
-                  })()}
-                  {(() => {
-                    const { scenario, reallocationAmount, positiveEntries, negativeEntries } =
-                      movementBreakdown;
-                    if (scenario === "idle") return null;
-                    return (
-                      <div className="flex items-center gap-1.5">
-                        {globalBudgetNum > 0 && (
-                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#6ecf8e]">
-                            <Plus className="h-2.5 w-2.5" />
-                            Aporte {formatBRL(globalBudgetNum)}
-                          </span>
-                        )}
-                        {globalBudgetNum < 0 && (
-                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(224,92,92,0.3)] bg-[rgba(224,92,92,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#e05c5c]">
-                            <Minus className="h-2.5 w-2.5" />
-                            Resgate {formatBRL(Math.abs(globalBudgetNum))}
-                          </span>
-                        )}
-                        {reallocationAmount > 0 && (
-                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(109,177,212,0.3)] bg-[rgba(109,177,212,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#6db1d4]">
-                            <ArrowDownUp className="h-2.5 w-2.5" />
-                            Realocacao {formatBRL(reallocationAmount)}
-                          </span>
-                        )}
-                        {scenario === "pure-reallocation" && reallocationAmount === 0 && (
-                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(220,176,146,0.3)] bg-[rgba(220,176,146,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#dcb092]">
-                            {negativeEntries > 0 ? (
-                              <>{formatBRL(negativeEntries)} a realocar</>
-                            ) : (
-                              <>{formatBRL(positiveEntries)} sem origem</>
-                            )}
-                          </span>
                         )}
                       </div>
                     );
@@ -5476,6 +5513,11 @@ export default function MockupRealocador() {
                   </button>
                 </div>
               </div>
+
+              <MovementSummaryPanel
+                breakdown={movementBreakdown}
+                globalBudgetNum={globalBudgetNum}
+              />
 
               <MatrixTable
                 allocatorValues={allocatorValues}
