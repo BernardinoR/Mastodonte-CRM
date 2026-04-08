@@ -2737,7 +2737,8 @@ function MatrixTable({
 
   const categoryTotals = useMemo(() => {
     return CATEGORIES.map((cat) => {
-      const total = cat.subs.reduce(
+      const activeSubs = cat.subs.filter((sub) => !(disableCOE && sub.id === "coe"));
+      const total = activeSubs.reduce(
         (acc, sub) => ({
           alocIdeal: acc.alocIdeal + sub.alocIdeal,
           alocAtual: acc.alocAtual + sub.alocAtual,
@@ -2761,7 +2762,7 @@ function MatrixTable({
       );
       return { catId: cat.id, ...total };
     });
-  }, [allAccounts]);
+  }, [allAccounts, disableCOE]);
 
   const grandTotals = useMemo(() => {
     return categoryTotals.reduce(
@@ -2789,8 +2790,12 @@ function MatrixTable({
   }, [categoryTotals, allAccounts]);
 
   const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
-  const idealScale = globalBudgetNum !== 0 ? (TOTAL_AUM + globalBudgetNum) / TOTAL_AUM : 1;
-  const newAUM = TOTAL_AUM + (globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated);
+  const coeAtual = disableCOE
+    ? CATEGORIES.flatMap((c) => c.subs).find((s) => s.id === "coe")?.alocAtual || 0
+    : 0;
+  const effectiveAUM = TOTAL_AUM - coeAtual;
+  const idealScale = globalBudgetNum !== 0 ? (effectiveAUM + globalBudgetNum) / effectiveAUM : 1;
+  const newAUM = effectiveAUM + (globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated);
 
   const expandedSet = useMemo(
     () => new Set(expandedAccounts.map((i) => i.name)),
@@ -3031,7 +3036,10 @@ function MatrixTable({
                     </td>
                     <td className="sticky left-[200px] z-10 bg-[#161616] px-2 py-2 text-center font-medium">
                       {(() => {
-                        const catProjPctPL = cat.subs.reduce((sum, s) => {
+                        const catActiveSubs = cat.subs.filter(
+                          (s) => !(disableCOE && s.id === "coe"),
+                        );
+                        const catProjPctPL = catActiveSubs.reduce((sum, s) => {
                           const sa = allocatorBySub[s.id] || 0;
                           const aa = assetAllocBySub[s.id] || 0;
                           const eff = Math.max(sa, aa);
@@ -3076,13 +3084,14 @@ function MatrixTable({
                       </div>
                     </td>
                     {(() => {
-                      const catAlloc = cat.subs.reduce((sum, sub) => {
+                      const catActiveSubs = cat.subs.filter((s) => !(disableCOE && s.id === "coe"));
+                      const catAlloc = catActiveSubs.reduce((sum, sub) => {
                         const sa = allocatorBySub[sub.id] || 0;
                         const aa = assetAllocBySub[sub.id] || 0;
                         return sum + Math.max(sa, aa);
                       }, 0);
                       const projectedAtual = ct.alocAtual + catAlloc;
-                      const catSugestao = cat.subs.reduce((s, sub) => {
+                      const catSugestao = catActiveSubs.reduce((s, sub) => {
                         const sa = allocatorBySub[sub.id] || 0;
                         const aa = assetAllocBySub[sub.id] || 0;
                         const eff = Math.max(sa, aa);
@@ -3129,7 +3138,10 @@ function MatrixTable({
                         return (
                           <Fragment key={`${cat.id}-${inst.name}`}>
                             {(() => {
-                              const catInstAlloc = cat.subs.reduce((sum, sub) => {
+                              const catInstActiveSubs = cat.subs.filter(
+                                (s) => !(disableCOE && s.id === "coe"),
+                              );
+                              const catInstAlloc = catInstActiveSubs.reduce((sum, sub) => {
                                 const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                                 const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
                                 return sum + Math.max(subAlloc, assetAlloc);
@@ -3147,7 +3159,10 @@ function MatrixTable({
                         );
                       }
                       return (() => {
-                        const catInstAlloc = cat.subs.reduce((sum, sub) => {
+                        const catInstActiveSubs = cat.subs.filter(
+                          (s) => !(disableCOE && s.id === "coe"),
+                        );
+                        const catInstAlloc = catInstActiveSubs.reduce((sum, sub) => {
                           const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                           const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
                           return sum + Math.max(subAlloc, assetAlloc);
@@ -3935,14 +3950,16 @@ function MatrixTable({
                   const totalProjPctPL = CATEGORIES.reduce(
                     (catSum, cat) =>
                       catSum +
-                      cat.subs.reduce((subSum, s) => {
-                        const sa = allocatorBySub[s.id] || 0;
-                        const aa = assetAllocBySub[s.id] || 0;
-                        const eff = Math.max(sa, aa);
-                        return (
-                          subSum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
-                        );
-                      }, 0),
+                      cat.subs
+                        .filter((s) => !(disableCOE && s.id === "coe"))
+                        .reduce((subSum, s) => {
+                          const sa = allocatorBySub[s.id] || 0;
+                          const aa = assetAllocBySub[s.id] || 0;
+                          const eff = Math.max(sa, aa);
+                          return (
+                            subSum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
+                          );
+                        }, 0),
                     0,
                   );
                   const changed = effectiveDelta !== 0;
@@ -3961,7 +3978,9 @@ function MatrixTable({
                 <div className="flex flex-col items-center">
                   <span className="text-[#ededed]">
                     {formatBRLFull(
-                      idealScale !== 1 ? grandTotals.alocIdeal * idealScale : grandTotals.alocIdeal,
+                      globalBudgetNum === 0
+                        ? grandTotals.alocAtual
+                        : grandTotals.alocIdeal * idealScale,
                     )}
                   </span>
                   {idealScale !== 1 && (
@@ -3975,27 +3994,34 @@ function MatrixTable({
                 const totalAlloc = CATEGORIES.reduce(
                   (sum, cat) =>
                     sum +
-                    cat.subs.reduce((s, sub) => {
-                      const sa = allocatorBySub[sub.id] || 0;
-                      const aa = assetAllocBySub[sub.id] || 0;
-                      return s + Math.max(sa, aa);
-                    }, 0),
+                    cat.subs
+                      .filter((s) => !(disableCOE && s.id === "coe"))
+                      .reduce((s, sub) => {
+                        const sa = allocatorBySub[sub.id] || 0;
+                        const aa = assetAllocBySub[sub.id] || 0;
+                        return s + Math.max(sa, aa);
+                      }, 0),
                   0,
                 );
                 const projectedAtual = grandTotals.alocAtual + totalAlloc;
-                const grandSugestao = CATEGORIES.reduce(
-                  (sum, cat) =>
-                    sum +
-                    cat.subs.reduce((s, sub) => {
-                      const sa = allocatorBySub[sub.id] || 0;
-                      const aa = assetAllocBySub[sub.id] || 0;
-                      const eff = Math.max(sa, aa);
-                      const projected = sub.alocAtual + eff;
-                      const projIdeal = sub.alocIdeal * idealScale;
-                      return s + (projIdeal - projected);
-                    }, 0),
-                  0,
-                );
+                const grandSugestao =
+                  globalBudgetNum === 0
+                    ? 0
+                    : CATEGORIES.reduce(
+                        (sum, cat) =>
+                          sum +
+                          cat.subs
+                            .filter((s) => !(disableCOE && s.id === "coe"))
+                            .reduce((s, sub) => {
+                              const sa = allocatorBySub[sub.id] || 0;
+                              const aa = assetAllocBySub[sub.id] || 0;
+                              const eff = Math.max(sa, aa);
+                              const projected = sub.alocAtual + eff;
+                              const projIdeal = sub.alocIdeal * idealScale;
+                              return s + (projIdeal - projected);
+                            }, 0),
+                        0,
+                      );
                 return (
                   <>
                     <td className="sticky left-[452px] z-10 bg-[#1a1a1a] px-2 py-2.5 text-center">
@@ -4041,11 +4067,13 @@ function MatrixTable({
                   const effectiveTotal = CATEGORIES.reduce((catSum, cat) => {
                     return (
                       catSum +
-                      cat.subs.reduce((subSum, sub) => {
-                        const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
-                        const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                        return subSum + Math.max(subAlloc, assetAlloc);
-                      }, 0)
+                      cat.subs
+                        .filter((s) => !(disableCOE && s.id === "coe"))
+                        .reduce((subSum, sub) => {
+                          const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                          const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                          return subSum + Math.max(subAlloc, assetAlloc);
+                        }, 0)
                     );
                   }, 0);
                   return (
@@ -4083,11 +4111,13 @@ function MatrixTable({
                   const effectiveTotal = CATEGORIES.reduce((catSum, cat) => {
                     return (
                       catSum +
-                      cat.subs.reduce((subSum, sub) => {
-                        const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
-                        const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                        return subSum + Math.max(subAlloc, assetAlloc);
-                      }, 0)
+                      cat.subs
+                        .filter((s) => !(disableCOE && s.id === "coe"))
+                        .reduce((subSum, sub) => {
+                          const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
+                          const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
+                          return subSum + Math.max(subAlloc, assetAlloc);
+                        }, 0)
                     );
                   }, 0);
                   return (
@@ -5027,6 +5057,10 @@ export default function MockupRealocador() {
   const [disableFGTS, setDisableFGTS] = useState(false);
 
   const globalBudgetNum = parseBRLInput(globalBudget);
+  const parentCoeAtual = disableCOE
+    ? CATEGORIES.flatMap((c) => c.subs).find((s) => s.id === "coe")?.alocAtual || 0
+    : 0;
+  const effectiveAUM = TOTAL_AUM - parentCoeAtual;
 
   const totalAllocated = useMemo(() => {
     let sum = 0;
@@ -5291,10 +5325,10 @@ export default function MockupRealocador() {
                         className="shrink-0 text-sm font-medium text-[#ededed]"
                         data-testid="text-aum"
                       >
-                        {formatBRLFull(TOTAL_AUM)}
+                        {formatBRLFull(effectiveAUM)}
                         {showArrow && (
                           <span className={`ml-1.5 text-xs font-medium ${deltaColor}`}>
-                            {"\u2192"} {formatBRLFull(TOTAL_AUM + effectiveDelta)}
+                            {"\u2192"} {formatBRLFull(effectiveAUM + effectiveDelta)}
                           </span>
                         )}
                         {annotation && (
