@@ -63,6 +63,7 @@ interface Asset {
   maturity?: string;
   rate?: string;
   liquidity?: string;
+  isFGTS?: boolean;
 }
 
 interface SubCategory {
@@ -816,6 +817,7 @@ const CATEGORIES: Category[] = [
             value: 180_000,
             pctSub: 18.3,
             liquidity: "D+2",
+            isFGTS: true,
           },
           {
             id: "a43",
@@ -824,6 +826,7 @@ const CATEGORIES: Category[] = [
             value: 120_000,
             pctSub: 12.2,
             liquidity: "D+2",
+            isFGTS: true,
           },
           {
             id: "a44",
@@ -2355,6 +2358,195 @@ const EMPTY_DRAFT: NewAssetDraft = {
   liquidity: "",
 };
 
+interface MovementBreakdown {
+  positiveEntries: number;
+  negativeEntries: number;
+  netMatrix: number;
+  reallocationAmount: number;
+  newMoneyAllocated: number;
+  unallocatedBudget: number;
+  implicitAporteResgate: number;
+  scenario: "idle" | "pure-reallocation" | "pure-aporte" | "pure-resgate" | "mixed";
+  isBalanced: boolean;
+  entriesBySub: Record<string, { positive: number; negative: number }>;
+}
+
+function MovementSummaryPanel({
+  breakdown,
+  globalBudgetNum,
+}: {
+  breakdown: MovementBreakdown;
+  globalBudgetNum: number;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const {
+    scenario,
+    reallocationAmount,
+    positiveEntries,
+    negativeEntries,
+    netMatrix,
+    isBalanced,
+    entriesBySub,
+    unallocatedBudget,
+    implicitAporteResgate,
+  } = breakdown;
+
+  if (scenario === "idle") return null;
+
+  const hasMovement = positiveEntries > 0 || negativeEntries > 0;
+  if (!hasMovement && globalBudgetNum === 0) return null;
+
+  const subNameMap: Record<string, string> = {};
+  for (const cat of CATEGORIES) {
+    for (const sub of cat.subs) {
+      subNameMap[sub.id] = sub.name;
+    }
+  }
+
+  const summaryParts: string[] = [];
+  if (globalBudgetNum > 0) summaryParts.push(`Aporte R$ ${formatBRL(globalBudgetNum)}`);
+  if (globalBudgetNum < 0) summaryParts.push(`Resgate R$ ${formatBRL(Math.abs(globalBudgetNum))}`);
+  if (reallocationAmount > 0) summaryParts.push(`Realocacao R$ ${formatBRL(reallocationAmount)}`);
+
+  const balanceLabel = isBalanced
+    ? "Equilibrado"
+    : scenario === "pure-reallocation"
+      ? `${netMatrix > 0 ? "+" : ""}R$ ${formatBRL(netMatrix)} pendente`
+      : `R$ ${formatBRL(Math.abs(unallocatedBudget))} ${unallocatedBudget > 0 ? "restante" : "excedido"}`;
+  const balanceColor = isBalanced ? "#6ecf8e" : "#dcb092";
+
+  const creditEntries: { label: string; value: number }[] = [];
+  const debitEntries: { label: string; value: number }[] = [];
+
+  if (globalBudgetNum > 0) {
+    creditEntries.push({ label: "Aporte (dinheiro novo)", value: globalBudgetNum });
+  }
+  if (globalBudgetNum < 0) {
+    debitEntries.push({ label: "Resgate (saida de caixa)", value: Math.abs(globalBudgetNum) });
+  }
+
+  for (const [subId, vals] of Object.entries(entriesBySub)) {
+    const name = subNameMap[subId] || subId;
+    if (vals.positive > 0) creditEntries.push({ label: name, value: vals.positive });
+    if (vals.negative > 0) debitEntries.push({ label: name, value: vals.negative });
+  }
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-[#2a2a2a] bg-[#141414] transition-all duration-200">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex w-full items-center justify-between px-4 py-2 text-xs text-[#bbb] transition-colors hover:bg-[#1a1a1a]"
+      >
+        <div className="flex items-center gap-2">
+          {isExpanded ? (
+            <ChevronDown className="h-3 w-3 text-[#555]" />
+          ) : (
+            <ChevronRight className="h-3 w-3 text-[#555]" />
+          )}
+          <span className="font-medium text-[#ededed]">Resumo:</span>
+          <span>{summaryParts.join(" + ") || "Sem movimentacoes"}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span style={{ color: balanceColor }} className="font-medium">
+            {isBalanced && <CheckCircle className="mr-1 inline h-3 w-3" />}
+            {!isBalanced && <AlertTriangle className="mr-1 inline h-3 w-3" />}
+            {balanceLabel}
+          </span>
+        </div>
+      </button>
+
+      {isExpanded && (
+        <div className="border-t border-[#2a2a2a] px-4 py-3">
+          <div className="grid grid-cols-2 gap-6">
+            <div>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#6ecf8e]">
+                Entradas (Creditos)
+              </div>
+              {creditEntries.length === 0 ? (
+                <div className="text-[11px] text-[#444]">Nenhuma entrada</div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {creditEntries.map((e, i) => (
+                    <div key={i} className="flex items-center justify-between text-[11px]">
+                      <span className="text-[#999]">{e.label}</span>
+                      <span className="font-medium text-[#6ecf8e]">+{formatBRL(e.value)}</span>
+                    </div>
+                  ))}
+                  <div className="mt-1 flex items-center justify-between border-t border-[#2a2a2a] pt-1 text-[11px]">
+                    <span className="font-medium text-[#bbb]">Total entradas</span>
+                    <span className="font-semibold text-[#6ecf8e]">
+                      +{formatBRL(creditEntries.reduce((s, e) => s + e.value, 0))}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-[#e05c5c]">
+                Saidas (Debitos)
+              </div>
+              {debitEntries.length === 0 ? (
+                <div className="text-[11px] text-[#444]">Nenhuma saida</div>
+              ) : (
+                <div className="flex flex-col gap-1">
+                  {debitEntries.map((e, i) => (
+                    <div key={i} className="flex items-center justify-between text-[11px]">
+                      <span className="text-[#999]">{e.label}</span>
+                      <span className="font-medium text-[#e05c5c]">-{formatBRL(e.value)}</span>
+                    </div>
+                  ))}
+                  <div className="mt-1 flex items-center justify-between border-t border-[#2a2a2a] pt-1 text-[11px]">
+                    <span className="font-medium text-[#bbb]">Total saidas</span>
+                    <span className="font-semibold text-[#e05c5c]">
+                      -{formatBRL(debitEntries.reduce((s, e) => s + e.value, 0))}
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-3 flex flex-col gap-1 border-t border-[#2a2a2a] pt-3">
+            {globalBudgetNum !== 0 && (
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#999]">
+                  Dinheiro novo ({globalBudgetNum > 0 ? "aporte" : "resgate"})
+                </span>
+                <span
+                  className={
+                    globalBudgetNum > 0
+                      ? "font-medium text-[#6ecf8e]"
+                      : "font-medium text-[#e05c5c]"
+                  }
+                >
+                  {globalBudgetNum > 0 ? "+" : "-"}R$ {formatBRL(Math.abs(globalBudgetNum))}
+                </span>
+              </div>
+            )}
+            {reallocationAmount > 0 && (
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="text-[#999]">Realocacao interna</span>
+                <span className="font-medium text-[#6db1d4]">
+                  R$ {formatBRL(reallocationAmount)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between text-[11px]">
+              <span className="font-medium text-[#bbb]">Saldo pendente</span>
+              <span style={{ color: balanceColor }} className="font-semibold">
+                {isBalanced && <CheckCircle className="mr-1 inline h-3 w-3" />}
+                {!isBalanced && <AlertTriangle className="mr-1 inline h-3 w-3" />}
+                {balanceLabel}
+              </span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function MatrixTable({
   allocatorValues,
   onAllocatorChange,
@@ -2368,6 +2560,9 @@ function MatrixTable({
   onRemoveChange,
   globalBudgetNum,
   totalAllocated,
+  movementBreakdown: mb,
+  disableCOE,
+  disableFGTS,
 }: {
   allocatorValues: Record<string, Record<string, string>>;
   onAllocatorChange: (subId: string, inst: string, val: string) => void;
@@ -2381,6 +2576,9 @@ function MatrixTable({
   onRemoveChange: (assetId: string) => void;
   globalBudgetNum: number;
   totalAllocated: number;
+  movementBreakdown: MovementBreakdown;
+  disableCOE: boolean;
+  disableFGTS: boolean;
 }) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [expandedSubs, setExpandedSubs] = useState<Record<string, boolean>>({});
@@ -2923,10 +3121,11 @@ function MatrixTable({
                     cat.subs.map((sub) => {
                       const isSubExpanded = expandedSubs[sub.id] ?? false;
                       const filteredAssets = sub.assets;
+                      const isSubDisabled = disableCOE && sub.id === "coe";
                       return (
                         <Fragment key={sub.id}>
                           <tr
-                            className="group/sub cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50"
+                            className={`group/sub cursor-pointer border-b border-[#1e1e1e] transition-colors hover:bg-[#161616]/50 ${isSubDisabled ? "pointer-events-none opacity-30" : ""}`}
                             onClick={(e) => toggleSub(sub.id, e)}
                             data-testid={`sub-row-${sub.id}`}
                           >
@@ -3239,10 +3438,12 @@ function MatrixTable({
                                     (vi) => vi.name === asset.account,
                                   );
                                   const pending = pendingMap[asset.id];
+                                  const isAssetDisabled =
+                                    (disableFGTS && asset.isFGTS) || isSubDisabled;
                                   return (
                                     <tr
                                       key={asset.id}
-                                      className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"}`}
+                                      className={`group border-b border-[#1a1a1a] ${pending ? "bg-[#151515]" : "bg-[#131313]"} ${isAssetDisabled && !isSubDisabled ? "pointer-events-none opacity-30" : ""}`}
                                       data-testid={`asset-row-${asset.id}`}
                                     >
                                       <td className="py-1.5 pl-10 pr-4">
@@ -3257,6 +3458,11 @@ function MatrixTable({
                                           >
                                             {asset.name}
                                           </span>
+                                          {asset.isFGTS && (
+                                            <span className="rounded bg-[rgba(220,176,146,0.15)] px-1 py-px text-[8px] font-semibold text-[#dcb092]">
+                                              FGTS
+                                            </span>
+                                          )}
                                           {!pending && (
                                             <button
                                               onClick={(e) => resgateAsset(asset, sub.id, e)}
@@ -3758,6 +3964,11 @@ function MatrixTable({
                               {totalAlloc > 0 ? "+" : ""}
                               {formatBRL(totalAlloc)}
                             </span>
+                            {mb.scenario !== "idle" && mb.reallocationAmount > 0 && (
+                              <span className="text-[8px] text-[#6db1d4]">
+                                {formatBRL(mb.reallocationAmount)} realoc.
+                              </span>
+                            )}
                           </>
                         ) : (
                           <span className="font-semibold text-[#ededed]">
@@ -4765,6 +4976,8 @@ export default function MockupRealocador() {
   const [notifyPreview, setNotifyPreview] = useState<{ channel: "whatsapp" | "email" } | null>(
     null,
   );
+  const [disableCOE, setDisableCOE] = useState(false);
+  const [disableFGTS, setDisableFGTS] = useState(false);
 
   const globalBudgetNum = parseBRLInput(globalBudget);
 
@@ -4777,6 +4990,95 @@ export default function MockupRealocador() {
     }
     return sum;
   }, [allocatorValues]);
+
+  type MovementScenario = "idle" | "pure-reallocation" | "pure-aporte" | "pure-resgate" | "mixed";
+
+  const movementBreakdown = useMemo(() => {
+    let positiveEntries = 0;
+    let negativeEntries = 0;
+    const entriesBySub: Record<string, { positive: number; negative: number }> = {};
+
+    for (const [subId, instMap] of Object.entries(allocatorValues)) {
+      if (!entriesBySub[subId]) entriesBySub[subId] = { positive: 0, negative: 0 };
+      for (const val of Object.values(instMap)) {
+        const num = parseBRLInput(val);
+        if (num > 0) {
+          positiveEntries += num;
+          entriesBySub[subId].positive += num;
+        }
+        if (num < 0) {
+          negativeEntries += Math.abs(num);
+          entriesBySub[subId].negative += Math.abs(num);
+        }
+      }
+    }
+
+    for (const [assetId, instMap] of Object.entries(assetAllocValues)) {
+      const subId = CATEGORIES.flatMap((c) => c.subs).find((s) =>
+        s.assets.some((a) => a.id === assetId),
+      )?.id;
+      if (!subId) continue;
+      if (!entriesBySub[subId]) entriesBySub[subId] = { positive: 0, negative: 0 };
+      for (const val of Object.values(instMap)) {
+        const num = parseBRLInput(val);
+        if (num > 0) {
+          positiveEntries += num;
+          entriesBySub[subId].positive += num;
+        }
+        if (num < 0) {
+          negativeEntries += Math.abs(num);
+          entriesBySub[subId].negative += Math.abs(num);
+        }
+      }
+    }
+
+    for (const c of pendingChanges) {
+      if (c.type === "adicao" && c.value) {
+        positiveEntries += c.value;
+        if (!entriesBySub[c.subId]) entriesBySub[c.subId] = { positive: 0, negative: 0 };
+        entriesBySub[c.subId].positive += c.value;
+      }
+    }
+
+    const netMatrix = positiveEntries - negativeEntries;
+    const reallocationAmount = Math.min(positiveEntries, negativeEntries);
+    const newMoneyAllocated = globalBudgetNum !== 0 ? Math.max(0, netMatrix) : 0;
+    const unallocatedBudget = globalBudgetNum !== 0 ? globalBudgetNum - netMatrix : 0;
+    const implicitAporteResgate = globalBudgetNum === 0 ? netMatrix : 0;
+
+    let scenario: MovementScenario = "idle";
+    if (globalBudgetNum === 0 && positiveEntries === 0 && negativeEntries === 0) {
+      scenario = "idle";
+    } else if (globalBudgetNum === 0 && (positiveEntries > 0 || negativeEntries > 0)) {
+      scenario = "pure-reallocation";
+    } else if (globalBudgetNum !== 0 && negativeEntries === 0) {
+      scenario = globalBudgetNum > 0 ? "pure-aporte" : "pure-resgate";
+    } else {
+      scenario = "mixed";
+    }
+
+    const isBalanced =
+      scenario === "pure-reallocation"
+        ? Math.abs(netMatrix) < 1
+        : scenario === "mixed"
+          ? Math.abs(unallocatedBudget) < 1
+          : scenario === "pure-aporte" || scenario === "pure-resgate"
+            ? Math.abs(globalBudgetNum - totalAllocated) < 1
+            : true;
+
+    return {
+      positiveEntries,
+      negativeEntries,
+      netMatrix,
+      reallocationAmount,
+      newMoneyAllocated,
+      unallocatedBudget,
+      implicitAporteResgate,
+      scenario,
+      isBalanced,
+      entriesBySub,
+    };
+  }, [allocatorValues, assetAllocValues, pendingChanges, globalBudgetNum, totalAllocated]);
 
   const handleAllocatorChange = (subId: string, inst: string, val: string) => {
     setAllocatorValues((prev) => ({ ...prev, [subId]: { ...prev[subId], [inst]: val } }));
@@ -4814,7 +5116,23 @@ export default function MockupRealocador() {
     const resgates = pendingChanges.filter((c) => c.type === "resgate");
     const remocoes = pendingChanges.filter((c) => c.type === "remocao");
     const adicoes = pendingChanges.filter((c) => c.type === "adicao");
-    const lines: string[] = ["Olá Roberto, segue o resumo das movimentações sugeridas:", ""];
+    const lines: string[] = ["Ola Roberto, segue o resumo das movimentacoes sugeridas:", ""];
+
+    const { scenario, reallocationAmount, positiveEntries, negativeEntries } = movementBreakdown;
+    const summaryParts: string[] = [];
+    if (globalBudgetNum > 0) summaryParts.push(`Aporte: R$ ${formatBRL(globalBudgetNum)}`);
+    if (globalBudgetNum < 0)
+      summaryParts.push(`Resgate: R$ ${formatBRL(Math.abs(globalBudgetNum))}`);
+    if (reallocationAmount > 0)
+      summaryParts.push(`Realocacao interna: R$ ${formatBRL(reallocationAmount)}`);
+    if (scenario === "pure-reallocation" && Math.abs(positiveEntries - negativeEntries) < 1) {
+      summaryParts.push("PL inalterado");
+    }
+    if (summaryParts.length > 0) {
+      lines.push(`Resumo: ${summaryParts.join(" | ")}`);
+      lines.push("");
+    }
+
     if (resgates.length > 0) {
       lines.push(`Resgates (${resgates.length}):`);
       resgates.forEach((r) =>
@@ -4823,14 +5141,14 @@ export default function MockupRealocador() {
       lines.push("");
     }
     if (remocoes.length > 0) {
-      lines.push(`Remoções (${remocoes.length}):`);
+      lines.push(`Remocoes (${remocoes.length}):`);
       remocoes.forEach((r) =>
         lines.push(`  - ${r.assetName} (${r.institution}) ${r.value ? formatBRL(r.value) : ""}`),
       );
       lines.push("");
     }
     if (adicoes.length > 0) {
-      lines.push(`Adições (${adicoes.length}):`);
+      lines.push(`Adicoes (${adicoes.length}):`);
       adicoes.forEach((a) => {
         const details = [a.rate, a.maturity, a.liquidity].filter(Boolean).join(", ");
         lines.push(
@@ -4839,9 +5157,9 @@ export default function MockupRealocador() {
       });
       lines.push("");
     }
-    lines.push("Por favor, confirme se está de acordo.");
+    lines.push("Por favor, confirme se esta de acordo.");
     return lines.join("\n");
-  }, [pendingChanges]);
+  }, [pendingChanges, movementBreakdown, globalBudgetNum]);
 
   const expandedAccounts = useMemo(
     () =>
@@ -4872,47 +5190,93 @@ export default function MockupRealocador() {
 
           <main className="flex-1 overflow-auto">
             <div className="flex flex-col gap-6 px-8 pb-32 pt-6">
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div className="flex flex-wrap items-center gap-3">
-                  <h1 className="text-2xl font-bold text-[#ededed]" data-testid="text-client-name">
+              {/* === LINHA 1: Identidade do cliente === */}
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 overflow-hidden">
+                  <h1
+                    className="shrink-0 text-2xl font-bold text-[#ededed]"
+                    data-testid="text-client-name"
+                  >
                     Roberto Mendes
                   </h1>
                   <Badge
-                    className="no-default-hover-elevate no-default-active-elevate border-[rgba(109,177,212,0.25)] bg-[rgba(109,177,212,0.1)] text-[11px] text-[#6db1d4]"
+                    className="no-default-hover-elevate no-default-active-elevate shrink-0 border-[rgba(109,177,212,0.25)] bg-[rgba(109,177,212,0.1)] text-[11px] text-[#6db1d4]"
                     data-testid="badge-suitability"
                   >
                     Moderado
                   </Badge>
                   <StatusBadge status={overallStatus} />
-                  <div className="h-5 w-px bg-[#2a2a2a]" />
+                  <div className="h-5 w-px shrink-0 bg-[#2a2a2a]" />
                   {(() => {
-                    const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : totalAllocated;
+                    const { scenario, reallocationAmount, netMatrix } = movementBreakdown;
+                    const effectiveDelta = globalBudgetNum !== 0 ? globalBudgetNum : netMatrix;
                     const deltaColor = effectiveDelta > 0 ? "text-[#6ecf8e]" : "text-[#e05c5c]";
+                    const showArrow = effectiveDelta !== 0;
+                    const isPureReallocationBalanced =
+                      scenario === "pure-reallocation" && Math.abs(netMatrix) < 1;
+
+                    let annotation = "";
+                    if (isPureReallocationBalanced && reallocationAmount > 0) {
+                      annotation = "realocacao interna, PL inalterado";
+                    } else if (
+                      scenario === "pure-aporte" ||
+                      (scenario === "mixed" && globalBudgetNum > 0)
+                    ) {
+                      annotation = `+${formatBRL(Math.abs(globalBudgetNum))} aporte`;
+                      if (reallocationAmount > 0)
+                        annotation += `, ${formatBRL(reallocationAmount)} realocado`;
+                    } else if (
+                      scenario === "pure-resgate" ||
+                      (scenario === "mixed" && globalBudgetNum < 0)
+                    ) {
+                      annotation = `-${formatBRL(Math.abs(globalBudgetNum))} resgate`;
+                      if (reallocationAmount > 0)
+                        annotation += `, ${formatBRL(reallocationAmount)} realocado`;
+                    } else if (scenario === "pure-reallocation" && Math.abs(netMatrix) >= 1) {
+                      annotation = `${netMatrix > 0 ? "+" : "-"}${formatBRL(Math.abs(netMatrix))} ${netMatrix > 0 ? "nao alocado" : "nao coberto"}`;
+                    }
+
                     return (
-                      <span className="text-sm font-medium text-[#ededed]" data-testid="text-aum">
+                      <span
+                        className="shrink-0 text-sm font-medium text-[#ededed]"
+                        data-testid="text-aum"
+                      >
                         {formatBRLFull(TOTAL_AUM)}
-                        {effectiveDelta !== 0 && (
+                        {showArrow && (
                           <span className={`ml-1.5 text-xs font-medium ${deltaColor}`}>
-                            → {formatBRLFull(TOTAL_AUM + effectiveDelta)}
+                            {"\u2192"} {formatBRLFull(TOTAL_AUM + effectiveDelta)}
                           </span>
+                        )}
+                        {annotation && (
+                          <span className="ml-1.5 text-[10px] text-[#666]">({annotation})</span>
                         )}
                       </span>
                     );
                   })()}
-                  <span className="text-xs text-[#555]" data-testid="text-last-consolidation">
-                    Consolidado 28/02/2026
-                  </span>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="shrink-0 text-xs text-[#555]"
+                  data-testid="text-last-consolidation"
+                >
+                  Consolidado 28/02/2026
+                </span>
+              </div>
+
+              {/* === LINHA 2: Controles === */}
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                {/* Grupo esquerdo: fluxo de trabalho */}
+                <div className="flex flex-wrap items-center gap-3">
                   {(() => {
+                    const {
+                      scenario,
+                      reallocationAmount,
+                      isBalanced,
+                      netMatrix,
+                      positiveEntries,
+                      negativeEntries,
+                    } = movementBreakdown;
                     const hasBudget = globalBudgetNum !== 0;
-                    const hasImplicit = !hasBudget && totalAllocated !== 0;
-                    const effectiveColor =
-                      totalAllocated > 0
-                        ? "text-[#6ecf8e]"
-                        : totalAllocated < 0
-                          ? "text-[#e05c5c]"
-                          : "";
+                    const hasImplicit = !hasBudget && scenario !== "idle";
                     const budgetColor =
                       globalBudgetNum > 0
                         ? "text-[#6ecf8e]"
@@ -4920,11 +5284,11 @@ export default function MockupRealocador() {
                           ? "text-[#e05c5c]"
                           : "";
                     const absBudget = Math.abs(globalBudgetNum);
-                    const absAllocated = Math.abs(totalAllocated);
-                    const pct = absBudget > 0 ? Math.min((absAllocated / absBudget) * 100, 100) : 0;
-                    const remaining = globalBudgetNum - totalAllocated;
+                    const absNet = Math.abs(netMatrix);
+                    const pct = absBudget > 0 ? Math.min((absNet / absBudget) * 100, 100) : 0;
+                    const remaining = globalBudgetNum - netMatrix;
                     const isComplete = hasBudget && Math.abs(remaining) < 1;
-                    const isOver = hasBudget && absAllocated > absBudget;
+                    const isOver = hasBudget && absNet > absBudget;
                     const borderStyle = hasBudget
                       ? isComplete
                         ? "border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.04)]"
@@ -4937,7 +5301,7 @@ export default function MockupRealocador() {
                         className={`flex items-center gap-2.5 rounded-md border px-3 py-1.5 transition-all ${borderStyle}`}
                       >
                         <ArrowDownUp
-                          className={`h-3.5 w-3.5 shrink-0 ${hasBudget ? budgetColor : hasImplicit ? effectiveColor : "text-[#444]"}`}
+                          className={`h-3.5 w-3.5 shrink-0 ${scenario === "idle" ? "text-[#444]" : hasBudget ? budgetColor : "text-[#6db1d4]"}`}
                         />
                         <input
                           type="text"
@@ -4962,7 +5326,7 @@ export default function MockupRealocador() {
                                 />
                               </div>
                               <span className="whitespace-nowrap text-[10px] text-[#666]">
-                                {formatBRL(totalAllocated)} / {formatBRL(globalBudgetNum)}
+                                {formatBRL(netMatrix)} / {formatBRL(globalBudgetNum)}
                               </span>
                               {isComplete ? (
                                 <CheckCircle className="h-3 w-3 shrink-0 text-[#6ecf8e]" />
@@ -4981,17 +5345,60 @@ export default function MockupRealocador() {
                         {hasImplicit && (
                           <>
                             <div className="h-4 w-px bg-[#2a2a2a]" />
-                            <span
-                              className={`whitespace-nowrap text-[10px] font-medium ${effectiveColor}`}
-                            >
-                              {totalAllocated > 0 ? "+" : ""}
-                              {formatBRL(totalAllocated)} alocado
-                            </span>
+                            {isBalanced ? (
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-medium text-[#6ecf8e]">
+                                <CheckCircle className="h-3 w-3" />
+                                Equilibrado
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 whitespace-nowrap text-[10px] font-medium text-[#dcb092]">
+                                <AlertTriangle className="h-3 w-3" />
+                                {netMatrix > 0 ? "+" : ""}
+                                {formatBRL(netMatrix)} liquido
+                              </span>
+                            )}
                           </>
                         )}
                       </div>
                     );
                   })()}
+                  {(() => {
+                    const { scenario, reallocationAmount, positiveEntries, negativeEntries } =
+                      movementBreakdown;
+                    if (scenario === "idle") return null;
+                    return (
+                      <div className="flex items-center gap-1.5">
+                        {globalBudgetNum > 0 && (
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(110,207,142,0.3)] bg-[rgba(110,207,142,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#6ecf8e]">
+                            <Plus className="h-2.5 w-2.5" />
+                            Aporte {formatBRL(globalBudgetNum)}
+                          </span>
+                        )}
+                        {globalBudgetNum < 0 && (
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(224,92,92,0.3)] bg-[rgba(224,92,92,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#e05c5c]">
+                            <Minus className="h-2.5 w-2.5" />
+                            Resgate {formatBRL(Math.abs(globalBudgetNum))}
+                          </span>
+                        )}
+                        {reallocationAmount > 0 && (
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(109,177,212,0.3)] bg-[rgba(109,177,212,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#6db1d4]">
+                            <ArrowDownUp className="h-2.5 w-2.5" />
+                            Realocacao {formatBRL(reallocationAmount)}
+                          </span>
+                        )}
+                        {scenario === "pure-reallocation" && reallocationAmount === 0 && (
+                          <span className="inline-flex items-center gap-1 whitespace-nowrap rounded-full border border-[rgba(220,176,146,0.3)] bg-[rgba(220,176,146,0.08)] px-2.5 py-0.5 text-[11px] font-medium text-[#dcb092]">
+                            {negativeEntries > 0 ? (
+                              <>{formatBRL(negativeEntries)} a realocar</>
+                            ) : (
+                              <>{formatBRL(positiveEntries)} sem origem</>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                  <div className="h-5 w-px bg-[#2a2a2a]" />
                   <Button
                     disabled={!hasChanges}
                     className={
@@ -5038,6 +5445,36 @@ export default function MockupRealocador() {
                     )}
                   </button>
                 </div>
+                {/* Grupo direito: filtros de visualização */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-medium uppercase tracking-wider text-[#444]">
+                    Filtros
+                  </span>
+                  <button
+                    onClick={() => setDisableCOE(!disableCOE)}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                      disableCOE
+                        ? "border-[rgba(224,92,92,0.3)] bg-[rgba(224,92,92,0.1)] text-[#e05c5c]"
+                        : "border-[#2a2a2a] bg-[#161616] text-[#555] hover:border-[#444] hover:text-[#888]"
+                    }`}
+                    data-testid="toggle-coe"
+                  >
+                    {disableCOE && <X className="h-2.5 w-2.5" />}
+                    {disableCOE ? "Sem COE" : "COE"}
+                  </button>
+                  <button
+                    onClick={() => setDisableFGTS(!disableFGTS)}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                      disableFGTS
+                        ? "border-[rgba(224,92,92,0.3)] bg-[rgba(224,92,92,0.1)] text-[#e05c5c]"
+                        : "border-[#2a2a2a] bg-[#161616] text-[#555] hover:border-[#444] hover:text-[#888]"
+                    }`}
+                    data-testid="toggle-fgts"
+                  >
+                    {disableFGTS && <X className="h-2.5 w-2.5" />}
+                    {disableFGTS ? "Sem FGTS" : "FGTS"}
+                  </button>
+                </div>
               </div>
 
               <MatrixTable
@@ -5053,6 +5490,9 @@ export default function MockupRealocador() {
                 onRemoveChange={removeChange}
                 globalBudgetNum={globalBudgetNum}
                 totalAllocated={totalAllocated}
+                movementBreakdown={movementBreakdown}
+                disableCOE={disableCOE}
+                disableFGTS={disableFGTS}
               />
 
               <FGCBarChart />
