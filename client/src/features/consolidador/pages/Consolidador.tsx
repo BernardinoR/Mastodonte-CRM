@@ -94,6 +94,7 @@ export default function Consolidador() {
     new Map(),
   );
   const [loading, setLoading] = useState(false);
+  const [syncingVerification, setSyncingVerification] = useState(false);
 
   const authHeaders = useCallback(async () => {
     const token = await getToken();
@@ -456,6 +457,26 @@ export default function Consolidador() {
     [selectedMonth, authHeaders, fetchData],
   );
 
+  const handleSyncVerification = useCallback(async () => {
+    setSyncingVerification(true);
+    try {
+      const headers = await authHeaders();
+      const competencia = formatMonthParam(selectedMonth);
+      await apiRequest("POST", "/api/consolidador/sync-verification", { competencia }, headers);
+      await fetchData();
+      toast({ title: "Verificação sincronizada", description: `Competência ${competencia}` });
+    } catch (error) {
+      console.error("Failed to sync verification:", error);
+      toast({
+        title: "Erro ao sincronizar verificação",
+        description: "Tente novamente.",
+        variant: "destructive",
+      });
+    } finally {
+      setSyncingVerification(false);
+    }
+  }, [selectedMonth, authHeaders, fetchData, toast]);
+
   const consolidatedCount = consolidatedGroups.reduce((sum, g) => sum + g.extratos.length, 0);
 
   return (
@@ -471,6 +492,8 @@ export default function Consolidador() {
         verificationRedCount={verificationRedCount}
         verificationFilterActive={verificationFilter}
         onVerificationFilterToggle={() => setVerificationFilter((prev) => !prev)}
+        onSyncVerification={handleSyncVerification}
+        syncingVerification={syncingVerification}
       />
 
       <ConsolidadorFilters

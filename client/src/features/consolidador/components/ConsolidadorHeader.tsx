@@ -1,4 +1,4 @@
-import { AlertTriangle, Mail, CheckCircle, ShieldAlert } from "lucide-react";
+import { AlertTriangle, Mail, CheckCircle, ShieldAlert, ShieldCheck, Loader2 } from "lucide-react";
 import type { ExtratoStatus, ExtratoStatusSummary } from "../types/extrato";
 import { MonthSelector } from "./MonthSelector";
 
@@ -13,6 +13,8 @@ interface ConsolidadorHeaderProps {
   verificationRedCount?: number;
   verificationFilterActive?: boolean;
   onVerificationFilterToggle?: () => void;
+  onSyncVerification?: () => void;
+  syncingVerification?: boolean;
 }
 
 export function ConsolidadorHeader({
@@ -26,6 +28,8 @@ export function ConsolidadorHeader({
   verificationRedCount,
   verificationFilterActive,
   onVerificationFilterToggle,
+  onSyncVerification,
+  syncingVerification,
 }: ConsolidadorHeaderProps) {
   const handleBadgeClick = (status: ExtratoStatus) => {
     onStatusFilterChange(activeStatusFilter === status ? null : status);
@@ -91,6 +95,20 @@ export function ConsolidadorHeader({
         )}
         <div className="h-6 w-px bg-border" />
         <MonthSelector value={selectedMonth} onChange={onMonthChange} />
+        {onSyncVerification && (
+          <button
+            onClick={onSyncVerification}
+            disabled={syncingVerification}
+            className="inline-flex h-8 items-center gap-2 rounded-lg border border-white/10 bg-zinc-900 px-3 text-sm text-zinc-400 transition-colors hover:bg-white/10 disabled:pointer-events-none disabled:opacity-50"
+          >
+            {syncingVerification ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5" />
+            )}
+            Verificar
+          </button>
+        )}
       </div>
     </div>
   );

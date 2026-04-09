@@ -11,6 +11,7 @@ import {
   syncContaWithSupabase,
   syncContaExtratoStatuses,
   syncAllExtratoStatuses,
+  syncVerificationForMonth,
 } from "./consolidationHistory";
 
 const clerkClient = createClerkClient({
@@ -809,6 +810,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error syncing extrato statuses:", error);
       return res.status(500).json({ error: "Failed to sync extrato statuses" });
+    }
+  });
+
+  // Sync verification results for a specific month
+  app.post("/api/consolidador/sync-verification", clerkAuthMiddleware, async (req, res) => {
+    try {
+      const { competencia } = req.body;
+      if (!competencia) {
+        return res.status(400).json({ error: "competencia is required" });
+      }
+      const result = await syncVerificationForMonth(competencia);
+      return res.json(result);
+    } catch (error) {
+      console.error("Error syncing verification:", error);
+      return res.status(500).json({ error: "Failed to sync verification" });
     }
   });
 

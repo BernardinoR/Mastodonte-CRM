@@ -2632,6 +2632,10 @@ function MatrixTable({
   const [addingToSub, setAddingToSub] = useState<string | null>(null);
   const [newAssetDraft, setNewAssetDraft] = useState<NewAssetDraft>(EMPTY_DRAFT);
 
+  // Pick whichever allocation method (sub-level vs asset-level) is active.
+  // Math.max would discard negatives (sells), so compare by absolute value.
+  const pickAlloc = (a: number, b: number) => (Math.abs(b) >= Math.abs(a) ? b : a);
+
   const pendingIds = useMemo(() => new Set(pendingChanges.map((c) => c.assetId)), [pendingChanges]);
   const pendingMap = useMemo(() => {
     const m: Record<string, PendingChange> = {};
@@ -3042,7 +3046,7 @@ function MatrixTable({
                         const catProjPctPL = catActiveSubs.reduce((sum, s) => {
                           const sa = allocatorBySub[s.id] || 0;
                           const aa = assetAllocBySub[s.id] || 0;
-                          const eff = Math.max(sa, aa);
+                          const eff = pickAlloc(sa, aa);
                           return (
                             sum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
                           );
@@ -3088,13 +3092,13 @@ function MatrixTable({
                       const catAlloc = catActiveSubs.reduce((sum, sub) => {
                         const sa = allocatorBySub[sub.id] || 0;
                         const aa = assetAllocBySub[sub.id] || 0;
-                        return sum + Math.max(sa, aa);
+                        return sum + pickAlloc(sa, aa);
                       }, 0);
                       const projectedAtual = ct.alocAtual + catAlloc;
                       const catSugestao = catActiveSubs.reduce((s, sub) => {
                         const sa = allocatorBySub[sub.id] || 0;
                         const aa = assetAllocBySub[sub.id] || 0;
-                        const eff = Math.max(sa, aa);
+                        const eff = pickAlloc(sa, aa);
                         const projected = sub.alocAtual + eff;
                         const projIdeal = sub.alocIdeal * idealScale;
                         return s + (projIdeal - projected);
@@ -3144,7 +3148,7 @@ function MatrixTable({
                               const catInstAlloc = catInstActiveSubs.reduce((sum, sub) => {
                                 const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                                 const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                                return sum + Math.max(subAlloc, assetAlloc);
+                                return sum + pickAlloc(subAlloc, assetAlloc);
                               }, 0);
                               return (
                                 <td
@@ -3165,7 +3169,7 @@ function MatrixTable({
                         const catInstAlloc = catInstActiveSubs.reduce((sum, sub) => {
                           const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                           const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                          return sum + Math.max(subAlloc, assetAlloc);
+                          return sum + pickAlloc(subAlloc, assetAlloc);
                         }, 0);
                         return (
                           <td
@@ -3215,7 +3219,7 @@ function MatrixTable({
                             {(() => {
                               const subAlloc = allocatorBySub[sub.id] || 0;
                               const assetAlloc = assetAllocBySub[sub.id] || 0;
-                              const effectiveSubAlloc = Math.max(subAlloc, assetAlloc);
+                              const effectiveSubAlloc = pickAlloc(subAlloc, assetAlloc);
                               const projected = sub.alocAtual + effectiveSubAlloc;
                               const projIdeal = sub.alocIdeal * idealScale;
                               const projPctPL = newAUM > 0 ? (projected / newAUM) * 100 : sub.pctPL;
@@ -3326,7 +3330,7 @@ function MatrixTable({
                                       : "text-[#ededed]";
                                 const assetAllocInst =
                                   assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                                const effectiveInst = Math.max(numVal, assetAllocInst);
+                                const effectiveInst = pickAlloc(numVal, assetAllocInst);
                                 return (
                                   <Fragment key={`${sub.id}-${inst.name}`}>
                                     <td
@@ -3360,7 +3364,7 @@ function MatrixTable({
                                 const allocVal = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                                 const assetAllocInst =
                                   assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                                const effectiveVal = Math.max(allocVal, assetAllocInst);
+                                const effectiveVal = pickAlloc(allocVal, assetAllocInst);
                                 return (
                                   <td
                                     key={`${sub.id}-${inst.name}`}
@@ -3955,7 +3959,7 @@ function MatrixTable({
                         .reduce((subSum, s) => {
                           const sa = allocatorBySub[s.id] || 0;
                           const aa = assetAllocBySub[s.id] || 0;
-                          const eff = Math.max(sa, aa);
+                          const eff = pickAlloc(sa, aa);
                           return (
                             subSum + (newAUM > 0 ? ((s.alocAtual + eff) / newAUM) * 100 : s.pctPL)
                           );
@@ -3999,7 +4003,7 @@ function MatrixTable({
                       .reduce((s, sub) => {
                         const sa = allocatorBySub[sub.id] || 0;
                         const aa = assetAllocBySub[sub.id] || 0;
-                        return s + Math.max(sa, aa);
+                        return s + pickAlloc(sa, aa);
                       }, 0),
                   0,
                 );
@@ -4015,7 +4019,7 @@ function MatrixTable({
                             .reduce((s, sub) => {
                               const sa = allocatorBySub[sub.id] || 0;
                               const aa = assetAllocBySub[sub.id] || 0;
-                              const eff = Math.max(sa, aa);
+                              const eff = pickAlloc(sa, aa);
                               const projected = sub.alocAtual + eff;
                               const projIdeal = sub.alocIdeal * idealScale;
                               return s + (projIdeal - projected);
@@ -4044,9 +4048,16 @@ function MatrixTable({
                             )}
                           </>
                         ) : (
-                          <span className="font-semibold text-[#ededed]">
-                            {formatBRLFull(grandTotals.alocAtual)}
-                          </span>
+                          <>
+                            <span className="font-semibold text-[#ededed]">
+                              {formatBRLFull(grandTotals.alocAtual)}
+                            </span>
+                            {mb.scenario !== "idle" && mb.reallocationAmount > 0 && (
+                              <span className="text-[8px] text-[#6db1d4]">
+                                {formatBRL(mb.reallocationAmount)} realoc. interna
+                              </span>
+                            )}
+                          </>
                         )}
                       </div>
                     </td>
@@ -4072,7 +4083,7 @@ function MatrixTable({
                         .reduce((subSum, sub) => {
                           const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                           const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                          return subSum + Math.max(subAlloc, assetAlloc);
+                          return subSum + pickAlloc(subAlloc, assetAlloc);
                         }, 0)
                     );
                   }, 0);
@@ -4116,7 +4127,7 @@ function MatrixTable({
                         .reduce((subSum, sub) => {
                           const subAlloc = allocatorBySubByInst[sub.id]?.[inst.name] || 0;
                           const assetAlloc = assetAllocBySubByInst[sub.id]?.[inst.name] || 0;
-                          return subSum + Math.max(subAlloc, assetAlloc);
+                          return subSum + pickAlloc(subAlloc, assetAlloc);
                         }, 0)
                     );
                   }, 0);

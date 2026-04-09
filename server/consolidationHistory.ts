@@ -271,6 +271,16 @@ export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
   }
 
   console.log(`[sync] Total synced: ${totalSynced} records`);
+
+  // Trigger verification for the 2 most recent months
+  for (const month of months.slice(0, 2)) {
+    try {
+      await syncVerificationForMonth(month);
+    } catch (err) {
+      console.error(`[sync] Verification sync failed for ${month}:`, err);
+    }
+  }
+
   return { synced: totalSynced };
 }
 
@@ -380,6 +390,35 @@ export async function triggerVerification(clientName: string, competencia: strin
     p_competencia: competencia,
   });
   if (error) throw new Error(`Verification trigger error: ${error.message}`);
+}
+
+export async function syncVerificationForMonth(
+  competencia: string,
+): Promise<{ triggered: number }> {
+  const { data, error } = await externalSupabase
+    .from("ConsolidadoPerformance")
+    .select(CONSOLIDADO_SELECT)
+    .eq("Competencia", competencia);
+
+  if (error) throw new Error(`Verification sync error: ${error.message}`);
+
+  const clientNames = new Set<string>();
+  for (const r of (data as ConsolidadoRecord[]) || []) {
+    if (r.Nome) clientNames.add(r.Nome);
+  }
+
+  let triggered = 0;
+  for (const name of clientNames) {
+    try {
+      await triggerVerification(name, competencia);
+      triggered++;
+    } catch (err) {
+      console.error(`[verify] Failed for ${name} ${competencia}:`, err);
+    }
+  }
+
+  console.log(`[verify] Triggered ${triggered} verifications for ${competencia}`);
+  return { triggered };
 }
 
 export async function getVerificationResults() {
