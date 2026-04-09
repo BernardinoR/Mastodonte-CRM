@@ -11,6 +11,7 @@ import {
   syncContaWithSupabase,
   syncContaExtratoStatuses,
   syncAllExtratoStatuses,
+  syncExtratoStatusesForMonth,
   syncVerificationForMonth,
 } from "./consolidationHistory";
 
@@ -820,8 +821,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!competencia) {
         return res.status(400).json({ error: "competencia is required" });
       }
-      const result = await syncVerificationForMonth(competencia);
-      return res.json(result);
+      const syncResult = await syncExtratoStatusesForMonth(competencia);
+      const verifyResult = await syncVerificationForMonth(competencia);
+      return res.json({ ...syncResult, ...verifyResult });
     } catch (error) {
       console.error("Error syncing verification:", error);
       return res.status(500).json({ error: "Failed to sync verification" });

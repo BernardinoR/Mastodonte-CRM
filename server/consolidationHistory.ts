@@ -179,95 +179,89 @@ function getRelevantMonths(n: number): string[] {
   return months;
 }
 
+export async function syncExtratoStatusesForMonth(month: string): Promise<{ synced: number }> {
+  const contas = await prisma.conta.findMany({
+    where: { status: "Ativa" },
+    include: { client: true, institution: true },
+  });
+
+  const eligibleContas = contas.filter((c) => isMonthInRange(month, c.startDate, c.endDate));
+  if (eligibleContas.length === 0) return { synced: 0 };
+
+  const contaIds = eligibleContas.map((c) => c.id);
+
+  const existingStatuses = await prisma.extratoStatus.findMany({
+    where: { contaId: { in: contaIds }, competencia: month },
+  });
+  const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
+
+  const { data: allRecords, error } = await externalSupabase
+    .from("ConsolidadoPerformance")
+    .select(CONSOLIDADO_SELECT)
+    .eq("Competencia", month);
+
+  if (error) {
+    console.error(`[sync] Supabase error for month ${month}:`, error);
+    return { synced: 0 };
+  }
+
+  const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
+  let synced = 0;
+
+  for (const conta of eligibleContas) {
+    const normalizedClientName = removeAccents(conta.client.name);
+    const normalizedInst = removeAccents(conta.institution.name);
+
+    const match = supabaseRecords.find((r) =>
+      matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
+    );
+
+    const existing = statusMap.get(conta.id);
+
+    if (match) {
+      if (existing?.status !== "Consolidado") {
+        const consolidatedAt = parseConsolidatedDate(match.Data);
+        await prisma.extratoStatus.upsert({
+          where: { contaId_competencia: { contaId: conta.id, competencia: month } },
+          create: { contaId: conta.id, competencia: month, status: "Consolidado", consolidatedAt },
+          update: { status: "Consolidado", consolidatedAt },
+        });
+        synced++;
+      }
+    } else if (existing?.status === "Consolidado") {
+      await prisma.extratoStatus.update({
+        where: { id: existing.id },
+        data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
+      });
+      synced++;
+    } else if (existing && conta.type === "Automático" && existing.status === "Pendente") {
+      await prisma.extratoStatus.update({
+        where: { id: existing.id },
+        data: { status: "Recebido", receivedAt: new Date() },
+      });
+      synced++;
+    } else if (!existing) {
+      await prisma.extratoStatus.create({
+        data: { contaId: conta.id, competencia: month, ...getDefaultExtratoData(conta.type) },
+      });
+      synced++;
+    }
+  }
+
+  return { synced };
+}
+
 export async function syncAllExtratoStatuses(): Promise<{ synced: number }> {
   const months = getRelevantMonths(12);
   console.log(
     `[sync] Syncing ${months.length} months: ${months[0]} to ${months[months.length - 1]}`,
   );
 
-  const contas = await prisma.conta.findMany({
-    where: { status: "Ativa" },
-    include: { client: true, institution: true },
-  });
-
-  if (contas.length === 0) return { synced: 0 };
-
   let totalSynced = 0;
 
   for (const month of months) {
-    const eligibleContas = contas.filter((c) => isMonthInRange(month, c.startDate, c.endDate));
-    if (eligibleContas.length === 0) continue;
-
-    const contaIds = eligibleContas.map((c) => c.id);
-
-    // 1 query por mês — usado como mapa para evitar writes desnecessários
-    const existingStatuses = await prisma.extratoStatus.findMany({
-      where: { contaId: { in: contaIds }, competencia: month },
-    });
-    const statusMap = new Map(existingStatuses.map((s) => [s.contaId, s]));
-
-    // Single Supabase query per month
-    const { data: allRecords, error } = await externalSupabase
-      .from("ConsolidadoPerformance")
-      .select(CONSOLIDADO_SELECT)
-      .eq("Competencia", month);
-
-    if (error) {
-      console.error(`[sync] Supabase error for month ${month}:`, error);
-      continue;
-    }
-
-    const supabaseRecords = (allRecords as ConsolidadoRecord[]) || [];
-
-    for (const conta of eligibleContas) {
-      const normalizedClientName = removeAccents(conta.client.name);
-      const normalizedInst = removeAccents(conta.institution.name);
-
-      const match = supabaseRecords.find((r) =>
-        matchesAccount(r, normalizedClientName, normalizedInst, conta.accountName),
-      );
-
-      const existing = statusMap.get(conta.id);
-
-      if (match) {
-        // Tem match no Supabase → marcar Consolidado (só se ainda não está)
-        if (existing?.status !== "Consolidado") {
-          const consolidatedAt = parseConsolidatedDate(match.Data);
-          await prisma.extratoStatus.upsert({
-            where: { contaId_competencia: { contaId: conta.id, competencia: month } },
-            create: {
-              contaId: conta.id,
-              competencia: month,
-              status: "Consolidado",
-              consolidatedAt,
-            },
-            update: { status: "Consolidado", consolidatedAt },
-          });
-          totalSynced++;
-        }
-      } else if (existing?.status === "Consolidado") {
-        // Sem match mas estava Consolidado → REVERTER para Pendente
-        await prisma.extratoStatus.update({
-          where: { id: existing.id },
-          data: { ...getDefaultExtratoData(conta.type), consolidatedAt: null },
-        });
-        totalSynced++;
-      } else if (existing && conta.type === "Automático" && existing.status === "Pendente") {
-        // Automático nunca deve ficar Pendente — corrigir para Recebido
-        await prisma.extratoStatus.update({
-          where: { id: existing.id },
-          data: { status: "Recebido", receivedAt: new Date() },
-        });
-        totalSynced++;
-      } else if (!existing) {
-        // Sem match e sem registro → criar com status padrão
-        await prisma.extratoStatus.create({
-          data: { contaId: conta.id, competencia: month, ...getDefaultExtratoData(conta.type) },
-        });
-        totalSynced++;
-      }
-      // Sem match + status manual (Solicitado/Recebido/Pendente) → não toca
-    }
+    const result = await syncExtratoStatusesForMonth(month);
+    totalSynced += result.synced;
   }
 
   console.log(`[sync] Total synced: ${totalSynced} records`);

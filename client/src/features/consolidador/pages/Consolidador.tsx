@@ -443,18 +443,39 @@ export default function Consolidador() {
     async (extrato: Extrato) => {
       try {
         const headers = await authHeaders();
-        await apiRequest(
+        const res = await apiRequest(
           "POST",
           `/api/consolidador/extratos/${extrato.contaId}/sync`,
           { competencia: formatMonthParam(selectedMonth) },
           headers,
         );
-        fetchData();
+        const data = (await res.json()) as {
+          extratoStatus: {
+            status: string;
+            requestedAt?: string;
+            receivedAt?: string;
+            consolidatedAt?: string;
+          };
+        };
+        const updated = data.extratoStatus;
+        setExtratos((prev) =>
+          prev.map((e) =>
+            e.contaId === extrato.contaId
+              ? {
+                  ...e,
+                  status: updated.status as ExtratoStatus,
+                  requestedAt: updated.requestedAt ?? e.requestedAt,
+                  receivedAt: updated.receivedAt ?? e.receivedAt,
+                  consolidatedAt: updated.consolidatedAt ?? e.consolidatedAt,
+                }
+              : e,
+          ),
+        );
       } catch (error) {
         console.error("Failed to sync:", error);
       }
     },
-    [selectedMonth, authHeaders, fetchData],
+    [selectedMonth, authHeaders],
   );
 
   const handleSyncVerification = useCallback(async () => {
