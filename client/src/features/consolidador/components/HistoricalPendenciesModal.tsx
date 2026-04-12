@@ -4,14 +4,14 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Dialog, DialogContent, DialogTitle } from "@/shared/components/ui/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
-import type { Extrato, VerificationResult } from "../types/extrato";
+import type { Extrato } from "../types/extrato";
 
 interface HistoricalPendenciesModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   pendencies: Extrato[];
   onMonthClick: (monthKey: string) => void;
-  verificationMap?: Map<string, VerificationResult>;
+  verificationRedByMonth?: Map<string, number>;
 }
 
 interface MonthSummary {
@@ -29,21 +29,9 @@ function parseReferenceMonth(ref: string): Date {
   return new Date(parseInt(yyyy), parseInt(mm) - 1, 1);
 }
 
-function countVerificationRedForMonth(
-  competencia: string,
-  verificationMap?: Map<string, VerificationResult>,
-): number {
-  if (!verificationMap) return 0;
-  let count = 0;
-  verificationMap.forEach((v) => {
-    if (v.competencia === competencia && !v.all_green) count++;
-  });
-  return count;
-}
-
 function getMonthSummaries(
   pendencies: Extrato[],
-  verificationMap?: Map<string, VerificationResult>,
+  verificationRedByMonth?: Map<string, number>,
 ): MonthSummary[] {
   const groups: Record<string, Extrato[]> = {};
   for (const p of pendencies) {
@@ -62,7 +50,7 @@ function getMonthSummaries(
       const pendentes = items.filter((i) => i.status === "Pendente").length;
       const solicitados = items.filter((i) => i.status === "Solicitado").length;
       const recebidos = items.filter((i) => i.status === "Recebido").length;
-      const verificationRed = countVerificationRedForMonth(key, verificationMap);
+      const verificationRed = verificationRedByMonth?.get(key) ?? 0;
       const monthDate = parseReferenceMonth(items[0].referenceMonth);
       const label = format(monthDate, "MMMM yyyy", { locale: ptBR });
 
@@ -73,7 +61,7 @@ function getMonthSummaries(
         solicitados,
         recebidos,
         verificationRed,
-        total: items.length,
+        total: items.length + verificationRed,
       };
     });
 }
@@ -90,11 +78,11 @@ export function HistoricalPendenciesModal({
   onOpenChange,
   pendencies,
   onMonthClick,
-  verificationMap,
+  verificationRedByMonth,
 }: HistoricalPendenciesModalProps) {
   const summaries = useMemo(
-    () => getMonthSummaries(pendencies, verificationMap),
-    [pendencies, verificationMap],
+    () => getMonthSummaries(pendencies, verificationRedByMonth),
+    [pendencies, verificationRedByMonth],
   );
 
   const totalAll = useMemo(() => summaries.reduce((sum, m) => sum + m.total, 0), [summaries]);

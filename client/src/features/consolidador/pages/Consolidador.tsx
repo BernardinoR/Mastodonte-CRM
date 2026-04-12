@@ -153,6 +153,27 @@ export default function Consolidador() {
     }
   }, [selectedMonth, authHeaders]);
 
+  const verificationRedByMonth = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const conta of rawContas) {
+      for (const es of conta.extrato_statuses) {
+        if (es.status !== "Consolidado") continue;
+        const v = verificationMap.get(
+          verificationKey(
+            conta.client.name,
+            es.competencia,
+            conta.institution.name,
+            conta.account_name || "",
+          ),
+        );
+        if (v && !v.all_green) {
+          map.set(es.competencia, (map.get(es.competencia) ?? 0) + 1);
+        }
+      }
+    }
+    return map;
+  }, [rawContas, verificationMap]);
+
   useEffect(() => {
     fetchData();
   }, [fetchData]);
@@ -662,7 +683,7 @@ export default function Consolidador() {
         open={historicalOpen}
         onOpenChange={setHistoricalOpen}
         pendencies={historicalPendencies}
-        verificationMap={verificationMap}
+        verificationRedByMonth={verificationRedByMonth}
         onMonthClick={(monthKey) => {
           const [mm, yyyy] = monthKey.split("/");
           setSelectedMonth(new Date(parseInt(yyyy), parseInt(mm) - 1, 1));
