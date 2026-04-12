@@ -183,19 +183,6 @@ export default function Consolidador() {
     );
   }, [extratosWithOverrides]);
 
-  const verificationRedCount = useMemo(() => {
-    let count = 0;
-    for (const g of consolidatedGroups) {
-      for (const e of g.extratos) {
-        const v = verificationMap.get(
-          verificationKey(e.clientName, e.referenceMonth, e.institution, e.accountType),
-        );
-        if (v && !v.all_green) count++;
-      }
-    }
-    return count;
-  }, [consolidatedGroups, verificationMap]);
-
   const filteredExtratos = useMemo(() => {
     return extratosWithOverrides.filter((e) => {
       if (searchTerm) {
@@ -273,6 +260,19 @@ export default function Consolidador() {
 
     return { actionGroups: action, consolidatedGroups: consolidated };
   }, [filteredExtratos, groupBy]);
+
+  const verificationRedCount = useMemo(() => {
+    let count = 0;
+    for (const g of consolidatedGroups) {
+      for (const e of g.extratos) {
+        const v = verificationMap.get(
+          verificationKey(e.clientName, e.referenceMonth, e.institution, e.accountType),
+        );
+        if (v && !v.all_green) count++;
+      }
+    }
+    return count;
+  }, [consolidatedGroups, verificationMap]);
 
   const verificationRedGroups = useMemo(() => {
     if (!verificationFilter) return [];
