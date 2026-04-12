@@ -126,7 +126,8 @@
       "Bash(2)",
       "Bash(find /home/runner/workspace -path *api/auth* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "WebFetch(domain:skills.sh)",
-      "Bash(echo \"Total nodes: $\\(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/home/runner/workspace/santander-lovable-updated.json','utf8'\\)\\); console.log\\(d.nodes.length\\)\"\\)\")"
+      "Bash(echo \"Total nodes: $\\(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/home/runner/workspace/santander-lovable-updated.json','utf8'\\)\\); console.log\\(d.nodes.length\\)\"\\)\")",
+      "Bash(git -C /home/runner/workspace log --oneline --all --grep=\"extrato\\\\|verification\\\\|synchron\")"
     ]
   },
   "enableAllProjectMcpServers": true,

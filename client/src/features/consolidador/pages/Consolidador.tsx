@@ -184,13 +184,17 @@ export default function Consolidador() {
   }, [extratosWithOverrides]);
 
   const verificationRedCount = useMemo(() => {
-    const month = formatMonthParam(selectedMonth);
     let count = 0;
-    verificationMap.forEach((v) => {
-      if (v.competencia === month && !v.all_green) count++;
-    });
+    for (const g of consolidatedGroups) {
+      for (const e of g.extratos) {
+        const v = verificationMap.get(
+          verificationKey(e.clientName, e.referenceMonth, e.institution, e.accountType),
+        );
+        if (v && !v.all_green) count++;
+      }
+    }
     return count;
-  }, [verificationMap, selectedMonth]);
+  }, [consolidatedGroups, verificationMap]);
 
   const filteredExtratos = useMemo(() => {
     return extratosWithOverrides.filter((e) => {
