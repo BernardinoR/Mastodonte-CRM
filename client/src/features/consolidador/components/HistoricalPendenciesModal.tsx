@@ -39,6 +39,11 @@ function getMonthSummaries(
     if (!groups[key]) groups[key] = [];
     groups[key].push(p);
   }
+  if (verificationRedByMonth) {
+    for (const key of Array.from(verificationRedByMonth.keys())) {
+      if (!groups[key]) groups[key] = [];
+    }
+  }
 
   return Object.entries(groups)
     .sort(([a], [b]) => {
@@ -51,7 +56,7 @@ function getMonthSummaries(
       const solicitados = items.filter((i) => i.status === "Solicitado").length;
       const recebidos = items.filter((i) => i.status === "Recebido").length;
       const verificationRed = verificationRedByMonth?.get(key) ?? 0;
-      const monthDate = parseReferenceMonth(items[0].referenceMonth);
+      const monthDate = parseReferenceMonth(key);
       const label = format(monthDate, "MMMM yyyy", { locale: ptBR });
 
       return {
@@ -91,7 +96,10 @@ export function HistoricalPendenciesModal({
     [summaries],
   );
   const mesesComPendencia = useMemo(
-    () => summaries.filter((m) => m.pendentes > 0 || m.solicitados > 0 || m.recebidos > 0).length,
+    () =>
+      summaries.filter(
+        (m) => m.pendentes > 0 || m.solicitados > 0 || m.recebidos > 0 || m.verificationRed > 0,
+      ).length,
     [summaries],
   );
 

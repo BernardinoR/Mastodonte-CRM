@@ -89,6 +89,7 @@ export default function Consolidador() {
 
   const [extratos, setExtratos] = useState<Extrato[]>([]);
   const [historicalPendencies, setHistoricalPendencies] = useState<Extrato[]>([]);
+  const [historicalMonths, setHistoricalMonths] = useState<string[]>([]);
   const [rawContas, setRawContas] = useState<DbConta[]>([]);
   const [verificationMap, setVerificationMap] = useState<Map<string, VerificationResult>>(
     new Map(),
@@ -120,8 +121,9 @@ export default function Consolidador() {
       setRawContas(contas);
       setExtratos(buildExtratos(contas, whatsappGroups, month));
 
-      const historicalMonths = getAllPendingMonths(contas);
-      setHistoricalPendencies(buildPendencias(contas, whatsappGroups, historicalMonths));
+      const hm = getAllPendingMonths(contas);
+      setHistoricalMonths(hm);
+      setHistoricalPendencies(buildPendencias(contas, whatsappGroups, hm));
 
       // Verification is supplementary — fetch separately to not block main data
       try {
@@ -154,10 +156,12 @@ export default function Consolidador() {
   }, [selectedMonth, authHeaders]);
 
   const verificationRedByMonth = useMemo(() => {
+    const historicalSet = new Set(historicalMonths);
     const map = new Map<string, number>();
     for (const conta of rawContas) {
       for (const es of conta.extrato_statuses) {
         if (es.status !== "Consolidado") continue;
+        if (!historicalSet.has(es.competencia)) continue;
         const v = verificationMap.get(
           verificationKey(
             conta.client.name,
@@ -172,7 +176,12 @@ export default function Consolidador() {
       }
     }
     return map;
-  }, [rawContas, verificationMap]);
+  }, [rawContas, verificationMap, historicalMonths]);
+
+  const verificationRedTotal = useMemo(
+    () => Array.from(verificationRedByMonth.values()).reduce((s, n) => s + n, 0),
+    [verificationRedByMonth],
+  );
 
   useEffect(() => {
     fetchData();
@@ -531,7 +540,7 @@ export default function Consolidador() {
         summary={summary}
         selectedMonth={selectedMonth}
         onMonthChange={setSelectedMonth}
-        historicalCount={historicalPendencies.length}
+        historicalCount={historicalPendencies.length + verificationRedTotal}
         onOpenHistorical={() => setHistoricalOpen(true)}
         activeStatusFilter={statusFilter}
         onStatusFilterChange={setStatusFilter}

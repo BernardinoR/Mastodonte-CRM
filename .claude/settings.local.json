@@ -127,7 +127,11 @@
       "Bash(find /home/runner/workspace -path *api/auth* -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "WebFetch(domain:skills.sh)",
       "Bash(echo \"Total nodes: $\\(node -e \"const d=JSON.parse\\(require\\('fs'\\).readFileSync\\('/home/runner/workspace/santander-lovable-updated.json','utf8'\\)\\); console.log\\(d.nodes.length\\)\"\\)\")",
-      "Bash(git -C /home/runner/workspace log --oneline --all --grep=\"extrato\\\\|verification\\\\|synchron\")"
+      "Bash(git -C /home/runner/workspace log --oneline --all --grep=\"extrato\\\\|verification\\\\|synchron\")",
+      "Bash(awk 'NR==4' /home/runner/.claude/projects/-home-runner-workspace/93ebdeec-bff1-42d1-ba89-1e48e4b482e7/tool-results/mcp-n8n-mcp-n8n_get_workflow-1776017956533.txt)",
+      "mcp__n8n-mcp__n8n_workflow_versions",
+      "Bash(awk 'NR==4 {print length\\($0\\)}' /home/runner/.claude/projects/-home-runner-workspace/93ebdeec-bff1-42d1-ba89-1e48e4b482e7/tool-results/mcp-n8n-mcp-n8n_executions-1776022157136.txt)",
+      "Bash(python:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
